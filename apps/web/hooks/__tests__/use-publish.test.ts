@@ -131,8 +131,8 @@ describe("UsePublishReturn interface", () => {
       latestDeployment: undefined,
       trackedDeployment: undefined,
       unpublishedChanges: undefined,
-      actionLabel: "Deploy",
-      getDeployUrl: (slug: string) => `https://example.com/${slug}`,
+      actionLabel: "Build",
+      getDeployUrl: (slug: string) => `file://dist/${slug}`,
     };
 
     expect(mockReturn.deployment.status).toBe("idle");
@@ -141,7 +141,7 @@ describe("UsePublishReturn interface", () => {
     expect(typeof mockReturn.handlePublish).toBe("function");
     expect(typeof mockReturn.resetDeployment).toBe("function");
     expect(mockReturn.isPublishing).toBe(false);
-    expect(mockReturn.actionLabel).toBe("Deploy");
+    expect(mockReturn.actionLabel).toBe("Build");
     expect(typeof mockReturn.getDeployUrl).toBe("function");
   });
 
@@ -175,15 +175,13 @@ describe("UsePublishReturn interface", () => {
       latestDeployment: undefined,
       trackedDeployment: undefined,
       unpublishedChanges: undefined,
-      actionLabel: "Deploy",
-      getDeployUrl: (slug: string) => `https://inkloom-${slug}.pages.dev`,
+      actionLabel: "Build",
+      getDeployUrl: (slug: string) => `file://dist/${slug}`,
     };
 
-    expect(mockReturn.getDeployUrl("my-docs")).toBe(
-      "https://inkloom-my-docs.pages.dev"
-    );
+    expect(mockReturn.getDeployUrl("my-docs")).toBe("file://dist/my-docs");
     expect(mockReturn.getDeployUrl("test-project")).toBe(
-      "https://inkloom-test-project.pages.dev"
+      "file://dist/test-project"
     );
   });
 
@@ -198,7 +196,7 @@ describe("UsePublishReturn interface", () => {
       latestDeployment: undefined,
       trackedDeployment: undefined,
       unpublishedChanges: undefined,
-      actionLabel: "Deploy",
+      actionLabel: "Build",
       getDeployUrl: () => "",
     };
     expect(mockReturn.target).toBe("preview");
@@ -215,7 +213,7 @@ describe("UsePublishReturn interface", () => {
       latestDeployment: undefined,
       trackedDeployment: undefined,
       unpublishedChanges: undefined,
-      actionLabel: "Deploy",
+      actionLabel: "Build",
       getDeployUrl: () => "",
     };
     expect(publishingReturn.isPublishing).toBe(true);
@@ -230,7 +228,7 @@ describe("UsePublishReturn interface", () => {
       latestDeployment: undefined,
       trackedDeployment: undefined,
       unpublishedChanges: undefined,
-      actionLabel: "Deploy",
+      actionLabel: "Build",
       getDeployUrl: () => "",
     };
     expect(pollingReturn.isPublishing).toBe(true);
@@ -238,12 +236,11 @@ describe("UsePublishReturn interface", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Deploy adapter direct tests (no dynamic import — import the TS files directly)
+// Deploy adapter direct tests (core mode)
 // ---------------------------------------------------------------------------
 
 describe("deploy adapter - core", () => {
   it("provides Build action label", async () => {
-    // Import the actual file using relative path to avoid module resolution issues
     const { deployAdapter } = await import("../../lib/adapters/deploy.core");
     expect(deployAdapter.actionLabel).toBe("Build");
   });
@@ -260,32 +257,6 @@ describe("deploy adapter - core", () => {
     expect(result.success).toBe(true);
     expect(result.message).toContain("inkloom build");
     expect(result.url).toBe("file://dist/");
-  });
-});
-
-describe("deploy adapter - platform", () => {
-  it("provides Deploy action label", async () => {
-    const { deployAdapter } = await import(
-      "../../lib/adapters/deploy.platform"
-    );
-    expect(deployAdapter.actionLabel).toBe("Deploy");
-  });
-
-  it("getDeployUrl returns Cloudflare Pages URL", async () => {
-    const { deployAdapter } = await import(
-      "../../lib/adapters/deploy.platform"
-    );
-    const url = deployAdapter.getDeployUrl("my-docs");
-    expect(url).toBe("https://inkloom-my-docs.pages.dev");
-  });
-
-  it("publish returns failure with guidance message", async () => {
-    const { deployAdapter } = await import(
-      "../../lib/adapters/deploy.platform"
-    );
-    const result = await deployAdapter.publish({ projectId: "test" });
-    expect(result.success).toBe(false);
-    expect(result.message).toContain("/api/publish");
   });
 });
 
@@ -358,7 +329,6 @@ describe("deployment state machine invariants", () => {
   });
 
   it("state machine covers all valid transitions", () => {
-    // Document the valid state transitions
     const validTransitions: Record<DeploymentStatus, DeploymentStatus[]> = {
       idle: ["publishing"],
       publishing: ["polling", "error"],
@@ -367,13 +337,11 @@ describe("deployment state machine invariants", () => {
       error: ["idle"],
     };
 
-    // Every status has at least one valid transition
     for (const [from, targets] of Object.entries(validTransitions)) {
       expect(targets.length).toBeGreaterThan(0);
       expect(typeof from).toBe("string");
     }
 
-    // idle can only be reached from success, error, or polling
     expect(validTransitions.success).toContain("idle");
     expect(validTransitions.error).toContain("idle");
     expect(validTransitions.polling).toContain("idle");
@@ -386,7 +354,6 @@ describe("deployment state machine invariants", () => {
 
 describe("adapter type exports", () => {
   it("DeployAdapter interface matches expected shape", () => {
-    // Type-level check — if this compiles, the type is correct
     const _typeCheck: import("@/lib/adapters/types").DeployAdapter = {
       publish: async () => ({ success: true, url: "", message: "" }),
       getDeployUrl: () => "",
@@ -417,50 +384,5 @@ describe("adapter type exports", () => {
     expect(result.success).toBe(true);
     expect(result.url).toBe("https://example.com");
     expect(result.message).toBe("Done");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Core vs Platform adapter differentiation
-// ---------------------------------------------------------------------------
-
-describe("core vs platform adapter semantics", () => {
-  it("core uses Build terminology, platform uses Deploy", async () => {
-    const core = await import("../../lib/adapters/deploy.core");
-    const platform = await import("../../lib/adapters/deploy.platform");
-
-    expect(core.deployAdapter.actionLabel).toBe("Build");
-    expect(platform.deployAdapter.actionLabel).toBe("Deploy");
-    expect(core.deployAdapter.actionLabel).not.toBe(
-      platform.deployAdapter.actionLabel
-    );
-  });
-
-  it("core returns local file URLs, platform returns cloud URLs", async () => {
-    const core = await import("../../lib/adapters/deploy.core");
-    const platform = await import("../../lib/adapters/deploy.platform");
-
-    const coreUrl = core.deployAdapter.getDeployUrl("test");
-    const platformUrl = platform.deployAdapter.getDeployUrl("test");
-
-    expect(coreUrl).toMatch(/^file:\/\//);
-    expect(platformUrl).toMatch(/^https:\/\//);
-  });
-
-  it("both adapters implement the same interface", async () => {
-    const core = await import("../../lib/adapters/deploy.core");
-    const platform = await import("../../lib/adapters/deploy.platform");
-
-    // Both have the same set of keys
-    const coreKeys = Object.keys(core.deployAdapter).sort();
-    const platformKeys = Object.keys(platform.deployAdapter).sort();
-    expect(coreKeys).toEqual(platformKeys);
-
-    // Both have the required methods/properties
-    for (const adapter of [core.deployAdapter, platform.deployAdapter]) {
-      expect(typeof adapter.publish).toBe("function");
-      expect(typeof adapter.getDeployUrl).toBe("function");
-      expect(typeof adapter.actionLabel).toBe("string");
-    }
   });
 });

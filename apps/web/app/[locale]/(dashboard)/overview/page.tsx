@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import { useQuery } from "convex/react";
 import { getRelativeTimeKeyAndParams } from "@/lib/date-utils";
 import { api } from "@/convex/_generated/api";
-import { useCurrentUser } from "@/hooks/use-current-user";
-import { useWorkOS } from "@/lib/workos-context";
+import { useAuth } from "@/hooks/use-auth";
+import { useAppContext } from "@/hooks/use-app-context";
 import {
   FolderOpen,
   FileText,
@@ -19,7 +19,6 @@ import {
   ArrowRight,
   ExternalLink,
   CreditCard,
-  Sparkles,
 } from "lucide-react";
 
 function StatCard({
@@ -127,26 +126,15 @@ export default function DashboardPage() {
     const { key, params } = getRelativeTimeKeyAndParams(ts);
     return tc(key, params);
   }
-  const { workosUser, isLoading: userLoading } = useCurrentUser();
-  const { currentOrg, isLoading: orgLoading } = useWorkOS();
+  const { user, isLoading: userLoading } = useAuth();
+  const { orgName, isMultiTenant, isLoading: ctxLoading } = useAppContext();
 
-  const hasCompleted = useQuery(
-    api.users.hasCompletedOnboarding,
-    workosUser ? { workosUserId: workosUser.id } : "skip"
-  );
+  const stats = useQuery(api.projects.getDashboardStats);
 
-  const stats = useQuery(
-    api.projects.getDashboardStats,
-    !orgLoading && currentOrg
-      ? { workosOrgId: currentOrg.id }
-      : "skip"
-  );
+  const isLoading = userLoading || ctxLoading || stats === undefined;
 
-  const isLoading = userLoading || orgLoading || stats === undefined;
-
-  const firstName = workosUser?.firstName || "there";
-  const orgName = currentOrg?.name;
-  const planLabel = (currentOrg as any)?.plan || "Free";
+  const firstName = user?.name?.split(" ")[0] || "there";
+  const planLabel = isMultiTenant ? "Pro" : "Core";
 
   // Build recommended actions
   const actions: { icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; title: string; description: string; href: string }[] = [];
@@ -168,20 +156,12 @@ export default function DashboardPage() {
         href: proj ? `/projects/${proj._id}/editor` : "/projects",
       });
     }
-    if (planLabel === "Free" || planLabel === "free") {
+    if (isMultiTenant) {
       actions.push({
         icon: CreditCard,
         title: t("upgradeToPro"),
         description: t("upgradeToProDescription"),
         href: "/organization/billing",
-      });
-    }
-    if (hasCompleted === false) {
-      actions.push({
-        icon: Sparkles,
-        title: t("completeSetup"),
-        description: t("completeSetupDescription"),
-        href: "/onboarding",
       });
     }
   }
@@ -210,18 +190,6 @@ export default function DashboardPage() {
           <span className="capitalize">{typeof planLabel === "string" ? planLabel : "Free"}</span>
         </p>
 
-        {hasCompleted === false && (
-          <Link
-            href="/onboarding"
-            className="mt-4 flex items-center gap-2 rounded-xl border border-teal-500/20 bg-teal-500/[0.06] px-4 py-3 text-sm transition-all hover:border-teal-500/30"
-          >
-            <Sparkles className="h-4 w-4" style={{ color: "#14b8a6" }} />
-            <span className="text-[var(--text-medium)]">
-              {t("finishSetup")}
-            </span>
-            <ArrowRight className="ml-auto h-4 w-4 text-[var(--text-dim)]" />
-          </Link>
-        )}
       </div>
 
       {/* Section 2: Quick stats */}

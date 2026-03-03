@@ -101,7 +101,6 @@ describe("AppContext core-mode defaults", () => {
     const { AppContext } = await import("@/hooks/use-app-context");
     // @ts-expect-error -- accessing internal React context value for testing
     const defaultValue: AppContextState = AppContext._currentValue;
-    // Core Convex functions use "local" as the sentinel workosOrgId
     expect(defaultValue.tenantId).toBe("local");
   });
 });
@@ -170,7 +169,7 @@ describe("WorkOS to AppContextState transformation", () => {
   });
 
   it("handles null org (no org selected yet)", () => {
-    const org = null;
+    const org = null as { id: string; name: string } | null;
     const state: AppContextState = {
       tenantId: org?.id ?? "",
       orgName: org?.name ?? "",
@@ -223,7 +222,6 @@ describe("core vs platform state properties", () => {
       isMultiTenant: false,
       isLoading: false,
     };
-    // This must match the sentinel value in convex/projectsCore.ts
     expect(coreState.tenantId).toBe("local");
   });
 
@@ -244,10 +242,6 @@ describe("core vs platform state properties", () => {
 
 describe("providers.tsx integration", () => {
   it("bridge components can be imported without side effects", async () => {
-    // Verify the bridge modules import cleanly (no side effects)
-    // providers.tsx itself can't be tested here because ConvexReactClient
-    // requires NEXT_PUBLIC_CONVEX_URL at import time. The bridge imports
-    // are validated by type-checking and the bridge module tests above.
     const authBridge = await import("@/components/auth-bridge");
     const appBridge = await import("@/components/app-context-bridge");
     expect(authBridge.PlatformAuthBridge).toBeDefined();

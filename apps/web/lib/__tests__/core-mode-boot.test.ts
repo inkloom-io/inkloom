@@ -138,7 +138,7 @@ describe("core adapter set consistency", () => {
 
   it("context tenant ID matches Convex sentinel", async () => {
     const { contextAdapter } = await import("@/lib/adapters.core");
-    const { LOCAL_ORG_ID } = await import("@/convex/projectsCore");
+    const { LOCAL_ORG_ID } = await import("@/convex/projects");
     expect(contextAdapter.getTenantId()).toBe(LOCAL_ORG_ID);
   });
 
@@ -199,9 +199,9 @@ describe("deploy switchpoint (adapters/deploy.ts)", () => {
     expect(mod.deployAdapter).toBeDefined();
   });
 
-  it("currently exports platform adapter", async () => {
+  it("currently exports core adapter", async () => {
     const mod = await import("@/lib/adapters/deploy");
-    expect(mod.deployAdapter.actionLabel).toBe("Deploy");
+    expect(mod.deployAdapter.actionLabel).toBe("Build");
   });
 
   it("switchpoint source is a single re-export (easy to swap)", () => {
@@ -334,30 +334,30 @@ describe("core dashboard layout", () => {
 
 describe("core middleware", () => {
   it("imports next-intl middleware", () => {
-    const source = readSource("middleware.core.ts");
+    const source = readSource("middleware.ts");
     expect(source).toContain("next-intl/middleware");
   });
 
   it("does not import WorkOS in code", () => {
-    const code = stripComments(readSource("middleware.core.ts"));
+    const code = stripComments(readSource("middleware.ts"));
     expect(code).not.toContain("workos");
     expect(code).not.toContain("WorkOS");
     expect(code).not.toContain("@workos-inc");
   });
 
   it("does not handle auth cookies in code", () => {
-    const code = stripComments(readSource("middleware.core.ts"));
+    const code = stripComments(readSource("middleware.ts"));
     expect(code).not.toContain("cookie");
     expect(code).not.toContain("session");
   });
 
   it("skips API routes", () => {
-    const source = readSource("middleware.core.ts");
+    const source = readSource("middleware.ts");
     expect(source).toContain("/api/");
   });
 
   it("has no platform-specific imports", () => {
-    const source = readSource("middleware.core.ts");
+    const source = readSource("middleware.ts");
     const importPaths = getImportPaths(source);
 
     for (const importPath of importPaths) {
@@ -374,20 +374,20 @@ describe("core middleware", () => {
 
 describe("sentinel value consistency across all core modules", () => {
   it("LOCAL_ORG_ID matches context adapter tenant ID", async () => {
-    const { LOCAL_ORG_ID } = await import("@/convex/projectsCore");
+    const { LOCAL_ORG_ID } = await import("@/convex/projects");
     const { contextAdapter } = await import("@/lib/adapters/context.core");
     expect(LOCAL_ORG_ID).toBe(contextAdapter.getTenantId());
   });
 
   it("LOCAL_USER_ID matches workosUserId pattern used in core functions", async () => {
-    const { LOCAL_USER_ID } = await import("@/convex/usersCore");
+    const { LOCAL_USER_ID } = await import("@/convex/users");
     expect(LOCAL_USER_ID).toBe("local");
   });
 
   it("sentinel values are stable (regression guard)", async () => {
-    const { LOCAL_ORG_ID } = await import("@/convex/projectsCore");
+    const { LOCAL_ORG_ID } = await import("@/convex/projects");
     const { LOCAL_USER_ID, LOCAL_USER_EMAIL } = await import(
-      "@/convex/usersCore"
+      "@/convex/users"
     );
 
     // These values are part of the data portability contract
@@ -604,18 +604,18 @@ describe("barrel swap: core vs platform adapter sets", () => {
     }
   });
 
-  it("barrel swap changes mode semantics correctly", async () => {
+  it("both barrels export core adapters in core mode", async () => {
     const core = await import("@/lib/adapters.core");
-    const platform = await import("@/lib/adapters");
+    const barrel = await import("@/lib/adapters");
 
-    // Core = single-tenant local tool
+    // Both should export single-tenant local adapters in core mode
     expect(core.contextAdapter.isMultiTenant()).toBe(false);
     expect(core.contextAdapter.getTenantId()).toBe("local");
     expect(core.deployAdapter.actionLabel).toBe("Build");
 
-    // Platform = multi-tenant SaaS
-    expect(platform.contextAdapter.isMultiTenant()).toBe(true);
-    expect(platform.deployAdapter.actionLabel).toBe("Deploy");
+    expect(barrel.contextAdapter.isMultiTenant()).toBe(false);
+    expect(barrel.contextAdapter.getTenantId()).toBe("local");
+    expect(barrel.deployAdapter.actionLabel).toBe("Build");
   });
 });
 

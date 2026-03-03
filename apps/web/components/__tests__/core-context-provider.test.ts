@@ -58,19 +58,19 @@ describe("CoreContextProvider app-context contract", () => {
 // ---------------------------------------------------------------------------
 
 describe("CoreContextProvider Convex dependency", () => {
-  it("usersCore module exports ensureLocalUser mutation", async () => {
-    const mod = await import("@/convex/usersCore");
+  it("users module exports ensureLocalUser mutation", async () => {
+    const mod = await import("@/convex/users");
     expect(mod.ensureLocalUser).toBeDefined();
   });
 
-  it("usersCore module exports currentLocal query", async () => {
-    const mod = await import("@/convex/usersCore");
+  it("users module exports currentLocal query", async () => {
+    const mod = await import("@/convex/users");
     expect(mod.currentLocal).toBeDefined();
   });
 
   it("sentinel values match core-mode expectations", async () => {
     const { LOCAL_USER_ID, LOCAL_USER_EMAIL } = await import(
-      "@/convex/usersCore"
+      "@/convex/users"
     );
     expect(LOCAL_USER_ID).toBe("local");
     expect(LOCAL_USER_EMAIL).toBe("local@inkloom.local");
@@ -189,7 +189,7 @@ describe("providers.core module contract", () => {
 describe("Core-mode auth state shape", () => {
   it("core-mode local user matches AuthUser interface", async () => {
     const { LOCAL_USER_ID, LOCAL_USER_EMAIL } = await import(
-      "@/convex/usersCore"
+      "@/convex/users"
     );
 
     // The user document created by ensureLocalUser should satisfy AuthUser

@@ -14,10 +14,6 @@ const coreSource = readFileSync(
   resolve(__dirname, "../layout.core.tsx"),
   "utf-8"
 );
-const platformSource = readFileSync(
-  resolve(__dirname, "../layout.tsx"),
-  "utf-8"
-);
 
 describe("Core dashboard layout: structural contracts", () => {
   it("exports a default function named CoreDashboardLayout", () => {
@@ -48,7 +44,6 @@ describe("Core dashboard layout: structural contracts", () => {
 
 describe("Core layout: no auth/billing/onboarding", () => {
   it("does not import requireAuth", () => {
-    // Check import statements only (the comment mentions requireAuth)
     expect(coreSource).not.toMatch(/import\s.*requireAuth/);
   });
 
@@ -70,46 +65,23 @@ describe("Core layout: no auth/billing/onboarding", () => {
   });
 });
 
-describe("Platform layout: auth/billing present", () => {
-  it("imports requireAuth", () => {
-    expect(platformSource).toContain("requireAuth");
-  });
-
-  it("imports BillingBanner", () => {
-    expect(platformSource).toContain("BillingBanner");
-  });
-
-  it("imports OnboardingRedirect", () => {
-    expect(platformSource).toContain("OnboardingRedirect");
-  });
-
-  it("is an async function", () => {
-    expect(platformSource).toMatch(/export default async function/);
-  });
-});
-
-describe("Core vs Platform layout: shared visual elements", () => {
-  it("both have dot matrix background", () => {
+describe("Core layout: visual elements", () => {
+  it("has dot matrix background", () => {
     expect(coreSource).toContain("Dot matrix background");
-    expect(platformSource).toContain("Dot matrix background");
   });
 
-  it("both have ambient glow", () => {
+  it("has ambient glow", () => {
     expect(coreSource).toContain("Ambient glow");
-    expect(platformSource).toContain("Ambient glow");
   });
 
-  it("both use same font variables", () => {
+  it("uses font variables", () => {
     expect(coreSource).toContain("--font-heading");
-    expect(platformSource).toContain("--font-heading");
     expect(coreSource).toContain("--font-body");
-    expect(platformSource).toContain("--font-body");
   });
 
-  it("both use same base CSS classes", () => {
+  it("uses same base CSS classes", () => {
     const baseClass = "flex min-h-screen bg-background text-foreground";
     expect(coreSource).toContain(baseClass);
-    expect(platformSource).toContain(baseClass);
   });
 });
 
@@ -123,12 +95,10 @@ describe("LOCAL_USER constant shape", () => {
   });
 
   it("LOCAL_USER id matches auth.core.ts local user id", () => {
-    // Verify consistency with the auth adapter's LOCAL_USER
     const authCoreSource = readFileSync(
       resolve(__dirname, "../../../../lib/adapters/auth.core.ts"),
       "utf-8"
     );
-    // Both should use "local_user" as the id
     expect(coreSource).toContain('id: "local_user"');
     expect(authCoreSource).toContain('id: "local_user"');
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useWorkOS } from "@/lib/workos-context";
+import { useAppContext } from "@/hooks/use-app-context";
 import type { ReactNode } from "react";
 
 type OrgRole = "owner" | "admin" | "member" | "viewer";
@@ -11,43 +11,19 @@ interface PermissionGuardProps {
   fallback?: ReactNode;
 }
 
-const roleHierarchy: Record<OrgRole, number> = {
-  viewer: 0,
-  member: 1,
-  admin: 2,
-  owner: 3,
-};
-
+/**
+ * Permission guard component.
+ *
+ * In core mode (single-tenant), the local user always has full admin access.
+ * Children always render. In platform mode, this is overridden with the
+ * WorkOS-backed version that checks org roles.
+ */
 export function PermissionGuard({
   children,
-  requiredRoles,
-  fallback = null,
 }: PermissionGuardProps) {
-  const { currentOrg, isLoading } = useWorkOS();
-
-  // While loading, don't render anything
-  if (isLoading) {
-    return null;
-  }
-
-  // No org selected
-  if (!currentOrg) {
-    return <>{fallback}</>;
-  }
-
-  const userRole = currentOrg.role as OrgRole;
-
-  // Check if user has one of the required roles
-  const hasPermission = requiredRoles.includes(userRole);
-
-  if (!hasPermission) {
-    return <>{fallback}</>;
-  }
-
   return <>{children}</>;
 }
 
-// Helper component that checks for minimum role level
 interface MinRoleGuardProps {
   children: ReactNode;
   minRole: OrgRole;
@@ -56,47 +32,30 @@ interface MinRoleGuardProps {
 
 export function MinRoleGuard({
   children,
-  minRole,
-  fallback = null,
 }: MinRoleGuardProps) {
-  const { currentOrg, isLoading } = useWorkOS();
-
-  if (isLoading) {
-    return null;
-  }
-
-  if (!currentOrg) {
-    return <>{fallback}</>;
-  }
-
-  const userRole = currentOrg.role as OrgRole;
-  const hasMinRole = roleHierarchy[userRole] >= roleHierarchy[minRole];
-
-  if (!hasMinRole) {
-    return <>{fallback}</>;
-  }
-
   return <>{children}</>;
 }
 
-// Hook for checking permissions in code
+/**
+ * Permissions hook.
+ *
+ * In core mode, the local user has all permissions.
+ */
 export function usePermissions() {
-  const { currentOrg, isLoading } = useWorkOS();
-
-  const userRole = (currentOrg?.role as OrgRole) || "viewer";
+  const { isLoading } = useAppContext();
 
   return {
     isLoading,
-    role: userRole,
-    canViewProjects: ["owner", "admin", "member", "viewer"].includes(userRole),
-    canCreateProjects: ["owner", "admin", "member"].includes(userRole),
-    canEditPages: ["owner", "admin", "member"].includes(userRole),
-    canDeleteProjects: ["owner", "admin"].includes(userRole),
-    canPublishDeploy: ["owner", "admin", "member"].includes(userRole),
-    canInviteMembers: ["owner", "admin"].includes(userRole),
-    canRemoveMembers: ["owner", "admin"].includes(userRole),
-    canChangeRoles: ["owner", "admin"].includes(userRole),
-    canUpdateOrgSettings: ["owner", "admin"].includes(userRole),
-    canDeleteOrg: userRole === "owner",
+    role: "admin" as OrgRole,
+    canViewProjects: true,
+    canCreateProjects: true,
+    canEditPages: true,
+    canDeleteProjects: true,
+    canPublishDeploy: true,
+    canInviteMembers: true,
+    canRemoveMembers: true,
+    canChangeRoles: true,
+    canUpdateOrgSettings: true,
+    canDeleteOrg: true,
   };
 }

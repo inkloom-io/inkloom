@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
     ],
   },
   // Ensure API routes and server components can use Node.js modules
-  serverExternalPackages: ["@workos-inc/node", "@workos-inc/authkit-nextjs", "@apidevtools/swagger-parser", "create-inkloom"],
+  serverExternalPackages: ["@apidevtools/swagger-parser", "create-inkloom"],
 };
 
 export default withNextIntl(nextConfig);

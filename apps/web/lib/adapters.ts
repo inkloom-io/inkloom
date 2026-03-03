@@ -6,17 +6,13 @@
  *
  *   import { authAdapter, contextAdapter, deployAdapter } from '@/lib/adapters';
  *
- * In the existing platform codebase (pre-restructure), this exports
- * platform adapters. After the restructure:
- * - `core/apps/web/lib/adapters.ts` exports core adapters
- * - `apps/dev/lib/adapters.ts` (generated) exports platform adapters
+ * Core standalone mode: exports core adapters (static local user, no-op deploy).
+ * Platform dev mode (apps/dev/): generated barrel exports platform adapters.
  */
 
-export { authAdapter } from "./adapters/auth.platform";
-export { contextAdapter } from "./adapters/context.platform";
-export { deployAdapter } from "./adapters/deploy.platform";
-
-export { createPlatformContextAdapter } from "./adapters/context.platform";
+export { authAdapter } from "./adapters/auth.core";
+export { contextAdapter } from "./adapters/context.core";
+export { deployAdapter } from "./adapters/deploy.core";
 
 export type {
   AuthAdapter,

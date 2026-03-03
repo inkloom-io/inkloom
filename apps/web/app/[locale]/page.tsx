@@ -1,8 +1,9 @@
-import { getCurrentUser } from "@/lib/auth";
-import MarketingPage from "./marketing-page";
+import { redirect } from "next/navigation";
 
-export default async function HomePage() {
-  const user = await getCurrentUser();
-
-  return <MarketingPage isAuthenticated={!!user} />;
+/**
+ * Root page for core mode.
+ * No marketing page — redirect straight to the projects dashboard.
+ */
+export default function HomePage() {
+  redirect("/projects");
 }

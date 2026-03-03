@@ -62,11 +62,11 @@ describe("nav item filtering: core mode (isMultiTenant=false)", () => {
   });
 
   it("Overview is the first item", () => {
-    expect(items[0].href).toBe("/overview");
+    expect(items[0]!.href).toBe("/overview");
   });
 
   it("Settings is the last item", () => {
-    expect(items[items.length - 1].href).toBe("/settings");
+    expect(items[items.length - 1]!.href).toBe("/settings");
   });
 });
 
@@ -90,11 +90,11 @@ describe("nav item filtering: platform mode (isMultiTenant=true)", () => {
   });
 
   it("Overview is still the first item", () => {
-    expect(items[0].href).toBe("/overview");
+    expect(items[0]!.href).toBe("/overview");
   });
 
   it("Settings is still the last item", () => {
-    expect(items[items.length - 1].href).toBe("/settings");
+    expect(items[items.length - 1]!.href).toBe("/settings");
   });
 });
 
@@ -119,7 +119,7 @@ describe("core vs platform nav item consistency", () => {
     const coreHrefs = new Set(coreItems.map((i) => i.href));
     const extra = platformItems.filter((i) => !coreHrefs.has(i.href));
     expect(extra).toHaveLength(1);
-    expect(extra[0].href).toBe("/organization/settings");
+    expect(extra[0]!.href).toBe("/organization/settings");
   });
 
   it("shared items preserve the same order", () => {

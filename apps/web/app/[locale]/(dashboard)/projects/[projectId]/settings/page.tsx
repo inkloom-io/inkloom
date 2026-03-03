@@ -17,9 +17,6 @@ import { GeneralTab } from "@/components/settings/tabs/general-tab";
 import { BrandingTab } from "@/components/settings/tabs/branding-tab";
 import { ContentTab } from "@/components/settings/tabs/content-tab";
 import { SeoTab } from "@/components/settings/tabs/seo-tab";
-import { AiTab } from "@/components/settings/tabs/ai-tab";
-import { IntegrationsTab } from "@/components/settings/tabs/integrations-tab";
-import { DeveloperTab } from "@/components/settings/tabs/developer-tab";
 
 interface SettingsPageProps {
   params: Promise<{ projectId: string }>;
@@ -30,9 +27,6 @@ const VALID_TABS: SettingsTab[] = [
   "branding",
   "content",
   "seo",
-  "ai",
-  "integrations",
-  "developer",
 ];
 
 function SettingsContent({ projectId }: { projectId: string }) {
@@ -115,15 +109,6 @@ function SettingsContent({ projectId }: { projectId: string }) {
           )}
           {activeTab === "seo" && (
             <SeoTab projectId={projectId} project={project} />
-          )}
-          {activeTab === "ai" && (
-            <AiTab projectId={projectId} project={project} />
-          )}
-          {activeTab === "integrations" && (
-            <IntegrationsTab projectId={projectId} project={project} />
-          )}
-          {activeTab === "developer" && (
-            <DeveloperTab projectId={projectId} project={project} />
           )}
         </div>
       </div>

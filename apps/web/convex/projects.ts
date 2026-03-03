@@ -297,6 +297,151 @@ export const createFromImport = mutation({
 });
 
 /**
+ * Get a single project by ID.
+ */
+export const get = query({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.projectId);
+  },
+});
+
+/**
+ * Update a project's basic fields.
+ */
+export const update = mutation({
+  args: {
+    projectId: v.id("projects"),
+    name: v.optional(v.string()),
+    description: v.optional(v.string()),
+    slug: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { projectId, ...updates } = args;
+    const project = await ctx.db.get(projectId);
+    if (!project) throw new Error("Project not found");
+
+    await ctx.db.patch(projectId, {
+      ...updates,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Update project settings (theme, branding, SEO, content config).
+ */
+export const updateSettings = mutation({
+  args: {
+    projectId: v.id("projects"),
+    settings: v.any(),
+  },
+  handler: async (ctx, args) => {
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+
+    const currentSettings = (project.settings as Record<string, unknown>) || {};
+    const newSettings = args.settings as Record<string, unknown>;
+
+    await ctx.db.patch(args.projectId, {
+      settings: { ...currentSettings, ...newSettings },
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Delete a project and all associated data.
+ */
+export const remove = mutation({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+
+    // Delete branches and their pages/folders
+    const branches = await ctx.db
+      .query("branches")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+
+    for (const branch of branches) {
+      const pages = await ctx.db
+        .query("pages")
+        .withIndex("by_branch", (q) => q.eq("branchId", branch._id))
+        .collect();
+      for (const page of pages) {
+        // Delete page contents
+        const contents = await ctx.db
+          .query("pageContents")
+          .withIndex("by_page", (q) => q.eq("pageId", page._id))
+          .collect();
+        for (const content of contents) {
+          await ctx.db.delete(content._id);
+        }
+        await ctx.db.delete(page._id);
+      }
+
+      const folders = await ctx.db
+        .query("folders")
+        .withIndex("by_branch", (q) => q.eq("branchId", branch._id))
+        .collect();
+      for (const folder of folders) {
+        await ctx.db.delete(folder._id);
+      }
+
+      await ctx.db.delete(branch._id);
+    }
+
+    // Delete project members
+    const members = await ctx.db
+      .query("projectMembers")
+      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .collect();
+    for (const member of members) {
+      await ctx.db.delete(member._id);
+    }
+
+    // Delete the project
+    await ctx.db.delete(args.projectId);
+  },
+});
+
+/**
+ * Check if a Cloudflare slug is available.
+ * In core mode, this is a no-op (no Cloudflare deployment).
+ */
+export const checkCfSlugAvailable = query({
+  args: {
+    cfSlug: v.optional(v.string()),
+    slug: v.optional(v.string()),
+    projectId: v.optional(v.id("projects")),
+    excludeProjectId: v.optional(v.id("projects")),
+  },
+  handler: async () => {
+    // In core mode, always available (no CF slugs)
+    return { available: true };
+  },
+});
+
+/**
+ * Update a project's Cloudflare slug.
+ * In core mode, this updates the slug field.
+ */
+export const updateCfSlug = mutation({
+  args: { projectId: v.id("projects"), cfSlug: v.string() },
+  handler: async (ctx, args) => {
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+
+    await ctx.db.patch(args.projectId, {
+      cfSlug: args.cfSlug,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
  * Get dashboard stats in core mode (no org filter).
  * Simplified version — no org-scoping needed.
  */

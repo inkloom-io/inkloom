@@ -67,7 +67,6 @@ describe("auth.core adapter", () => {
   });
 
   it("signOut() is a no-op that resolves", async () => {
-    // Should not throw
     await expect(authAdapter.signOut()).resolves.toBeUndefined();
   });
 
@@ -81,29 +80,6 @@ describe("auth.core adapter", () => {
     expect(typeof authAdapter.getUser).toBe("function");
     expect(typeof authAdapter.requireUser).toBe("function");
     expect(typeof authAdapter.signOut).toBe("function");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Platform Auth Adapter (structure only — WorkOS not available in test)
-// ---------------------------------------------------------------------------
-
-describe("auth.platform adapter", () => {
-  let authAdapter: AuthAdapter;
-
-  beforeAll(async () => {
-    const mod = await import("@/lib/adapters/auth.platform");
-    authAdapter = mod.authAdapter;
-  });
-
-  it("satisfies the AuthAdapter interface", () => {
-    expect(typeof authAdapter.getUser).toBe("function");
-    expect(typeof authAdapter.requireUser).toBe("function");
-    expect(typeof authAdapter.signOut).toBe("function");
-  });
-
-  it("signOut() resolves without error", async () => {
-    await expect(authAdapter.signOut()).resolves.toBeUndefined();
   });
 });
 
@@ -139,62 +115,6 @@ describe("context.core adapter", () => {
     expect(typeof contextAdapter.getTenantId).toBe("function");
     expect(typeof contextAdapter.getOrgName).toBe("function");
     expect(typeof contextAdapter.isMultiTenant).toBe("function");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Platform Context Adapter
-// ---------------------------------------------------------------------------
-
-describe("context.platform adapter", () => {
-  let contextAdapter: ContextAdapter;
-
-  beforeAll(async () => {
-    const mod = await import("@/lib/adapters/context.platform");
-    contextAdapter = mod.contextAdapter;
-  });
-
-  it("isMultiTenant() returns true", () => {
-    expect(contextAdapter.isMultiTenant()).toBe(true);
-  });
-
-  it("default adapter has empty tenant ID (unresolved org)", () => {
-    expect(contextAdapter.getTenantId()).toBe("");
-  });
-
-  it("default adapter has empty org name", () => {
-    expect(contextAdapter.getOrgName()).toBe("");
-  });
-
-  it("satisfies the ContextAdapter interface", () => {
-    expect(typeof contextAdapter.getTenantId).toBe("function");
-    expect(typeof contextAdapter.getOrgName).toBe("function");
-    expect(typeof contextAdapter.isMultiTenant).toBe("function");
-  });
-});
-
-describe("createPlatformContextAdapter()", () => {
-  it("creates an adapter with the provided org values", async () => {
-    const { createPlatformContextAdapter } = await import(
-      "@/lib/adapters/context.platform"
-    );
-    const adapter = createPlatformContextAdapter({
-      orgId: "org_123",
-      orgName: "Acme Corp",
-    });
-    expect(adapter.getTenantId()).toBe("org_123");
-    expect(adapter.getOrgName()).toBe("Acme Corp");
-    expect(adapter.isMultiTenant()).toBe(true);
-  });
-
-  it("each call produces an independent adapter", async () => {
-    const { createPlatformContextAdapter } = await import(
-      "@/lib/adapters/context.platform"
-    );
-    const a = createPlatformContextAdapter({ orgId: "org_a", orgName: "A" });
-    const b = createPlatformContextAdapter({ orgId: "org_b", orgName: "B" });
-    expect(a.getTenantId()).toBe("org_a");
-    expect(b.getTenantId()).toBe("org_b");
   });
 });
 
@@ -235,64 +155,39 @@ describe("deploy.core adapter", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Platform Deploy Adapter
+// Deploy Switchpoint
 // ---------------------------------------------------------------------------
 
-describe("deploy.platform adapter", () => {
-  let deployAdapter: DeployAdapter;
-
-  beforeAll(async () => {
-    const mod = await import("@/lib/adapters/deploy.platform");
-    deployAdapter = mod.deployAdapter;
+describe("deploy switchpoint (lib/adapters/deploy.ts)", () => {
+  it("exports deployAdapter", async () => {
+    const mod = await import("@/lib/adapters/deploy");
+    expect(mod.deployAdapter).toBeDefined();
   });
 
-  it("actionLabel is 'Deploy'", () => {
-    expect(deployAdapter.actionLabel).toBe("Deploy");
-  });
-
-  it("getDeployUrl() returns Cloudflare Pages URL pattern", () => {
-    const url = deployAdapter.getDeployUrl("my-docs");
-    expect(url).toBe("https://inkloom-my-docs.pages.dev");
-  });
-
-  it("getDeployUrl() works with different slugs", () => {
-    expect(deployAdapter.getDeployUrl("api-reference")).toBe(
-      "https://inkloom-api-reference.pages.dev"
-    );
-  });
-
-  it("publish() returns failure (platform deploys use /api/publish)", async () => {
-    const result = await deployAdapter.publish({ projectId: "proj_1" });
-    expect(result.success).toBe(false);
-    expect(result.message).toContain("/api/publish");
-  });
-
-  it("satisfies the DeployAdapter interface", () => {
-    expect(typeof deployAdapter.publish).toBe("function");
-    expect(typeof deployAdapter.getDeployUrl).toBe("function");
-    expect(typeof deployAdapter.actionLabel).toBe("string");
+  it("exports core adapter (Build label) in core mode", async () => {
+    const mod = await import("@/lib/adapters/deploy");
+    expect(mod.deployAdapter.actionLabel).toBe("Build");
   });
 });
 
 // ---------------------------------------------------------------------------
-// Barrel Export
+// Barrel Export (core mode)
 // ---------------------------------------------------------------------------
 
 describe("barrel export (lib/adapters.ts)", () => {
-  it("exports all adapter types", async () => {
+  it("exports all core adapter names", async () => {
     const mod = await import("@/lib/adapters");
     expect(mod.authAdapter).toBeDefined();
     expect(mod.contextAdapter).toBeDefined();
     expect(mod.deployAdapter).toBeDefined();
-    expect(mod.createPlatformContextAdapter).toBeDefined();
   });
 
-  it("barrel exports platform adapters by default", async () => {
+  it("barrel exports core adapters (Build label, single-tenant)", async () => {
     const mod = await import("@/lib/adapters");
-    // Platform deploy adapter has "Deploy" label, core has "Build"
-    expect(mod.deployAdapter.actionLabel).toBe("Deploy");
-    // Platform context adapter is multi-tenant
-    expect(mod.contextAdapter.isMultiTenant()).toBe(true);
+    // Core deploy adapter has "Build" label
+    expect(mod.deployAdapter.actionLabel).toBe("Build");
+    // Core context adapter is single-tenant
+    expect(mod.contextAdapter.isMultiTenant()).toBe(false);
   });
 });
 
@@ -306,33 +201,17 @@ describe("adapter contracts", () => {
     const ctx = (await import("@/lib/adapters/context.core")).contextAdapter;
     const deploy = (await import("@/lib/adapters/deploy.core")).deployAdapter;
 
-    // Auth always returns a user (single-tenant = always authenticated)
     const user = await auth.getUser();
     expect(user).not.toBeNull();
 
-    // Context is single-tenant
     expect(ctx.isMultiTenant()).toBe(false);
     expect(ctx.getTenantId()).toBe("local");
 
-    // Deploy is local build
     expect(deploy.actionLabel).toBe("Build");
   });
 
-  it("platform adapters form a consistent set (multi-tenant, managed deploy)", async () => {
-    const ctx = (await import("@/lib/adapters/context.platform")).contextAdapter;
-    const deploy = (await import("@/lib/adapters/deploy.platform")).deployAdapter;
-
-    // Context is multi-tenant
-    expect(ctx.isMultiTenant()).toBe(true);
-
-    // Deploy is managed
-    expect(deploy.actionLabel).toBe("Deploy");
-    expect(deploy.getDeployUrl("test")).toContain("pages.dev");
-  });
-
-  it("DeployResult shape is valid from both adapters", async () => {
+  it("DeployResult shape is valid from core adapter", async () => {
     const coreDeploy = (await import("@/lib/adapters/deploy.core")).deployAdapter;
-    const platformDeploy = (await import("@/lib/adapters/deploy.platform")).deployAdapter;
 
     const opts: DeployOptions = { projectId: "test" };
 
@@ -343,13 +222,5 @@ describe("adapter contracts", () => {
     expect(typeof coreResult.success).toBe("boolean");
     expect(typeof coreResult.url).toBe("string");
     expect(typeof coreResult.message).toBe("string");
-
-    const platformResult = await platformDeploy.publish(opts);
-    expect(platformResult).toHaveProperty("success");
-    expect(platformResult).toHaveProperty("url");
-    expect(platformResult).toHaveProperty("message");
-    expect(typeof platformResult.success).toBe("boolean");
-    expect(typeof platformResult.url).toBe("string");
-    expect(typeof platformResult.message).toBe("string");
   });
 });

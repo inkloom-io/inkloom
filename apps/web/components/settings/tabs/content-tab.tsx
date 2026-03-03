@@ -88,7 +88,7 @@ export function ContentTab({ projectId, project, folders }: ContentTabProps) {
             projectId={projectId}
             initialConfig={project.settings?.openapi}
             folders={folders}
-            onSave={async (openapiConfig) => {
+            onSave={async (openapiConfig: unknown) => {
               await updateSettings({
                 projectId: projectId as Id<"projects">,
                 settings: { openapi: openapiConfig },

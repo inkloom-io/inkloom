@@ -11,7 +11,6 @@ import { registerDomainsCommands } from "./commands/domains.js";
 import { registerAssetsCommands } from "./commands/assets.js";
 import { registerOpenApiCommands } from "./commands/openapi.js";
 import { registerWebhooksCommands } from "./commands/webhooks.js";
-import { registerDocsCommands } from "./commands/docs.js";
 import { registerLlmsTxtCommands } from "./commands/llms-txt.js";
 
 const program = new Command();
@@ -46,7 +45,6 @@ registerDomainsCommands(program);
 registerAssetsCommands(program);
 registerOpenApiCommands(program);
 registerWebhooksCommands(program);
-registerDocsCommands(program);
 registerLlmsTxtCommands(program);
 
 program.parse();

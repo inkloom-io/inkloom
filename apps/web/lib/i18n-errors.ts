@@ -79,7 +79,7 @@ export function getErrorTranslationKey(
 
     // Try code first (most reliable)
     if (e.code && e.code in ERROR_CODE_MAP) {
-      return ERROR_CODE_MAP[e.code as ApiErrorCode];
+      return ERROR_CODE_MAP[e.code as ApiErrorCode] ?? null;
     }
 
     // Fall back to message match
