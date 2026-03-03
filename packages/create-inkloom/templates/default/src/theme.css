@@ -1,0 +1,146 @@
+/* Default theme - gets replaced by generated theme CSS at publish time */
+
+/* Fonts, effects, radii — mode-independent */
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2), 0 1px 3px 0 rgb(0 0 0 / 0.15);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.15);
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --header-blur: 16px;
+}
+
+/* Light mode */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222 47% 11%);
+  --color-background-subtle: hsl(220 14% 97%);
+  --color-muted: hsl(220 14% 96%);
+  --color-muted-foreground: hsl(220 9% 43%);
+  --color-border: hsl(220 13% 90%);
+  --color-border-subtle: hsl(220 13% 94%);
+  --color-primary: hsl(222 47% 11%);
+  --color-primary-foreground: hsl(210 40% 98%);
+  --color-accent: hsl(220 14% 96%);
+  --color-accent-foreground: hsl(222 47% 11%);
+  --color-secondary: hsl(220 14% 96%);
+  --color-secondary-foreground: hsl(222 47% 11%);
+  --color-code-background: hsl(228 16% 14%);
+  --color-code-foreground: hsl(220 14% 90%);
+  --color-code-highlight: hsl(228 14% 22%);
+  --color-sidebar-background: hsl(220 20% 99%);
+  --color-sidebar-border: hsl(220 13% 92%);
+  --color-sidebar-active: hsl(220 14% 95%);
+  --color-header-background: hsl(0 0% 100% / 0.85);
+  --color-header-border: hsl(220 13% 91%);
+}
+
+/* Dark mode */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-background: hsl(240 6% 4%);
+  --color-foreground: hsl(210 20% 94%);
+  --color-background-subtle: hsl(240 5% 7%);
+  --color-muted: hsl(240 4% 11%);
+  --color-muted-foreground: hsl(220 9% 55%);
+  --color-border: hsl(240 4% 14%);
+  --color-border-subtle: hsl(240 4% 10%);
+  --color-primary: hsl(210 40% 98%);
+  --color-primary-foreground: hsl(222 47% 11%);
+  --color-accent: hsl(240 4% 12%);
+  --color-accent-foreground: hsl(210 20% 94%);
+  --color-secondary: hsl(240 4% 11%);
+  --color-secondary-foreground: hsl(210 20% 94%);
+  --color-code-background: hsl(240 6% 3%);
+  --color-code-foreground: hsl(220 14% 88%);
+  --color-code-highlight: hsl(240 4% 10%);
+  --color-sidebar-background: hsl(240 6% 4%);
+  --color-sidebar-border: hsl(240 4% 12%);
+  --color-sidebar-active: hsl(240 4% 12%);
+  --color-header-background: hsl(240 6% 4% / 0.85);
+  --color-header-border: hsl(240 4% 12%);
+}
+
+/* System: light by default, dark via media query */
+:root[data-theme="system"] {
+  color-scheme: light;
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(222 47% 11%);
+  --color-background-subtle: hsl(220 14% 97%);
+  --color-muted: hsl(220 14% 96%);
+  --color-muted-foreground: hsl(220 9% 43%);
+  --color-border: hsl(220 13% 90%);
+  --color-border-subtle: hsl(220 13% 94%);
+  --color-primary: hsl(222 47% 11%);
+  --color-primary-foreground: hsl(210 40% 98%);
+  --color-accent: hsl(220 14% 96%);
+  --color-accent-foreground: hsl(222 47% 11%);
+  --color-secondary: hsl(220 14% 96%);
+  --color-secondary-foreground: hsl(222 47% 11%);
+  --color-code-background: hsl(228 16% 14%);
+  --color-code-foreground: hsl(220 14% 90%);
+  --color-code-highlight: hsl(228 14% 22%);
+  --color-sidebar-background: hsl(220 20% 99%);
+  --color-sidebar-border: hsl(220 13% 92%);
+  --color-sidebar-active: hsl(220 14% 95%);
+  --color-header-background: hsl(0 0% 100% / 0.85);
+  --color-header-border: hsl(220 13% 91%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] {
+    color-scheme: dark;
+    --color-background: hsl(240 6% 4%);
+    --color-foreground: hsl(210 20% 94%);
+    --color-background-subtle: hsl(240 5% 7%);
+    --color-muted: hsl(240 4% 11%);
+    --color-muted-foreground: hsl(220 9% 55%);
+    --color-border: hsl(240 4% 14%);
+    --color-border-subtle: hsl(240 4% 10%);
+    --color-primary: hsl(210 40% 98%);
+    --color-primary-foreground: hsl(222 47% 11%);
+    --color-accent: hsl(240 4% 12%);
+    --color-accent-foreground: hsl(210 20% 94%);
+    --color-secondary: hsl(240 4% 11%);
+    --color-secondary-foreground: hsl(210 20% 94%);
+    --color-code-background: hsl(240 6% 3%);
+    --color-code-foreground: hsl(220 14% 88%);
+    --color-code-highlight: hsl(240 4% 10%);
+    --color-sidebar-background: hsl(240 6% 4%);
+    --color-sidebar-border: hsl(240 4% 12%);
+    --color-sidebar-active: hsl(240 4% 12%);
+    --color-header-background: hsl(240 6% 4% / 0.85);
+    --color-header-border: hsl(240 4% 12%);
+  }
+}
+
+/* Legacy fallback (sites deployed before dark/light mode) */
+:root:not([data-theme]) {
+  color-scheme: dark;
+  --color-background: hsl(240 6% 4%);
+  --color-foreground: hsl(210 20% 94%);
+  --color-background-subtle: hsl(240 5% 7%);
+  --color-muted: hsl(240 4% 11%);
+  --color-muted-foreground: hsl(220 9% 55%);
+  --color-border: hsl(240 4% 14%);
+  --color-border-subtle: hsl(240 4% 10%);
+  --color-primary: hsl(210 40% 98%);
+  --color-primary-foreground: hsl(222 47% 11%);
+  --color-accent: hsl(240 4% 12%);
+  --color-accent-foreground: hsl(210 20% 94%);
+  --color-secondary: hsl(240 4% 11%);
+  --color-secondary-foreground: hsl(210 20% 94%);
+  --color-code-background: hsl(240 6% 3%);
+  --color-code-foreground: hsl(220 14% 88%);
+  --color-code-highlight: hsl(240 4% 10%);
+  --color-sidebar-background: hsl(240 6% 4%);
+  --color-sidebar-border: hsl(240 4% 12%);
+  --color-sidebar-active: hsl(240 4% 12%);
+  --color-header-background: hsl(240 6% 4% / 0.85);
+  --color-header-border: hsl(240 4% 12%);
+}

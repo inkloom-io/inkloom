@@ -1,0 +1,51 @@
+{
+  "name": "@inkloom/cli",
+  "version": "0.1.0",
+  "description": "InkLoom CLI — manage documentation sites from the command line",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inkloom/inkloom.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://docs.inkloom.dev/cli",
+  "keywords": [
+    "inkloom",
+    "cli",
+    "documentation",
+    "docs",
+    "mdx",
+    "deploy",
+    "cloudflare-pages"
+  ],
+  "type": "module",
+  "bin": { "inkloom": "./dist/cli.js" },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/cli.ts src/index.ts --format esm --dts",
+    "dev": "tsup src/cli.ts src/index.ts --format esm --watch",
+    "test": "node --import tsx --test tests/**/*.test.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@inkloom/ai": "workspace:*",
+    "commander": "^12.0.0",
+    "fs-extra": "^11.2.0",
+    "picocolors": "^1.0.0",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.14.0",
+    "@types/prompts": "^2.4.9",
+    "tsx": "^4.19.0",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5"
+  },
+  "engines": { "node": ">=20" }
+}
