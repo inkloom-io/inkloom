@@ -1,0 +1,104 @@
+/* Callout Block Styles
+   Uses CSS variables from the editor theme wrapper for consistent styling.
+*/
+
+.bn-callout {
+  width: 100%;
+  border-radius: 8px;
+  margin: 8px 0;
+  padding: 16px;
+  border-left: 4px solid;
+  transition: all 0.15s ease;
+}
+
+/* Type-specific colors */
+.bn-callout-info {
+  background: rgba(59, 130, 246, 0.1);
+  border-left-color: #3b82f6;
+}
+
+.bn-callout-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-left-color: #f59e0b;
+}
+
+.bn-callout-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-left-color: #ef4444;
+}
+
+.bn-callout-success {
+  background: rgba(34, 197, 94, 0.1);
+  border-left-color: #22c55e;
+}
+
+.bn-callout-tip {
+  background: rgba(168, 85, 247, 0.1);
+  border-left-color: #a855f7;
+}
+
+.bn-callout-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.bn-callout-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.bn-callout-type-select {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--editor-foreground, #f9fafb);
+  cursor: pointer;
+  outline: none;
+}
+
+.bn-callout-type-select:focus {
+  border-color: var(--editor-primary, #6366f1);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.bn-callout-title-input {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--editor-foreground, #f9fafb);
+  border: none;
+  background: transparent;
+  padding: 4px 8px;
+  border-radius: 4px;
+  outline: none;
+}
+
+.bn-callout-title-input:hover {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+}
+
+.bn-callout-title-input:focus {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+}
+
+.bn-callout-title-input::placeholder {
+  color: var(--editor-muted-foreground, #9ca3af);
+  font-weight: 400;
+}
+
+.bn-callout-content {
+  font-size: 0.875rem;
+  color: var(--editor-foreground, #f9fafb);
+  line-height: 1.6;
+  min-height: 20px;
+}
+
+.bn-callout-content:empty::before {
+  content: "Callout content...";
+  color: var(--editor-muted-foreground, #6b7280);
+  opacity: 0.6;
+}

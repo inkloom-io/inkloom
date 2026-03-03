@@ -1,0 +1,188 @@
+@import "tailwindcss" source(none);
+
+@source "../../../packages/ui/src/**/*.{ts,tsx}";
+@source "../components/**/*.{ts,tsx}";
+@source "../app/**/*.{ts,tsx}";
+
+@import "@inkloom/ui/globals.css";
+
+/*
+ * InkLoom dashboard theme.
+ * Light defaults + dark overrides via .dark class (managed by next-themes).
+ * Glass-morphism CSS variables adapt to both modes.
+ */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Light mode — clean white, neutral grays, teal accent */
+  --color-background: #ffffff;
+  --color-foreground: #171717;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #171717;
+
+  --color-popover: #ffffff;
+  --color-popover-foreground: #171717;
+
+  --color-primary: #14b8a6;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #f5f5f5;
+  --color-secondary-foreground: #171717;
+
+  --color-muted: #f5f5f5;
+  --color-muted-foreground: #737373;
+
+  --color-accent: #f5f5f5;
+  --color-accent-foreground: #171717;
+
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #e5e5e5;
+  --color-input: #e5e5e5;
+  --color-ring: #14b8a6;
+}
+
+.dark {
+  --color-background: #09090b;
+  --color-foreground: #f0f0f0;
+
+  --color-card: #0f0f12;
+  --color-card-foreground: #f0f0f0;
+
+  --color-popover: #111114;
+  --color-popover-foreground: #e8e8e8;
+
+  --color-primary: #14b8a6;
+  --color-primary-foreground: #000000;
+
+  --color-secondary: #161619;
+  --color-secondary-foreground: #e0e0e0;
+
+  --color-muted: #131316;
+  --color-muted-foreground: #737380;
+
+  --color-accent: #1a1a1f;
+  --color-accent-foreground: #f0f0f0;
+
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #f0f0f0;
+
+  --color-border: #1e1e24;
+  --color-input: #1e1e24;
+  --color-ring: #14b8a6;
+}
+
+/* Glass-morphism variables — light/dark adaptive */
+:root {
+  --glass-surface: rgba(255, 255, 255, 0.98);
+  --glass-border: rgba(0, 0, 0, 0.10);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  --glass-hover: rgba(0, 0, 0, 0.06);
+  --glass-divider: rgba(0, 0, 0, 0.08);
+  --text-dim: rgba(0, 0, 0, 0.50);
+  --text-medium: rgba(0, 0, 0, 0.65);
+  --text-bright: rgba(0, 0, 0, 0.88);
+  --dot-opacity: 0.04;
+  --glow-opacity: 0.03;
+  --scrollbar-thumb: rgba(0, 0, 0, 0.12);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.15);
+  --active-bg: rgba(20, 184, 166, 0.06);
+  --surface-bg: rgba(0, 0, 0, 0.03);
+  --surface-hover: rgba(0, 0, 0, 0.05);
+  --surface-active: rgba(0, 0, 0, 0.06);
+}
+.dark {
+  --glass-surface: rgba(17, 17, 20, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --glass-hover: rgba(255, 255, 255, 0.06);
+  --glass-divider: rgba(255, 255, 255, 0.06);
+  --text-dim: rgba(255, 255, 255, 0.4);
+  --text-medium: rgba(255, 255, 255, 0.7);
+  --text-bright: rgba(255, 255, 255, 0.9);
+  --dot-opacity: 0.03;
+  --glow-opacity: 0.05;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+  --active-bg: rgba(20, 184, 166, 0.1);
+  --surface-bg: rgba(255, 255, 255, 0.01);
+  --surface-hover: rgba(255, 255, 255, 0.02);
+  --surface-active: rgba(255, 255, 255, 0.04);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply antialiased;
+}
+
+/*
+ * Glass-morphism enhancements for floating surfaces.
+ * Uses CSS variables so they adapt to both light and dark modes.
+ */
+
+/* Dropdown menus */
+[data-radix-popper-content-wrapper] [role="menu"],
+[data-radix-popper-content-wrapper] [data-radix-select-content] {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background-color: var(--glass-surface) !important;
+  border-color: var(--glass-border) !important;
+  box-shadow:
+    var(--glass-shadow),
+    0 0 0 1px var(--glass-border) inset;
+}
+
+/* Dialog / modal overlay & content */
+[role="dialog"][data-state] {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: var(--glass-surface) !important;
+  border-color: var(--glass-border) !important;
+  box-shadow:
+    var(--glass-shadow),
+    0 0 0 1px var(--glass-border) inset;
+}
+
+/* Tooltip surfaces */
+[data-radix-popper-content-wrapper] [role="tooltip"] {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background-color: var(--glass-surface) !important;
+  border-color: var(--glass-border) !important;
+  box-shadow: var(--glass-shadow);
+}
+
+/* Command palette (search) input area */
+[cmdk-input-wrapper] {
+  border-color: var(--glass-divider) !important;
+}
+
+/* Focus ring: teal glow */
+*:focus-visible {
+  --tw-ring-color: rgba(20, 184, 166, 0.4);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}

@@ -1,0 +1,1167 @@
+/* ============================================================================
+   Editor Theme Styles
+
+   These styles override BlockNote's default styles to match the published
+   docs site styling. The editor should be a WYSIWYG preview of what users
+   will see on their deployed documentation.
+   ============================================================================ */
+
+/* ============================================================================
+   EDITOR CONTAINER - Apply theme variables to BlockNote
+   ============================================================================ */
+
+.editor-theme-wrapper {
+  /* Map editor theme variables to BlockNote CSS variables */
+  --bn-colors-editor-background: transparent;
+  --bn-colors-editor-text: var(--editor-foreground);
+  --bn-colors-menu-background: var(--editor-background);
+  --bn-colors-menu-text: var(--editor-foreground);
+  --bn-colors-tooltip-background: var(--editor-muted);
+  --bn-colors-tooltip-text: var(--editor-foreground);
+  --bn-colors-hovered-background: var(--editor-muted);
+  --bn-colors-hovered-text: var(--editor-foreground);
+  --bn-colors-selected-background: var(--editor-accent);
+  --bn-colors-selected-text: var(--editor-accent-foreground);
+  --bn-colors-disabled-background: var(--editor-muted);
+  --bn-colors-disabled-text: var(--editor-muted-foreground);
+  --bn-colors-shadow: var(--editor-shadow-sm);
+  --bn-colors-border: var(--editor-border);
+  --bn-colors-side-menu: var(--editor-muted-foreground);
+  --bn-font-family: var(--editor-font-sans);
+  --bn-border-radius: var(--editor-radius-md);
+  --bn-border-radius-small: var(--editor-radius-sm);
+  --bn-border-radius-medium: var(--editor-radius-md);
+
+  /* Background gradient is applied via inline style from theme preset */
+  min-height: 100%;
+  font-family: var(--editor-font-sans);
+  line-height: 1.6;
+  color: var(--editor-foreground);
+}
+
+/* ============================================================================
+   BLOCKNOTE EDITOR CONTENT AREA
+   ============================================================================ */
+
+.editor-theme-wrapper .bn-editor {
+  background: transparent !important;
+  font-family: var(--editor-font-sans);
+  padding: 2rem 3rem;
+  max-width: 80ch;
+  margin: 0 auto;
+}
+
+.editor-theme-wrapper .bn-default-styles {
+  font-family: var(--editor-font-sans);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--editor-foreground);
+}
+
+/* Ensure all BlockNote containers are transparent to show gradient */
+.editor-theme-wrapper .bn-container,
+.editor-theme-wrapper .bn-root,
+.editor-theme-wrapper .bn-mantine,
+.editor-theme-wrapper .ProseMirror {
+  background: transparent !important;
+}
+
+/* ============================================================================
+   HEADINGS - Match published site typography
+   ============================================================================ */
+
+/* Reset BlockNote's default heading sizes and apply our theme styling */
+.editor-theme-wrapper
+  .bn-block-outer:not([data-prev-type])
+  > .bn-block
+  > .bn-block-content[data-content-type="heading"],
+.editor-theme-wrapper .bn-block-content[data-content-type="heading"] {
+  font-family: var(--editor-font-display);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  /* color inherited from .editor-theme-wrapper to allow data-text-color to work */
+}
+
+/* Heading Level 1 */
+.editor-theme-wrapper
+  [data-level="1"]
+  .bn-block-content[data-content-type="heading"],
+.editor-theme-wrapper
+  .bn-block-content[data-content-type="heading"][data-level="1"] {
+  font-size: 2.25rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 1.5rem;
+}
+
+/* Heading Level 2 */
+.editor-theme-wrapper
+  [data-level="2"]
+  .bn-block-content[data-content-type="heading"],
+.editor-theme-wrapper
+  .bn-block-content[data-content-type="heading"][data-level="2"] {
+  font-size: 1.5rem !important;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--editor-border-subtle);
+}
+
+/* Heading Level 3 */
+.editor-theme-wrapper
+  [data-level="3"]
+  .bn-block-content[data-content-type="heading"],
+.editor-theme-wrapper
+  .bn-block-content[data-content-type="heading"][data-level="3"] {
+  font-size: 1.25rem !important;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ============================================================================
+   PARAGRAPHS
+   ============================================================================ */
+
+.editor-theme-wrapper .bn-block-content[data-content-type="paragraph"] {
+  font-family: var(--editor-font-sans);
+  line-height: 1.75;
+}
+
+.editor-theme-wrapper .bn-block-content[data-content-type="paragraph"] p {
+  margin-bottom: 0.25rem;
+}
+
+/* ============================================================================
+   INLINE STYLES
+   ============================================================================ */
+
+.editor-theme-wrapper .bn-inline-content strong {
+  font-weight: 600;
+}
+
+.editor-theme-wrapper .bn-inline-content a {
+  color: var(--editor-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.editor-theme-wrapper .bn-inline-content a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* ============================================================================
+   LISTS
+   ============================================================================ */
+
+.editor-theme-wrapper .bn-block-content[data-content-type="bulletListItem"],
+.editor-theme-wrapper .bn-block-content[data-content-type="numberedListItem"] {
+  line-height: 1.75;
+}
+
+.editor-theme-wrapper
+  .bn-block-content[data-content-type="bulletListItem"]::before,
+.editor-theme-wrapper
+  .bn-block-content[data-content-type="numberedListItem"]::before {
+  color: inherit;
+}
+
+/* ============================================================================
+   CODE - Inline
+   ============================================================================ */
+
+.editor-theme-wrapper .bn-inline-content code {
+  font-family: var(--editor-font-mono);
+  font-size: 0.875em;
+  padding: 0.2em 0.4em;
+  background: var(--editor-muted);
+  border-radius: var(--editor-radius-sm);
+  font-weight: 500;
+}
+
+/* ============================================================================
+   CODE BLOCKS
+   ============================================================================ */
+
+/* bn-block-content is BlockNote's automatic wrapper — make it invisible for code blocks
+   so all visual styling comes from our custom .bn-code-block component */
+.editor-theme-wrapper .bn-block-content[data-content-type="codeBlock"] {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible;
+}
+
+.editor-theme-wrapper .bn-block-content[data-content-type="codeBlock"]::before {
+  display: none;
+}
+
+/* ============================================================================
+   BLOCKQUOTES
+   ============================================================================ */
+
+.editor-theme-wrapper .bn-block-content[data-content-type="quote"] blockquote,
+.editor-theme-wrapper [data-content-type="quote"] blockquote {
+  border-left: 3px solid var(--editor-primary) !important;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  background: linear-gradient(
+    90deg,
+    var(--editor-background-subtle) 0%,
+    transparent 100%
+  );
+  border-radius: 0 var(--editor-radius-md) var(--editor-radius-md) 0;
+  font-style: italic;
+  color: var(--editor-muted-foreground) !important;
+}
+
+/* ============================================================================
+   TABLES
+   ============================================================================ */
+
+.editor-theme-wrapper [data-content-type="table"] table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.9375rem;
+  border-radius: var(--editor-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--editor-border);
+}
+
+.editor-theme-wrapper [data-content-type="table"] th,
+.editor-theme-wrapper [data-content-type="table"] td {
+  border: none !important;
+  border-bottom: 1px solid var(--editor-border) !important;
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.editor-theme-wrapper [data-content-type="table"] th {
+  background: var(--editor-muted);
+  font-weight: 600;
+  /* No explicit color — inherits from block, which allows BlockNote's
+     text color feature (data-text-color) to work on table headers */
+}
+
+.editor-theme-wrapper [data-content-type="table"] tr:nth-child(even) td {
+  background: var(--editor-background-subtle);
+}
+
+/* ============================================================================
+   HORIZONTAL RULES / DIVIDERS
+   ============================================================================ */
+
+.editor-theme-wrapper .bn-block-content[data-content-type="divider"] hr {
+  border: none !important;
+  border-top: 1px solid var(--editor-border) !important;
+  margin: 1.5rem 0;
+}
+
+/* ============================================================================
+   IMAGES
+   ============================================================================ */
+
+.editor-theme-wrapper [data-file-block] .bn-visual-media {
+  border-radius: var(--editor-radius-lg) !important;
+  box-shadow: var(--editor-shadow-md);
+}
+
+.editor-theme-wrapper [data-file-block] .bn-add-file-button {
+  background-color: var(--editor-muted) !important;
+  color: var(--editor-muted-foreground) !important;
+  border-radius: var(--editor-radius-md);
+}
+
+.editor-theme-wrapper [data-file-block] .bn-add-file-button:hover {
+  background-color: var(--editor-accent) !important;
+}
+
+/* ============================================================================
+   PLACEHOLDER TEXT
+   ============================================================================ */
+
+.editor-theme-wrapper
+  .bn-inline-content:has(> .ProseMirror-trailingBreak:only-child)::before {
+  color: var(--editor-muted-foreground) !important;
+  opacity: 0.6;
+}
+
+/* ============================================================================
+   SELECTION STYLING
+   ============================================================================ */
+
+.editor-theme-wrapper ::selection {
+  background: var(--editor-accent);
+  color: var(--editor-accent-foreground);
+}
+
+.editor-theme-wrapper .ProseMirror-selectednode > * {
+  outline-color: var(--editor-primary) !important;
+}
+
+/* ============================================================================
+   SIDE MENU & DRAG HANDLE
+   ============================================================================ */
+
+.editor-theme-wrapper .bn-side-menu {
+  opacity: 0.4;
+}
+
+.editor-theme-wrapper .bn-side-menu:hover {
+  opacity: 1;
+}
+
+/* ============================================================================
+   TOOLBAR & MENUS (BlockNote + Mantine)
+   Note: Toolbars are rendered as portals outside the editor wrapper,
+   so we need global selectors targeting .bn-mantine.
+   Dark-mode styles are scoped to .dark; light-mode is the default.
+   ============================================================================ */
+
+/* --- Toolbar container --- */
+.bn-mantine .bn-toolbar {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 8px !important;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.05),
+    0 2px 4px -2px rgb(0 0 0 / 0.05) !important;
+  /* Override BlockNote's overflow-x:auto which clips dropdown menus rendered
+     with withinPortal={false} inside the toolbar. Per CSS spec, overflow-x:auto
+     implicitly makes overflow-y:auto too, hiding menus that extend below. */
+  overflow: visible !important;
+}
+.dark .bn-mantine .bn-toolbar {
+  background: #171717 !important;
+  border: 1px solid #404040 !important;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.3),
+    0 2px 4px -2px rgb(0 0 0 / 0.3) !important;
+}
+
+/* Toolbar buttons and action icons */
+.bn-mantine .bn-toolbar .mantine-Button-root,
+.bn-mantine .bn-toolbar .mantine-ActionIcon-root {
+  background: transparent !important;
+  color: #404040 !important;
+  border: none !important;
+}
+.dark .bn-mantine .bn-toolbar .mantine-Button-root,
+.dark .bn-mantine .bn-toolbar .mantine-ActionIcon-root {
+  color: #e5e5e5 !important;
+}
+
+.bn-mantine .bn-toolbar .mantine-Button-root:hover,
+.bn-mantine .bn-toolbar .mantine-ActionIcon-root:hover {
+  background: #f5f5f5 !important;
+  color: #171717 !important;
+}
+.dark .bn-mantine .bn-toolbar .mantine-Button-root:hover,
+.dark .bn-mantine .bn-toolbar .mantine-ActionIcon-root:hover {
+  background: #262626 !important;
+  color: #fafafa !important;
+}
+
+.bn-mantine .bn-toolbar .mantine-Button-root[data-selected],
+.bn-mantine .bn-toolbar .mantine-ActionIcon-root[data-selected] {
+  background: #e5e5e5 !important;
+  color: #171717 !important;
+}
+.dark .bn-mantine .bn-toolbar .mantine-Button-root[data-selected],
+.dark .bn-mantine .bn-toolbar .mantine-ActionIcon-root[data-selected] {
+  background: #404040 !important;
+  color: #fafafa !important;
+}
+
+/* Button text and icons inside toolbar */
+.bn-mantine .bn-toolbar .mantine-Button-label {
+  color: #404040 !important;
+}
+.dark .bn-mantine .bn-toolbar .mantine-Button-label {
+  color: #e5e5e5 !important;
+}
+
+.bn-mantine .bn-toolbar svg {
+  color: #404040 !important;
+  stroke: #404040 !important;
+}
+.dark .bn-mantine .bn-toolbar svg {
+  color: #e5e5e5 !important;
+  stroke: #e5e5e5 !important;
+}
+
+.bn-mantine .bn-toolbar .mantine-Button-root:hover svg,
+.bn-mantine .bn-toolbar .mantine-ActionIcon-root:hover svg {
+  color: #171717 !important;
+  stroke: #171717 !important;
+}
+.dark .bn-mantine .bn-toolbar .mantine-Button-root:hover svg,
+.dark .bn-mantine .bn-toolbar .mantine-ActionIcon-root:hover svg {
+  color: #fafafa !important;
+  stroke: #fafafa !important;
+}
+
+/* Dropdown arrow/chevron in toolbar buttons */
+.bn-mantine .bn-toolbar .mantine-Button-section svg {
+  color: #a3a3a3 !important;
+}
+
+/* ============================================================================
+   DROPDOWN MENUS (Mantine) - Portaled, needs global selector
+   ============================================================================ */
+
+.bn-mantine .mantine-Menu-dropdown,
+.mantine-Menu-dropdown {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 8px !important;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.08),
+    0 4px 6px -4px rgb(0 0 0 / 0.05) !important;
+}
+.dark .bn-mantine .mantine-Menu-dropdown,
+.dark .mantine-Menu-dropdown {
+  background: #171717 !important;
+  border: 1px solid #404040 !important;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.3),
+    0 4px 6px -4px rgb(0 0 0 / 0.3) !important;
+}
+
+.bn-mantine .mantine-Menu-item,
+.mantine-Menu-item {
+  color: #404040 !important;
+  background-color: transparent !important;
+  border-radius: 4px !important;
+}
+.dark .bn-mantine .mantine-Menu-item,
+.dark .mantine-Menu-item {
+  color: #e5e5e5 !important;
+}
+
+.bn-mantine .mantine-Menu-item:hover,
+.mantine-Menu-item:hover,
+.bn-mantine .mantine-Menu-item[data-hovered],
+.mantine-Menu-item[data-hovered] {
+  background: #f5f5f5 !important;
+  color: #171717 !important;
+}
+.dark .bn-mantine .mantine-Menu-item:hover,
+.dark .mantine-Menu-item:hover,
+.dark .bn-mantine .mantine-Menu-item[data-hovered],
+.dark .mantine-Menu-item[data-hovered] {
+  background: #262626 !important;
+  color: #fafafa !important;
+}
+
+.bn-mantine .mantine-Menu-item[data-selected],
+.mantine-Menu-item[data-selected] {
+  background: #e5e5e5 !important;
+  color: #171717 !important;
+}
+.dark .bn-mantine .mantine-Menu-item[data-selected],
+.dark .mantine-Menu-item[data-selected] {
+  background: #404040 !important;
+  color: #fafafa !important;
+}
+
+/* Menu item icons */
+.bn-mantine .mantine-Menu-item svg,
+.mantine-Menu-item svg {
+  color: #a3a3a3 !important;
+}
+
+.bn-mantine .mantine-Menu-item:hover svg,
+.mantine-Menu-item:hover svg {
+  color: #737373 !important;
+}
+.dark .bn-mantine .mantine-Menu-item:hover svg,
+.dark .mantine-Menu-item:hover svg {
+  color: #e5e5e5 !important;
+}
+
+/* Menu labels/headers */
+.bn-mantine .mantine-Menu-label,
+.mantine-Menu-label {
+  color: #737373 !important;
+  background-color: transparent !important;
+}
+
+/* Menu dividers */
+.bn-mantine .mantine-Menu-divider,
+.mantine-Menu-divider {
+  border-color: #e5e5e5 !important;
+}
+.dark .bn-mantine .mantine-Menu-divider,
+.dark .mantine-Menu-divider {
+  border-color: #404040 !important;
+}
+
+/* ============================================================================
+   POPOVER (Mantine) - Portaled for CreateLinkButton
+   The popover uses withinPortal={true} so it renders outside the editor.
+   ============================================================================ */
+
+.mantine-Popover-dropdown {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 10px !important;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.05) !important;
+  padding: 12px !important;
+}
+.dark .mantine-Popover-dropdown {
+  background: #171717 !important;
+  border: 1px solid #404040 !important;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.4),
+    0 8px 10px -6px rgb(0 0 0 / 0.3) !important;
+}
+
+.mantine-Popover-dropdown .bn-form-popover,
+.mantine-Popover-dropdown.bn-form-popover {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Link creation input container - the TextInput wrapper */
+.mantine-Popover-dropdown .mantine-TextInput-root {
+  min-width: 280px;
+}
+
+/* Link icon positioning inside the input */
+.mantine-Popover-dropdown .mantine-TextInput-section {
+  color: var(--editor-primary, #6366f1) !important;
+  width: 36px !important;
+  padding-left: 10px !important;
+}
+
+.mantine-Popover-dropdown .mantine-TextInput-section svg {
+  width: 16px !important;
+  height: 16px !important;
+  stroke-width: 2 !important;
+}
+
+/* Link creation input inside popover - distinctive styling */
+.mantine-Popover-dropdown .mantine-TextInput-input {
+  background: #fafafa !important;
+  border: 2px solid #e5e5e5 !important;
+  border-radius: 8px !important;
+  color: #171717 !important;
+  font-size: 14px !important;
+  height: 42px !important;
+  padding-left: 40px !important;
+  padding-right: 12px !important;
+  transition: all 0.15s ease !important;
+}
+.dark .mantine-Popover-dropdown .mantine-TextInput-input {
+  background: #262626 !important;
+  border: 2px solid #404040 !important;
+  color: #f5f5f5 !important;
+}
+
+.mantine-Popover-dropdown .mantine-TextInput-input:focus {
+  border-color: var(--editor-primary, #6366f1) !important;
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--editor-primary) 20%, transparent) !important;
+}
+.dark .mantine-Popover-dropdown .mantine-TextInput-input:focus {
+  background: #262626 !important;
+}
+
+.mantine-Popover-dropdown .mantine-TextInput-input::placeholder {
+  color: #a3a3a3 !important;
+  padding-left: 0 !important;
+}
+.dark .mantine-Popover-dropdown .mantine-TextInput-input::placeholder {
+  color: #737373 !important;
+}
+
+/* ============================================================================
+   LINK TOOLBAR - Portaled
+   ============================================================================ */
+
+.bn-mantine .bn-link-toolbar {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05) !important;
+}
+.dark .bn-mantine .bn-link-toolbar {
+  background: #171717 !important;
+  border: 1px solid #404040 !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3) !important;
+}
+
+.bn-mantine .bn-link-toolbar input {
+  background: #fafafa !important;
+  border-color: #e5e5e5 !important;
+  color: #171717 !important;
+}
+.dark .bn-mantine .bn-link-toolbar input {
+  background: #262626 !important;
+  border-color: #404040 !important;
+  color: #e5e5e5 !important;
+}
+
+.bn-mantine .bn-link-toolbar button {
+  color: #404040 !important;
+}
+.dark .bn-mantine .bn-link-toolbar button {
+  color: #e5e5e5 !important;
+}
+
+.bn-mantine .bn-link-toolbar button:hover {
+  background: #f5f5f5 !important;
+}
+.dark .bn-mantine .bn-link-toolbar button:hover {
+  background: #262626 !important;
+}
+
+/* ============================================================================
+   TEXT INPUT (Mantine) - Global for portaled components
+   ============================================================================ */
+
+.bn-mantine .mantine-TextInput-input {
+  background: #fafafa !important;
+  border-color: #e5e5e5 !important;
+  color: #171717 !important;
+}
+.dark .bn-mantine .mantine-TextInput-input {
+  background: #262626 !important;
+  border-color: #404040 !important;
+  color: #e5e5e5 !important;
+}
+
+.bn-mantine .mantine-TextInput-input:focus {
+  border-color: var(--editor-primary, #6366f1) !important;
+}
+
+.bn-mantine .mantine-TextInput-input::placeholder {
+  color: #a3a3a3 !important;
+}
+.dark .bn-mantine .mantine-TextInput-input::placeholder {
+  color: #737373 !important;
+}
+
+/* ============================================================================
+   FILE INPUT (Mantine) - Global for portaled components
+   ============================================================================ */
+
+.bn-mantine .mantine-FileInput-input {
+  background: #fafafa !important;
+  color: #171717 !important;
+  border-color: #e5e5e5 !important;
+}
+.dark .bn-mantine .mantine-FileInput-input {
+  background: #262626 !important;
+  color: #e5e5e5 !important;
+  border-color: #404040 !important;
+}
+
+.bn-mantine .mantine-FileInput-placeholder {
+  color: #a3a3a3 !important;
+}
+.dark .bn-mantine .mantine-FileInput-placeholder {
+  color: #737373 !important;
+}
+
+/* ============================================================================
+   SLASH MENU / SUGGESTIONS - Portaled
+   ============================================================================ */
+
+.bn-mantine .bn-slash-menu,
+.bn-mantine .bn-suggestion-menu {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 8px !important;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.08),
+    0 4px 6px -4px rgb(0 0 0 / 0.05) !important;
+}
+.dark .bn-mantine .bn-slash-menu,
+.dark .bn-mantine .bn-suggestion-menu {
+  background: #171717 !important;
+  border: 1px solid #404040 !important;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.3),
+    0 4px 6px -4px rgb(0 0 0 / 0.3) !important;
+}
+
+.bn-mantine .bn-slash-menu-item,
+.bn-mantine .bn-suggestion-menu-item {
+  color: #404040 !important;
+}
+.dark .bn-mantine .bn-slash-menu-item,
+.dark .bn-mantine .bn-suggestion-menu-item {
+  color: #e5e5e5 !important;
+}
+
+.bn-mantine .bn-slash-menu-item:hover,
+.bn-mantine .bn-suggestion-menu-item:hover,
+.bn-mantine .bn-slash-menu-item[data-hovered],
+.bn-mantine .bn-suggestion-menu-item[data-hovered] {
+  background: #f5f5f5 !important;
+}
+.dark .bn-mantine .bn-slash-menu-item:hover,
+.dark .bn-mantine .bn-suggestion-menu-item:hover,
+.dark .bn-mantine .bn-slash-menu-item[data-hovered],
+.dark .bn-mantine .bn-suggestion-menu-item[data-hovered] {
+  background: #262626 !important;
+}
+
+.bn-mantine .bn-slash-menu-item[aria-selected="true"],
+.bn-mantine .bn-suggestion-menu-item[aria-selected="true"] {
+  background: #e5e5e5 !important;
+}
+.dark .bn-mantine .bn-slash-menu-item[aria-selected="true"],
+.dark .bn-mantine .bn-suggestion-menu-item[aria-selected="true"] {
+  background: #404040 !important;
+}
+
+/* Slash menu item inner elements */
+.bn-mantine .bn-mt-suggestion-menu-item-title {
+  color: #404040 !important;
+}
+.dark .bn-mantine .bn-mt-suggestion-menu-item-title {
+  color: #e5e5e5 !important;
+}
+
+.bn-mantine .bn-mt-suggestion-menu-item-subtitle {
+  color: #a3a3a3 !important;
+}
+
+/* Icon containers in slash menu */
+.bn-mantine .bn-mt-suggestion-menu-item-section[data-position="left"] {
+  background-color: #f5f5f5 !important;
+  color: #737373 !important;
+}
+.dark .bn-mantine .bn-mt-suggestion-menu-item-section[data-position="left"] {
+  background-color: #262626 !important;
+  color: #a3a3a3 !important;
+}
+
+.bn-mantine .bn-mt-suggestion-menu-item-section[data-position="left"] svg {
+  color: #737373 !important;
+}
+.dark
+  .bn-mantine
+  .bn-mt-suggestion-menu-item-section[data-position="left"]
+  svg {
+  color: #a3a3a3 !important;
+}
+
+/* Keyboard shortcut badges in slash menu */
+.bn-mantine .bn-suggestion-menu-item .mantine-Badge-root,
+.bn-mantine
+  .bn-mt-suggestion-menu-item-section[data-position="right"]
+  .mantine-Badge-root {
+  background-color: #f5f5f5 !important;
+  color: #737373 !important;
+  border: 1px solid #e5e5e5 !important;
+}
+.dark .bn-mantine .bn-suggestion-menu-item .mantine-Badge-root,
+.dark
+  .bn-mantine
+  .bn-mt-suggestion-menu-item-section[data-position="right"]
+  .mantine-Badge-root {
+  background-color: #262626 !important;
+  color: #a3a3a3 !important;
+  border: 1px solid #404040 !important;
+}
+
+/* Slash menu group labels (section headings like "Headings", "Basic blocks") */
+.bn-mantine .bn-group-label,
+.bn-mantine .bn-suggestion-menu-label {
+  color: #a3a3a3 !important;
+}
+
+/* ============================================================================
+   TABLE ADD COLUMN / ADD ROW BUTTONS
+   ============================================================================ */
+
+.bn-mantine .bn-extend-button {
+  background-color: #f5f5f5 !important;
+  border: 1px solid #e5e5e5 !important;
+  transition: background-color 0.15s ease !important;
+}
+.dark .bn-mantine .bn-extend-button {
+  background-color: #262626 !important;
+  border: 1px solid #404040 !important;
+}
+
+.bn-mantine .bn-extend-button:hover,
+.bn-mantine .bn-extend-button-editing {
+  background-color: #e5e5e5 !important;
+  border-color: #d4d4d4 !important;
+}
+.dark .bn-mantine .bn-extend-button:hover,
+.dark .bn-mantine .bn-extend-button-editing {
+  background-color: #404040 !important;
+  border-color: #525252 !important;
+}
+
+/* Plus icon inside extend buttons */
+.bn-mantine .bn-extend-button svg {
+  color: #a3a3a3 !important;
+  stroke: #a3a3a3 !important;
+}
+
+.bn-mantine .bn-extend-button:hover svg {
+  color: #737373 !important;
+  stroke: #737373 !important;
+}
+.dark .bn-mantine .bn-extend-button:hover svg {
+  color: #e5e5e5 !important;
+  stroke: #e5e5e5 !important;
+}
+
+/* Column button - subtle rounded edges */
+.bn-mantine .bn-extend-button-add-remove-columns {
+  border-radius: 0 4px 4px 0 !important;
+}
+
+/* Row button - subtle rounded edges */
+.bn-mantine .bn-extend-button-add-remove-rows {
+  border-radius: 0 0 4px 4px !important;
+}
+
+/* Table handles (row/column headers) */
+.bn-mantine .bn-table-handle {
+  background-color: #f5f5f5 !important;
+  border: 1px solid #e5e5e5 !important;
+}
+.dark .bn-mantine .bn-table-handle {
+  background-color: #262626 !important;
+  border: 1px solid #404040 !important;
+}
+
+.bn-mantine .bn-table-handle:hover,
+.bn-mantine .bn-table-handle-dragging {
+  background-color: #e5e5e5 !important;
+  border-color: #d4d4d4 !important;
+}
+.dark .bn-mantine .bn-table-handle:hover,
+.dark .bn-mantine .bn-table-handle-dragging {
+  background-color: #404040 !important;
+  border-color: #525252 !important;
+}
+
+/* Table cell selection handle */
+.bn-mantine .bn-table-cell-handle {
+  background-color: #f5f5f5 !important;
+  border: 1px solid #e5e5e5 !important;
+}
+.dark .bn-mantine .bn-table-cell-handle {
+  background-color: #262626 !important;
+  border: 1px solid #404040 !important;
+}
+
+.bn-mantine .bn-table-cell-handle:hover {
+  background-color: #e5e5e5 !important;
+}
+.dark .bn-mantine .bn-table-cell-handle:hover {
+  background-color: #404040 !important;
+}
+
+/* ============================================================================
+   TOGGLE / ACCORDION BLOCKS
+   ============================================================================ */
+
+.editor-theme-wrapper .bn-toggle-button {
+  color: var(--editor-foreground) !important;
+}
+
+.editor-theme-wrapper .bn-toggle-add-block-button {
+  color: var(--editor-muted-foreground) !important;
+}
+
+.editor-theme-wrapper .bn-toggle-button:hover,
+.editor-theme-wrapper .bn-toggle-add-block-button:hover {
+  background: var(--editor-muted) !important;
+}
+
+/* ============================================================================
+   BLOCK NESTING INDICATOR
+   ============================================================================ */
+
+.editor-theme-wrapper
+  .bn-block-group
+  .bn-block-group
+  > .bn-block-outer:not([data-prev-depth-changed])::before {
+  border-left: 1px solid var(--editor-border);
+}
+
+/* ============================================================================
+   FILE PANEL (Image/Video Upload/Embed) - Portaled
+   ============================================================================ */
+
+.bn-mantine .bn-panel {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 8px !important;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.08),
+    0 4px 6px -4px rgb(0 0 0 / 0.05) !important;
+}
+.dark .bn-mantine .bn-panel {
+  background: #171717 !important;
+  border: 1px solid #404040 !important;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.3),
+    0 4px 6px -4px rgb(0 0 0 / 0.3) !important;
+}
+
+/* Tabs styling */
+.bn-mantine .mantine-Tabs-root {
+  background: #ffffff !important;
+}
+.dark .bn-mantine .mantine-Tabs-root {
+  background: #171717 !important;
+}
+
+.bn-mantine .mantine-Tabs-list {
+  border-color: #e5e5e5 !important;
+}
+.dark .bn-mantine .mantine-Tabs-list {
+  border-color: #404040 !important;
+}
+
+.bn-mantine .mantine-Tabs-list::before {
+  border-color: #e5e5e5 !important;
+}
+.dark .bn-mantine .mantine-Tabs-list::before {
+  border-color: #404040 !important;
+}
+
+.bn-mantine .mantine-Tabs-tab {
+  color: #a3a3a3 !important;
+  font-weight: 500;
+  border-color: transparent !important;
+}
+
+.bn-mantine .mantine-Tabs-tab:hover {
+  background: #f5f5f5 !important;
+  color: #404040 !important;
+  border-color: transparent !important;
+}
+.dark .bn-mantine .mantine-Tabs-tab:hover {
+  background: #262626 !important;
+  color: #e5e5e5 !important;
+}
+
+.bn-mantine .mantine-Tabs-tab[data-active],
+.bn-mantine .mantine-Tabs-tab[data-active]:hover {
+  color: #171717 !important;
+  border-color: var(--editor-primary, #6366f1) !important;
+  background: transparent !important;
+}
+.dark .bn-mantine .mantine-Tabs-tab[data-active],
+.dark .bn-mantine .mantine-Tabs-tab[data-active]:hover {
+  color: #fafafa !important;
+}
+
+.bn-mantine .mantine-Tabs-panel {
+  background: #ffffff !important;
+}
+.dark .bn-mantine .mantine-Tabs-panel {
+  background: #171717 !important;
+}
+
+/* Panel button (Upload/Embed button) */
+.bn-mantine .bn-panel .mantine-Button-root {
+  background: var(--editor-primary, #6366f1) !important;
+  border: none !important;
+  color: #ffffff !important;
+}
+
+.bn-mantine .bn-panel .mantine-Button-root:hover {
+  background: color-mix(in srgb, var(--editor-primary) 85%, black) !important;
+  color: #ffffff !important;
+}
+
+.bn-mantine .bn-panel .mantine-Button-label {
+  color: #ffffff !important;
+}
+
+/* Panel text */
+.bn-mantine .bn-panel .mantine-Text-root {
+  color: #a3a3a3 !important;
+}
+
+/* ============================================================================
+   CARD GROUP - Grid Layout for Grouped Cards
+   Uses :has() to target wrapper elements based on card content attributes
+   Note: :has() is supported in Chrome 105+, Safari 15.4+, Firefox 121+
+   ============================================================================ */
+
+/* Make card wrappers display as inline-block for column layout */
+/* Multiple selector approaches for maximum compatibility */
+
+/* Primary selector - with wrapper */
+.editor-theme-wrapper .bn-block-outer:has(.bn-card[data-in-group="true"]) {
+  display: inline-block !important;
+  vertical-align: top !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  box-sizing: border-box !important;
+}
+
+/* Fallback selector - without wrapper prefix */
+.bn-block-outer:has(.bn-card[data-in-group="true"]) {
+  display: inline-block !important;
+  vertical-align: top !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  box-sizing: border-box !important;
+}
+
+/* 2 columns - with wrapper */
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-card[data-in-group="true"][data-group-cols="2"]) {
+  width: 50% !important;
+}
+/* 2 columns - without wrapper */
+.bn-block-outer:has(.bn-card[data-in-group="true"][data-group-cols="2"]) {
+  width: 50% !important;
+}
+
+/* 3 columns - with wrapper */
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-card[data-in-group="true"][data-group-cols="3"]) {
+  width: 33.333% !important;
+}
+/* 3 columns - without wrapper */
+.bn-block-outer:has(.bn-card[data-in-group="true"][data-group-cols="3"]) {
+  width: 33.333% !important;
+}
+
+/* 4 columns - with wrapper */
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-card[data-in-group="true"][data-group-cols="4"]) {
+  width: 25% !important;
+}
+/* 4 columns - without wrapper */
+.bn-block-outer:has(.bn-card[data-in-group="true"][data-group-cols="4"]) {
+  width: 25% !important;
+}
+
+/* Card blocks that are NOT in a group - reset to normal flow */
+.editor-theme-wrapper .bn-block-outer:has(.bn-card:not([data-in-group="true"])),
+.bn-block-outer:has(.bn-card:not([data-in-group="true"])) {
+  display: block !important;
+  width: auto !important;
+}
+
+/* Ensure the card fills its container */
+.bn-card[data-in-group="true"] {
+  margin: 0 !important;
+  height: 100%;
+  box-sizing: border-box !important;
+}
+
+/* Card group visual container - connects to cards below */
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-card-group[data-has-children="true"]),
+.bn-block-outer:has(.bn-card-group[data-has-children="true"]) {
+  margin-bottom: 0 !important;
+}
+
+/* ============================================================================
+   TABS GROUP - Tabbed Interface
+   Hides non-active tabs when they're part of a Tabs container
+   ============================================================================ */
+
+/* Hide the wrapper block for non-active tabs */
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-tab[data-in-group="true"][data-is-active="false"]) {
+  display: none !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Also hide the tab element itself for fallback */
+.bn-tab[data-in-group="true"][data-is-active="false"] {
+  display: none !important;
+}
+
+/* ============================================================================
+   CODE GROUP - Tabbed Interface
+   Hides non-active code blocks when they're part of a CodeGroup container
+   ============================================================================ */
+
+/* Hide the wrapper block for non-active code blocks */
+.editor-theme-wrapper
+  .bn-block-outer:has(
+    .bn-code-block[data-in-group="true"][data-is-active="false"]
+  ) {
+  display: none !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Also hide the code block element itself for fallback */
+.bn-code-block[data-in-group="true"][data-is-active="false"] {
+  display: none !important;
+}
+
+/* (bn-block-content styling for code blocks is stripped at the base rule above) */
+
+/* Also target the bn-block-outer wrapper for code blocks in a group */
+.editor-theme-wrapper
+  .bn-block-outer:has(
+    .bn-code-block[data-in-group="true"][data-is-active="true"]
+  ) {
+  margin: 0 !important;
+}
+
+/* ============================================================================
+   COMMENT HIGHLIGHTS
+   Inline highlights for text that has comments attached
+   ============================================================================ */
+
+/* Base highlight style */
+mark.comment-highlight {
+  background-color: rgba(251, 191, 36, 0.3) !important;
+  border-bottom: 2px solid rgb(251, 191, 36) !important;
+  cursor: pointer !important;
+  padding: 1px 2px !important;
+  border-radius: 2px !important;
+  margin: 0 -2px !important;
+  transition: background-color 0.15s ease;
+}
+
+/* Open comment highlight */
+mark.comment-highlight.comment-highlight-open {
+  background-color: rgba(251, 191, 36, 0.3) !important;
+  border-bottom-color: rgb(251, 191, 36) !important;
+}
+
+/* Resolved comment highlight */
+mark.comment-highlight.comment-highlight-resolved {
+  background-color: rgba(34, 197, 94, 0.2) !important;
+  border-bottom-color: rgb(34, 197, 94) !important;
+}
+
+/* Hover states */
+mark.comment-highlight:hover {
+  background-color: rgba(251, 191, 36, 0.5) !important;
+}
+
+mark.comment-highlight.comment-highlight-resolved:hover {
+  background-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+/* Tooltip on hover - uses title attribute */
+mark.comment-highlight[title] {
+  position: relative;
+}

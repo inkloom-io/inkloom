@@ -1,0 +1,225 @@
+/* CodeGroup Container Block Styles */
+
+.bn-code-group {
+  width: 100%;
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-radius: 12px;
+  margin: 8px 0;
+  background: var(--editor-code-background, #1e1e1e);
+  overflow: hidden;
+}
+
+.bn-code-group[data-has-children="true"] {
+  border-radius: 12px 12px 0 0;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.bn-code-group[data-has-children="false"] {
+  border-radius: 12px;
+}
+
+.bn-code-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  background: color-mix(in srgb, var(--editor-primary) 5%, transparent);
+}
+
+/* Empty state header (no children) - needs border since there's content below */
+.bn-code-group[data-has-children="false"] .bn-code-group-header {
+  padding: 12px 16px;
+}
+
+/* Header with children - no bottom border, seamlessly connects to code block */
+.bn-code-group[data-has-children="true"] .bn-code-group-header {
+  border-bottom: none;
+}
+
+/* Single code block: label-style header matching published site */
+.bn-code-group-header-single {
+  background: color-mix(in srgb, var(--editor-primary) 5%, transparent);
+  border-bottom: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+}
+
+.bn-code-group-label-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+}
+
+.bn-code-group-language-badge {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.25));
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  font-family: var(--editor-font-mono, ui-monospace, monospace);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--editor-code-foreground, #d4d4d4);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23d4d4d4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  padding-right: 22px;
+}
+
+.bn-code-group-language-badge:hover {
+  border-color: var(--editor-primary, #3b82f6);
+}
+
+.bn-code-group-language-badge:focus {
+  border-color: var(--editor-primary, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.bn-code-group-language-badge option {
+  background: #1f2937;
+  color: #f9fafb;
+}
+
+/* Tab list container */
+.bn-code-group-tab-list {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  flex: 1;
+  overflow-x: auto;
+}
+
+/* Tab buttons */
+.bn-code-group-tab-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--editor-muted-foreground, #9ca3af);
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: var(--editor-font-mono, ui-monospace, monospace);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  white-space: nowrap;
+}
+
+.bn-code-group-tab-button:hover {
+  color: var(--editor-foreground, #f9fafb);
+  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.1));
+}
+
+.bn-code-group-tab-button[data-active="true"] {
+  color: var(--editor-primary, #6366f1);
+  background: transparent;
+}
+
+.bn-code-group-tab-button[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--editor-primary, #6366f1);
+}
+
+/* Active tab dropdown select */
+.bn-code-group-tab-select {
+  padding: 8px 12px;
+  border: none;
+  border-bottom: 2px solid var(--editor-primary, #6366f1);
+  background: transparent;
+  color: var(--editor-primary, #6366f1);
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: var(--editor-font-mono, ui-monospace, monospace);
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
+}
+
+.bn-code-group-tab-select:hover {
+  background-color: var(--editor-background-subtle, rgba(128, 128, 128, 0.1));
+}
+
+.bn-code-group-tab-select:focus {
+  outline: none;
+}
+
+.bn-code-group-tab-select option {
+  background: #1f2937;
+  color: #f9fafb;
+}
+
+/* Add code block button (inline) */
+.bn-code-group-add-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: 6px 8px;
+  border: 1px dashed var(--editor-border, rgba(128, 128, 128, 0.25));
+  border-radius: 6px;
+  background: transparent;
+  color: var(--editor-muted-foreground, #9ca3af);
+  font-size: 1.25rem;
+  font-weight: 300;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.bn-code-group-add-button:hover {
+  border-color: var(--editor-primary, #6366f1);
+  color: var(--editor-primary, #6366f1);
+  background: color-mix(in srgb, var(--editor-primary) 10%, transparent);
+}
+
+.bn-code-group-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--editor-primary, #6366f1);
+}
+
+.bn-code-group-add-initial-button {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--editor-foreground, #f9fafb);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.bn-code-group-add-initial-button:hover {
+  background: var(--editor-primary, #6366f1);
+  border-color: var(--editor-primary, #6366f1);
+}
+
+.bn-code-group-hint {
+  margin: 0;
+  padding: 16px;
+  font-size: 0.8rem;
+  color: var(--editor-muted-foreground, #6b7280);
+  text-align: center;
+}

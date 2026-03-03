@@ -1,0 +1,261 @@
+/* Card Block Styles
+   Uses CSS variables from the editor theme wrapper for consistent styling.
+   The --bn-colors-* and --editor-* variables are set by BlockNote/editor theme.
+*/
+
+.bn-card {
+  width: 100%;
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-radius: 8px;
+  margin: 8px 0;
+  /* Use a slightly elevated background - subtle contrast from editor bg */
+  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.06));
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.bn-card:hover {
+  border-color: var(--editor-border, rgba(128, 128, 128, 0.25));
+  background: var(--editor-accent, rgba(128, 128, 128, 0.1));
+}
+
+/* Card with href gets primary color left border (like blockquotes) */
+.bn-card[data-has-href="true"] {
+  border-left: 3px solid var(--editor-primary, #6366f1);
+}
+
+/* Cards in a group get visual connection styling */
+.bn-card[data-in-group="true"] {
+  margin: 0;
+  border-radius: 8px;
+}
+
+.bn-card[data-in-group="true"][data-group-first="true"] {
+  margin-top: 0;
+}
+
+.bn-card-main {
+  padding: 16px 20px;
+  position: relative;
+}
+
+.bn-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bn-card-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  color: var(--editor-primary, #6366f1);
+}
+
+.bn-card-title-input {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--editor-foreground, #f9fafb);
+  border: none;
+  background: transparent;
+  padding: 4px 0;
+  border-radius: 4px;
+  outline: none;
+}
+
+.bn-card-title-input:hover {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+}
+
+.bn-card-title-input:focus {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+  outline: none;
+}
+
+.bn-card-title-input::placeholder {
+  color: var(--editor-muted-foreground, #9ca3af);
+}
+
+.bn-card-content {
+  font-size: 0.875rem;
+  color: var(--editor-muted-foreground, #9ca3af);
+  line-height: 1.5;
+  min-height: 20px;
+  padding: 4px 0;
+}
+
+.bn-card-content:empty::before {
+  content: "Card description...";
+  color: var(--editor-muted-foreground, #6b7280);
+  opacity: 0.6;
+}
+
+/* Arrow for cards with href */
+.bn-card-arrow {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: var(--editor-muted-foreground, #9ca3af);
+  font-size: 1.25rem;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.bn-card:hover .bn-card-arrow {
+  transform: translateX(2px);
+  color: var(--editor-primary, #6366f1);
+}
+
+/* Properties section (editing controls) */
+.bn-card-props {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 20px;
+  border-top: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0 0 8px 8px;
+}
+
+.bn-card-prop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--editor-muted-foreground, #9ca3af);
+}
+
+.bn-card-prop span {
+  font-weight: 500;
+}
+
+.bn-card-prop input {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  width: 140px;
+  outline: none;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--editor-foreground, #f9fafb);
+}
+
+.bn-card-prop input:focus {
+  border-color: var(--editor-primary, #6366f1);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--editor-primary) 20%, transparent);
+}
+
+.bn-card-prop input::placeholder {
+  color: var(--editor-muted-foreground, #6b7280);
+}
+
+/* CardGroup Block Styles */
+.bn-card-group {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-radius: 12px 12px 0 0;
+  margin: 8px 0 0 0;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--editor-primary) 10%, transparent), color-mix(in srgb, var(--editor-primary) 2%, transparent));
+  overflow: hidden;
+}
+
+.bn-card-group[data-has-children="true"] {
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+}
+
+.bn-card-group[data-has-children="false"] {
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.bn-card-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--editor-primary) 15%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+}
+
+.bn-card-group-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--editor-primary, #6366f1);
+}
+
+.bn-card-group-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bn-card-group-cols-select {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--editor-foreground, #f9fafb);
+  cursor: pointer;
+  outline: none;
+}
+
+.bn-card-group-cols-select:focus {
+  border-color: var(--editor-primary, #6366f1);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--editor-primary) 20%, transparent);
+}
+
+.bn-card-group-add-button {
+  border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  background: color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  color: var(--editor-primary, #6366f1);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+  font-weight: 500;
+}
+
+.bn-card-group-add-button:hover {
+  background: var(--editor-primary, #6366f1);
+  color: white;
+}
+
+.bn-card-group-hint {
+  margin: 0;
+  padding: 16px;
+  font-size: 0.8rem;
+  color: var(--editor-muted-foreground, #6b7280);
+  text-align: center;
+}
+
+/*
+ * Grid Layout for Card Group children
+ * Uses CSS grid on the BlockNote block wrapper level
+ * The selector targets the blocks that follow a cardGroup
+ */
+
+/* Target the BlockNote wrapper that contains cards in a group */
+[data-block-type="cardGroup"][data-has-children="true"] {
+  /* Remove bottom margin since we're connecting to children */
+}
+
+/* Create visual grid container for grouped cards */
+.bn-block-group:has([data-block-type="cardGroup"][data-has-children="true"]) {
+  /* This targets the block container that has a card group with children */
+}
+
+/* Style cards that are part of a group */
+.bn-card[data-in-group="true"] {
+  height: 100%;
+  margin: 0;
+}
+
+/* Grid layout is handled in editor-theme.css using :has() selectors
+   to target the BlockNote wrapper elements */
