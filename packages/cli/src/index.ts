@@ -4,9 +4,24 @@ export const VERSION = "0.1.0";
 export { readConfig, writeConfig, resolveConfig } from "./lib/config.js";
 export type { CliConfig, ResolvedConfig } from "./lib/config.js";
 
-// Client
+// Client (REST API — platform mode)
 export { createClient } from "./lib/client.js";
 export type { Client, ClientOptions, ApiResponse } from "./lib/client.js";
+
+// Client (Convex direct — core/OSS mode)
+export { ConvexCliClient, createConvexClient } from "./lib/convex-client.js";
+export type {
+  ConvexCliClientOptions,
+  ConvexProject,
+  ConvexBranch,
+  ConvexPage,
+  ConvexPageContent,
+  ConvexFolder,
+  ConvexAsset,
+  ConvexDeployment,
+  ConvexMergeRequest,
+  ExportData,
+} from "./lib/convex-client.js";
 
 // Errors
 export {
