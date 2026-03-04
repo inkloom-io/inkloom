@@ -12,6 +12,7 @@ import { registerAssetsCommands } from "./commands/assets.js";
 import { registerOpenApiCommands } from "./commands/openapi.js";
 import { registerWebhooksCommands } from "./commands/webhooks.js";
 import { registerLlmsTxtCommands } from "./commands/llms-txt.js";
+import { registerBuildCommand } from "./commands/build.js";
 
 const program = new Command();
 program
@@ -46,5 +47,6 @@ registerAssetsCommands(program);
 registerOpenApiCommands(program);
 registerWebhooksCommands(program);
 registerLlmsTxtCommands(program);
+registerBuildCommand(program);
 
 program.parse();

@@ -33,8 +33,10 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@inkloom/mdx-parser": "workspace:*",
     "commander": "^12.0.0",
     "convex": "^1.14.0",
+    "create-inkloom": "workspace:*",
     "fs-extra": "^11.2.0",
     "picocolors": "^1.0.0",
     "prompts": "^2.4.2"

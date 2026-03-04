@@ -58,3 +58,7 @@ export type {
   ApplyDiffOptions,
   ApplyDiffSummary,
 } from "./lib/push.js";
+
+// Build (static site generation)
+export { buildSite } from "./lib/build.js";
+export type { BuildOptions, BuildResult } from "./lib/build.js";
