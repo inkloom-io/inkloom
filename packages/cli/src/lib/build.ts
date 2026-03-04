@@ -447,7 +447,7 @@ function extractPlainText(content: string): string {
 interface HtmlPageOptions {
   title: string;
   description?: string;
-  siteData: object;
+  siteData: object & { config?: { showBranding?: boolean } };
   assetManifest: { js: string[]; css: string[] };
   pageContent?: string;
   pageTitle?: string;
@@ -477,6 +477,17 @@ function generateHtmlPage(opts: HtmlPageOptions): string {
       })}</script>`
     : "";
 
+  const showBranding = opts.siteData.config?.showBranding !== false;
+  const brandingBadge = showBranding
+    ? `    <div id="inkloom-badge" style="position:fixed;bottom:12px;right:12px;z-index:50;opacity:0.7;transition:opacity 0.2s">
+      <a href="https://github.com/inkloom/inkloom" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;background:rgba(0,0,0,0.06);color:#555;font-size:11px;font-family:system-ui,sans-serif;text-decoration:none;backdrop-filter:blur(4px);border:1px solid rgba(0,0,0,0.08)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3L4 7v10l8 4 8-4V7l-8-4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 7v10" stroke="currentColor" stroke-width="2"/><path d="M4 7l8 4 8-4" stroke="currentColor" stroke-width="2"/></svg>
+        Built with <strong style="color:#2dd4ac;font-weight:600">InkLoom</strong>
+      </a>
+    </div>
+    <script>document.getElementById('inkloom-badge').onmouseenter=function(){this.style.opacity='1'};document.getElementById('inkloom-badge').onmouseleave=function(){this.style.opacity='0.7'}</script>`
+    : "";
+
   return `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -492,6 +503,7 @@ ${cssLinks}
     <script id="__INKLOOM_DATA__" type="application/json">${JSON.stringify(opts.siteData)}</script>
 ${pageDataScript}
 ${jsScripts}
+${brandingBadge}
   </body>
 </html>`;
 }
