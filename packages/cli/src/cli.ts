@@ -14,6 +14,7 @@ import { registerWebhooksCommands } from "./commands/webhooks.js";
 import { registerLlmsTxtCommands } from "./commands/llms-txt.js";
 import { registerBuildCommand } from "./commands/build.js";
 import { registerExportCommand } from "./commands/export.js";
+import { registerMigrateCommand } from "./commands/migrate.js";
 
 const program = new Command();
 program
@@ -51,5 +52,6 @@ registerWebhooksCommands(program);
 registerLlmsTxtCommands(program);
 registerBuildCommand(program);
 registerExportCommand(program);
+registerMigrateCommand(program);
 
 program.parse();
