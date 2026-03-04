@@ -9,6 +9,8 @@ export interface CliConfig {
   token?: string;
   defaultOrgId?: string;
   apiBaseUrl?: string;
+  /** Opt-in anonymous telemetry. Default: undefined (disabled). */
+  telemetryEnabled?: boolean;
 }
 
 /**

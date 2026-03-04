@@ -6,6 +6,7 @@ import { buildSite } from "../lib/build.js";
 import { CliError, EXIT_GENERAL } from "../lib/errors.js";
 import { printData, printSuccess } from "../lib/output.js";
 import { handleActionNoClient, type GlobalOpts, getGlobalOpts } from "../lib/handler.js";
+import { trackEvent } from "../lib/telemetry.js";
 
 /**
  * Register the `build` command for generating static sites.
@@ -112,6 +113,13 @@ Environment:
         printSuccess(
           `Static site generated. Serve with any static file server.`
         );
+
+        // Fire-and-forget telemetry
+        trackEvent(
+          "build_completed",
+          { pageCount: result.pageCount, fileCount: result.fileCount },
+          globalOpts.noTelemetry
+        ).catch(() => {});
       } catch (error) {
         if (error instanceof CliError) {
           if (globalOpts.json) {

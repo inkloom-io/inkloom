@@ -26,6 +26,7 @@ program
   .option("--org <orgId>", "Organization ID (overrides config/env)")
   .option("--api-url <url>", "API base URL (overrides config/env)")
   .option("-v, --verbose", "Enable debug logging to stderr")
+  .option("--no-telemetry", "Disable anonymous telemetry for this invocation")
   .addHelpText(
     "after",
     `

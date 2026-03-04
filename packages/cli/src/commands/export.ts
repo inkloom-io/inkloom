@@ -6,6 +6,7 @@ import { createConvexClient } from "../lib/convex-client.js";
 import { CliError, EXIT_GENERAL, EXIT_NOT_FOUND } from "../lib/errors.js";
 import { printData, printSuccess } from "../lib/output.js";
 import { getGlobalOpts } from "../lib/handler.js";
+import { trackEvent } from "../lib/telemetry.js";
 
 /**
  * Register the `export` command for dumping Convex data to a portable JSON file.
@@ -142,6 +143,13 @@ Environment:
         printSuccess(
           `Export complete. Use 'inkloom migrate --to-cloud --file ${localOpts.output}' to import into InkLoom Cloud.`
         );
+
+        // Fire-and-forget telemetry
+        trackEvent(
+          "export_completed",
+          { projects: stats.projects, pages: stats.pages },
+          globalOpts.noTelemetry
+        ).catch(() => {});
       } catch (error) {
         if (error instanceof CliError) {
           if (globalOpts.json) {

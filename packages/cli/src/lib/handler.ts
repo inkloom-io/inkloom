@@ -6,7 +6,10 @@ import { printError, type OutputOptions } from "./output.js";
 /**
  * Global options resolved from the Commander root program.
  */
-export interface GlobalOpts extends ClientOptions, OutputOptions {}
+export interface GlobalOpts extends ClientOptions, OutputOptions {
+  /** When true, telemetry is disabled for this invocation (`--no-telemetry`). */
+  noTelemetry?: boolean;
+}
 
 /**
  * Extract global options from the Commander command chain.
@@ -19,6 +22,7 @@ export function getGlobalOpts(cmd: Command): GlobalOpts {
     org?: string;
     apiUrl?: string;
     verbose?: boolean;
+    telemetry?: boolean;
   }>();
   return {
     json: opts.json,
@@ -26,6 +30,7 @@ export function getGlobalOpts(cmd: Command): GlobalOpts {
     org: opts.org,
     apiUrl: opts.apiUrl,
     verbose: opts.verbose,
+    noTelemetry: opts.telemetry === false,
   };
 }
 
