@@ -250,14 +250,14 @@ export async function buildSite(
     rmSync(outDir, { recursive: true, force: true });
   }
 
-  let fileCount = 0;
+  const writtenPaths = new Set<string>();
 
   // Write SPA assets FIRST (so generated files can override, e.g. index.html)
   for (const asset of spaAssets) {
     const filePath = join(outDir, asset.path);
     mkdirSync(dirname(filePath), { recursive: true });
     writeFileSync(filePath, asset.content);
-    fileCount++;
+    writtenPaths.add(filePath);
   }
 
   // Write generated files SECOND (override SPA defaults like index.html)
@@ -269,12 +269,12 @@ export async function buildSite(
     } else {
       writeFileSync(filePath, file.data);
     }
-    fileCount++;
+    writtenPaths.add(filePath);
   }
 
   return {
     pageCount: pagesWithContent.length,
-    fileCount,
+    fileCount: writtenPaths.size,
     outDir,
   };
 }
