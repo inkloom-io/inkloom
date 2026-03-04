@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext } from "react";
+import { createContext, useContext } from "react";
 import {
   trackEvent as trackEventLib,
   isTelemetryEnabled as isTelemetryEnabledLib,

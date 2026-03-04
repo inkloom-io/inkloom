@@ -31,6 +31,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { TEMPLATES, type TemplateId } from "@/lib/templates";
+import { useAppContext } from "@/hooks/use-app-context";
 
 const templateIcons = {
   file: FileText,
@@ -49,6 +50,7 @@ export default function ProjectsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const { tenantId } = useAppContext();
   const projects = useQuery(api.projects.list);
 
   const createProject = useMutation(api.projects.create);
@@ -82,9 +84,11 @@ export default function ProjectsPage() {
     setIsCreating(true);
     setCreateError(null);
     try {
-      const projectId = await createProject({
+      // Pass workosOrgId for platform mode compatibility (core mode ignores it)
+      const projectId = await (createProject as unknown as (args: Record<string, unknown>) => Promise<string>)({
         name: name.trim(),
-        templateId: selectedTemplate as TemplateId,
+        templateId: selectedTemplate,
+        workosOrgId: tenantId,
       });
 
       setName("");

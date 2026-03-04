@@ -127,9 +127,11 @@ export default function DashboardPage() {
     return tc(key, params);
   }
   const { user, isLoading: userLoading } = useAuth();
-  const { orgName, isMultiTenant, isLoading: ctxLoading } = useAppContext();
+  const { tenantId, orgName, isMultiTenant, isLoading: ctxLoading } = useAppContext();
 
-  const stats = useQuery(api.projects.getDashboardStats);
+  // Cast to any to handle both core (no args) and platform (workosOrgId required) signatures
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const stats = useQuery(api.projects.getDashboardStats as any, { workosOrgId: tenantId } as any);
 
   const isLoading = userLoading || ctxLoading || stats === undefined;
 

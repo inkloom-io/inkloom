@@ -2,8 +2,13 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { makeFunctionReference } from "convex/server";
 import { AuthProvider, type AuthUser } from "@/hooks/use-auth";
+
+// Core-only Convex function references (not present in platform's users.ts override).
+// Use makeFunctionReference so this file type-checks in both core and apps/dev contexts.
+const ensureLocalUserRef = makeFunctionReference<"mutation">("users:ensureLocalUser");
+const currentLocalRef = makeFunctionReference<"query">("users:currentLocal");
 
 /**
  * Core-mode context provider.
@@ -17,8 +22,8 @@ import { AuthProvider, type AuthUser } from "@/hooks/use-auth";
  *   to `CORE_DEFAULTS` (tenantId: "local", isMultiTenant: false).
  */
 export function CoreContextProvider({ children }: { children: ReactNode }) {
-  const ensureUser = useMutation(api.users.ensureLocalUser);
-  const localUser = useQuery(api.users.currentLocal);
+  const ensureUser = useMutation(ensureLocalUserRef);
+  const localUser = useQuery(currentLocalRef);
 
   // Ensure the local user exists on mount (idempotent)
   useEffect(() => {
