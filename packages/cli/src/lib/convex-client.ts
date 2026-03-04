@@ -9,6 +9,10 @@
  */
 import { ConvexHttpClient } from "convex/browser";
 import { anyApi } from "convex/server";
+import {
+  blockNoteToMDX,
+  parseBlockNoteContent,
+} from "@inkloom/mdx-parser";
 
 // ---------------------------------------------------------------------------
 // Types — mirrors of Convex document shapes returned by queries
@@ -321,6 +325,38 @@ export class ConvexCliClient {
 
   async removePage(pageId: string): Promise<void> {
     await this.mutate("pages.remove", { pageId });
+  }
+
+  /**
+   * Fetch all pages for a branch with content converted from BlockNote JSON to MDX.
+   * Used by `pages pull` in core mode.
+   */
+  async listPagesWithMdxContent(
+    branchId: string
+  ): Promise<Array<ConvexPage & { content?: string }>> {
+    const pages = await this.listPagesByBranch(branchId);
+    const result: Array<ConvexPage & { content?: string }> = [];
+
+    for (const page of pages) {
+      const contentDoc = await this.getPageContent(page._id);
+      let mdxContent: string | undefined;
+
+      if (contentDoc?.content) {
+        try {
+          const blocks = parseBlockNoteContent(contentDoc.content);
+          if (blocks && blocks.length > 0) {
+            mdxContent = blockNoteToMDX(blocks);
+          }
+        } catch {
+          // If parsing fails, use raw content
+          mdxContent = contentDoc.content;
+        }
+      }
+
+      result.push({ ...page, content: mdxContent });
+    }
+
+    return result;
   }
 
   // -- Folders --------------------------------------------------------------

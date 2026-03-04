@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseFrontmatter, type PageFrontmatter } from "./frontmatter.js";
 import type { Client } from "./client.js";
+import type { ConvexCliClient } from "./convex-client.js";
+import { mdxToBlockNote } from "@inkloom/mdx-parser";
 
 /**
  * A local .mdx page found by walking the directory tree.
@@ -628,4 +630,170 @@ export function formatDiffSummary(diff: DiffResult): string {
     parts.push(`${diff.foldersToDelete.length} folder${diff.foldersToDelete.length === 1 ? "" : "s"} deleted`);
   if (parts.length === 0) parts.push("no changes");
   return `Summary: ${parts.join(", ")}`;
+}
+
+// ---------------------------------------------------------------------------
+// Apply diff via Convex (core / OSS mode) — uses ConvexCliClient directly
+// ---------------------------------------------------------------------------
+
+export interface ApplyDiffConvexOptions {
+  branchId: string;
+  publish?: boolean;
+}
+
+/**
+ * Apply a computed diff directly via Convex mutations (core / OSS mode).
+ *
+ * Unlike `applyDiff()` which uses the REST API bulk endpoint, this function
+ * calls ConvexCliClient methods (create/update/remove) one at a time.
+ * MDX content is converted to BlockNote JSON before storing.
+ *
+ * Steps:
+ * 1. Create folders top-down (parents first), tracking returned IDs
+ * 2. Create pages (MDX → BlockNote conversion)
+ * 3. Update pages (MDX → BlockNote conversion)
+ * 4. Delete pages
+ * 5. Delete folders bottom-up (children first)
+ */
+export async function applyDiffConvex(
+  client: ConvexCliClient,
+  diff: DiffResult,
+  remoteFolders: RemoteFolder[],
+  opts: ApplyDiffConvexOptions
+): Promise<ApplyDiffSummary> {
+  const summary: ApplyDiffSummary = {
+    foldersCreated: 0,
+    pagesCreated: 0,
+    pagesUpdated: 0,
+    pagesDeleted: 0,
+    foldersDeleted: 0,
+    errors: [],
+  };
+
+  // Build a map: folder path → folderId (from existing remote folders)
+  const remoteFolderPathMap = buildRemoteFolderPathMap(remoteFolders);
+  const pathToFolderId = new Map<string, string>();
+  for (const [folderId, folderPath] of remoteFolderPathMap) {
+    pathToFolderId.set(folderPath, folderId);
+  }
+
+  // 1. Create folders top-down (parents first)
+  for (const folder of diff.foldersToCreate) {
+    const parentFolderId = folder.parentPath
+      ? pathToFolderId.get(folder.parentPath)
+      : undefined;
+
+    try {
+      const folderId = await client.createFolder({
+        branchId: opts.branchId,
+        name: folder.name,
+        parentId: parentFolderId,
+      });
+
+      // Track the new folder ID so child folders/pages can reference it
+      pathToFolderId.set(folder.path, folderId);
+      summary.foldersCreated++;
+    } catch (err) {
+      summary.errors.push(
+        `Failed to create folder "${folder.path}": ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+
+  // 2. Create pages
+  for (const local of diff.pagesToCreate) {
+    const folderId = local.folderPath
+      ? pathToFolderId.get(local.folderPath)
+      : undefined;
+
+    try {
+      // Create the page
+      const pageId = await client.createPage({
+        branchId: opts.branchId,
+        title: local.title,
+        folderId,
+        position: local.frontmatter.position,
+      });
+
+      // Convert MDX to BlockNote and update content
+      const blocks = mdxToBlockNote(local.content);
+      await client.updatePageContent(pageId, JSON.stringify(blocks));
+
+      // Set metadata (icon, description, isPublished)
+      const updates: Record<string, unknown> = {};
+      if (local.frontmatter.icon) updates.icon = local.frontmatter.icon;
+      if (local.frontmatter.description)
+        updates.description = local.frontmatter.description;
+
+      if (local.frontmatter.isPublished !== undefined) {
+        updates.isPublished = local.frontmatter.isPublished;
+      } else if (opts.publish) {
+        updates.isPublished = true;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await client.updatePage(pageId, updates);
+      }
+
+      summary.pagesCreated++;
+    } catch (err) {
+      summary.errors.push(
+        `Failed to create page "${local.relativePath}": ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+
+  // 3. Update pages
+  for (const { local, remote } of diff.pagesToUpdate) {
+    try {
+      // Convert MDX to BlockNote and update content
+      const blocks = mdxToBlockNote(local.content);
+      await client.updatePageContent(remote.id, JSON.stringify(blocks));
+
+      // Update title if changed
+      const updates: Record<string, unknown> = {};
+      if (local.title !== remote.title) {
+        updates.title = local.title;
+      }
+      if (opts.publish) {
+        updates.isPublished = true;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await client.updatePage(remote.id, updates);
+      }
+
+      summary.pagesUpdated++;
+    } catch (err) {
+      summary.errors.push(
+        `Failed to update page "${local.relativePath}": ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+
+  // 4. Delete pages
+  for (const remote of diff.pagesToDelete) {
+    try {
+      await client.removePage(remote.id);
+      summary.pagesDeleted++;
+    } catch (err) {
+      summary.errors.push(
+        `Failed to delete page "${remote.slug}": ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+
+  // 5. Delete folders bottom-up (children first)
+  for (const folder of diff.foldersToDelete) {
+    try {
+      await client.removeFolder(folder.id);
+      summary.foldersDeleted++;
+    } catch (err) {
+      summary.errors.push(
+        `Failed to delete folder "${folder.name}": ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
+
+  return summary;
 }
