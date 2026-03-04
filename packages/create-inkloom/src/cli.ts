@@ -8,10 +8,14 @@ const program = new Command();
 
 program
   .name("create-inkloom")
-  .description("Create a new InkLoom documentation site")
+  .description("Create a new InkLoom documentation project")
   .version("0.1.0")
   .argument("[project-name]", "Name of the project directory")
-  .option("-t, --template <name>", "Template to use", "default")
+  .option(
+    "-t, --template <name>",
+    'Template to use: "core" (Next.js + Convex editor) or "default" (static site viewer)',
+    "core"
+  )
   .option("--use-npm", "Use npm as package manager")
   .option("--use-yarn", "Use yarn as package manager")
   .option("--use-pnpm", "Use pnpm as package manager")
