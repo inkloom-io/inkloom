@@ -91,6 +91,9 @@ export interface DeployAdapter {
   /** Get the base URL where deployed sites are accessible. */
   getDeployUrl(projectSlug: string): string;
 
+  /** Get the API endpoint to POST to for triggering a deploy/build. */
+  getPublishEndpoint(projectId: string): string;
+
   /** Human-readable label for the deploy action (e.g., "Build" or "Deploy"). */
   actionLabel: string;
 }

@@ -13,19 +13,21 @@ import type { DeployAdapter, DeployOptions, DeployResult } from "./types";
 export const deployAdapter: DeployAdapter = {
   async publish(_opts: DeployOptions): Promise<DeployResult> {
     // In core mode, the actual build is triggered via the CLI (`inkloom build`)
-    // or via a `/api/build` route. This adapter provides a no-op stub that
-    // signals core mode. The real build logic will be wired in Phase 2 when
-    // the CLI and build route are implemented.
+    // or via the `/api/build` route (called by usePublish hook).
     return {
       success: true,
       url: "file://dist/",
       message:
-        "Use `inkloom build` to generate a static site, or click Export in the UI.",
+        "Use `inkloom build` to generate a static site, or click Build in the UI.",
     };
   },
 
   getDeployUrl(projectSlug: string): string {
     return `file://dist/${projectSlug}`;
+  },
+
+  getPublishEndpoint(_projectId: string): string {
+    return "/api/build";
   },
 
   actionLabel: "Build",

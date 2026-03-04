@@ -357,6 +357,7 @@ describe("adapter type exports", () => {
     const _typeCheck: import("@/lib/adapters/types").DeployAdapter = {
       publish: async () => ({ success: true, url: "", message: "" }),
       getDeployUrl: () => "",
+      getPublishEndpoint: () => "/api/build",
       actionLabel: "Test",
     };
     expect(_typeCheck.actionLabel).toBe("Test");

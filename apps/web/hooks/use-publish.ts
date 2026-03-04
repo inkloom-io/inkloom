@@ -204,17 +204,16 @@ export function usePublish({
     setDeployment({ status: "publishing" });
 
     try {
-      const response = await fetch(
-        `/api/v1/projects/${project._id}/deployments`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...(branchId && { branchId }),
-            ...(target === "production" && { target: "production" }),
-          }),
-        }
-      );
+      const endpoint = deployAdapter.getPublishEndpoint(project._id);
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: project._id,
+          ...(branchId && { branchId }),
+          ...(target === "production" && { target: "production" }),
+        }),
+      });
 
       const result = await response.json();
 
