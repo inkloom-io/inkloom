@@ -334,7 +334,8 @@
       "overview": "Overview",
       "projects": "Projects",
       "organization": "Organization",
-      "settings": "Settings"
+      "settings": "Settings",
+      "upgrade": "Upgrade to InkLoom Cloud"
     },
     "header": {
       "settings": "Settings",

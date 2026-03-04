@@ -160,6 +160,127 @@ describe("isMultiTenant drives Organization link", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Upgrade CTA visibility: core mode vs platform mode
+//
+// The sidebar footer shows an "Upgrade to InkLoom Cloud" CTA only in core
+// (single-tenant) mode. In platform (multi-tenant) mode, the CTA is hidden.
+// ---------------------------------------------------------------------------
+
+/** Mirrors the CTA visibility logic in DashboardNav */
+function shouldShowUpgradeCta(isMultiTenant: boolean): boolean {
+  return !isMultiTenant;
+}
+
+describe("upgrade CTA visibility: core mode (isMultiTenant=false)", () => {
+  it("shows the upgrade CTA in core mode", () => {
+    expect(shouldShowUpgradeCta(false)).toBe(true);
+  });
+});
+
+describe("upgrade CTA visibility: platform mode (isMultiTenant=true)", () => {
+  it("hides the upgrade CTA in platform mode", () => {
+    expect(shouldShowUpgradeCta(true)).toBe(false);
+  });
+});
+
+describe("upgrade CTA driven by AppContextState", () => {
+  it("core context (isMultiTenant=false) shows CTA", () => {
+    const coreCtx: AppContextState = {
+      tenantId: "local",
+      orgName: "Local",
+      isMultiTenant: false,
+      isLoading: false,
+    };
+    expect(shouldShowUpgradeCta(coreCtx.isMultiTenant)).toBe(true);
+  });
+
+  it("platform context (isMultiTenant=true) hides CTA", () => {
+    const platformCtx: AppContextState = {
+      tenantId: "org_abc",
+      orgName: "Acme Corp",
+      isMultiTenant: true,
+      isLoading: false,
+    };
+    expect(shouldShowUpgradeCta(platformCtx.isMultiTenant)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Upgrade CTA source-level verification
+// ---------------------------------------------------------------------------
+
+describe("upgrade CTA source verification", () => {
+  it("nav component source contains the upgrade CTA link to inkloom.dev", async () => {
+    const fs = await import("fs");
+    const path = await import("path");
+    const src = fs.readFileSync(
+      path.resolve(__dirname, "../nav.tsx"),
+      "utf-8"
+    );
+    expect(src).toContain("https://inkloom.dev");
+  });
+
+  it("nav component source conditionally renders CTA on !isMultiTenant", async () => {
+    const fs = await import("fs");
+    const path = await import("path");
+    const src = fs.readFileSync(
+      path.resolve(__dirname, "../nav.tsx"),
+      "utf-8"
+    );
+    expect(src).toContain("!isMultiTenant");
+  });
+
+  it("nav component uses ArrowUpRight icon for CTA", async () => {
+    const fs = await import("fs");
+    const path = await import("path");
+    const src = fs.readFileSync(
+      path.resolve(__dirname, "../nav.tsx"),
+      "utf-8"
+    );
+    expect(src).toContain("ArrowUpRight");
+  });
+
+  it("nav component uses the upgrade i18n key", async () => {
+    const fs = await import("fs");
+    const path = await import("path");
+    const src = fs.readFileSync(
+      path.resolve(__dirname, "../nav.tsx"),
+      "utf-8"
+    );
+    expect(src).toContain('t("upgrade")');
+  });
+
+  it("CTA opens in new tab with security attributes", async () => {
+    const fs = await import("fs");
+    const path = await import("path");
+    const src = fs.readFileSync(
+      path.resolve(__dirname, "../nav.tsx"),
+      "utf-8"
+    );
+    expect(src).toContain('target="_blank"');
+    expect(src).toContain('rel="noopener noreferrer"');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// i18n key verification
+// ---------------------------------------------------------------------------
+
+describe("upgrade CTA i18n key exists", () => {
+  it("en.json has dashboard.nav.upgrade key", async () => {
+    const fs = await import("fs");
+    const path = await import("path");
+    const messages = JSON.parse(
+      fs.readFileSync(
+        path.resolve(__dirname, "../../../messages/en.json"),
+        "utf-8"
+      )
+    );
+    expect(messages.dashboard.nav.upgrade).toBe("Upgrade to InkLoom Cloud");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Nav imports useAppContext (structural check)
 // ---------------------------------------------------------------------------
 

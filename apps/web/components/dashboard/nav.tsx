@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
+  ArrowUpRight,
   Building2,
   FolderOpen,
   Home,
@@ -39,7 +40,7 @@ export function DashboardNav({ user: _user }: DashboardNavProps) {
 
   return (
     <aside
-      className="relative z-10 hidden w-60 shrink-0 border-r border-[var(--glass-divider)] bg-[var(--surface-bg)] lg:block"
+      className="relative z-10 hidden w-60 shrink-0 flex-col border-r border-[var(--glass-divider)] bg-[var(--surface-bg)] lg:flex"
     >
       {/* Logo */}
       <div
@@ -55,7 +56,7 @@ export function DashboardNav({ user: _user }: DashboardNavProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="p-3">
+      <nav className="flex-1 p-3">
         <div className="space-y-1">
           {navItems.map((item: any) => {
             const isActive = "exact" in item && item.exact
@@ -78,6 +79,21 @@ export function DashboardNav({ user: _user }: DashboardNavProps) {
           })}
         </div>
       </nav>
+
+      {/* Upgrade CTA — only in core (single-tenant) mode */}
+      {!isMultiTenant && (
+        <div className="border-t border-[var(--glass-divider)] p-3">
+          <a
+            href="https://inkloom.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-medium text-[var(--text-dim)] transition-all duration-200 hover:bg-[var(--glass-hover)] hover:text-[var(--text-medium)]"
+          >
+            <ArrowUpRight className="h-3.5 w-3.5" />
+            {t("upgrade")}
+          </a>
+        </div>
+      )}
     </aside>
   );
 }
