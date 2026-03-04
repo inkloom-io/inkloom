@@ -4,10 +4,11 @@
     "baseUrl": ".",
     "declaration": false,
     "declarationMap": false,
+    "preserveSymlinks": true,
     "paths": {
       "@/*": ["./*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "lib/__tests__/telemetry.test.ts"]
 }

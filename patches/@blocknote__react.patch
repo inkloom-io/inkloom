@@ -1,0 +1,25 @@
+diff --git a/dist/blocknote-react.js b/dist/blocknote-react.js
+index d4d36cd4dbb5370c3b7431ffeb577e4870b39825..5892232f01e00aab082c36107f47bd99e8fd958e 100644
+--- a/dist/blocknote-react.js
++++ b/dist/blocknote-react.js
+@@ -155,7 +155,7 @@ const co = (e) => {
+ function so(e) {
+   let t = new DOMRect();
+   const n = "getBoundingClientRect" in e ? () => e.getBoundingClientRect() : () => e.element.getBoundingClientRect();
+-  return () => "element" in e && (e.cacheMountedBoundingClientRect ?? !0) ? (e.element.isConnected && (t = n()), t) : n();
++  return () => "element" in e && e.element && (e.cacheMountedBoundingClientRect ?? !0) ? (e.element.isConnected && (t = n()), t) : n();
+ }
+ const z = (e) => {
+   var h, b, p;
+diff --git a/src/components/Popovers/GenericPopover.tsx b/src/components/Popovers/GenericPopover.tsx
+index 90c4fd3f94d2ff7dec2b347f9a0ebc419dab3be0..63a33a1dedba251445fd4f1f0cc83fe5764811f1 100644
+--- a/src/components/Popovers/GenericPopover.tsx
++++ b/src/components/Popovers/GenericPopover.tsx
+@@ -62,6 +62,7 @@ export function getMountedBoundingClientRectCache(
+   return () => {
+     if (
+       "element" in reference &&
++      reference.element &&
+       (reference.cacheMountedBoundingClientRect ?? true)
+     ) {
+       if (reference.element.isConnected) {

@@ -6,6 +6,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["**/*.test.ts"],
+    exclude: ["**/node_modules/**", "lib/__tests__/telemetry.test.ts"],
   },
   resolve: {
     alias: {

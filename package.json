@@ -1,0 +1,20 @@
+{
+  "name": "inkloom-core",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "test": "turbo test"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@blocknote/react": "patches/@blocknote__react.patch"
+    },
+    "overrides": {
+      "react": "^19.0.0",
+      "react-dom": "^19.0.0"
+    }
+  }
+}

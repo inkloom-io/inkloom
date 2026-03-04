@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -40,6 +40,14 @@ const templateIcons = {
 } as const;
 
 export default function ProjectsPage() {
+  return (
+    <Suspense>
+      <ProjectsPageContent />
+    </Suspense>
+  );
+}
+
+function ProjectsPageContent() {
   const t = useTranslations("dashboard.projects");
   const tc = useTranslations("common");
 
