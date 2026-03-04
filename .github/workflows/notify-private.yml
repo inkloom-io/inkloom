@@ -1,0 +1,47 @@
+# notify-private.yml
+#
+# Notifies the private inkloom-platform repo when changes land on the public repo.
+# Sends a repository_dispatch event so the private repo can run subtree pull.
+#
+# This file lives in the public repo (core/.github/workflows/) and is pushed
+# via git subtree to the public inkloom repo.
+#
+# OSS_PLAN Phase 4.6
+
+name: Notify Private Repo
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    name: Send repository dispatch
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.SYNC_APP_ID }}
+          private-key: ${{ secrets.SYNC_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: "inkloom-platform"
+
+      - name: Dispatch upstream-changed event
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: '${{ github.repository_owner }}',
+              repo: 'inkloom-platform',
+              event_type: 'upstream-changed',
+              client_payload: {
+                sha: context.sha,
+                ref: context.ref,
+                sender: context.actor,
+              },
+            });
+            console.log(`Dispatched upstream-changed event to inkloom-platform (commit: ${context.sha})`);
