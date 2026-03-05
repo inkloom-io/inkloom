@@ -43,6 +43,18 @@ export const list = query({
 });
 
 /**
+ * List projects by org ID.
+ * In core mode the org filter is ignored (single tenant, return all).
+ * Exists so the projects page can call `listByOrg` in both modes.
+ */
+export const listByOrg = query({
+  args: { workosOrgId: v.string() },
+  handler: async (ctx) => {
+    return await ctx.db.query("projects").order("desc").collect();
+  },
+});
+
+/**
  * Create a project in core mode.
  * No `workosOrgId` arg — automatically uses the "local" sentinel.
  * No `createdBy` / `createdByUserId` — single-tenant, no auth audit trail.

@@ -59,7 +59,10 @@ function ProjectsPageContent() {
   const searchParams = useSearchParams();
 
   const { tenantId } = useAppContext();
-  const projects = useQuery(api.projects.list);
+  const projects = useQuery(
+    api.projects.listByOrg,
+    tenantId ? { workosOrgId: tenantId } : "skip"
+  );
 
   const createProject = useMutation(api.projects.create);
   const [isOpen, setIsOpen] = useState(false);
