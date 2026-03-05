@@ -568,6 +568,7 @@
       }
     },
     "projects": {
+      "title": "Projects",
       "heading": "Projects",
       "subtitle": "Manage your documentation projects",
       "subtitleWithOrg": "Documentation projects in {accountName}",
@@ -621,7 +622,14 @@
       "noDescription": "No description",
       "planUltimate": "Ultimate",
       "planPro": "Pro",
-      "planHobby": "Hobby"
+      "planHobby": "Hobby",
+      "projectName": "Project Name",
+      "projectNamePlaceholder": "My Docs",
+      "template": "Template",
+      "create": "Create",
+      "failedToCreate": "Failed to create project",
+      "createFirstProject": "Create your first project",
+      "createFirstProjectDescription": "Create your first documentation project to get started."
     },
     "userSettings": {
       "heading": "Settings",
