@@ -1,7 +1,7 @@
 "use client";
 
 import { useAppContext } from "@/hooks/use-app-context";
-import { ActiveUsers, ConnectionStatus } from "./active-users";
+import { ActiveUsers, ConnectionStatus } from "@/components/editor/active-users";
 import type { CollaborationUser } from "@/lib/collaboration-utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@inkloom/ui/tooltip";
 import { useTranslations } from "next-intl";

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { LogOut, Settings } from "lucide-react";
-import { OrgSwitcher } from "./org-switcher";
+import { OrgSwitcher } from "@/components/dashboard/org-switcher";
 import { ThemeToggle } from "./theme-toggle";
 import { useAppContext } from "@/hooks/use-app-context";
 import { useAuth } from "@/hooks/use-auth";
