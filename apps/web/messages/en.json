@@ -370,7 +370,9 @@
       "freeForever": "Free forever",
       "daysFree": "14 days free",
       "thenPerMonth": ", then ${price}/mo",
+      "thenPerMonthAnnual": ", then ${price}/mo billed annually",
       "perMonth": "${price}/mo",
+      "perMonthAnnual": "${price}/mo billed annually",
       "unlimitedPages": "Unlimited pages",
       "inkloomSubdomain": "inkloom.dev subdomain",
       "communitySupport": "Community support",
@@ -1582,6 +1584,11 @@
       "checkoutUnavailable": "Checkout unavailable",
       "backToBilling": "Back to Billing",
       "missingParams": "Missing checkout parameters. Please start from the billing page."
+    },
+    "intervalToggle": {
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "discount": "-20%"
     }
   },
   "plans": {
