@@ -235,6 +235,8 @@ export function BlockEditor({
     }
     try {
       const blocks = JSON.parse(initialContent) as CustomPartialBlock[];
+      // BlockNote requires at least one block — treat empty arrays as undefined
+      if (blocks.length === 0) return undefined;
       // Migrate old code blocks to new format
       return migrateCodeBlocks(blocks);
     } catch {

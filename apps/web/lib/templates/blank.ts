@@ -15,7 +15,7 @@ export const blankTemplate: Template = {
       path: "/",
       position: 0,
       isPublished: true,
-      content: [],
+      content: [{ type: "paragraph", content: [] }],
     },
   ],
 };
