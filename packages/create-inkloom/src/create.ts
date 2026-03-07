@@ -143,15 +143,13 @@ function printCoreInstructions(
   console.log();
   console.log(pc.cyan(`  cd ${projectName}`));
   console.log();
-  console.log(
-    `  ${pc.bold("1.")} Set up Convex (free account required):`
-  );
-  console.log(pc.cyan("     npx convex dev"));
+  console.log(pc.bold("  Option A: Convex Cloud (free, fastest setup)"));
+  console.log(`  ${pc.bold("1.")} npx convex dev`);
+  console.log(`  ${pc.bold("2.")} ${packageManager} run dev`);
   console.log();
-  console.log(
-    `  ${pc.bold("2.")} In a new terminal, start the app:`
-  );
-  console.log(pc.cyan(`     ${packageManager} run dev`));
+  console.log(pc.bold("  Option B: Self-hosted (no external dependencies)"));
+  console.log(`  ${pc.bold("1.")} docker compose up -d`);
+  console.log(`  ${pc.bold("2.")} See README.md for setup steps`);
   console.log();
   console.log(pc.dim("  Open http://localhost:3000 to start writing docs."));
   console.log();

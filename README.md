@@ -39,44 +39,74 @@ InkLoom is an open-source documentation platform with a visual block editor, Git
 
 ## Quick Start
 
-### Option 1: Scaffold a new project
+### Option A: Convex Cloud (Fastest setup)
+
+Convex offers a generous free tier — more than enough for any documentation project:
+
+- **1M** function calls/month
+- **0.5 GB** database + **1 GB** file storage
+- Up to **6 developers** — no credit card required
+
+**1. Scaffold or clone:**
 
 ```bash
-npx create-inkloom my-docs
-cd my-docs
+npx create-inkloom my-docs && cd my-docs
+# or: git clone https://github.com/inkloom/inkloom.git && cd inkloom && pnpm install
 ```
 
-### Option 2: Clone this repository
+**2. Start the Convex backend** (creates a free account if needed):
 
 ```bash
-git clone https://github.com/inkloom/inkloom.git
-cd inkloom
-pnpm install
-```
-
-### Start developing
-
-```bash
-# Start the Convex backend (requires a free Convex account)
 npx convex dev
+```
 
-# In a separate terminal, start the Next.js dev server
-cd apps/web
+**3. In a new terminal, start the app:**
+
+```bash
 pnpm dev
 ```
 
-Open **http://localhost:3000** — the dashboard loads immediately with no login required. Start creating projects and writing docs.
+Open **http://localhost:3000** — no login required.
 
-### Environment Variables
+### Option B: Self-Hosted (Zero external dependencies)
 
-Create `apps/web/.env.local`:
+Run everything on your own infrastructure. No account needed, no data leaves your machine.
 
-```env
-NEXT_PUBLIC_CONVEX_URL=<your-convex-url>
-CONVEX_DEPLOYMENT=<your-convex-deployment>
+**1. Scaffold or clone** (same as above).
+
+**2. Start the Convex backend locally:**
+
+```bash
+docker compose up -d
 ```
 
-That's it — no other API keys are needed.
+**3. Generate an admin key:**
+
+```bash
+docker compose exec backend ./generate_admin_key.sh
+```
+
+**4. Deploy your Convex functions to the local backend:**
+
+```bash
+CONVEX_SELF_HOSTED_URL=http://127.0.0.1:3210 \
+  CONVEX_SELF_HOSTED_ADMIN_KEY=<key-from-step-3> \
+  npx convex dev
+```
+
+**5. Create `.env.local`:**
+
+```env
+NEXT_PUBLIC_CONVEX_URL=http://127.0.0.1:3210
+```
+
+**6. Start the app:**
+
+```bash
+pnpm dev
+```
+
+Open **http://localhost:3000**. The Convex dashboard is available at **http://localhost:6791**.
 
 ## Build & Deploy
 
@@ -90,6 +120,32 @@ inkloom build
 ```
 
 Deploy the `dist/` folder to Vercel, Netlify, GitHub Pages, Cloudflare Pages, S3, or any static host.
+
+## Hosting the Backend
+
+InkLoom's backend runs on Convex. You have two options:
+
+| | Convex Cloud | Self-Hosted |
+|--|-------------|------------|
+| Setup | `npx convex dev` (2 min) | `docker compose up` (5 min) |
+| Cost | Free tier (generous) | Your infrastructure |
+| Scaling | Automatic | Manual (single-machine default) |
+| Backups | Automatic | You manage |
+| Dashboard | cloud.convex.dev | localhost:6791 |
+
+For production self-hosting, Convex supports PostgreSQL as a storage backend
+(instead of the default SQLite) for better durability and scalability.
+See the [Convex self-hosting guide](https://github.com/get-convex/convex-backend/blob/main/self-hosted/README.md) for details.
+
+### Docker: Full-Stack Deployment
+
+To run both the Convex backend and the InkLoom app in containers:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.app.yml up -d
+```
+
+This requires a `standalone` Next.js build. Add `output: "standalone"` to your `next.config.ts`, then build the Docker image with `docker build -t inkloom .`.
 
 ## CLI Reference
 

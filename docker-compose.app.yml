@@ -1,0 +1,17 @@
+# InkLoom — Full stack (app + Convex backend)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.app.yml up -d
+#
+# This adds the InkLoom Next.js app to the self-hosted Convex stack.
+# Make sure to build the image first: docker build -t inkloom .
+
+services:
+  inkloom:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_CONVEX_URL=http://127.0.0.1:3210
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
