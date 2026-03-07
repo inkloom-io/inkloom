@@ -170,6 +170,7 @@ export const coreTables = {
     hadTrial: v.optional(v.boolean()),
     trialEndsAt: v.optional(v.number()),
     hadRetentionOffer: v.optional(v.boolean()),
+    stripeTrialSubscriptionId: v.optional(v.string()),
     cfSlug: v.optional(v.string()),
     createdBy: v.optional(v.string()),
     createdAt: v.number(),
