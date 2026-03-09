@@ -1079,7 +1079,16 @@
       "cancel": "Cancel",
       "remove": "Remove",
       "failedToAdd": "Failed to add domain",
-      "failedToRemove": "Failed to remove domain"
+      "failedToRemove": "Failed to remove domain",
+      "dnsDialogTitle": "Domain Added",
+      "dnsDialogDescription": "Configure your DNS records to activate {hostname}.",
+      "dnsDialogRecordType": "Type",
+      "dnsDialogRecordName": "Name",
+      "dnsDialogRecordTarget": "Target",
+      "dnsDialogProxyStatus": "Proxy status",
+      "dnsDialogDnsOnly": "DNS only",
+      "dnsProxyWarning": "If your DNS is managed by Cloudflare, make sure the proxy status is set to DNS only (gray cloud), not Proxied (orange cloud). The domain will not validate if the record is proxied.",
+      "dnsDialogDone": "Got it"
     },
     "deploymentHistory": {
       "title": "Deployments",
