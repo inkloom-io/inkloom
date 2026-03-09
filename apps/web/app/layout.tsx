@@ -15,6 +15,9 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "InkLoom",
   description: "Create beautiful documentation sites",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
