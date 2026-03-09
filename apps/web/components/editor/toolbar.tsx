@@ -344,6 +344,13 @@ export function EditorToolbar({
     }
   }, [pageId, currentUserId, versionMessage, createVersion]);
 
+  // Custom domains — used to show custom domain in publish success modal
+  const customDomains = useQuery(api.customDomains.listByProject, {
+    projectId: project._id,
+  });
+  const activeCustomDomain = (customDomains as Array<{ status: string; hostname: string }> | undefined)
+    ?.find((d) => d.status === "active")?.hostname;
+
   // Merge request count
   const openMRCount = useQuery(api.mergeRequests.getOpenCountForProject, {
     projectId: project._id,
@@ -661,7 +668,7 @@ export function EditorToolbar({
   };
 
   const productionUrl = project.cfSlug
-    ? getProductionUrl(project.cfSlug)
+    ? getProductionUrl(project.cfSlug, activeCustomDomain)
     : undefined;
   const deploymentUrl = latestDeployment?.url;
   const viewSiteUrl = target === "production" ? productionUrl : deploymentUrl;

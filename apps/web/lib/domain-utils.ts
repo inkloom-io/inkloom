@@ -5,7 +5,8 @@
  * In core mode, sites are built to dist/ — these return local paths.
  */
 
-export function getProductionUrl(cfSlug?: string | null): string | null {
+export function getProductionUrl(cfSlug?: string | null, customDomain?: string): string | null {
+  if (customDomain) return `https://${customDomain}`;
   if (!cfSlug) return null;
   return `file://dist/${cfSlug}`;
 }
