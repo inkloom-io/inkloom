@@ -79,7 +79,7 @@ describe("createClient", () => {
     const { createClient } = await import("../src/lib/client.ts");
     const client = createClient({ token: "test-token" });
     assert.equal(client.config.token, "test-token");
-    assert.equal(client.config.apiBaseUrl, "https://app.inkloom.dev");
+    assert.equal(client.config.apiBaseUrl, "https://app.inkloom.io");
   });
 
   it("should create client with token from env var", async () => {
@@ -113,7 +113,7 @@ describe("createClient", () => {
       assert.equal(fetchMock.mock.calls.length, 1);
 
       const [url, opts] = fetchMock.mock.calls[0].arguments;
-      assert.equal(url, "https://app.inkloom.dev/api/v1/projects");
+      assert.equal(url, "https://app.inkloom.io/api/v1/projects");
       assert.equal(opts?.method, "GET");
       assert.equal(
         (opts?.headers as Record<string, string>)["Authorization"],

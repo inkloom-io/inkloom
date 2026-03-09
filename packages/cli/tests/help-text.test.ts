@@ -50,11 +50,11 @@ describe("root help text", () => {
   it("should show documentation links at the bottom", () => {
     const { stdout } = runCli(["--help"]);
     assert.ok(
-      stdout.includes("Documentation: https://docs.inkloom.dev/cli"),
+      stdout.includes("Documentation: https://docs.inkloom.io/cli"),
       "Should show docs link"
     );
     assert.ok(
-      stdout.includes("API Reference: https://docs.inkloom.dev/api"),
+      stdout.includes("API Reference: https://docs.inkloom.io/api"),
       "Should show API reference link"
     );
   });

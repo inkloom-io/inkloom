@@ -117,7 +117,7 @@ describe("config module", () => {
       const resolved = resolveConfig({});
       assert.equal(resolved.token, undefined);
       assert.equal(resolved.orgId, undefined);
-      assert.equal(resolved.apiBaseUrl, "https://app.inkloom.dev");
+      assert.equal(resolved.apiBaseUrl, "https://app.inkloom.io");
     });
 
     it("should read values from config file", async () => {
@@ -184,7 +184,7 @@ describe("config module", () => {
       const resolved = resolveConfig({ token: "flag-token" });
       assert.equal(resolved.token, "flag-token");
       assert.equal(resolved.orgId, "org_env"); // env beats file
-      assert.equal(resolved.apiBaseUrl, "https://app.inkloom.dev"); // default
+      assert.equal(resolved.apiBaseUrl, "https://app.inkloom.io"); // default
     });
 
     it("should handle empty string env vars as valid values", async () => {

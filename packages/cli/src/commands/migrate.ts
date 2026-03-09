@@ -43,7 +43,7 @@ Prerequisites:
 
 Environment:
   INKLOOM_TOKEN          API key for InkLoom Cloud
-  INKLOOM_API_URL        API base URL (default: https://app.inkloom.dev)`
+  INKLOOM_API_URL        API base URL (default: https://app.inkloom.io)`
     )
     .action(
       handleAction(async (client, opts, localOpts) => {

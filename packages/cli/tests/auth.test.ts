@@ -332,7 +332,7 @@ describe("auth status", () => {
       { HOME: tempHome }
     );
     assert.equal(exitCode, 0);
-    assert.ok(stderr.includes("API: https://app.inkloom.dev"));
+    assert.ok(stderr.includes("API: https://app.inkloom.io"));
   });
 
   it("should show custom API URL when --api-url is provided", () => {
@@ -369,7 +369,7 @@ describe("auth status", () => {
     assert.equal(parsed.authenticated, true);
     assert.equal(parsed.token, "ik_live_user_abc...");
     assert.equal(parsed.orgId, "org_01XYZ");
-    assert.equal(parsed.apiBaseUrl, "https://app.inkloom.dev");
+    assert.equal(parsed.apiBaseUrl, "https://app.inkloom.io");
   });
 
   it("should handle short tokens (less than 16 chars)", () => {

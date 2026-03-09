@@ -8,7 +8,7 @@
     "url": "https://github.com/inkloom/inkloom.git",
     "directory": "packages/cli"
   },
-  "homepage": "https://docs.inkloom.dev/cli",
+  "homepage": "https://docs.inkloom.io/cli",
   "keywords": [
     "inkloom",
     "cli",

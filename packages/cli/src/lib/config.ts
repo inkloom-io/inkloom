@@ -22,7 +22,7 @@ export interface ResolvedConfig {
   apiBaseUrl: string;
 }
 
-const DEFAULT_API_URL = "https://app.inkloom.dev";
+const DEFAULT_API_URL = "https://app.inkloom.io";
 
 function getConfigDir(): string {
   return join(homedir(), ".inkloom");

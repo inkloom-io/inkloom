@@ -17,7 +17,7 @@ import { readConfig, writeConfig } from "./config.js";
 
 const TELEMETRY_ENDPOINT =
   process.env.INKLOOM_TELEMETRY_ENDPOINT ||
-  "https://telemetry.inkloom.dev/v1/events";
+  "https://telemetry.inkloom.io/v1/events";
 
 /** Timeout for telemetry requests (ms). Fire-and-forget, should never block CLI. */
 const TELEMETRY_TIMEOUT_MS = 3000;

@@ -31,8 +31,8 @@ program
   .addHelpText(
     "after",
     `
-Documentation: https://docs.inkloom.dev/cli
-API Reference: https://docs.inkloom.dev/api`
+Documentation: https://docs.inkloom.io/cli
+API Reference: https://docs.inkloom.io/api`
   )
   .action(() => {
     program.outputHelp();
