@@ -1069,7 +1069,7 @@
       "defaultUrl": "Default URL",
       "setSlugHint": "Set a deployment slug above to get your documentation URL.",
       "defaultUrlHint": "This is your default documentation URL, linked to the deployment slug.",
-      "setPlatformDomainHint": "Set NEXT_PUBLIC_PLATFORM_DOMAIN for vanity subdomains.",
+      "setPlatformDomainHint": "Set NEXT_PUBLIC_DOCS_DOMAIN for vanity subdomains.",
       "customDomain": "Custom Domain",
       "addDomain": "Add Domain",
       "setSlugFirst": "Set a deployment slug first before adding custom domains.",

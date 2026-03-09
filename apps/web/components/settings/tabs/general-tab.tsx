@@ -216,7 +216,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
               )}
             </div>
             <span className="text-sm text-muted-foreground whitespace-nowrap">
-              .{process.env.NEXT_PUBLIC_PLATFORM_DOMAIN || "pages.dev"}
+              .{process.env.NEXT_PUBLIC_DOCS_DOMAIN || "pages.dev"}
             </span>
           </div>
           {cfSlugChanged && cfSlugInput.length >= 3 && cfSlugAvailable !== null && (
