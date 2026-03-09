@@ -225,5 +225,3 @@ pnpm lint          # Lint all packages
 ## License
 
 InkLoom is licensed under the [Apache License 2.0](./LICENSE).
-
-<\!-- subtree pull test -->
