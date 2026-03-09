@@ -36,8 +36,9 @@ export function LogoVariants({
       <div className="grid grid-cols-2 gap-4">
         {/* Light preview: force light-theme CSS variables so all child components render correctly */}
         <div
-          className="rounded-lg border border-gray-200 dark:border-gray-200 p-4 bg-white dark:bg-white text-foreground"
+          className="rounded-lg border border-gray-200 dark:border-gray-200 p-4 bg-white dark:bg-white text-gray-900 dark:text-gray-900"
           style={{
+            color: "#171717",
             "--color-foreground": "#171717",
             "--color-background": "#ffffff",
             "--color-muted": "#f5f5f5",
@@ -65,8 +66,9 @@ export function LogoVariants({
         </div>
         {/* Dark preview: force dark-theme CSS variables so all child components render correctly */}
         <div
-          className="rounded-lg border border-gray-700 dark:border-gray-700 p-4 bg-gray-900 dark:bg-gray-900 text-foreground"
+          className="rounded-lg border border-gray-700 dark:border-gray-700 p-4 bg-gray-900 dark:bg-gray-900 text-gray-100 dark:text-gray-100"
           style={{
+            color: "#f0f0f0",
             "--color-foreground": "#f0f0f0",
             "--color-background": "#09090b",
             "--color-muted": "#131316",
