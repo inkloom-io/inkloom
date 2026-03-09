@@ -1080,6 +1080,7 @@
       "remove": "Remove",
       "failedToAdd": "Failed to add domain",
       "failedToRemove": "Failed to remove domain",
+      "cloudflareProxyWarning": "If your DNS is managed by Cloudflare, ensure the CNAME record is set to DNS only (gray cloud icon), not Proxied.",
       "dnsDialogTitle": "Domain Added",
       "dnsDialogDescription": "Configure your DNS records to activate {hostname}.",
       "dnsDialogRecordType": "Type",
