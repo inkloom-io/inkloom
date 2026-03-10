@@ -46,7 +46,8 @@ describe("Core middleware: structural contracts", () => {
   });
 
   it("calls intlMiddleware for non-API routes", () => {
-    expect(coreSource).toContain("return intlMiddleware(request)");
+    // May be wrapped (e.g. withCspHeaders(intlMiddleware(request)))
+    expect(coreSource).toContain("intlMiddleware(request)");
   });
 });
 
