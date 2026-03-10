@@ -1169,7 +1169,9 @@
       "failedToFetchInstallations": "Failed to fetch installations",
       "failedToFetchRepos": "Failed to fetch repositories",
       "failedToConnect": "Failed to connect",
-      "repoNotFound": "Repository not found"
+      "repoNotFound": "Repository not found",
+      "syncFailed": "Sync failed. Please try again.",
+      "disconnectFailed": "Failed to disconnect repository. Please try again."
     },
     "navTabs": {
       "noTabsConfigured": "No navigation tabs configured. Add tabs to organize your documentation into sections.",
