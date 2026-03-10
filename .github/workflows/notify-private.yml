@@ -24,8 +24,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v2
         with:
-          app-id: ${{ secrets.SYNC_APP_ID }}
-          private-key: ${{ secrets.SYNC_APP_PRIVATE_KEY }}
+          app-id: ${{ secrets.INKLOOM_SYNC_APP_ID }}
+          private-key: ${{ secrets.INKLOOM_SYNC_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: "inkloom-platform"
 
