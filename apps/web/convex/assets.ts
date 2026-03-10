@@ -58,7 +58,7 @@ export const listByProject = query({
   handler: async (ctx, args) => {
     const assets = await ctx.db
       .query("assets")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q: any) => q.eq("projectId", args.projectId))
       .collect();
 
     return assets;

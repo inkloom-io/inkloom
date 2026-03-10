@@ -52,9 +52,9 @@ export const list = query({
   handler: async (ctx, args) => {
     const branches = await ctx.db
       .query("branches")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q: any) => q.eq("projectId", args.projectId))
       .collect();
-    return branches.filter((b) => !b.deletedAt);
+    return branches.filter((b: any) => !b.deletedAt);
   },
 });
 
@@ -70,7 +70,7 @@ export const getByName = query({
   handler: async (ctx, args) => {
     const branch = await ctx.db
       .query("branches")
-      .withIndex("by_project_and_name", (q) =>
+      .withIndex("by_project_and_name", (q: any) =>
         q.eq("projectId", args.projectId).eq("name", args.name)
       )
       .first();
@@ -118,15 +118,15 @@ export const hasChanges = query({
   handler: async (ctx, args) => {
     const sourcePages = await ctx.db
       .query("pages")
-      .withIndex("by_branch", (q) => q.eq("branchId", args.branchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", args.branchId))
       .collect();
     const targetPages = await ctx.db
       .query("pages")
-      .withIndex("by_branch", (q) => q.eq("branchId", args.compareToBranchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", args.compareToBranchId))
       .collect();
 
-    const targetPageMap = new Map(targetPages.map((p) => [p.path, p]));
-    const sourcePageMap = new Map(sourcePages.map((p) => [p.path, p]));
+    const targetPageMap = new Map<string, any>(targetPages.map((p: any) => [p.path, p]));
+    const sourcePageMap = new Map<string, any>(sourcePages.map((p: any) => [p.path, p]));
 
     // Check for added or removed pages
     for (const sp of sourcePages) {
@@ -146,11 +146,11 @@ export const hasChanges = query({
 
       const sourceContent = await ctx.db
         .query("pageContents")
-        .withIndex("by_page", (q) => q.eq("pageId", sp._id))
+        .withIndex("by_page", (q: any) => q.eq("pageId", sp._id))
         .unique();
       const targetContent = await ctx.db
         .query("pageContents")
-        .withIndex("by_page", (q) => q.eq("pageId", tp._id))
+        .withIndex("by_page", (q: any) => q.eq("pageId", tp._id))
         .unique();
 
       const sourceHash = sourceContent ? hashContentNormalized(sourceContent.content) : "";
@@ -181,7 +181,7 @@ export const create = mutation({
     // Validate name uniqueness (skip soft-deleted branches)
     const existing = await ctx.db
       .query("branches")
-      .withIndex("by_project_and_name", (q) =>
+      .withIndex("by_project_and_name", (q: any) =>
         q.eq("projectId", args.projectId).eq("name", normalizedName)
       )
       .first();
@@ -204,7 +204,7 @@ export const create = mutation({
     // Deep-clone folders from source branch
     const sourceFolders = await ctx.db
       .query("folders")
-      .withIndex("by_branch", (q) => q.eq("branchId", args.sourceBranchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", args.sourceBranchId))
       .collect();
 
     const folderIdMap = new Map<Id<"folders">, Id<"folders">>();
@@ -237,7 +237,7 @@ export const create = mutation({
     // Deep-clone pages from source branch
     const sourcePages = await ctx.db
       .query("pages")
-      .withIndex("by_branch", (q) => q.eq("branchId", args.sourceBranchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", args.sourceBranchId))
       .collect();
 
     for (const page of sourcePages) {
@@ -262,7 +262,7 @@ export const create = mutation({
       // Clone page content
       const content = await ctx.db
         .query("pageContents")
-        .withIndex("by_page", (q) => q.eq("pageId", page._id))
+        .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
         .unique();
 
       if (content) {
@@ -279,14 +279,14 @@ export const create = mutation({
     for (const page of sourcePages) {
       const content = await ctx.db
         .query("pageContents")
-        .withIndex("by_page", (q) => q.eq("pageId", page._id))
+        .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
         .unique();
       if (content) {
         pageHashes[page.path] = hashContent(content.content);
       }
     }
 
-    const folderPaths = sourceFolders.map((f) => f.path);
+    const folderPaths = sourceFolders.map((f: any) => f.path);
 
     await ctx.db.insert("branchSnapshots", {
       branchId,
@@ -321,7 +321,7 @@ export const rename = mutation({
     // Check uniqueness (skip soft-deleted branches)
     const existing = await ctx.db
       .query("branches")
-      .withIndex("by_project_and_name", (q) =>
+      .withIndex("by_project_and_name", (q: any) =>
         q.eq("projectId", branch.projectId).eq("name", normalizedName)
       )
       .first();
@@ -349,14 +349,14 @@ export const remove = mutation({
     // Cascade delete pages and their related data
     const pages = await ctx.db
       .query("pages")
-      .withIndex("by_branch", (q) => q.eq("branchId", args.branchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", args.branchId))
       .collect();
 
     for (const page of pages) {
       // Delete page contents
       const contents = await ctx.db
         .query("pageContents")
-        .withIndex("by_page", (q) => q.eq("pageId", page._id))
+        .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
         .collect();
       for (const content of contents) {
         await ctx.db.delete(content._id);
@@ -365,7 +365,7 @@ export const remove = mutation({
       // Delete page versions
       const versions = await ctx.db
         .query("pageVersions")
-        .withIndex("by_page", (q) => q.eq("pageId", page._id))
+        .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
         .collect();
       for (const version of versions) {
         await ctx.db.delete(version._id);
@@ -374,7 +374,7 @@ export const remove = mutation({
       // Delete search index entries
       const searchEntries = await ctx.db
         .query("searchIndex")
-        .withIndex("by_page", (q) => q.eq("pageId", page._id))
+        .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
         .collect();
       for (const entry of searchEntries) {
         await ctx.db.delete(entry._id);
@@ -383,12 +383,12 @@ export const remove = mutation({
       // Delete comment threads and comments
       const threads = await ctx.db
         .query("commentThreads")
-        .withIndex("by_page", (q) => q.eq("pageId", page._id))
+        .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
         .collect();
       for (const thread of threads) {
         const comments = await ctx.db
           .query("comments")
-          .withIndex("by_thread", (q) => q.eq("threadId", thread._id))
+          .withIndex("by_thread", (q: any) => q.eq("threadId", thread._id))
           .collect();
         for (const comment of comments) {
           await ctx.db.delete(comment._id);
@@ -402,7 +402,7 @@ export const remove = mutation({
     // Delete folders
     const folders = await ctx.db
       .query("folders")
-      .withIndex("by_branch", (q) => q.eq("branchId", args.branchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", args.branchId))
       .collect();
     for (const folder of folders) {
       await ctx.db.delete(folder._id);

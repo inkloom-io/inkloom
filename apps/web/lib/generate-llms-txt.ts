@@ -1,4 +1,4 @@
-import { blockNoteToMarkdown, parseBlockNoteContent } from "./blocknote-to-mdx";
+import { blockNoteToMDX, parseBlockNoteContent } from "./blocknote-to-mdx";
 
 interface Page {
   title: string;
@@ -144,7 +144,7 @@ export function generateLlmsTxt(
 function renderPageContent(page: Page): string {
   try {
     const blocks = parseBlockNoteContent(page.content);
-    return blockNoteToMarkdown(blocks).trim();
+    return blockNoteToMDX(blocks).trim();
   } catch {
     return "";
   }

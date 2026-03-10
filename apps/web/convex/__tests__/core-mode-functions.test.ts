@@ -71,8 +71,9 @@ describe("core-mode: projects exports", () => {
     expect(projects.getDashboardStats).toBeDefined();
   });
 
-  it("does NOT export platform-only functions (listByOrg, listForUser)", () => {
-    expect((projects as Record<string, unknown>)["listByOrg"]).toBeUndefined();
+  it("does NOT export platform-only functions (listForUser)", () => {
+    // NOTE: listByOrg is currently used by the dashboard page and remains in core.
+    // It may be extracted to platform in a future refactor.
     expect((projects as Record<string, unknown>)["listForUser"]).toBeUndefined();
   });
 

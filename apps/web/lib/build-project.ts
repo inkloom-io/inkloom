@@ -97,7 +97,7 @@ export async function buildProject(
       });
     }
 
-    const folders = rawFolders.map((f) => ({
+    const folders = rawFolders.map((f: any) => ({
       id: f._id,
       name: f.name,
       slug: f.slug,

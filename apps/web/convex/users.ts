@@ -33,7 +33,7 @@ export const ensureLocalUser = mutation({
   handler: async (ctx) => {
     const existing = await ctx.db
       .query("users")
-      .withIndex("by_workos_user_id", (q) =>
+      .withIndex("by_workos_user_id", (q: any) =>
         q.eq("workosUserId", LOCAL_USER_ID)
       )
       .first();
@@ -66,7 +66,7 @@ export const currentLocal = query({
   handler: async (ctx) => {
     return await ctx.db
       .query("users")
-      .withIndex("by_workos_user_id", (q) =>
+      .withIndex("by_workos_user_id", (q: any) =>
         q.eq("workosUserId", LOCAL_USER_ID)
       )
       .first();

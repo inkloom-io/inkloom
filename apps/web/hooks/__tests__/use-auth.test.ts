@@ -124,8 +124,7 @@ describe("AuthContext defaults", () => {
   it("has null default (requires provider)", async () => {
     const { AuthContext } = await import("@/hooks/use-auth");
     // React contexts created with null default indicate provider is required
-    // @ts-expect-error -- accessing internal React context value for testing
-    const defaultValue = AuthContext._currentValue;
+    const defaultValue = (AuthContext as any)._currentValue;
     expect(defaultValue).toBeNull();
   });
 });

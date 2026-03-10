@@ -4,6 +4,40 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 // ---------------------------------------------------------------------------
+// Mock Convex API refs (must be before any imports that use them)
+// ---------------------------------------------------------------------------
+
+vi.mock("@/convex/_generated/api", () => ({
+  api: {
+    projects: { get: "projects:get" },
+    deployments: {
+      create: "deployments:create",
+      updateStatus: "deployments:updateStatus",
+      updateBuildPhase: "deployments:updateBuildPhase",
+    },
+    pages: {
+      listByBranch: "pages:listByBranch",
+      getContent: "pages:getContent",
+    },
+    folders: { listByBranch: "folders:listByBranch" },
+  },
+}));
+
+vi.mock("@/convex/_generated/dataModel", () => ({
+  default: {} as any,
+}));
+
+vi.mock("convex/browser", () => ({
+  ConvexHttpClient: vi.fn(),
+}));
+
+vi.mock("../generate-site", () => ({
+  generateSiteFiles: vi.fn().mockResolvedValue([
+    { file: "index.html", data: "<html></html>" },
+  ]),
+}));
+
+// ---------------------------------------------------------------------------
 // Mock Convex client
 // ---------------------------------------------------------------------------
 

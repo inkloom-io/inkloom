@@ -28,9 +28,9 @@ export const listByProject = query({
 
     const pages = await ctx.db
       .query("pages")
-      .withIndex("by_branch", (q) => q.eq("branchId", project.defaultBranchId!))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", project.defaultBranchId!))
       .collect();
-    return pages.filter((p) => !p.aiPendingReview);
+    return pages.filter((p: any) => !p.aiPendingReview);
   },
 });
 
@@ -39,7 +39,7 @@ export const listByGenerationJob = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("pages")
-      .withIndex("by_generation_job", (q) =>
+      .withIndex("by_generation_job", (q: any) =>
         q.eq("aiGenerationJobId", args.jobId)
       )
       .collect();
@@ -52,7 +52,7 @@ export const listByGenerationJobInternal = internalQuery({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("pages")
-      .withIndex("by_generation_job", (q) =>
+      .withIndex("by_generation_job", (q: any) =>
         q.eq("aiGenerationJobId", args.jobId)
       )
       .collect();
@@ -64,9 +64,9 @@ export const listByBranch = query({
   handler: async (ctx, args) => {
     const pages = await ctx.db
       .query("pages")
-      .withIndex("by_branch", (q) => q.eq("branchId", args.branchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", args.branchId))
       .collect();
-    return pages.filter((p) => !p.aiPendingReview);
+    return pages.filter((p: any) => !p.aiPendingReview);
   },
 });
 
@@ -82,7 +82,7 @@ export const getContent = query({
   handler: async (ctx, args) => {
     const content = await ctx.db
       .query("pageContents")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .unique();
 
     return content;
@@ -113,7 +113,7 @@ export const create = mutation({
     if (position === undefined) {
       const siblings = await ctx.db
         .query("pages")
-        .withIndex("by_folder", (q) => q.eq("folderId", args.folderId))
+        .withIndex("by_folder", (q: any) => q.eq("folderId", args.folderId))
         .collect();
       position = siblings.length;
     }
@@ -251,7 +251,7 @@ export const updateContent = mutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("pageContents")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .unique();
 
     let contentId;
@@ -301,7 +301,7 @@ export const remove = mutation({
     // Delete content
     const contents = await ctx.db
       .query("pageContents")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .collect();
     for (const content of contents) {
       await ctx.db.delete(content._id);
@@ -310,7 +310,7 @@ export const remove = mutation({
     // Delete versions
     const versions = await ctx.db
       .query("pageVersions")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .collect();
     for (const version of versions) {
       await ctx.db.delete(version._id);
@@ -344,11 +344,11 @@ export const reorder = mutation({
       // 1. Decrement positions in old location for ALL items (pages AND folders) after old position
       const oldSiblingPages = await ctx.db
         .query("pages")
-        .withIndex("by_folder", (q) => q.eq("folderId", oldFolderId ?? undefined))
+        .withIndex("by_folder", (q: any) => q.eq("folderId", oldFolderId ?? undefined))
         .collect();
       const oldSiblingFolders = await ctx.db
         .query("folders")
-        .withIndex("by_parent", (q) => q.eq("parentId", oldFolderId ?? undefined))
+        .withIndex("by_parent", (q: any) => q.eq("parentId", oldFolderId ?? undefined))
         .collect();
 
       for (const sibling of oldSiblingPages) {
@@ -372,11 +372,11 @@ export const reorder = mutation({
       // 2. Increment positions in new location for ALL items (pages AND folders) at or after new position
       const newSiblingPages = await ctx.db
         .query("pages")
-        .withIndex("by_folder", (q) => q.eq("folderId", targetFolderId ?? undefined))
+        .withIndex("by_folder", (q: any) => q.eq("folderId", targetFolderId ?? undefined))
         .collect();
       const newSiblingFolders = await ctx.db
         .query("folders")
-        .withIndex("by_parent", (q) => q.eq("parentId", targetFolderId ?? undefined))
+        .withIndex("by_parent", (q: any) => q.eq("parentId", targetFolderId ?? undefined))
         .collect();
 
       for (const sibling of newSiblingPages) {
@@ -399,11 +399,11 @@ export const reorder = mutation({
       // Moving within the same folder - shift ALL items (pages AND folders)
       const siblingPages = await ctx.db
         .query("pages")
-        .withIndex("by_folder", (q) => q.eq("folderId", targetFolderId ?? undefined))
+        .withIndex("by_folder", (q: any) => q.eq("folderId", targetFolderId ?? undefined))
         .collect();
       const siblingFolders = await ctx.db
         .query("folders")
-        .withIndex("by_parent", (q) => q.eq("parentId", targetFolderId ?? undefined))
+        .withIndex("by_parent", (q: any) => q.eq("parentId", targetFolderId ?? undefined))
         .collect();
 
       if (args.newPosition > oldPosition) {
@@ -495,7 +495,7 @@ export const createVersion = mutation({
     // Get current content
     const content = await ctx.db
       .query("pageContents")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .unique();
 
     if (!content) throw new Error("Page has no content");
@@ -503,10 +503,10 @@ export const createVersion = mutation({
     // Get max version number
     const versions = await ctx.db
       .query("pageVersions")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .collect();
 
-    const maxVersion = versions.reduce((max, v) => Math.max(max, v.version), 0);
+    const maxVersion = versions.reduce((max: any, v: any) => Math.max(max, v.version), 0);
 
     return await ctx.db.insert("pageVersions", {
       pageId: args.pageId,
@@ -525,16 +525,16 @@ export const listVersions = query({
   handler: async (ctx, args) => {
     const versions = await ctx.db
       .query("pageVersions")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .collect();
 
     // Sort by version descending, limit to 50
-    versions.sort((a, b) => b.version - a.version);
+    versions.sort((a: any, b: any) => b.version - a.version);
     const limited = versions.slice(0, 50);
 
     // Join creator info
     const results = await Promise.all(
-      limited.map(async (ver) => {
+      limited.map(async (ver: any) => {
         let creator: { name?: string; avatarUrl?: string } | null = null;
         if (ver.createdBy) {
           const user = await ctx.db.get(ver.createdBy);
@@ -564,7 +564,7 @@ export const getVersion = query({
   handler: async (ctx, args) => {
     const ver = await ctx.db
       .query("pageVersions")
-      .withIndex("by_page_and_version", (q) =>
+      .withIndex("by_page_and_version", (q: any) =>
         q.eq("pageId", args.pageId).eq("version", args.version)
       )
       .unique();
@@ -584,7 +584,7 @@ export const getByBranchAndSlug = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("pages")
-      .withIndex("by_branch_folder_slug", (q) =>
+      .withIndex("by_branch_folder_slug", (q: any) =>
         q.eq("branchId", args.branchId)
          .eq("folderId", args.folderId)
          .eq("slug", args.slug)
@@ -627,7 +627,7 @@ export const createPage = mutation({
     if (position === undefined) {
       const siblings = await ctx.db
         .query("pages")
-        .withIndex("by_folder", (q) => q.eq("folderId", args.folderId))
+        .withIndex("by_folder", (q: any) => q.eq("folderId", args.folderId))
         .collect();
       position = siblings.length;
     }
@@ -689,7 +689,7 @@ export const deletePage = mutation({
     // Delete content
     const contents = await ctx.db
       .query("pageContents")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .collect();
     for (const content of contents) {
       await ctx.db.delete(content._id);
@@ -698,7 +698,7 @@ export const deletePage = mutation({
     // Delete versions
     const versions = await ctx.db
       .query("pageVersions")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .collect();
     for (const version of versions) {
       await ctx.db.delete(version._id);
@@ -718,7 +718,7 @@ export const restoreVersion = mutation({
     // Get the version to restore
     const ver = await ctx.db
       .query("pageVersions")
-      .withIndex("by_page_and_version", (q) =>
+      .withIndex("by_page_and_version", (q: any) =>
         q.eq("pageId", args.pageId).eq("version", args.version)
       )
       .unique();
@@ -728,7 +728,7 @@ export const restoreVersion = mutation({
     // Snapshot current content before restoring
     const currentContent = await ctx.db
       .query("pageContents")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .unique();
 
     if (currentContent) {
@@ -738,13 +738,13 @@ export const restoreVersion = mutation({
       // auto-save a copy of v1 since v1 already exists).
       const existingVersions = await ctx.db
         .query("pageVersions")
-        .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+        .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
         .collect();
-      const maxVersion = existingVersions.reduce((max, v) => Math.max(max, v.version), 0);
+      const maxVersion = existingVersions.reduce((max: any, v: any) => Math.max(max, v.version), 0);
 
       const currentHash = hashContent(currentContent.content);
       const contentAlreadySaved = existingVersions.some(
-        (v) => (v.contentHash ?? hashContent(v.content)) === currentHash
+        (v: any) => (v.contentHash ?? hashContent(v.content)) === currentHash
       );
 
       if (!contentAlreadySaved) {
@@ -794,7 +794,7 @@ export const getContentInternal = internalQuery({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("pageContents")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .unique();
   },
 });
@@ -826,7 +826,7 @@ export const createPageInternal = internalMutation({
 
     const siblings = await ctx.db
       .query("pages")
-      .withIndex("by_branch", (q) => q.eq("branchId", args.branchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", args.branchId))
       .collect();
     const position = siblings.length;
 
@@ -928,7 +928,7 @@ export const updateContentInternal = internalMutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("pageContents")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .unique();
 
     if (existing) {

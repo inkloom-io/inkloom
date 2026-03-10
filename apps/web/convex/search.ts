@@ -225,7 +225,7 @@ export const upsertSearchIndex = internalMutation({
 
     const existing = await ctx.db
       .query("searchIndex")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .unique();
 
     if (existing) {
@@ -262,7 +262,7 @@ export const deleteSearchIndex = internalMutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("searchIndex")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId))
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
       .unique();
 
     if (existing) {
@@ -283,14 +283,14 @@ export const rebuildProjectIndex = mutation({
 
     const pages = await ctx.db
       .query("pages")
-      .withIndex("by_branch", (q) => q.eq("branchId", project.defaultBranchId!))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", project.defaultBranchId!))
       .collect();
 
     let indexed = 0;
     for (const page of pages) {
       const content = await ctx.db
         .query("pageContents")
-        .withIndex("by_page", (q) => q.eq("pageId", page._id))
+        .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
         .unique();
 
       if (content) {
@@ -299,7 +299,7 @@ export const rebuildProjectIndex = mutation({
 
         const existing = await ctx.db
           .query("searchIndex")
-          .withIndex("by_page", (q) => q.eq("pageId", page._id))
+          .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
           .unique();
 
         if (existing) {
@@ -350,19 +350,19 @@ export const searchProject = query({
     const [titleResults, headingResults, contentResults] = await Promise.all([
       ctx.db
         .query("searchIndex")
-        .withSearchIndex("search_titles", (q) =>
+        .withSearchIndex("search_titles", (q: any) =>
           q.search("title", args.query).eq("projectId", args.projectId)
         )
         .take(maxResults),
       ctx.db
         .query("searchIndex")
-        .withSearchIndex("search_headings", (q) =>
+        .withSearchIndex("search_headings", (q: any) =>
           q.search("headings", args.query).eq("projectId", args.projectId)
         )
         .take(maxResults),
       ctx.db
         .query("searchIndex")
-        .withSearchIndex("search_content", (q) =>
+        .withSearchIndex("search_content", (q: any) =>
           q.search("content", args.query).eq("projectId", args.projectId)
         )
         .take(maxResults),

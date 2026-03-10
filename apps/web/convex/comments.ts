@@ -11,21 +11,21 @@ export const listByPage = query({
     // Get threads for this page, optionally filtered by status
     let threadsQuery = ctx.db
       .query("commentThreads")
-      .withIndex("by_page", (q) => q.eq("pageId", args.pageId));
+      .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId));
 
     const threads = await threadsQuery.collect();
 
     // Filter by status if specified
     const filteredThreads = args.status
-      ? threads.filter((t) => t.status === args.status)
+      ? threads.filter((t: any) => t.status === args.status)
       : threads;
 
     // Get comments and user info for each thread
     const threadsWithComments = await Promise.all(
-      filteredThreads.map(async (thread) => {
+      filteredThreads.map(async (thread: any) => {
         const comments = await ctx.db
           .query("comments")
-          .withIndex("by_thread", (q) => q.eq("threadId", thread._id))
+          .withIndex("by_thread", (q: any) => q.eq("threadId", thread._id))
           .collect();
 
         // Get user info for thread creator
@@ -33,7 +33,7 @@ export const listByPage = query({
 
         // Get user info for each comment
         const commentsWithUsers = await Promise.all(
-          comments.map(async (comment) => {
+          comments.map(async (comment: any) => {
             const user = await ctx.db.get(comment.createdBy);
             return {
               ...comment,
@@ -77,13 +77,13 @@ export const getThread = query({
 
     const comments = await ctx.db
       .query("comments")
-      .withIndex("by_thread", (q) => q.eq("threadId", thread._id))
+      .withIndex("by_thread", (q: any) => q.eq("threadId", thread._id))
       .collect();
 
     const threadCreator = await ctx.db.get(thread.createdBy);
 
     const commentsWithUsers = await Promise.all(
-      comments.map(async (comment) => {
+      comments.map(async (comment: any) => {
         const user = await ctx.db.get(comment.createdBy);
         return {
           ...comment,
@@ -243,7 +243,7 @@ export const deleteComment = mutation({
     // Count remaining comments in thread
     const remainingComments = await ctx.db
       .query("comments")
-      .withIndex("by_thread", (q) => q.eq("threadId", comment.threadId))
+      .withIndex("by_thread", (q: any) => q.eq("threadId", comment.threadId))
       .collect();
 
     // If this is the only comment, delete the whole thread
@@ -326,7 +326,7 @@ export const deleteThread = mutation({
     // Delete all comments in the thread
     const comments = await ctx.db
       .query("comments")
-      .withIndex("by_thread", (q) => q.eq("threadId", args.threadId))
+      .withIndex("by_thread", (q: any) => q.eq("threadId", args.threadId))
       .collect();
 
     for (const comment of comments) {

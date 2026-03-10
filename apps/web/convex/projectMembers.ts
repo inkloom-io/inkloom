@@ -34,7 +34,7 @@ export const hasAccess = query({
     // Fall back to checking explicit membership
     const membership = await ctx.db
       .query("projectMembers")
-      .withIndex("by_project_and_user", (q) =>
+      .withIndex("by_project_and_user", (q: any) =>
         q.eq("projectId", args.projectId).eq("userId", args.userId)
       )
       .unique();
@@ -63,7 +63,7 @@ export const getRole = query({
 
     const membership = await ctx.db
       .query("projectMembers")
-      .withIndex("by_project_and_user", (q) =>
+      .withIndex("by_project_and_user", (q: any) =>
         q.eq("projectId", args.projectId).eq("userId", args.userId)
       )
       .unique();

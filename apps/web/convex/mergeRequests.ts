@@ -16,20 +16,20 @@ export const list = query({
     if (args.status) {
       mrs = await ctx.db
         .query("mergeRequests")
-        .withIndex("by_project_and_status", (q) =>
+        .withIndex("by_project_and_status", (q: any) =>
           q.eq("projectId", args.projectId).eq("status", args.status!)
         )
         .collect();
     } else {
       mrs = await ctx.db
         .query("mergeRequests")
-        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+        .withIndex("by_project", (q: any) => q.eq("projectId", args.projectId))
         .collect();
     }
 
     // Join creator info and branch names
     const results = await Promise.all(
-      mrs.map(async (mr) => {
+      mrs.map(async (mr: any) => {
         const creator = await ctx.db.get(mr.createdBy);
         const sourceBranch = await ctx.db.get(mr.sourceBranchId);
         const targetBranch = await ctx.db.get(mr.targetBranchId);
@@ -95,13 +95,13 @@ export const countByStatus = query({
   handler: async (ctx, args) => {
     const all = await ctx.db
       .query("mergeRequests")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q: any) => q.eq("projectId", args.projectId))
       .collect();
 
     return {
-      open: all.filter((mr) => mr.status === "open").length,
-      merged: all.filter((mr) => mr.status === "merged").length,
-      closed: all.filter((mr) => mr.status === "closed").length,
+      open: all.filter((mr: any) => mr.status === "open").length,
+      merged: all.filter((mr: any) => mr.status === "merged").length,
+      closed: all.filter((mr: any) => mr.status === "closed").length,
     };
   },
 });
@@ -111,7 +111,7 @@ export const getOpenCountForProject = query({
   handler: async (ctx, args) => {
     const openMrs = await ctx.db
       .query("mergeRequests")
-      .withIndex("by_project_and_status", (q) =>
+      .withIndex("by_project_and_status", (q: any) =>
         q.eq("projectId", args.projectId).eq("status", "open")
       )
       .collect();
@@ -124,11 +124,11 @@ export const getOpenForBranch = query({
   handler: async (ctx, args) => {
     const mrs = await ctx.db
       .query("mergeRequests")
-      .withIndex("by_source_branch", (q) =>
+      .withIndex("by_source_branch", (q: any) =>
         q.eq("sourceBranchId", args.sourceBranchId)
       )
       .collect();
-    return mrs.find((mr) => mr.status === "open") ?? null;
+    return mrs.find((mr: any) => mr.status === "open") ?? null;
   },
 });
 
@@ -163,13 +163,13 @@ export const create = mutation({
     // Check no duplicate open MR for same source → target
     const existing = await ctx.db
       .query("mergeRequests")
-      .withIndex("by_source_branch", (q) =>
+      .withIndex("by_source_branch", (q: any) =>
         q.eq("sourceBranchId", args.sourceBranchId)
       )
       .collect();
 
     const duplicate = existing.find(
-      (mr) =>
+      (mr: any) =>
         mr.targetBranchId === args.targetBranchId && mr.status === "open"
     );
 
@@ -313,7 +313,7 @@ export const getByGithubPr = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("mergeRequests")
-      .withIndex("by_github_pr", (q) =>
+      .withIndex("by_github_pr", (q: any) =>
         q.eq("githubPrNumber", args.githubPrNumber)
       )
       .first();
@@ -398,23 +398,23 @@ export const merge = mutation({
     // 2. Load data for both branches
     const sourcePages = await ctx.db
       .query("pages")
-      .withIndex("by_branch", (q) => q.eq("branchId", mr.sourceBranchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", mr.sourceBranchId))
       .collect();
     const targetPages = await ctx.db
       .query("pages")
-      .withIndex("by_branch", (q) => q.eq("branchId", mr.targetBranchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", mr.targetBranchId))
       .collect();
     const sourceFolders = await ctx.db
       .query("folders")
-      .withIndex("by_branch", (q) => q.eq("branchId", mr.sourceBranchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", mr.sourceBranchId))
       .collect();
     const targetFolders = await ctx.db
       .query("folders")
-      .withIndex("by_branch", (q) => q.eq("branchId", mr.targetBranchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", mr.targetBranchId))
       .collect();
 
-    const targetPageMap = new Map(targetPages.map((p) => [p.path, p]));
-    const targetFolderMap = new Map(targetFolders.map((f) => [f.path, f]));
+    const targetPageMap = new Map<string, any>(targetPages.map((p: any) => [p.path, p]));
+    const targetFolderMap = new Map<string, any>(targetFolders.map((f: any) => [f.path, f]));
 
     // 3. Create missing folders on target
     const folderIdMap = new Map<Id<"folders">, Id<"folders">>();
@@ -456,7 +456,7 @@ export const merge = mutation({
 
         const sourceContent = await ctx.db
           .query("pageContents")
-          .withIndex("by_page", (q) => q.eq("pageId", sourcePage._id))
+          .withIndex("by_page", (q: any) => q.eq("pageId", sourcePage._id))
           .unique();
 
         const newPageId = await ctx.db.insert("pages", {
@@ -484,11 +484,11 @@ export const merge = mutation({
         // Modified page: apply merge
         const sourceContent = await ctx.db
           .query("pageContents")
-          .withIndex("by_page", (q) => q.eq("pageId", sourcePage._id))
+          .withIndex("by_page", (q: any) => q.eq("pageId", sourcePage._id))
           .unique();
         const targetContent = await ctx.db
           .query("pageContents")
-          .withIndex("by_page", (q) => q.eq("pageId", targetPage._id))
+          .withIndex("by_page", (q: any) => q.eq("pageId", targetPage._id))
           .unique();
 
         if (!sourceContent || !targetContent) continue;
@@ -504,10 +504,10 @@ export const merge = mutation({
         // Save version snapshot of target before overwriting
         const existingVersions = await ctx.db
           .query("pageVersions")
-          .withIndex("by_page", (q) => q.eq("pageId", targetPage._id))
+          .withIndex("by_page", (q: any) => q.eq("pageId", targetPage._id))
           .collect();
         const maxVersion = existingVersions.reduce(
-          (max, v) => Math.max(max, v.version),
+          (max: any, v: any) => Math.max(max, v.version),
           0
         );
 
@@ -605,13 +605,13 @@ export const listComments = query({
   handler: async (ctx, args) => {
     const comments = await ctx.db
       .query("mergeRequestComments")
-      .withIndex("by_merge_request", (q) =>
+      .withIndex("by_merge_request", (q: any) =>
         q.eq("mergeRequestId", args.mergeRequestId)
       )
       .collect();
 
     const results = await Promise.all(
-      comments.map(async (comment) => {
+      comments.map(async (comment: any) => {
         const creator = await ctx.db.get(comment.createdBy);
         return {
           ...comment,

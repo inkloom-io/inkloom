@@ -249,7 +249,7 @@ function ProjectsPageContent() {
         </div>
       ) : projects && projects.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project, index) => (
+          {projects.map((project: any, index: any) => (
             <Link
               key={project._id}
               href={`/projects/${project._id}/editor`}

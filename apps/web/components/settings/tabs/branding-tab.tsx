@@ -96,7 +96,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
       if (project.settings?.theme) setTheme(project.settings.theme);
       if (project.settings?.primaryColor) setPrimaryColor(project.settings.primaryColor);
       if (project.settings?.logoAssetId) setLogoAssetId(project.settings.logoAssetId);
-      const activeTheme = project.settings?.theme || "fossil";
+      const activeTheme = (project.settings?.theme || "fossil") as ThemePreset;
       const themePreset = THEME_PRESETS[activeTheme];
       setBackgroundColorLight(project.settings?.backgroundColorLight || themePreset.colors.light.background);
       setBackgroundColorDark(project.settings?.backgroundColorDark || themePreset.colors.dark.background);

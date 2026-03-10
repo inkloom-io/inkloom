@@ -72,7 +72,7 @@ export const create = mutation({
     // Check if slug is unique (within the single "local" tenant)
     const existingProject = await ctx.db
       .query("projects")
-      .withIndex("by_workos_org_and_slug", (q) =>
+      .withIndex("by_workos_org_and_slug", (q: any) =>
         q.eq("workosOrgId", LOCAL_ORG_ID).eq("slug", slug)
       )
       .first();
@@ -110,7 +110,7 @@ export const create = mutation({
     // Auto-assign the local user as project admin
     const localUser = await ctx.db
       .query("users")
-      .withIndex("by_workos_user_id", (q) =>
+      .withIndex("by_workos_user_id", (q: any) =>
         q.eq("workosUserId", "local")
       )
       .first();
@@ -226,7 +226,7 @@ export const createFromImport = mutation({
     // Check slug uniqueness
     const existing = await ctx.db
       .query("projects")
-      .withIndex("by_workos_org_and_slug", (q) =>
+      .withIndex("by_workos_org_and_slug", (q: any) =>
         q.eq("workosOrgId", LOCAL_ORG_ID).eq("slug", slug)
       )
       .first();
@@ -374,19 +374,19 @@ export const remove = mutation({
     // Delete branches and their pages/folders
     const branches = await ctx.db
       .query("branches")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q: any) => q.eq("projectId", args.projectId))
       .collect();
 
     for (const branch of branches) {
       const pages = await ctx.db
         .query("pages")
-        .withIndex("by_branch", (q) => q.eq("branchId", branch._id))
+        .withIndex("by_branch", (q: any) => q.eq("branchId", branch._id))
         .collect();
       for (const page of pages) {
         // Delete page contents
         const contents = await ctx.db
           .query("pageContents")
-          .withIndex("by_page", (q) => q.eq("pageId", page._id))
+          .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
           .collect();
         for (const content of contents) {
           await ctx.db.delete(content._id);
@@ -396,7 +396,7 @@ export const remove = mutation({
 
       const folders = await ctx.db
         .query("folders")
-        .withIndex("by_branch", (q) => q.eq("branchId", branch._id))
+        .withIndex("by_branch", (q: any) => q.eq("branchId", branch._id))
         .collect();
       for (const folder of folders) {
         await ctx.db.delete(folder._id);
@@ -408,7 +408,7 @@ export const remove = mutation({
     // Delete project members
     const members = await ctx.db
       .query("projectMembers")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q: any) => q.eq("projectId", args.projectId))
       .collect();
     for (const member of members) {
       await ctx.db.delete(member._id);
@@ -471,7 +471,7 @@ export const getDashboardStats = query({
     const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
     const enrichedProjects = await Promise.all(
-      projects.slice(0, 6).map(async (project) => {
+      projects.slice(0, 6).map(async (project: any) => {
         const branch = project.defaultBranchId
           ? await ctx.db.get(project.defaultBranchId)
           : null;
@@ -479,7 +479,7 @@ export const getDashboardStats = query({
         if (branch) {
           const pages = await ctx.db
             .query("pages")
-            .withIndex("by_branch", (q) => q.eq("branchId", branch._id))
+            .withIndex("by_branch", (q: any) => q.eq("branchId", branch._id))
             .collect();
           pageCount = pages.length;
         }
@@ -487,15 +487,15 @@ export const getDashboardStats = query({
 
         const deployments = await ctx.db
           .query("deployments")
-          .withIndex("by_project", (q) => q.eq("projectId", project._id))
+          .withIndex("by_project", (q: any) => q.eq("projectId", project._id))
           .order("desc")
           .collect();
 
-        const recent = deployments.filter((d) => d.createdAt > thirtyDaysAgo);
+        const recent = deployments.filter((d: any) => d.createdAt > thirtyDaysAgo);
         recentDeployments += recent.length;
 
         const latestProduction = deployments.find(
-          (d) => d.target === "production"
+          (d: any) => d.target === "production"
         );
 
         let deploymentStatus: "ready" | "error" | "building" | "never_deployed" =
@@ -536,7 +536,7 @@ export const getDashboardStats = query({
         if (branch) {
           const pages = await ctx.db
             .query("pages")
-            .withIndex("by_branch", (q) => q.eq("branchId", branch._id))
+            .withIndex("by_branch", (q: any) => q.eq("branchId", branch._id))
             .collect();
           totalPages += pages.length;
         }

@@ -20,9 +20,9 @@ export const listByProject = query({
 
     const folders = await ctx.db
       .query("folders")
-      .withIndex("by_branch", (q) => q.eq("branchId", project.defaultBranchId!))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", project.defaultBranchId!))
       .collect();
-    return folders.filter((f) => !f.aiPendingReview);
+    return folders.filter((f: any) => !f.aiPendingReview);
   },
 });
 
@@ -31,9 +31,9 @@ export const listByBranch = query({
   handler: async (ctx, args) => {
     const folders = await ctx.db
       .query("folders")
-      .withIndex("by_branch", (q) => q.eq("branchId", args.branchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", args.branchId))
       .collect();
-    return folders.filter((f) => !f.aiPendingReview);
+    return folders.filter((f: any) => !f.aiPendingReview);
   },
 });
 
@@ -43,7 +43,7 @@ export const listByBranchInternal = internalQuery({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("folders")
-      .withIndex("by_branch", (q) => q.eq("branchId", args.branchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", args.branchId))
       .collect();
   },
 });
@@ -80,7 +80,7 @@ export const create = mutation({
     if (position === undefined) {
       const siblings = await ctx.db
         .query("folders")
-        .withIndex("by_parent", (q) => q.eq("parentId", args.parentId))
+        .withIndex("by_parent", (q: any) => q.eq("parentId", args.parentId))
         .collect();
       position = siblings.length;
     }
@@ -114,7 +114,7 @@ export const createInternal = internalMutation({
     const path = `/${slug}`;
     const siblings = await ctx.db
       .query("folders")
-      .withIndex("by_parent", (q) => q.eq("parentId", undefined))
+      .withIndex("by_parent", (q: any) => q.eq("parentId", undefined))
       .collect();
     const position = siblings.length;
 
@@ -177,7 +177,7 @@ export const update = mutation({
         // Update child folders recursively
         const allFolders = await ctx.db
           .query("folders")
-          .withIndex("by_branch", (q) => q.eq("branchId", folder.branchId))
+          .withIndex("by_branch", (q: any) => q.eq("branchId", folder.branchId))
           .collect();
 
         for (const childFolder of allFolders) {
@@ -193,7 +193,7 @@ export const update = mutation({
         // Update pages that start with the old path
         const allPages = await ctx.db
           .query("pages")
-          .withIndex("by_branch", (q) => q.eq("branchId", folder.branchId))
+          .withIndex("by_branch", (q: any) => q.eq("branchId", folder.branchId))
           .collect();
 
         for (const page of allPages) {
@@ -232,7 +232,7 @@ async function deleteFolderRecursive(
   // Get all child folders
   const childFolders = await ctx.db
     .query("folders")
-    .withIndex("by_parent", (q) => q.eq("parentId", folderId))
+    .withIndex("by_parent", (q: any) => q.eq("parentId", folderId))
     .collect();
 
   // Recursively delete child folders
@@ -243,14 +243,14 @@ async function deleteFolderRecursive(
   // Delete pages in this folder
   const pages = await ctx.db
     .query("pages")
-    .withIndex("by_folder", (q) => q.eq("folderId", folderId))
+    .withIndex("by_folder", (q: any) => q.eq("folderId", folderId))
     .collect();
 
   for (const page of pages) {
     // Delete page contents
     const contents = await ctx.db
       .query("pageContents")
-      .withIndex("by_page", (q) => q.eq("pageId", page._id))
+      .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
       .collect();
     for (const content of contents) {
       await ctx.db.delete(content._id);
@@ -259,7 +259,7 @@ async function deleteFolderRecursive(
     // Delete page versions
     const versions = await ctx.db
       .query("pageVersions")
-      .withIndex("by_page", (q) => q.eq("pageId", page._id))
+      .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
       .collect();
     for (const version of versions) {
       await ctx.db.delete(version._id);
@@ -280,11 +280,11 @@ export const getByBranchParentAndSlug = query({
   handler: async (ctx, args) => {
     const folders = await ctx.db
       .query("folders")
-      .withIndex("by_parent", (q) => q.eq("parentId", args.parentId))
+      .withIndex("by_parent", (q: any) => q.eq("parentId", args.parentId))
       .collect();
 
     return folders.find(
-      (f) => f.branchId === args.branchId && f.slug === args.slug
+      (f: any) => f.branchId === args.branchId && f.slug === args.slug
     ) ?? null;
   },
 });
@@ -327,7 +327,7 @@ async function updateDescendantPaths(
   // Update child folders
   const childFolders = await ctx.db
     .query("folders")
-    .withIndex("by_parent", (q) => q.eq("parentId", folderId))
+    .withIndex("by_parent", (q: any) => q.eq("parentId", folderId))
     .collect();
 
   for (const child of childFolders) {
@@ -337,7 +337,7 @@ async function updateDescendantPaths(
   // Update pages in this folder
   const pages = await ctx.db
     .query("pages")
-    .withIndex("by_folder", (q) => q.eq("folderId", folderId))
+    .withIndex("by_folder", (q: any) => q.eq("folderId", folderId))
     .collect();
 
   for (const page of pages) {
@@ -382,11 +382,11 @@ export const reorder = mutation({
       // 1. Decrement positions in old location for ALL items (folders AND pages) after old position
       const oldSiblingFolders = await ctx.db
         .query("folders")
-        .withIndex("by_parent", (q) => q.eq("parentId", oldParentId ?? undefined))
+        .withIndex("by_parent", (q: any) => q.eq("parentId", oldParentId ?? undefined))
         .collect();
       const oldSiblingPages = await ctx.db
         .query("pages")
-        .withIndex("by_folder", (q) => q.eq("folderId", oldParentId ?? undefined))
+        .withIndex("by_folder", (q: any) => q.eq("folderId", oldParentId ?? undefined))
         .collect();
 
       for (const sibling of oldSiblingFolders) {
@@ -410,11 +410,11 @@ export const reorder = mutation({
       // 2. Increment positions in new location for ALL items (folders AND pages) at or after new position
       const newSiblingFolders = await ctx.db
         .query("folders")
-        .withIndex("by_parent", (q) => q.eq("parentId", targetParentId ?? undefined))
+        .withIndex("by_parent", (q: any) => q.eq("parentId", targetParentId ?? undefined))
         .collect();
       const newSiblingPages = await ctx.db
         .query("pages")
-        .withIndex("by_folder", (q) => q.eq("folderId", targetParentId ?? undefined))
+        .withIndex("by_folder", (q: any) => q.eq("folderId", targetParentId ?? undefined))
         .collect();
 
       for (const sibling of newSiblingFolders) {
@@ -437,11 +437,11 @@ export const reorder = mutation({
       // Moving within the same parent - shift ALL items (folders AND pages)
       const siblingFolders = await ctx.db
         .query("folders")
-        .withIndex("by_parent", (q) => q.eq("parentId", targetParentId ?? undefined))
+        .withIndex("by_parent", (q: any) => q.eq("parentId", targetParentId ?? undefined))
         .collect();
       const siblingPages = await ctx.db
         .query("pages")
-        .withIndex("by_folder", (q) => q.eq("folderId", targetParentId ?? undefined))
+        .withIndex("by_folder", (q: any) => q.eq("folderId", targetParentId ?? undefined))
         .collect();
 
       if (args.newPosition > oldPosition) {
@@ -519,7 +519,7 @@ export const reorder = mutation({
       // Update child folders
       const childFolders = await ctx.db
         .query("folders")
-        .withIndex("by_parent", (q) => q.eq("parentId", args.folderId))
+        .withIndex("by_parent", (q: any) => q.eq("parentId", args.folderId))
         .collect();
 
       for (const child of childFolders) {
@@ -529,7 +529,7 @@ export const reorder = mutation({
       // Update pages in this folder
       const pages = await ctx.db
         .query("pages")
-        .withIndex("by_folder", (q) => q.eq("folderId", args.folderId))
+        .withIndex("by_folder", (q: any) => q.eq("folderId", args.folderId))
         .collect();
 
       for (const page of pages) {

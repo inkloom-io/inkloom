@@ -6,7 +6,7 @@ export const listByProject = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("deployments")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q: any) => q.eq("projectId", args.projectId))
       .order("desc")
       .collect();
   },
@@ -24,7 +24,7 @@ export const getByExternalId = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("deployments")
-      .withIndex("by_external_deployment_id", (q) =>
+      .withIndex("by_external_deployment_id", (q: any) =>
         q.eq("externalDeploymentId", args.externalDeploymentId)
       )
       .unique();
@@ -136,10 +136,10 @@ export const listProductionByProject = query({
   handler: async (ctx, args) => {
     const all = await ctx.db
       .query("deployments")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q: any) => q.eq("projectId", args.projectId))
       .order("desc")
       .collect();
-    return all.filter((d) => d.target === "production");
+    return all.filter((d: any) => d.target === "production");
   },
 });
 
@@ -151,7 +151,7 @@ export const setLiveDeployment = mutation({
   handler: async (ctx, args) => {
     const config = await ctx.db
       .query("deploymentConfigs")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q: any) => q.eq("projectId", args.projectId))
       .unique();
     if (!config) {
       throw new Error("No deployment config found for project");
@@ -168,7 +168,7 @@ export const getConfig = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("deploymentConfigs")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q: any) => q.eq("projectId", args.projectId))
       .unique();
   },
 });
@@ -219,15 +219,15 @@ export const hasUnpublishedChanges = query({
     // Get deployments for this branch, find latest ready per target
     const deployments = await ctx.db
       .query("deployments")
-      .withIndex("by_branch", (q) => q.eq("branchId", resolvedBranchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", resolvedBranchId))
       .order("desc")
       .collect();
 
     const latestReadyPreview = deployments.find(
-      (d) => d.status === "ready" && d.target === "preview"
+      (d: any) => d.status === "ready" && d.target === "preview"
     );
     const latestReadyProduction = deployments.find(
-      (d) => d.status === "ready" && d.target === "production"
+      (d: any) => d.status === "ready" && d.target === "production"
     );
 
     // If neither target has a deployment, skip expensive hash computation
@@ -242,10 +242,10 @@ export const hasUnpublishedChanges = query({
     // (mirrors the publish route's computePath logic)
     const rawFolders = await ctx.db
       .query("folders")
-      .withIndex("by_branch", (q) => q.eq("branchId", resolvedBranchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", resolvedBranchId))
       .collect();
 
-    const folderMap = new Map(rawFolders.map((f) => [f._id, f]));
+    const folderMap = new Map(rawFolders.map((f: any) => [f._id, f]));
     function computePath(folder: typeof rawFolders[number]): string {
       if (!folder.parentId) {
         return `/${folder.slug}`;
@@ -256,26 +256,26 @@ export const hasUnpublishedChanges = query({
       }
       return `${computePath(parent)}/${folder.slug}`;
     }
-    const folders = rawFolders.map((f) => ({ ...f, path: computePath(f) }));
+    const folders = rawFolders.map((f: any) => ({ ...f, path: computePath(f) }));
 
     // Get current pages and recompute paths from folder paths
     const rawPages = await ctx.db
       .query("pages")
-      .withIndex("by_branch", (q) => q.eq("branchId", resolvedBranchId))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", resolvedBranchId))
       .collect();
 
-    const pagesWithFixedPaths = rawPages.map((page) => {
+    const pagesWithFixedPaths = rawPages.map((page: any) => {
       if (!page.folderId) {
         return { ...page, path: `/${page.slug}` };
       }
-      const folder = folders.find((f) => f._id === page.folderId);
+      const folder = folders.find((f: any) => f._id === page.folderId);
       if (!folder) {
         return page;
       }
       return { ...page, path: `${folder.path}/${page.slug}` };
     });
 
-    const publishedPages = pagesWithFixedPaths.filter((p) => p.isPublished);
+    const publishedPages = pagesWithFixedPaths.filter((p: any) => p.isPublished);
 
     // Build current content hashes
     const currentHashes: Record<string, string> = {
@@ -286,7 +286,7 @@ export const hasUnpublishedChanges = query({
     for (const page of publishedPages) {
       const content = await ctx.db
         .query("pageContents")
-        .withIndex("by_page", (q) => q.eq("pageId", page._id))
+        .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
         .unique();
 
       const pageData = {
@@ -326,11 +326,11 @@ export const getInProgressDeployment = query({
     // Get the most recent deployment that's still in progress
     const deployments = await ctx.db
       .query("deployments")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q: any) => q.eq("projectId", args.projectId))
       .order("desc")
       .collect();
 
-    return deployments.find((d) =>
+    return deployments.find((d: any) =>
       d.status === "queued" || d.status === "building"
     ) ?? null;
   },
@@ -345,7 +345,7 @@ export const upsertConfig = mutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("deploymentConfigs")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project", (q: any) => q.eq("projectId", args.projectId))
       .unique();
 
     const { projectId, ...config } = args;
