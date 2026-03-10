@@ -426,6 +426,7 @@ export const coreTables = {
     resolutions: v.optional(v.string()),
     githubPrNumber: v.optional(v.number()),
     githubPrUrl: v.optional(v.string()),
+    githubRepoFullName: v.optional(v.string()),
     createdBy: v.id("users"),
     mergedBy: v.optional(v.id("users")),
     mergedAt: v.optional(v.number()),
@@ -438,7 +439,7 @@ export const coreTables = {
     .index("by_project_and_status", ["projectId", "status"])
     .index("by_source_branch", ["sourceBranchId"])
     .index("by_target_branch", ["targetBranchId"])
-    .index("by_github_pr", ["githubPrNumber"]),
+    .index("by_github_pr", ["githubRepoFullName", "githubPrNumber"]),
 
   // Merge Request Comments
   mergeRequestComments: defineTable({
