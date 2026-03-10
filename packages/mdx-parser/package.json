@@ -1,8 +1,21 @@
 {
   "name": "@inkloom/mdx-parser",
   "version": "0.1.0",
-  "private": true,
   "description": "MDX to BlockNote and BlockNote to MDX conversion",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inkloom/inkloom.git",
+    "directory": "packages/mdx-parser"
+  },
+  "homepage": "https://docs.inkloom.io",
+  "keywords": [
+    "inkloom",
+    "mdx",
+    "parser",
+    "blocknote",
+    "markdown"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -23,6 +36,7 @@
     "remark-parse": "^11.0.0",
     "unified": "^11.0.5"
   },
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
   "devDependencies": {
     "tsup": "^8.1.0",
     "typescript": "^5.4.5",

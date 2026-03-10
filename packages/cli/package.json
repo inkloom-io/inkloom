@@ -51,5 +51,6 @@
     "tsup": "^8.1.0",
     "typescript": "^5.4.5"
   },
-  "engines": { "node": ">=20" }
+  "engines": { "node": ">=20" },
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" }
 }

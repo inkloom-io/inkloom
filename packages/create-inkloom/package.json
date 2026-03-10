@@ -3,6 +3,20 @@
   "version": "0.1.0",
   "description": "Create a new InkLoom documentation site",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inkloom/inkloom.git",
+    "directory": "packages/create-inkloom"
+  },
+  "homepage": "https://docs.inkloom.io/cli",
+  "keywords": [
+    "inkloom",
+    "create",
+    "documentation",
+    "docs",
+    "scaffolding",
+    "starter"
+  ],
   "type": "module",
   "bin": {
     "create-inkloom": "./dist/cli.js"
@@ -31,6 +45,7 @@
     "picocolors": "^1.0.0",
     "prompts": "^2.4.2"
   },
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
     "@types/fs-extra": "^11.0.4",
