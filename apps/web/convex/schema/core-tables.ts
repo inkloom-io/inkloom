@@ -148,6 +148,12 @@ export const coreTables = {
         headScripts: v.optional(v.string()),
         bodyScripts: v.optional(v.string()),
         llmsTxt: v.optional(v.string()),
+        docsChat: v.optional(
+          v.object({
+            enabled: v.optional(v.boolean()),
+            model: v.optional(v.string()),
+          })
+        ),
         socialLinks: v.optional(
           v.array(
             v.object({
