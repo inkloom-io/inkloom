@@ -23,6 +23,13 @@ export type {
   ExportData,
 } from "./lib/convex-client.js";
 
+// Error reporting (Sentry)
+export {
+  initErrorReporting,
+  reportError,
+  shutdown as shutdownErrorReporting,
+} from "./lib/error-reporting.js";
+
 // Errors
 export {
   CliError,

@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { createClient, type Client, type ClientOptions } from "./client.js";
 import { CliError, EXIT_GENERAL } from "./errors.js";
+import { reportError } from "./error-reporting.js";
 import { printError, type OutputOptions } from "./output.js";
 
 /**
@@ -70,7 +71,9 @@ export function handleAction(
         printError(error, globalOpts);
         process.exit(error.exitCode);
       }
-      // Unexpected errors
+      // Unexpected errors — report to Sentry
+      const commandName = cmd.name();
+      reportError(error, { command: commandName });
       const err = error instanceof Error ? error : new Error(String(error));
       printError(err, globalOpts);
       process.exit(EXIT_GENERAL);
@@ -97,6 +100,9 @@ export function handleActionNoClient(
         printError(error, globalOpts);
         process.exit(error.exitCode);
       }
+      // Unexpected errors — report to Sentry
+      const commandName = cmd.name();
+      reportError(error, { command: commandName });
       const err = error instanceof Error ? error : new Error(String(error));
       printError(err, globalOpts);
       process.exit(EXIT_GENERAL);

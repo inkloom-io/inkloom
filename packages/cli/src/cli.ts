@@ -15,6 +15,11 @@ import { registerLlmsTxtCommands } from "./commands/llms-txt.js";
 import { registerBuildCommand } from "./commands/build.js";
 import { registerExportCommand } from "./commands/export.js";
 import { registerMigrateCommand } from "./commands/migrate.js";
+import {
+  initErrorReporting,
+  reportError,
+  shutdown,
+} from "./lib/error-reporting.js";
 
 const program = new Command();
 program
@@ -54,4 +59,26 @@ registerBuildCommand(program);
 registerExportCommand(program);
 registerMigrateCommand(program);
 
-program.parse();
+async function main(): Promise<void> {
+  // Initialize Sentry error reporting.
+  // Commander hasn't parsed yet, so we check the env var directly here.
+  // The --no-telemetry flag is also respected once Commander parses (via handler.ts),
+  // but for startup errors we rely on the env var.
+  const noTelemetryFlag = process.argv.includes("--no-telemetry");
+  initErrorReporting(noTelemetryFlag);
+
+  try {
+    await program.parseAsync();
+  } catch (error) {
+    const command = process.argv.slice(2).join(" ");
+    reportError(error, { command });
+    await shutdown();
+    throw error;
+  }
+
+  await shutdown();
+}
+
+main().catch(() => {
+  process.exit(1);
+});
