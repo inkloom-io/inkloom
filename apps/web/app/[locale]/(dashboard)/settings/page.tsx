@@ -2,8 +2,16 @@
 
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { Mail, LogOut, Key, Download } from "lucide-react";
+import { Mail, LogOut, Key, Download, Trash2, AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@inkloom/ui/dialog";
 
 const ApiKeysConfig = dynamic(
   () => import("@/components/settings/api-keys-config").then((m) => ({ default: m.ApiKeysConfig })),
@@ -81,6 +89,10 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -153,6 +165,31 @@ export default function SettingsPage() {
       setIsExporting(false);
     }
   }, [t]);
+
+  const deleteConfirmText = "DELETE";
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== deleteConfirmText) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      const response = await fetch("/api/auth/delete-account", {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || t("deleteAccount.error"));
+      }
+      // Redirect to home page after successful deletion
+      window.location.href = "/";
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : t("deleteAccount.error")
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -516,8 +553,165 @@ export default function SettingsPage() {
               {t("signOut")}
             </a>
           </div>
+
+          {/* Delete Account */}
+          <div
+            className="flex items-center justify-between rounded-xl py-3 px-4 bg-[var(--surface-bg)]"
+            style={{
+              border: "1px solid var(--glass-border)",
+            }}
+          >
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                {t("deleteAccount.title")}
+              </p>
+              <p className="text-xs text-[var(--text-dim)]">
+                {t("deleteAccount.description")}
+              </p>
+            </div>
+            <button
+              onClick={() => setIsDeleteDialogOpen(true)}
+              className="flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all"
+              style={{
+                backgroundColor: "rgba(239,68,68,0.1)",
+                border: "1px solid rgba(239,68,68,0.2)",
+                color: "#f87171",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  "rgba(239,68,68,0.15)";
+                e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  "rgba(239,68,68,0.1)";
+                e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)";
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+              {t("deleteAccount.button")}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Delete Account Confirmation Dialog */}
+      <Dialog
+        open={isDeleteDialogOpen}
+        onOpenChange={(open) => {
+          setIsDeleteDialogOpen(open);
+          if (!open) {
+            setDeleteConfirmation("");
+            setDeleteError(null);
+          }
+        }}
+      >
+        <DialogContent
+          className="!rounded-2xl !border-0 !p-0 !shadow-none sm:!max-w-[440px]"
+          style={{
+            backgroundColor: "var(--surface-bg)",
+            border: "1px solid var(--glass-border)",
+            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
+          }}
+        >
+          <DialogHeader className="px-6 pt-6 pb-0">
+            <DialogTitle
+              className="flex items-center gap-2 text-lg font-bold"
+              style={{
+                fontFamily: "var(--font-heading)",
+                color: "#f87171",
+              }}
+            >
+              <AlertTriangle className="h-5 w-5" />
+              {t("deleteAccount.dialogTitle")}
+            </DialogTitle>
+            <DialogDescription className="text-[var(--text-dim)]">
+              {t("deleteAccount.dialogDescription")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 px-6 pt-5 pb-2">
+            {deleteError && (
+              <div
+                className="rounded-xl px-4 py-3 text-sm"
+                style={{
+                  backgroundColor: "rgba(239,68,68,0.1)",
+                  border: "1px solid rgba(239,68,68,0.2)",
+                  color: "#f87171",
+                }}
+              >
+                {deleteError}
+              </div>
+            )}
+            <div>
+              <label
+                htmlFor="deleteAccountConfirm"
+                className="mb-2 block text-xs font-medium uppercase tracking-wider text-[var(--text-dim)]"
+              >
+                {t("deleteAccount.typeToConfirm")}
+              </label>
+              <input
+                id="deleteAccountConfirm"
+                type="text"
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                placeholder={deleteConfirmText}
+                className="w-full rounded-xl px-4 py-2.5 text-sm text-foreground placeholder-[var(--text-dim)] outline-none transition-all duration-200"
+                style={{
+                  backgroundColor: "var(--surface-hover)",
+                  border: "1px solid var(--glass-border)",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(239,68,68,0.4)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 0 3px rgba(239,68,68,0.1)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "var(--glass-border)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter
+            className="flex items-center justify-end gap-3 px-6 py-4"
+            style={{ borderTop: "1px solid var(--glass-border)" }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setDeleteConfirmation("");
+                setDeleteError(null);
+              }}
+              className="rounded-xl px-4 py-2 text-sm font-medium text-[var(--text-dim)] transition-all hover:text-foreground"
+            >
+              {t("deleteAccount.cancel")}
+            </button>
+            <button
+              disabled={
+                deleteConfirmation !== deleteConfirmText || isDeleting
+              }
+              onClick={handleDeleteAccount}
+              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-white transition-all"
+              style={{
+                backgroundColor:
+                  deleteConfirmation !== deleteConfirmText || isDeleting
+                    ? "rgba(239,68,68,0.3)"
+                    : "#ef4444",
+                cursor:
+                  deleteConfirmation !== deleteConfirmText || isDeleting
+                    ? "not-allowed"
+                    : "pointer",
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+              {isDeleting
+                ? t("deleteAccount.deleting")
+                : t("deleteAccount.confirm")}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Keyframes */}
       <style>{`

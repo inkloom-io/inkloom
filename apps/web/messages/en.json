@@ -655,7 +655,19 @@
       "dataExportError": "Failed to export data. Please try again.",
       "signOutAllDevices": "Sign out from all devices",
       "signOutAllDevicesDescription": "This will end all active sessions across every device",
-      "signOut": "Sign Out"
+      "signOut": "Sign Out",
+      "deleteAccount": {
+        "title": "Delete account",
+        "description": "Permanently delete your account and all associated data. This action cannot be undone.",
+        "button": "Delete Account",
+        "dialogTitle": "Delete your account?",
+        "dialogDescription": "This will permanently delete your account, remove you from all organizations, and erase all your personal data. This action is irreversible.",
+        "typeToConfirm": "Type DELETE to confirm",
+        "cancel": "Cancel",
+        "confirm": "Delete My Account",
+        "deleting": "Deleting...",
+        "error": "Failed to delete account. Please try again."
+      }
     },
     "generate": {
       "heading": "AI Documentation Generator",
