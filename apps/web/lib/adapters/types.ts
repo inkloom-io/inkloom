@@ -119,3 +119,21 @@ export interface DeployAdapter {
   /** Human-readable label for the deploy action (e.g., "Build" or "Deploy"). */
   actionLabel: string;
 }
+
+// ---------------------------------------------------------------------------
+// Error Reporting Adapter
+// ---------------------------------------------------------------------------
+
+/**
+ * Error reporting adapter for decoupling error tracking from the UI.
+ *
+ * - Core: no-op (no external error tracking).
+ * - Platform: Sentry integration with user feedback dialog.
+ */
+export interface ErrorReportingAdapter {
+  /** Report an error to the error tracking service. */
+  captureError(error: Error, context?: Record<string, unknown>): void;
+
+  /** Show a user-facing feedback dialog (optional — not all implementations support this). */
+  showFeedbackDialog?(): void;
+}

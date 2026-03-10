@@ -1,18 +1,18 @@
+/**
+ * Core (OSS) error reporting adapter — no-op implementation.
+ *
+ * In standalone core mode there is no external error tracking service.
+ * Errors are logged to the console for local debugging.
+ */
+
 import type { ErrorReportingAdapter } from "./types";
 
-/**
- * Core-mode error reporting adapter.
- *
- * No-op — errors are displayed in the UI but not reported to
- * any external service. In platform mode this is replaced with
- * the Sentry-backed implementation.
- */
 export const errorReportingAdapter: ErrorReportingAdapter = {
-  captureError(_error: Error, _context?: Record<string, unknown>) {
-    // No-op in core mode — no external error tracking service.
+  captureError(error: Error, context?: Record<string, unknown>): void {
+    // In core mode, just log to console for local debugging
+    console.error("[ErrorReporting]", error, context);
   },
 
-  showFeedbackDialog() {
-    // No-op in core mode.
-  },
+  // No feedback dialog in core mode
+  showFeedbackDialog: undefined,
 };

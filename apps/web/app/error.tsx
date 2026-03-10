@@ -54,9 +54,9 @@ export default function Error({
           {errorReportingAdapter.showFeedbackDialog && (
             <button
               onClick={() => errorReportingAdapter.showFeedbackDialog?.()}
-              className="rounded-xl border border-[var(--glass-divider)] px-6 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-[rgba(255,255,255,0.05)]"
+              className="rounded-xl border border-[var(--glass-divider)] px-6 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-[var(--glass-divider)]"
             >
-              Tell us what happened
+              Report this issue
             </button>
           )}
         </div>
