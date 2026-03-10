@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { Mail, LogOut, Key } from "lucide-react";
+import { Mail, LogOut, Key, Download } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 const ApiKeysConfig = dynamic(
@@ -79,6 +79,8 @@ export default function SettingsPage() {
   const [user, setUser] = useState<UserData | null>(null);
   const [identities, setIdentities] = useState<Identity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -123,6 +125,34 @@ export default function SettingsPage() {
     );
     return identity?.email || null;
   };
+
+  const handleExportData = useCallback(async () => {
+    setIsExporting(true);
+    setExportError(null);
+    try {
+      const response = await fetch("/api/user/export");
+      if (!response.ok) {
+        throw new Error("Export failed");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const disposition = response.headers.get("Content-Disposition");
+      const filenameMatch = disposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch?.[1] ?? "inkloom-personal-data-export.json";
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Data export failed:", err);
+      setExportError(t("dataExportError"));
+    } finally {
+      setIsExporting(false);
+    }
+  }, [t]);
 
   if (isLoading) {
     return (
@@ -357,6 +387,72 @@ export default function SettingsPage() {
             </p>
           </div>
           <ApiKeysConfig scope="user" />
+        </div>
+
+        {/* Export My Data Card */}
+        <div
+          className="rounded-2xl p-6 bg-[var(--surface-bg)]"
+          style={{
+            border: "1px solid var(--glass-border)",
+            animation: "settingsCardIn 0.4s ease-out 0.12s both",
+          }}
+        >
+          <div className="mb-5">
+            <div className="flex items-center gap-2">
+              <Download className="h-4 w-4 text-[var(--text-dim)]" />
+              <h2
+                className="text-base font-semibold text-foreground"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
+                {t("dataExport")}
+              </h2>
+            </div>
+            <p className="text-sm text-[var(--text-dim)]">
+              {t("dataExportSubtitle")}
+            </p>
+          </div>
+          <div
+            className="flex items-center justify-between rounded-xl py-3 px-4 bg-[var(--surface-bg)]"
+            style={{
+              border: "1px solid var(--glass-border)",
+            }}
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-foreground">
+                {t("dataExportDescription")}
+              </p>
+              {exportError && (
+                <p className="mt-1 text-xs text-red-400">
+                  {exportError}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handleExportData}
+              disabled={isExporting}
+              className="flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: "rgba(20,184,166,0.1)",
+                border: "1px solid rgba(20,184,166,0.2)",
+                color: "#14b8a6",
+              }}
+              onMouseEnter={(e) => {
+                if (!isExporting) {
+                  e.currentTarget.style.backgroundColor =
+                    "rgba(20,184,166,0.15)";
+                  e.currentTarget.style.borderColor = "rgba(20,184,166,0.3)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  "rgba(20,184,166,0.1)";
+                e.currentTarget.style.borderColor = "rgba(20,184,166,0.2)";
+              }}
+            >
+              <Download className="h-4 w-4" />
+              {isExporting ? t("dataExportDownloading") : t("dataExportButton")}
+            </button>
+          </div>
         </div>
 
         {/* Danger Zone Card */}

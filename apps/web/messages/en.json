@@ -647,6 +647,12 @@
       "apiKeysSubtitle": "Manage API keys for programmatic access",
       "dangerZone": "Danger Zone",
       "dangerZoneSubtitle": "Irreversible actions for your account",
+      "dataExport": "Export My Data",
+      "dataExportSubtitle": "Download a copy of all your personal data (GDPR data portability)",
+      "dataExportDescription": "Export includes your profile, organization memberships, projects, comments, and API keys",
+      "dataExportButton": "Export Data",
+      "dataExportDownloading": "Preparing export...",
+      "dataExportError": "Failed to export data. Please try again.",
       "signOutAllDevices": "Sign out from all devices",
       "signOutAllDevicesDescription": "This will end all active sessions across every device",
       "signOut": "Sign Out"
