@@ -329,6 +329,11 @@
       "discord": "Discord"
     }
   },
+  "changelog": {
+    "title": "Changelog",
+    "subtitle": "New features, improvements, and fixes in InkLoom.",
+    "latestRelease": "Latest release"
+  },
   "dashboard": {
     "nav": {
       "overview": "Overview",
