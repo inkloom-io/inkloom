@@ -356,10 +356,12 @@ export function EditorToolbar({
     projectId: project._id,
   });
 
-  // GitHub connection state
-  const githubConnection = useQuery(api.github.getConnection, {
-    projectId: project._id,
-  });
+  // GitHub connection state (github module is platform-only, may not exist in core)
+  const githubApi = (api as Record<string, any>).github;
+  const githubConnection = useQuery(
+    githubApi?.getConnection ?? ("skip" as any),
+    githubApi ? { projectId: project._id } : "skip",
+  );
   const [isSyncingGitHub, setIsSyncingGitHub] = useState(false);
 
   const handleSyncToGitHub = useCallback(async () => {
