@@ -35,7 +35,9 @@ import { VersionHistoryPanel } from "@/components/editor/version-history";
 import { VersionDiff } from "@/components/editor/version-diff";
 import { usePermissions } from "@/components/dashboard/permission-guard";
 import { useFeatureGate } from "@/hooks/use-feature-gate";
+import { useEditLock } from "@/hooks/use-edit-lock";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
+import { EditLockBanner } from "@/components/edit-lock-banner";
 import { TitleSection } from "@/components/editor/title-section";
 import { PageSeoPanel } from "@/components/editor/page-seo-panel";
 import { trackEvent } from "@/lib/analytics";
@@ -196,8 +198,8 @@ export default function EditorPage({ params }: EditorPageProps) {
     inlineEnd?: number;
   } | null>(null);
 
-  // Get current Convex user for comments
-  const { userId: currentUserId } = useAuth();
+  // Get current Convex user for comments and edit lock
+  const { userId: currentUserId, user } = useAuth();
 
   // Get user permissions (admins can delete any comment)
   const { role } = usePermissions();
@@ -280,6 +282,17 @@ export default function EditorPage({ params }: EditorPageProps) {
     collaboration.connected ||
     !!collaboration.error ||
     collaborationDisabled;
+
+  // Soft edit lock for non-Ultimate plans (when realtime collaboration is unavailable)
+  const editLock = useEditLock({
+    pageId: selectedPageId,
+    userId: currentUserId ?? null,
+    userName: user?.name ?? user?.email ?? "Unknown",
+    enabled: !!selectedPageId && !!currentUserId && !collabGate.available && !collabGate.isLoading,
+  });
+
+  // When edit-locked by another user, make editor read-only
+  const isEditLocked = editLock.isLocked && !collabGate.available;
 
   // Latch: once collaboration connects for this page, keep the "-collab"
   // suffix so brief disconnections during token refresh don't remount the editor.
@@ -659,12 +672,20 @@ export default function EditorPage({ params }: EditorPageProps) {
                       titleIconHidden={selectedPage.titleIconHidden}
                     />
                   )}
+                  {/* Edit lock banner for non-Ultimate plans */}
+                  {isEditLocked && editLock.lockedBy && editLock.expiresAt && (
+                    <EditLockBanner
+                      lockedBy={editLock.lockedBy}
+                      expiresAt={editLock.expiresAt}
+                      onForceTake={editLock.forceTake}
+                    />
+                  )}
                   <BlockEditor
                     key={editorKey}
                     initialContent={pageContent.content}
                     onChange={handleContentChange}
                     onEditorReady={handleEditorReady}
-                    editable={isCollaborationReady}
+                    editable={isCollaborationReady && !isEditLocked}
                     themePreset={
                       (project.settings?.theme as ThemePreset) || "fossil"
                     }
