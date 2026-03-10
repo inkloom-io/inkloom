@@ -26,6 +26,7 @@ import {
 } from "@inkloom/ui/select";
 import { GitBranch, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { trackEvent } from "@/lib/analytics";
 
 interface CreateMergeRequestDialogProps {
   projectId: Id<"projects">;
@@ -113,6 +114,7 @@ export function CreateMergeRequestDialog({
         createdBy: userId,
       });
 
+      trackEvent("merge_request_created", { projectId });
       onOpenChange(false);
       router.push(
         `/projects/${projectId}/merge-requests/${mrId}`

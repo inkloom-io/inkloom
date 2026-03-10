@@ -32,6 +32,7 @@ import {
   FileCode,
   GitMerge,
 } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -139,6 +140,7 @@ export default function MergeRequestDetailPage(
         mergedBy: userId,
         deleteSourceBranch,
       });
+      trackEvent("merge_request_merged", { projectId });
       setMergeDialogOpen(false);
     } catch (error) {
       console.error("Failed to merge:", error);

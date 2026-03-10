@@ -43,6 +43,7 @@ import {
 import { Tree, NodeRendererProps } from "react-arborist";
 import { BranchSwitcher } from "./branch-switcher";
 import { IconPicker, IconDisplay } from "./icon-picker";
+import { trackEvent } from "@/lib/analytics";
 
 // Tree node data types
 type TreeNodeData = {
@@ -354,6 +355,7 @@ export function EditorSidebar({
       branchId,
       title: newPageTitle.trim(),
     });
+    trackEvent("page_created", { projectId, source: "editor" });
     setNewPageTitle("");
     setNewPageOpen(false);
     onSelectPage(pageId);
@@ -365,6 +367,7 @@ export function EditorSidebar({
       branchId,
       name: newFolderName.trim(),
     });
+    trackEvent("folder_created", { projectId });
     setNewFolderName("");
     setNewFolderOpen(false);
   };
@@ -381,6 +384,7 @@ export function EditorSidebar({
   const handleConfirmDeletePage = async () => {
     if (!pageToDelete) return;
     await deletePage({ pageId: pageToDelete._id });
+    trackEvent("page_deleted", { projectId });
     setDeletePageOpen(false);
     setPageToDelete(null);
   };

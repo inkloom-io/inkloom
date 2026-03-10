@@ -32,6 +32,7 @@ import { DomainConfig } from "@/components/settings/domain-config";
 import { DeploymentHistory } from "@/components/settings/deployment-history";
 import { GatedSection } from "@/components/gated-section";
 import { useTranslations } from "next-intl";
+import { trackEvent } from "@/lib/analytics";
 
 interface GeneralTabProps {
   projectId: string;
@@ -102,6 +103,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
         name,
         description,
       });
+      trackEvent("project_settings_updated", { projectId, setting: "general" });
     },
     [updateProject, projectId]
   );
@@ -135,6 +137,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
     setIsDeleting(true);
     try {
       await deleteProject({ projectId: projectId as Id<"projects"> });
+      trackEvent("project_deleted", { projectId });
       router.push("/projects");
     } catch (error) {
       console.error("Failed to delete:", error);

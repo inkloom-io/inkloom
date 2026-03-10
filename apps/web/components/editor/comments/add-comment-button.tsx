@@ -13,6 +13,7 @@ import {
 } from "@inkloom/ui/popover";
 import { MessageSquarePlus } from "lucide-react";
 import { CommentInput } from "./comment-input";
+import { trackEvent } from "@/lib/analytics";
 
 interface AddCommentButtonProps {
   pageId: Id<"pages">;
@@ -59,6 +60,7 @@ export function AddCommentButton({
         userId: currentUserId,
       });
 
+      trackEvent("comment_created", { pageId });
       setOpen(false);
       onCommentCreated?.(threadId);
     } catch (error) {

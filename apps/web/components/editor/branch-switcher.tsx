@@ -42,6 +42,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { CreateMergeRequestDialog } from "@/components/merge-request/create-dialog";
+import { trackEvent } from "@/lib/analytics";
 
 interface BranchSwitcherProps {
   projectId: Id<"projects">;
@@ -115,6 +116,7 @@ export function BranchSwitcher({
         name: newBranchName.trim().toLowerCase(),
         sourceBranchId: sourceBranchId as Id<"branches">,
       });
+      trackEvent("branch_created", { projectId });
       setNewBranchName("");
       setSourceBranchId("");
       setCreateOpen(false);

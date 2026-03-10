@@ -38,6 +38,7 @@ import { useFeatureGate } from "@/hooks/use-feature-gate";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { TitleSection } from "@/components/editor/title-section";
 import { PageSeoPanel } from "@/components/editor/page-seo-panel";
+import { trackEvent } from "@/lib/analytics";
 
 // Dynamic import to avoid BlockNote SSR issues with React
 const BlockEditor = dynamic(
@@ -422,6 +423,10 @@ export default function EditorPage({ params }: EditorPageProps) {
             pageId: selectedPageId,
             content: contentToSave,
             updatedBy: currentUserId,
+          });
+          trackEvent("page_edited", {
+            projectId,
+            wordCount: contentToSave.split(/\s+/).filter(Boolean).length,
           });
         }
         setIsSaving(false);

@@ -9,6 +9,7 @@ import type { Doc, Id } from "@/convex/_generated/dataModel";
 // (uses next/headers), breaking client component builds. The deploy switchpoint
 // re-exports only the deploy adapter, avoiding the auth dependency.
 import { deployAdapter } from "@/lib/adapters/deploy";
+import { trackEvent } from "@/lib/analytics";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -155,6 +156,10 @@ export function usePublish({
         current?.status === "ready" ||
         (current?.buildPhase === "propagating" && current?.url)
       ) {
+        trackEvent("deployment_completed", {
+          projectId: project._id,
+          success: true,
+        });
         setDeployment({
           status: "success",
           deploymentId: deployment.deploymentId,
@@ -164,6 +169,10 @@ export function usePublish({
         current?.status === "error" ||
         current?.status === "canceled"
       ) {
+        trackEvent("deployment_completed", {
+          projectId: project._id,
+          success: false,
+        });
         setDeployment({
           status: "error",
           deploymentId: deployment.deploymentId,
@@ -202,6 +211,10 @@ export function usePublish({
 
   const handlePublish = useCallback(async () => {
     setDeployment({ status: "publishing" });
+    trackEvent("deployment_triggered", {
+      projectId: project._id,
+      trigger: "manual",
+    });
 
     try {
       const endpoint = deployAdapter.getPublishEndpoint(project._id);
