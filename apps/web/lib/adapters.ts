@@ -13,6 +13,7 @@
 export { authAdapter } from "./adapters/auth.core";
 export { contextAdapter } from "./adapters/context.core";
 export { deployAdapter } from "./adapters/deploy.core";
+export { errorReportingAdapter } from "./adapters/error-reporting.core";
 
 export type {
   AuthAdapter,
@@ -21,4 +22,5 @@ export type {
   DeployAdapter,
   DeployOptions,
   DeployResult,
+  ErrorReportingAdapter,
 } from "./adapters/types";

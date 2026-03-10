@@ -1,11 +1,19 @@
 "use client";
 
+import { useEffect } from "react";
+import { errorReportingAdapter } from "@/lib/adapters/error-reporting";
+
 export default function Error({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    errorReportingAdapter.captureError(error);
+  }, [error]);
+
   return (
     <div
       className="flex min-h-screen items-center justify-center bg-background px-4"
@@ -32,16 +40,26 @@ export default function Error({
         <p className="mb-8 max-w-sm text-sm text-[var(--text-dim)]">
           An unexpected error occurred. Our team has been notified.
         </p>
-        <button
-          onClick={reset}
-          className="rounded-xl px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
-          style={{
-            backgroundColor: "#14b8a6",
-            boxShadow: "0 0 20px rgba(20,184,166,0.2)",
-          }}
-        >
-          Try again
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={reset}
+            className="rounded-xl px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
+            style={{
+              backgroundColor: "#14b8a6",
+              boxShadow: "0 0 20px rgba(20,184,166,0.2)",
+            }}
+          >
+            Try again
+          </button>
+          {errorReportingAdapter.showFeedbackDialog && (
+            <button
+              onClick={() => errorReportingAdapter.showFeedbackDialog?.()}
+              className="rounded-xl border border-[var(--glass-divider)] px-6 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-[rgba(255,255,255,0.05)]"
+            >
+              Tell us what happened
+            </button>
+          )}
+        </div>
       </div>
       <style>{`
         @keyframes errorIn {

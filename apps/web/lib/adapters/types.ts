@@ -84,6 +84,28 @@ export interface DeployResult {
  * - Core: static build to `dist/` via `generateSiteFiles()`.
  * - Platform: Cloudflare Pages Direct Upload.
  */
+// ---------------------------------------------------------------------------
+// Error Reporting Adapter
+// ---------------------------------------------------------------------------
+
+/**
+ * Error reporting adapter.
+ *
+ * - Core: no-op (errors shown in UI only).
+ * - Platform: reports to Sentry, shows feedback dialog.
+ */
+export interface ErrorReportingAdapter {
+  /** Report an error to the error tracking service. */
+  captureError(error: Error, context?: Record<string, unknown>): void;
+
+  /** Show a user feedback dialog (e.g., Sentry report dialog). No-op if unavailable. */
+  showFeedbackDialog?(): void;
+}
+
+// ---------------------------------------------------------------------------
+// Deploy Adapter
+// ---------------------------------------------------------------------------
+
 export interface DeployAdapter {
   /** Deploy or build the project. */
   publish(opts: DeployOptions): Promise<DeployResult>;
