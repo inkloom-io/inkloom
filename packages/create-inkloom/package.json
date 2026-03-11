@@ -5,18 +5,32 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/inkloom/inkloom.git",
-    "directory": "packages/create-inkloom"
+    "url": "https://github.com/inkloom-io/inkloom.git",
+    "directory": "core/packages/create-inkloom"
   },
-  "homepage": "https://docs.inkloom.io/cli",
+  "homepage": "https://github.com/inkloom-io/inkloom/tree/main/core/packages/create-inkloom#readme",
+  "bugs": {
+    "url": "https://github.com/inkloom-io/inkloom/issues"
+  },
   "keywords": [
     "inkloom",
-    "create",
     "documentation",
     "docs",
     "scaffolding",
+    "create",
+    "cli",
+    "next.js",
+    "convex",
+    "static-site",
     "starter"
   ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "type": "module",
   "bin": {
     "create-inkloom": "./dist/cli.js"
@@ -45,7 +59,6 @@
     "picocolors": "^1.0.0",
     "prompts": "^2.4.2"
   },
-  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
     "@types/fs-extra": "^11.0.4",
