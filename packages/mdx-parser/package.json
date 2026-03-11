@@ -3,19 +3,6 @@
   "version": "0.1.0",
   "description": "MDX to BlockNote and BlockNote to MDX conversion",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/inkloom/inkloom.git",
-    "directory": "packages/mdx-parser"
-  },
-  "homepage": "https://docs.inkloom.io",
-  "keywords": [
-    "inkloom",
-    "mdx",
-    "parser",
-    "blocknote",
-    "markdown"
-  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -23,11 +10,36 @@
     ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
   },
   "files": ["dist"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inkloom-io/inkloom.git",
+    "directory": "core/packages/mdx-parser"
+  },
+  "homepage": "https://github.com/inkloom-io/inkloom/tree/main/core/packages/mdx-parser",
+  "bugs": {
+    "url": "https://github.com/inkloom-io/inkloom/issues"
+  },
+  "keywords": [
+    "mdx",
+    "blocknote",
+    "markdown",
+    "parser",
+    "converter",
+    "editor",
+    "inkloom"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts",
     "dev": "tsup src/index.ts --format esm --dts --watch",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -36,7 +48,6 @@
     "remark-parse": "^11.0.0",
     "unified": "^11.0.5"
   },
-  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
   "devDependencies": {
     "tsup": "^8.1.0",
     "typescript": "^5.4.5",
