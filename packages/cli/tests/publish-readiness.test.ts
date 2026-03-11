@@ -46,7 +46,25 @@ describe("npm publish readiness", () => {
       assert.ok(pkg.repository, "repository field is required for npm");
       assert.equal(pkg.repository.type, "git");
       assert.ok(pkg.repository.url, "repository.url is required");
-      assert.equal(pkg.repository.directory, "packages/cli");
+      assert.equal(pkg.repository.directory, "core/packages/cli");
+    });
+
+    it("should have bugs field", () => {
+      assert.ok(pkg.bugs, "bugs field is required for npm");
+      assert.ok(pkg.bugs.url, "bugs.url is required");
+      assert.ok(
+        pkg.bugs.url.includes("github.com"),
+        "bugs URL should point to GitHub issues"
+      );
+    });
+
+    it("should have publishConfig with public access", () => {
+      assert.ok(pkg.publishConfig, "publishConfig is required for scoped packages");
+      assert.equal(pkg.publishConfig.access, "public");
+    });
+
+    it("should NOT be marked as private", () => {
+      assert.equal(pkg.private, undefined, "private must not be set for npm publishing");
     });
 
     it("should have homepage field", () => {

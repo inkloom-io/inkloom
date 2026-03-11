@@ -5,10 +5,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/inkloom/inkloom.git",
-    "directory": "packages/cli"
+    "url": "https://github.com/inkloom-io/inkloom.git",
+    "directory": "core/packages/cli"
   },
   "homepage": "https://docs.inkloom.io/cli",
+  "bugs": {
+    "url": "https://github.com/inkloom-io/inkloom/issues"
+  },
   "keywords": [
     "inkloom",
     "cli",
@@ -18,6 +21,9 @@
     "deploy",
     "cloudflare-pages"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "bin": { "inkloom": "./dist/cli.js" },
   "main": "./dist/index.js",
@@ -27,26 +33,26 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsup src/cli.ts src/index.ts --format esm --dts",
-    "dev": "tsup src/cli.ts src/index.ts --format esm --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "pretest": "pnpm --filter @inkloom/mdx-parser --filter create-inkloom build && pnpm build",
     "test": "node --import tsx --test tests/**/*.test.ts",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@inkloom/mdx-parser": "workspace:*",
     "commander": "^12.0.0",
     "convex": "^1.14.0",
-    "create-inkloom": "workspace:*",
     "fs-extra": "^11.2.0",
     "picocolors": "^1.0.0",
     "prompts": "^2.4.2",
     "@sentry/node": "^9.0.0"
   },
   "devDependencies": {
+    "@inkloom/mdx-parser": "workspace:*",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.14.0",
     "@types/prompts": "^2.4.9",
+    "create-inkloom": "workspace:*",
     "tsx": "^4.19.0",
     "tsup": "^8.1.0",
     "typescript": "^5.4.5"
