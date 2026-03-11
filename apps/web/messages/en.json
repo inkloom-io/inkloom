@@ -216,6 +216,11 @@
       "subtitle": "Use the CLI for automated deployments, CI/CD pipelines, or when you just prefer the terminal.",
       "windowTitle": "Terminal"
     },
+    "templates": {
+      "badge": "Templates",
+      "title": "Choose your starting point",
+      "subtitle": "Start from a proven structure and customize it to fit your project. Each template comes pre-organized so you can focus on writing."
+    },
     "comparison": {
       "badge": "Why InkLoom",
       "title": "Why teams switch to InkLoom",
