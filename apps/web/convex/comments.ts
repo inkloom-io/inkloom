@@ -1,6 +1,9 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+/** Narrow type for user documents returned by db.get() with a user Id. */
+type UserDoc = { _id: any; name: string; email: string; avatarUrl?: string } | null;
+
 // List all comment threads for a page with their comments
 export const listByPage = query({
   args: {
@@ -29,12 +32,12 @@ export const listByPage = query({
           .collect();
 
         // Get user info for thread creator
-        const threadCreator = await ctx.db.get(thread.createdBy);
+        const threadCreator = await ctx.db.get(thread.createdBy) as UserDoc;
 
         // Get user info for each comment
         const commentsWithUsers = await Promise.all(
           comments.map(async (comment: any) => {
-            const user = await ctx.db.get(comment.createdBy);
+            const user = await ctx.db.get(comment.createdBy) as UserDoc;
             return {
               ...comment,
               user: user
@@ -80,11 +83,11 @@ export const getThread = query({
       .withIndex("by_thread", (q: any) => q.eq("threadId", thread._id))
       .collect();
 
-    const threadCreator = await ctx.db.get(thread.createdBy);
+    const threadCreator = await ctx.db.get(thread.createdBy) as UserDoc;
 
     const commentsWithUsers = await Promise.all(
       comments.map(async (comment: any) => {
-        const user = await ctx.db.get(comment.createdBy);
+        const user = await ctx.db.get(comment.createdBy) as UserDoc;
         return {
           ...comment,
           user: user

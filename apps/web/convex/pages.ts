@@ -537,7 +537,7 @@ export const listVersions = query({
       limited.map(async (ver: any) => {
         let creator: { name?: string; avatarUrl?: string } | null = null;
         if (ver.createdBy) {
-          const user = await ctx.db.get(ver.createdBy);
+          const user = await ctx.db.get(ver.createdBy) as { _id: any; name: string; avatarUrl?: string } | null;
           if (user) {
             creator = { name: user.name, avatarUrl: user.avatarUrl };
           }
