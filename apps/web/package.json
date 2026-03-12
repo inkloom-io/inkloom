@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "echo 'core/apps/web is built via apps/dev — skipping standalone build'",
     "start": "next start",
     "lint": "next lint",
     "generate-convex-types": "tsx scripts/generate-convex-types.ts",
