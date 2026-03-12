@@ -61,7 +61,7 @@ describe("create (core template)", () => {
         "README.md",
         "convex.config.ts",
         "convex/schema.ts",
-        "convex/schema/core-tables.ts",
+        "convex/schema/coreTables.ts",
         "convex/users.ts",
         "convex/projects.ts",
         "app/layout.tsx",

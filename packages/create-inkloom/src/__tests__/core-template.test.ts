@@ -58,7 +58,7 @@ describe("core template Convex schema", () => {
     ).toBe(true);
   });
 
-  it("has schema.ts importing core-tables", async () => {
+  it("has schema.ts importing coreTables", async () => {
     const schema = await fs.readFile(
       path.join(templateDir, "convex", "schema.ts"),
       "utf-8"
@@ -69,9 +69,9 @@ describe("core template Convex schema", () => {
     expect(schema).not.toContain("platformTables");
   });
 
-  it("has core-tables.ts with all required tables", async () => {
+  it("has coreTables.ts with all required tables", async () => {
     const content = await fs.readFile(
-      path.join(templateDir, "convex", "schema", "core-tables.ts"),
+      path.join(templateDir, "convex", "schema", "coreTables.ts"),
       "utf-8"
     );
 
@@ -100,9 +100,9 @@ describe("core template Convex schema", () => {
     }
   });
 
-  it("has core-tables.ts without platform-only table references", async () => {
+  it("has coreTables.ts without platform-only table references", async () => {
     const content = await fs.readFile(
-      path.join(templateDir, "convex", "schema", "core-tables.ts"),
+      path.join(templateDir, "convex", "schema", "coreTables.ts"),
       "utf-8"
     );
 
@@ -253,18 +253,18 @@ describe("core template schema matches source", () => {
     "convex"
   );
 
-  it("template core-tables has the same tables as source core-tables", async () => {
+  it("template coreTables has the same tables as source coreTables", async () => {
     // Only run if source is available (in monorepo context)
-    if (!fs.existsSync(path.join(sourceDir, "schema", "core-tables.ts"))) {
+    if (!fs.existsSync(path.join(sourceDir, "schema", "coreTables.ts"))) {
       return; // skip — running outside monorepo
     }
 
     const sourceContent = await fs.readFile(
-      path.join(sourceDir, "schema", "core-tables.ts"),
+      path.join(sourceDir, "schema", "coreTables.ts"),
       "utf-8"
     );
     const templateContent = await fs.readFile(
-      path.join(templateDir, "convex", "schema", "core-tables.ts"),
+      path.join(templateDir, "convex", "schema", "coreTables.ts"),
       "utf-8"
     );
 

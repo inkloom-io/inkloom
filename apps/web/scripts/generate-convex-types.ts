@@ -187,7 +187,7 @@ export const httpAction = httpActionGeneric;
 }
 
 function generateApiDts(modules: string[]): string {
-  // Create import names: "schema/core-tables" → "schema_core_tables"
+  // Create import names: "schema/coreTables" → "schema_coreTables"
   const toVarName = (m: string) => m.replace(/[/-]/g, "_");
 
   const imports = modules

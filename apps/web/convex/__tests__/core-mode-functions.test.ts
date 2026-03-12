@@ -8,7 +8,7 @@ import { describe, it, expect } from "vitest";
  * 2. Sentinel values — consistent across modules
  * 3. Function arg shapes — core functions don't require platform-only args
  * 4. Import boundaries — core functions don't reference platform-only tables
- * 5. Schema compatibility — field types match core-tables.ts definitions
+ * 5. Schema compatibility — field types match coreTables.ts definitions
  */
 
 // ---------------------------------------------------------------------------
@@ -302,11 +302,11 @@ describe("core-mode: aiGenerationJobId guard in pages.ts", () => {
     }
   });
 
-  it("core-tables.ts schema uses v.string() for all aiGenerationJobId fields", async () => {
+  it("coreTables.ts schema uses v.string() for all aiGenerationJobId fields", async () => {
     const { readFileSync } = await import("fs");
     const { resolve } = await import("path");
     const source = readFileSync(
-      resolve(__dirname, "../schema/core-tables.ts"),
+      resolve(__dirname, "../schema/coreTables.ts"),
       "utf-8"
     );
 

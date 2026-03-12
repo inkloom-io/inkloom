@@ -47,7 +47,7 @@ apps/web/
   app/[locale]/(dashboard)/   # Dashboard routes
   components/                  # React components (editor, settings, merge-request)
   convex/                      # Convex backend functions
-    schema/core-tables.ts      # Database table definitions
+    schema/coreTables.ts      # Database table definitions
     schema.ts                  # Schema entry point
     projects.ts                # Project CRUD (workosOrgId: "local")
     users.ts                   # Local user management (ensureLocalUser)
@@ -116,7 +116,7 @@ If your change involves authentication, tenant context, or deployment behavior, 
 
 Core Convex functions use `workosOrgId: "local"` as a sentinel value for single-tenant mode. When adding new Convex functions:
 
-- Add table definitions to `apps/web/convex/schema/core-tables.ts`
+- Add table definitions to `apps/web/convex/schema/coreTables.ts`
 - Keep functions scoped by `projectId` or `branchId` (not org) where possible
 - The `users.ensureLocalUser` mutation creates a fixed local user on first load
 
