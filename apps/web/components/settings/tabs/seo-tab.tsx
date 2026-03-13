@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id, Doc } from "@/convex/_generated/dataModel";
 import {
@@ -75,6 +75,17 @@ export function SeoTab({ projectId, project }: SeoTabProps) {
     seoInitialized
   );
 
+  // Resolve asset URLs for the social preview
+  const logoAssetId = project.settings?.logoAssetId;
+  const logoAsset = useQuery(
+    api.assets.getAsset,
+    logoAssetId ? { assetId: logoAssetId } : "skip"
+  );
+  const ogImageAsset = useQuery(
+    api.assets.getAsset,
+    ogImageAssetId ? { assetId: ogImageAssetId } : "skip"
+  );
+
   return (
     <div className="space-y-6">
       <Card>
@@ -102,6 +113,10 @@ export function SeoTab({ projectId, project }: SeoTabProps) {
             onOgDescriptionChange={setOgDescription}
             onTwitterCardChange={setTwitterCard}
             onRobotsTxtCustomChange={setRobotsTxtCustom}
+            projectName={project.name}
+            primaryColor={project.settings?.primaryColor}
+            logoUrl={logoAsset?.url}
+            customOgImageUrl={ogImageAsset?.url}
           />
         </CardContent>
       </Card>
