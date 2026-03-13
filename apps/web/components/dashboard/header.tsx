@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { LogOut, Settings } from "lucide-react";
 import { OrgSwitcher } from "@/components/dashboard/org-switcher";
 import { ThemeToggle } from "./theme-toggle";
+import { ReportProblemButton } from "@/components/report-problem-button";
 import { useAppContext } from "@/hooks/use-app-context";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -51,6 +52,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
+        <ReportProblemButton variant="icon" />
         <ThemeToggle />
         {/* User avatar dropdown */}
         <div className="relative group">

@@ -27,6 +27,7 @@ import {
 import { GitBranch, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/analytics";
+import { ErrorAlert } from "@/components/error-alert";
 
 interface CreateMergeRequestDialogProps {
   projectId: Id<"projects">;
@@ -148,9 +149,10 @@ export function CreateMergeRequestDialog({
 
         <div className="space-y-4 py-2">
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
+            <ErrorAlert
+              message={error}
+              onDismiss={() => setError(null)}
+            />
           )}
 
           {/* Source branch */}
@@ -202,9 +204,7 @@ export function CreateMergeRequestDialog({
           {sourceBranchId &&
             targetBranchId &&
             sourceBranchId === targetBranchId && (
-              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                {t("branchesMustDiffer")}
-              </div>
+              <ErrorAlert message={t("branchesMustDiffer")} />
             )}
 
           {/* Title */}
