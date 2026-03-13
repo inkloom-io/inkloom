@@ -12,9 +12,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Get the absolute path to the templates directory
+ * Get the absolute path to the templates directory.
+ *
+ * @param template  Template name (default: "default")
+ * @param options.templateDir  Explicit base templates directory. When provided
+ *   the template is resolved as `<templateDir>/<template>` instead of using
+ *   `import.meta.url`-based heuristics. Callers that run inside a bundler
+ *   (e.g. Next.js server chunks) should resolve the package root themselves
+ *   and pass the templates directory here.
  */
-export function getTemplatePath(template: string = "default"): string {
+export function getTemplatePath(
+  template: string = "default",
+  options?: { templateDir?: string }
+): string {
+  if (options?.templateDir) {
+    const resolved = path.join(options.templateDir, template);
+    if (fs.existsSync(resolved)) {
+      return resolved;
+    }
+    throw new Error(`Template "${template}" not found at ${resolved}`);
+  }
+
   // In production (built), templates are at ../templates relative to dist/
   // In development, they're at ../templates relative to src/
   const possiblePaths = [
@@ -77,8 +95,11 @@ function walkDirectory(dir: string, baseDir: string = dir): string[] {
  * Get template files in Vercel deployment format
  * Returns all files from the specified template as base64-encoded data
  */
-export function getTemplateFiles(template: string = "default"): VercelFile[] {
-  const templatePath = getTemplatePath(template);
+export function getTemplateFiles(
+  template: string = "default",
+  options?: { templateDir?: string }
+): VercelFile[] {
+  const templatePath = getTemplatePath(template, options);
   const filePaths = walkDirectory(templatePath);
 
   return filePaths.map((relativePath) => {
@@ -106,8 +127,11 @@ export function getTemplateFiles(template: string = "default"): VercelFile[] {
  * Get the list of template file paths (without content)
  * Useful for debugging or listing available files
  */
-export function getTemplateFilePaths(template: string = "default"): string[] {
-  const templatePath = getTemplatePath(template);
+export function getTemplateFilePaths(
+  template: string = "default",
+  options?: { templateDir?: string }
+): string[] {
+  const templatePath = getTemplatePath(template, options);
   return walkDirectory(templatePath).map((p) => p.replace(/\\/g, "/"));
 }
 
@@ -117,9 +141,10 @@ export function getTemplateFilePaths(template: string = "default"): string[] {
  * the same for every published docs site.
  */
 export function getPrebuiltAssets(
-  template: string = "default"
+  template: string = "default",
+  options?: { templateDir?: string }
 ): { path: string; content: Buffer }[] {
-  const templatePath = getTemplatePath(template);
+  const templatePath = getTemplatePath(template, options);
   const distPath = path.join(templatePath, "dist");
 
   if (!fs.existsSync(distPath)) {
@@ -147,9 +172,10 @@ export function getPrebuiltAssets(
  * Used by the HTML generator to create <script> and <link> tags.
  */
 export function getAssetManifest(
-  template: string = "default"
+  template: string = "default",
+  options?: { templateDir?: string }
 ): { js: string[]; css: string[] } {
-  const assets = getPrebuiltAssets(template);
+  const assets = getPrebuiltAssets(template, options);
   const js: string[] = [];
   const css: string[] = [];
 
