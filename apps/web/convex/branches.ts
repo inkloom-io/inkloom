@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 
 // DJB2 hash for content fingerprinting
 function hashContent(str: string): string {
@@ -309,6 +309,49 @@ export const rename = mutation({
     const branch = await ctx.db.get(args.branchId);
     if (!branch) throw new Error("Branch not found");
     if (branch.isDefault) throw new Error("Cannot rename the default branch");
+
+    const nameRegex = /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/;
+    const normalizedName = args.name.toLowerCase().trim();
+    if (!nameRegex.test(normalizedName)) {
+      throw new Error(
+        "Branch name must be lowercase alphanumeric with hyphens"
+      );
+    }
+
+    // Check uniqueness (skip soft-deleted branches)
+    const existing = await ctx.db
+      .query("branches")
+      .withIndex("by_project_and_name", (q: any) =>
+        q.eq("projectId", branch.projectId).eq("name", normalizedName)
+      )
+      .first();
+
+    if (existing && existing._id !== args.branchId && !existing.deletedAt) {
+      throw new Error(`A branch named "${normalizedName}" already exists`);
+    }
+
+    await ctx.db.patch(args.branchId, {
+      name: normalizedName,
+      updatedAt: Date.now(),
+    });
+
+    return args.branchId;
+  },
+});
+
+/**
+ * Rename the default branch. Unlike `rename`, this does NOT check `isDefault`
+ * so it can be used during GitHub connection setup to align the branch name
+ * with the repository's default branch.
+ */
+export const renameDefault = internalMutation({
+  args: {
+    branchId: v.id("branches"),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const branch = await ctx.db.get(args.branchId);
+    if (!branch) throw new Error("Branch not found");
 
     const nameRegex = /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/;
     const normalizedName = args.name.toLowerCase().trim();
