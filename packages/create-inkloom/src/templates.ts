@@ -36,8 +36,10 @@ export function getTemplatePath(
   // In production (built), templates are at ../templates relative to dist/
   // In development, they're at ../templates relative to src/
   const possiblePaths = [
-    path.join(__dirname, "..", "templates", template),
-    path.join(__dirname, "..", "..", "templates", template),
+    path.join(__dirname, "..", "templates", template),           // dist/../templates
+    path.join(__dirname, "..", "..", "templates", template),     // src/../../templates
+    // Workspace fallback: resolve from monorepo root via node_modules symlink
+    path.join(process.cwd(), "node_modules", "create-inkloom", "templates", template),
   ];
 
   for (const p of possiblePaths) {
