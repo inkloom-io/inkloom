@@ -465,12 +465,12 @@ export function EditorSidebar({
         targetFolderId = parentId.replace("folder-", "") as Id<"folders">;
       }
 
-      // Count real items at target level (excluding drop-zone)
-      const realItemCount = targetFolderId
-        ? folders.filter((f: any) => f.parentId === targetFolderId).length +
-          pages.filter((p: any) => p.folderId === targetFolderId).length
-        : folders.filter((f: any) => !f.parentId).length +
-          pages.filter((p: any) => !p.folderId).length;
+      // At root level (targetFolderId === null), pages are displayed above
+      // folders regardless of DB position. The visual index from react-arborist
+      // spans [pages..., folders...], so we must translate to the correct DB
+      // position for each type. Inside folders, visual order matches DB
+      // position order, so no translation is needed.
+      const isRootLevel = targetFolderId === null;
 
       try {
         if (isPage) {
@@ -478,23 +478,53 @@ export function EditorSidebar({
           const page = pages.find((p: any) => p._id === pageId);
           if (!page) return;
 
-          // Check if same folder
           const oldFolderId = page.folderId ?? null;
           const isSameFolder =
             oldFolderId === targetFolderId ||
             (oldFolderId === undefined && targetFolderId === null);
 
-          let adjustedIndex = index;
+          let adjustedIndex: number;
 
-          // If dropping at or after the last position (including drop-zone area)
-          // we want to place the item at the end
-          if (index >= realItemCount) {
-            // Moving to the end: final position is (totalItems - 1) if staying in same folder
-            // because removing the item shifts everything down
-            adjustedIndex = isSameFolder ? realItemCount - 1 : realItemCount;
-          } else if (isSameFolder && page.position < index) {
-            // If moving within same folder and moving down, adjust for the removal
-            adjustedIndex = index - 1;
+          if (isRootLevel) {
+            // Root level: pages are displayed first. The visual index maps
+            // directly to page-relative position since pages are on top.
+            const rootPages = pages
+              .filter((p: any) => !p.folderId)
+              .sort((a: any, b: any) => a.position - b.position);
+            const rootPageCount = rootPages.length;
+
+            // Clamp index to page range (can't drop a page among folders
+            // since pages always appear above folders at root)
+            const pageVisualIndex = Math.min(index, rootPageCount);
+
+            // Get other root pages (excluding dragged) sorted by position
+            const otherPages = rootPages.filter((p: any) => p._id !== pageId);
+
+            if (pageVisualIndex >= otherPages.length) {
+              // Dropping at end of pages
+              const maxPos = otherPages.length > 0
+                ? Math.max(...otherPages.map((p: any) => p.position as number))
+                : -1;
+              adjustedIndex = maxPos + 1;
+            } else if (otherPages[pageVisualIndex]) {
+              // Dropping before a specific page — take its position
+              adjustedIndex = otherPages[pageVisualIndex].position;
+            } else {
+              adjustedIndex = 0;
+            }
+          } else {
+            // Inside a folder: visual index matches position order
+            const siblingCount =
+              folders.filter((f: any) => f.parentId === targetFolderId).length +
+              pages.filter((p: any) => p.folderId === targetFolderId).length;
+
+            if (index >= siblingCount) {
+              adjustedIndex = isSameFolder ? siblingCount - 1 : siblingCount;
+            } else if (isSameFolder && page.position < index) {
+              adjustedIndex = index - 1;
+            } else {
+              adjustedIndex = index;
+            }
           }
 
           await reorderPage({
@@ -510,23 +540,53 @@ export function EditorSidebar({
           // Prevent moving folder into itself or its descendants
           if (targetFolderId === folderId) return;
 
-          // Check if same parent
           const oldParentId = folder.parentId ?? null;
           const isSameParent =
             oldParentId === targetFolderId ||
             (oldParentId === undefined && targetFolderId === null);
 
-          let adjustedIndex = index;
+          let adjustedIndex: number;
 
-          // If dropping at or after the last position (including drop-zone area)
-          // we want to place the item at the end
-          if (index >= realItemCount) {
-            // Moving to the end: final position is (totalItems - 1) if staying in same parent
-            // because removing the item shifts everything down
-            adjustedIndex = isSameParent ? realItemCount - 1 : realItemCount;
-          } else if (isSameParent && folder.position < index) {
-            // If moving within same parent and moving down, adjust for the removal
-            adjustedIndex = index - 1;
+          if (isRootLevel) {
+            // Root level: folders are displayed after all pages. The visual
+            // index includes pages above, so we offset by the page count
+            // to get the folder-relative drop index.
+            const rootPageCount = pages.filter((p: any) => !p.folderId).length;
+            const rootFolders = folders
+              .filter((f: any) => !f.parentId)
+              .sort((a: any, b: any) => a.position - b.position);
+
+            // Convert visual index to folder-relative index
+            const folderVisualIndex = Math.max(0, index - rootPageCount);
+
+            // Get other root folders (excluding dragged) sorted by position
+            const otherFolders = rootFolders.filter((f: any) => f._id !== folderId);
+
+            if (folderVisualIndex >= otherFolders.length) {
+              // Dropping at end of folders
+              const maxPos = otherFolders.length > 0
+                ? Math.max(...otherFolders.map((f: any) => f.position as number))
+                : -1;
+              adjustedIndex = maxPos + 1;
+            } else if (otherFolders[folderVisualIndex]) {
+              // Dropping before a specific folder — take its position
+              adjustedIndex = otherFolders[folderVisualIndex].position;
+            } else {
+              adjustedIndex = 0;
+            }
+          } else {
+            // Inside a folder: visual index matches position order
+            const siblingCount =
+              folders.filter((f: any) => f.parentId === targetFolderId).length +
+              pages.filter((p: any) => p.folderId === targetFolderId).length;
+
+            if (index >= siblingCount) {
+              adjustedIndex = isSameParent ? siblingCount - 1 : siblingCount;
+            } else if (isSameParent && folder.position < index) {
+              adjustedIndex = index - 1;
+            } else {
+              adjustedIndex = index;
+            }
           }
 
           await reorderFolder({

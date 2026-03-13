@@ -1,6 +1,43 @@
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
+import type { MutationCtx } from "./_generated/server";
 import { mutation, query, internalQuery, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
+
+/**
+ * Re-normalizes positions for all items (pages and folders) at a given level
+ * to contiguous 0, 1, 2, ... values. Prevents position drift from edge cases.
+ */
+async function normalizePagePositions(
+  ctx: MutationCtx,
+  parentFolderId: Id<"folders"> | undefined,
+) {
+  const siblingPages = await ctx.db
+    .query("pages")
+    .withIndex("by_folder", (q: any) => q.eq("folderId", parentFolderId))
+    .collect();
+  const siblingFolders = await ctx.db
+    .query("folders")
+    .withIndex("by_parent", (q: any) => q.eq("parentId", parentFolderId))
+    .collect();
+
+  const allItems: Array<{ type: "folder" | "page"; id: Id<"folders"> | Id<"pages">; position: number }> = [
+    ...siblingFolders.map((f) => ({ type: "folder" as const, id: f._id, position: f.position })),
+    ...siblingPages.map((p) => ({ type: "page" as const, id: p._id, position: p.position })),
+  ];
+  allItems.sort((a, b) => a.position - b.position);
+
+  for (let i = 0; i < allItems.length; i++) {
+    const item = allItems[i];
+    if (item && item.position !== i) {
+      if (item.type === "folder") {
+        await ctx.db.patch(item.id as Id<"folders">, { position: i });
+      } else {
+        await ctx.db.patch(item.id as Id<"pages">, { position: i });
+      }
+    }
+  }
+}
 
 // DJB2 hash — must match the implementation in lib/deploy.ts
 function hashContent(str: string): string {
@@ -449,19 +486,8 @@ export const reorder = mutation({
             });
           }
         }
-      } else {
-        // newPosition === oldPosition: page stays at same position,
-        // but we need to shift folders at this position to make room
-        // (handles the case of inserting before a folder at the same position)
-        for (const sibling of siblingFolders) {
-          if (sibling.position >= args.newPosition) {
-            await ctx.db.patch(sibling._id, {
-              position: sibling.position + 1,
-              updatedAt: Date.now(),
-            });
-          }
-        }
       }
+      // else: newPosition === oldPosition — no-op, nothing to shift
     }
 
     // Update the moved page
@@ -485,6 +511,13 @@ export const reorder = mutation({
     }
 
     await ctx.db.patch(args.pageId, updateData);
+
+    // Normalize positions for all siblings at the target level to prevent drift
+    await normalizePagePositions(ctx, targetFolderId ?? undefined);
+    // Also normalize old folder if moved to a new folder
+    if (movingToNewFolder) {
+      await normalizePagePositions(ctx, oldFolderId ?? undefined);
+    }
   },
 });
 

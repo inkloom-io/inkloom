@@ -12,6 +12,41 @@ function slugify(text: string): string {
     .trim();
 }
 
+/**
+ * Re-normalizes positions for all items (folders and pages) at a given level
+ * to contiguous 0, 1, 2, ... values. Prevents position drift from edge cases.
+ */
+async function normalizePositions(
+  ctx: MutationCtx,
+  parentFolderId: Id<"folders"> | undefined,
+) {
+  const siblingFolders = await ctx.db
+    .query("folders")
+    .withIndex("by_parent", (q: any) => q.eq("parentId", parentFolderId))
+    .collect();
+  const siblingPages = await ctx.db
+    .query("pages")
+    .withIndex("by_folder", (q: any) => q.eq("folderId", parentFolderId))
+    .collect();
+
+  const allItems: Array<{ type: "folder" | "page"; id: Id<"folders"> | Id<"pages">; position: number }> = [
+    ...siblingFolders.map((f) => ({ type: "folder" as const, id: f._id, position: f.position })),
+    ...siblingPages.map((p) => ({ type: "page" as const, id: p._id, position: p.position })),
+  ];
+  allItems.sort((a, b) => a.position - b.position);
+
+  for (let i = 0; i < allItems.length; i++) {
+    const item = allItems[i];
+    if (item && item.position !== i) {
+      if (item.type === "folder") {
+        await ctx.db.patch(item.id as Id<"folders">, { position: i });
+      } else {
+        await ctx.db.patch(item.id as Id<"pages">, { position: i });
+      }
+    }
+  }
+}
+
 export const listByProject = query({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
@@ -486,19 +521,8 @@ export const reorder = mutation({
             });
           }
         }
-      } else {
-        // newPosition === oldPosition: folder stays at same position,
-        // but we need to shift pages at this position to make room
-        // (handles the case of inserting before a page at the same position)
-        for (const sibling of siblingPages) {
-          if (sibling.position >= args.newPosition) {
-            await ctx.db.patch(sibling._id, {
-              position: sibling.position + 1,
-              updatedAt: Date.now(),
-            });
-          }
-        }
       }
+      // else: newPosition === oldPosition — no-op, nothing to shift
     }
 
     // Calculate new path
@@ -542,6 +566,13 @@ export const reorder = mutation({
           updatedAt: Date.now(),
         });
       }
+    }
+
+    // Normalize positions for all siblings at the target level to prevent drift
+    await normalizePositions(ctx, targetParentId ?? undefined);
+    // Also normalize old parent if moved to a new parent
+    if (movingToNewParent) {
+      await normalizePositions(ctx, oldParentId ?? undefined);
     }
   },
 });
