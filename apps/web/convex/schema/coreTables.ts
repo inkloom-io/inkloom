@@ -187,7 +187,8 @@ export const coreTables = {
     .index("by_workos_org", ["workosOrgId"])
     .index("by_workos_org_and_slug", ["workosOrgId", "slug"])
     .index("by_cf_slug", ["cfSlug"])
-    .index("by_created_by", ["createdBy"]),
+    .index("by_created_by", ["createdBy"])
+    .index("by_updated_at", ["updatedAt"]),
 
   // Branches
   branches: defineTable({
@@ -253,6 +254,7 @@ export const coreTables = {
     .index("by_folder", ["folderId"])
     .index("by_branch_and_path", ["branchId", "path"])
     .index("by_branch_folder_slug", ["branchId", "folderId", "slug"])
+    .index("by_branch_and_updated_at", ["branchId", "updatedAt"])
     .index("by_generation_job", ["aiGenerationJobId"]),
 
   // Page Contents (BlockNote JSON)
@@ -321,6 +323,7 @@ export const coreTables = {
     updatedAt: v.number(),
   })
     .index("by_project", ["projectId"])
+    .index("by_project_and_created_at", ["projectId", "createdAt"])
     .index("by_branch", ["branchId"])
     .index("by_vercel_deployment_id", ["vercelDeploymentId"])
     .index("by_external_deployment_id", ["externalDeploymentId"]),
