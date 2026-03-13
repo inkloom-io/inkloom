@@ -75,14 +75,18 @@ export const create = mutation({
       }
     }
 
-    // Get max position if not specified
+    // Get max position if not specified — count ALL siblings (pages + folders) to avoid collisions
     let position = args.position;
     if (position === undefined) {
-      const siblings = await ctx.db
+      const siblingFolders = await ctx.db
         .query("folders")
         .withIndex("by_parent", (q: any) => q.eq("parentId", args.parentId))
         .collect();
-      position = siblings.length;
+      const siblingPages = await ctx.db
+        .query("pages")
+        .withIndex("by_folder", (q: any) => q.eq("folderId", args.parentId))
+        .collect();
+      position = siblingFolders.length + siblingPages.length;
     }
 
     return await ctx.db.insert("folders", {

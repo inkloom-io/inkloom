@@ -336,10 +336,14 @@ export function EditorSidebar({
         })),
       ];
 
-      // Sort by position
+      // Sort by position, with root-level pages grouped above folders
       items.sort((a: any, b: any) => {
-        const aPos = a.type === "folder" ? a.folderData!.position : a.pageData!.position;
-        const bPos = b.type === "folder" ? b.folderData!.position : b.pageData!.position;
+        const aPos = a.type === "folder" ? a.folderData.position : a.pageData.position;
+        const bPos = b.type === "folder" ? b.folderData.position : b.pageData.position;
+        // At root level, pages always appear above folders
+        if (parentFolderId === null && a.type !== b.type) {
+          return a.type === "page" ? -1 : 1;
+        }
         return aPos - bPos;
       });
 

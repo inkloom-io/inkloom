@@ -296,11 +296,16 @@ function buildNavigation(pages: PageWithContent[], folders: FolderData[]): NavIt
     .filter((f) => f.path.split("/").length === 2)
     .sort((a, b) => a.position - b.position);
 
-  // Interleave folders and pages by position
+  // Interleave folders and pages — pages above folders at root level, sorted by position within each group
   const rootItems = [
-    ...rootFolders.map((f) => ({ type: "folder" as const, item: f, position: f.position })),
     ...rootPages.map((p) => ({ type: "page" as const, item: p, position: p.position })),
-  ].sort((a, b) => a.position - b.position);
+    ...rootFolders.map((f) => ({ type: "folder" as const, item: f, position: f.position })),
+  ].sort((a, b) => {
+    if (a.type !== b.type) {
+      return a.type === "page" ? -1 : 1;
+    }
+    return a.position - b.position;
+  });
 
   for (const entry of rootItems) {
     if (entry.type === "folder") {

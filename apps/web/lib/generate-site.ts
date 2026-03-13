@@ -148,6 +148,18 @@ function generateNavigation(pages: Page[], folders: Folder[]): NavItem[] {
     .filter((f) => f.path.split("/").length === 2)
     .sort((a, b) => a.position - b.position);
 
+  // Add root pages first (pages above folders at root level)
+  for (const page of rootPages) {
+    const navItem: NavItem = {
+      title: page.title,
+      href: `${page.path}`,
+    };
+    if (page.icon) {
+      navItem.icon = page.icon;
+    }
+    navigation.push(navItem);
+  }
+
   // Add root folders with their children
   for (const folder of rootFolders) {
     const children = buildFolderChildren(folder, pages, folders);
@@ -158,18 +170,6 @@ function generateNavigation(pages: Page[], folders: Folder[]): NavItem[] {
     };
     if (folder.icon) {
       navItem.icon = folder.icon;
-    }
-    navigation.push(navItem);
-  }
-
-  // Add root pages
-  for (const page of rootPages) {
-    const navItem: NavItem = {
-      title: page.title,
-      href: `${page.path}`,
-    };
-    if (page.icon) {
-      navItem.icon = page.icon;
     }
     navigation.push(navItem);
   }
