@@ -24,11 +24,12 @@ export const listByProject = query({
   args: { projectId: v.id("projects") },
   handler: async (ctx, args) => {
     const project = await ctx.db.get(args.projectId);
-    if (!project?.defaultBranchId) return [];
+    if (!project) return [];
+    if (!project.defaultBranchId) return [];
 
     const pages = await ctx.db
       .query("pages")
-      .withIndex("by_branch", (q: any) => q.eq("branchId", project.defaultBranchId!))
+      .withIndex("by_branch", (q: any) => q.eq("branchId", project.defaultBranchId))
       .collect();
     return pages.filter((p: any) => !p.aiPendingReview);
   },
