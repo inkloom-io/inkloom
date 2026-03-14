@@ -50,7 +50,9 @@ export const list = query({
 export const listByOrg = query({
   args: { workosOrgId: v.string() },
   handler: async (ctx) => {
-    return await ctx.db.query("projects").order("desc").collect();
+    const projects = await ctx.db.query("projects").order("desc").collect();
+    // Normalize plan: undefined → "free" so UI badges render correctly
+    return projects.map((p) => ({ ...p, plan: p.plan ?? "free" }));
   },
 });
 
@@ -522,7 +524,11 @@ export const getDashboardStats = query({
           name: project.name,
           slug: project.slug,
           description: project.description,
+          plan: project.plan ?? "free",
           updatedAt: project.updatedAt,
+          settings: project.settings
+            ? { customDomain: project.settings.customDomain }
+            : undefined,
           deploymentStatus,
           hasUnpublishedChanges: hasUnpublished,
           pageCount,
