@@ -44,11 +44,6 @@ export function ReportProblemButton({
   userName,
   userEmail,
 }: ReportProblemButtonProps) {
-  // Only render when feedback submission is available (platform mode with Sentry)
-  if (!errorReportingAdapter.submitFeedback) {
-    return null;
-  }
-
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [name, setName] = useState(userName ?? "");
@@ -117,6 +112,11 @@ export function ReportProblemButton({
     },
     [handleSubmit],
   );
+
+  // Only render when feedback submission is available (platform mode with Sentry)
+  if (!errorReportingAdapter.submitFeedback) {
+    return null;
+  }
 
   const triggerButton =
     variant === "full" ? (
