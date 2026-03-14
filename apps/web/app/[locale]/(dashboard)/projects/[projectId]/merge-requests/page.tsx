@@ -47,6 +47,7 @@ import {
   FolderPlus,
   FolderMinus,
 } from "lucide-react";
+import { captureException } from "@/lib/sentry";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -121,7 +122,8 @@ function CreateMergeRequestDialog({
       setDescription("");
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("failedToCreate"));
+      captureException(err, { source: "merge-requests-page", action: "create-merge-request", projectId });
+      setError(t("failedToCreate"));
     } finally {
       setIsSubmitting(false);
     }

@@ -745,6 +745,7 @@
       "openSite": "Open Site",
       "publishFailedTitle": "Publish Failed",
       "publishFailedDescription": "There was an error deploying your documentation.",
+      "publishFailedGenericError": "Something went wrong. Please try again.",
       "tryAgain": "Try Again",
       "saveVersionTitle": "Save version",
       "saveVersionDescription": "Create a named snapshot of the current page content. You can restore it later from the version history.",

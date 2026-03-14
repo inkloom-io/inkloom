@@ -543,7 +543,7 @@ export function EditorToolbar({
               </DialogDescription>
             </DialogHeader>
             <div className="rounded-md border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
-              {deployment.error || "An unknown error occurred"}
+              {t("publishFailedGenericError")}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setPublishOpen(false)}>

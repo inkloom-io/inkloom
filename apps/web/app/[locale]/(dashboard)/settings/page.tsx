@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@inkloom/ui/dialog";
+import { captureException } from "@/lib/sentry";
 
 const ApiKeysConfig = dynamic(
   () => import("@/components/settings/api-keys-config").then((m) => ({ default: m.ApiKeysConfig })),
@@ -183,9 +184,8 @@ export default function SettingsPage() {
       // Redirect to home page after successful deletion
       window.location.href = "/";
     } catch (err) {
-      setDeleteError(
-        err instanceof Error ? err.message : t("deleteAccount.error")
-      );
+      captureException(err, { source: "settings-page", action: "delete-account" });
+      setDeleteError(t("deleteAccount.error"));
     } finally {
       setIsDeleting(false);
     }

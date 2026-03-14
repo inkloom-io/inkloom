@@ -16,6 +16,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { captureException } from "@/lib/sentry";
 
 interface DiffViewProps {
   sourceBranchId: Id<"branches">;
@@ -108,9 +109,8 @@ export function DiffView({
       })
       .catch((err) => {
         if (cancelled) return;
-        setDiffError(
-          err instanceof Error ? err.message : "Failed to compute diff"
-        );
+        captureException(err, { source: "diff-view", action: "compute-diff", mergeRequestId });
+        setDiffError(t("failedToComputeDiff"));
       })
       .finally(() => {
         if (!cancelled) setIsLoadingDiff(false);
@@ -144,7 +144,7 @@ export function DiffView({
       })
       .catch((err) => {
         if (cancelled) return;
-        console.error("Failed to load page diff:", err);
+        captureException(err, { source: "diff-view", action: "compute-page-diff", pagePath: selectedPath, mergeRequestId });
         setSelectedPageDiff(null);
       })
       .finally(() => {

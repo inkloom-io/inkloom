@@ -43,6 +43,8 @@ import {
 } from "lucide-react";
 import { CreateMergeRequestDialog } from "@/components/merge-request/create-dialog";
 import { trackEvent } from "@/lib/analytics";
+import { captureException } from "@/lib/sentry";
+import { getErrorTranslationKey } from "@/lib/i18n-errors";
 
 interface BranchSwitcherProps {
   projectId: Id<"projects">;
@@ -122,7 +124,9 @@ export function BranchSwitcher({
       setCreateOpen(false);
       onSwitchBranch(branchId, newBranchName.trim().toLowerCase());
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("failedToCreateBranch"));
+      captureException(e, { source: "branch-switcher", action: "create-branch", projectId });
+      const key = getErrorTranslationKey(e instanceof Error ? e.message : "");
+      setError(key ? t(key) : t("failedToCreateBranch"));
     } finally {
       setIsCreating(false);
     }
@@ -141,7 +145,9 @@ export function BranchSwitcher({
       setRenameBranchId(null);
       setRenameName("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("failedToRenameBranch"));
+      captureException(e, { source: "branch-switcher", action: "rename-branch", branchId: renameBranchId });
+      const key = getErrorTranslationKey(e instanceof Error ? e.message : "");
+      setError(key ? t(key) : t("failedToRenameBranch"));
     } finally {
       setIsRenaming(false);
     }
@@ -163,7 +169,9 @@ export function BranchSwitcher({
       setDeleteOpen(false);
       setDeleteBranchId(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("failedToDeleteBranch"));
+      captureException(e, { source: "branch-switcher", action: "delete-branch", branchId: deleteBranchId });
+      const key = getErrorTranslationKey(e instanceof Error ? e.message : "");
+      setError(key ? t(key) : t("failedToDeleteBranch"));
     } finally {
       setIsDeleting(false);
     }

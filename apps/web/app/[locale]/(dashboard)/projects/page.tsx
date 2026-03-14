@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { TEMPLATES, type TemplateId } from "@/lib/templates";
 import { useAppContext } from "@/hooks/use-app-context";
+import { captureException } from "@/lib/sentry";
 
 const templateIcons = {
   file: FileText,
@@ -107,10 +108,8 @@ function ProjectsPageContent() {
       setIsOpen(false);
       router.push(`/projects/${projectId}/editor`);
     } catch (error) {
-      console.error("Failed to create project:", error);
-      setCreateError(
-        error instanceof Error ? error.message : t("failedToCreate")
-      );
+      captureException(error, { source: "projects-page", action: "create-project" });
+      setCreateError(t("failedToCreate"));
     } finally {
       setIsCreating(false);
     }

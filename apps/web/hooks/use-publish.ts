@@ -10,6 +10,7 @@ import type { Doc, Id } from "@/convex/_generated/dataModel";
 // re-exports only the deploy adapter, avoiding the auth dependency.
 import { deployAdapter } from "@/lib/adapters/deploy";
 import { trackEvent } from "@/lib/analytics";
+import { captureException } from "@/lib/sentry";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -231,9 +232,11 @@ export function usePublish({
       const result = await response.json();
 
       if (!response.ok) {
+        const apiError = new Error(result.error?.message || "Failed to publish");
+        captureException(apiError, { source: "use-publish", action: "publish", projectId: project._id, target });
         setDeployment({
           status: "error",
-          error: result.error?.message || "Failed to publish",
+          error: "Failed to publish",
         });
         return;
       }
@@ -244,9 +247,10 @@ export function usePublish({
         url: result.data.url,
       });
     } catch (error) {
+      captureException(error, { source: "use-publish", action: "publish", projectId: project._id, target });
       setDeployment({
         status: "error",
-        error: error instanceof Error ? error.message : "Failed to publish",
+        error: "Failed to publish",
       });
     }
   }, [project._id, branchId, target]);

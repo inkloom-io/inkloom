@@ -28,6 +28,7 @@ import { GitBranch, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/analytics";
 import { ErrorAlert } from "@/components/error-alert";
+import { captureException } from "@/lib/sentry";
 
 interface CreateMergeRequestDialogProps {
   projectId: Id<"projects">;
@@ -121,9 +122,8 @@ export function CreateMergeRequestDialog({
         `/projects/${projectId}/merge-requests/${mrId}`
       );
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : t("failedToCreate")
-      );
+      captureException(e, { source: "create-merge-request-dialog", action: "create-merge-request", projectId });
+      setError(t("failedToCreate"));
     } finally {
       setIsSubmitting(false);
     }
