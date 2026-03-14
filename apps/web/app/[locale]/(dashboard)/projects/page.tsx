@@ -302,6 +302,37 @@ function ProjectsPageContent() {
                   {relTime(project.updatedAt)}
                 </div>
               </div>
+
+              <div
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                style={{
+                  backgroundColor:
+                    project.plan === "ultimate"
+                      ? "rgba(168,85,247,0.1)"
+                      : project.plan === "pro"
+                        ? "rgba(59,130,246,0.1)"
+                        : "var(--surface-hover)",
+                  color:
+                    project.plan === "ultimate"
+                      ? "#a855f7"
+                      : project.plan === "pro"
+                        ? "#3b82f6"
+                        : "var(--text-dim)",
+                  border: `1px solid ${
+                    project.plan === "ultimate"
+                      ? "rgba(168,85,247,0.2)"
+                      : project.plan === "pro"
+                        ? "rgba(59,130,246,0.2)"
+                        : "var(--glass-border)"
+                  }`,
+                }}
+              >
+                {project.plan === "ultimate"
+                  ? t("planUltimate")
+                  : project.plan === "pro"
+                    ? t("planPro")
+                    : t("planHobby")}
+              </div>
             </Link>
           ))}
         </div>
