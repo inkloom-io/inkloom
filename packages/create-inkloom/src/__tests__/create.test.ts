@@ -59,7 +59,7 @@ describe("create (core template)", () => {
         ".env.example",
         ".gitignore",
         "README.md",
-        "convex.config.ts",
+        "convex/convex.config.ts",
         "convex/schema.ts",
         "convex/schema/coreTables.ts",
         "convex/users.ts",

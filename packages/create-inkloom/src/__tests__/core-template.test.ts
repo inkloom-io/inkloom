@@ -52,9 +52,9 @@ describe("core template structure", () => {
 describe("core template Convex schema", () => {
   const templateDir = getTemplatePath("core");
 
-  it("has convex.config.ts at project root", () => {
+  it("has convex.config.ts inside convex/ directory", () => {
     expect(
-      fs.existsSync(path.join(templateDir, "convex.config.ts"))
+      fs.existsSync(path.join(templateDir, "convex", "convex.config.ts"))
     ).toBe(true);
   });
 

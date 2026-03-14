@@ -38,6 +38,8 @@ function discoverModules(): string[] {
         const moduleName = `${prefix}${entry.name.replace(/\.ts$/, "")}`;
         // Skip schema.ts itself — it's imported by dataModel, not as a module
         if (moduleName === "schema") continue;
+        // Skip convex.config.ts — it's the app config, not a Convex module
+        if (moduleName === "convex.config") continue;
         modules.push(moduleName);
       }
     }
