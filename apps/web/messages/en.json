@@ -2004,5 +2004,54 @@
       "title": "14. Contact Us",
       "content": "If you have any questions about these Terms of Service, please contact us at legal@inkloom.io. For billing inquiries, contact billing@inkloom.io. Our mailing address is 81-6629 Hawaii Belt Rd, Unit #2031, Kealakekua, HI 96750."
     }
+  },
+  "reportProblem": {
+    "triggerLabel": "Report a problem",
+    "title": "Send us feedback",
+    "description": "Let us know what's on your mind. We read every submission.",
+    "categoryLabel": "What type of feedback is this?",
+    "categories": {
+      "bug": "Bug",
+      "bugDescription": "Something isn't working correctly",
+      "feature": "Feature Request",
+      "featureDescription": "I'd like to suggest an improvement",
+      "question": "Question",
+      "questionDescription": "I need help with something"
+    },
+    "fields": {
+      "bug": {
+        "whatDoing": "What were you doing?",
+        "whatDoingPlaceholder": "e.g. I was editing a page and clicked publish…",
+        "expected": "What did you expect to happen?",
+        "expectedPlaceholder": "Describe the expected behavior (optional)",
+        "actual": "What actually happened?",
+        "actualPlaceholder": "Describe what went wrong (optional)"
+      },
+      "feature": {
+        "whatWant": "What would you like to see?",
+        "whatWantPlaceholder": "Describe the feature or improvement…",
+        "whyUseful": "Why would this be useful?",
+        "whyUsefulPlaceholder": "Help us understand the use case (optional)"
+      },
+      "question": {
+        "whatHelp": "What do you need help with?",
+        "whatHelpPlaceholder": "Describe your question…"
+      }
+    },
+    "screenshot": {
+      "attach": "Attach screenshot",
+      "remove": "Remove",
+      "fileTooLarge": "File must be under 5MB",
+      "invalidType": "Only PNG, JPG, and GIF files are allowed"
+    },
+    "nameLabel": "Name",
+    "namePlaceholder": "Name (optional)",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Email (optional)",
+    "cancel": "Cancel",
+    "submit": "Send feedback",
+    "submitting": "Sending…",
+    "successMessage": "Thanks for your feedback!",
+    "submitHint": "{shortcut} to send"
   }
 }

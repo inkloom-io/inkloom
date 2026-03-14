@@ -117,5 +117,7 @@ export interface ErrorReportingAdapter {
     name?: string;
     email?: string;
     message: string;
+    category?: "bug" | "feature" | "question";
+    screenshot?: string; // base64 data URL
   }): void;
 }
