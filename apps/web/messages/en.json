@@ -691,7 +691,9 @@
       "lastGeneration": "Last generation: {count} {count, plural, =1 {page} other {pages}}",
       "reviewPages": "Review Pages",
       "openInEditor": "Open in Editor",
-      "creditsUnit": "credits"
+      "creditsUnit": "credits",
+      "trialBanner": "You're on a free trial. AI generation is limited to select models (Claude Haiku, GLM-5, Gemini Flash) and up to 8 pages. Upgrade anytime to unlock all models and unlimited pages.",
+      "upgradeCta": "Upgrade to unlock all features"
     },
     "newOrg": {
       "title": "Create Organization",
@@ -1887,10 +1889,13 @@
       "modeFast": "Fast",
       "modelAndLimits": "Model & Limits",
       "modelAndLimitsHint": "Choose the AI model and set a page limit.",
+      "modelAndLimitsTrialHint": "Trial includes AI generation with select models. Upgrade to unlock all models.",
       "model": "Model",
       "recommended": "(Recommended)",
       "fast": "(Fast)",
       "maxPages": "Max pages",
+      "paidPlan": "Paid plan",
+      "trialPageLimit": "(trial max: {max})",
       "existingDocumentation": "Existing Documentation",
       "existingDocsHint": "Update existing docs instead of generating from scratch. The AI will keep accurate content, fix outdated info, and improve quality.",
       "generateNew": "Generate New",
