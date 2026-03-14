@@ -1849,7 +1849,11 @@
   "ai": {
     "activityLog": {
       "title": "Activity Log ({count})",
-      "listening": "Listening...",
+      "exploring": "Exploring...",
+      "planning": "Planning...",
+      "writing": "Writing...",
+      "reviewing": "Reviewing...",
+      "starting": "Starting...",
       "scrollToBottom": "Scroll to bottom"
     },
     "configForm": {
