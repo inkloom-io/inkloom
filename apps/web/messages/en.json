@@ -708,6 +708,13 @@
     }
   },
   "editor": {
+    "aiGenerationBanner": {
+      "messageGithubConnected": "Ready to generate documentation! Use AI to create docs from your codebase.",
+      "messageGithubNotConnected": "Connect a GitHub repository to generate documentation with AI.",
+      "ctaGenerate": "Generate Documentation",
+      "ctaConnectGithub": "Connect GitHub",
+      "dismiss": "Dismiss"
+    },
     "toolbar": {
       "published": "Published",
       "draft": "Draft",

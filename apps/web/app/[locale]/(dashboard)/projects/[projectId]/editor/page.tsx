@@ -38,6 +38,7 @@ import { useFeatureGate } from "@/hooks/use-feature-gate";
 import { useEditLock } from "@/hooks/use-edit-lock";
 import { UpgradePrompt } from "@/components/upgrade-prompt";
 import { EditLockBanner } from "@/components/edit-lock-banner";
+import { AiGenerationBanner } from "@/components/editor/ai-generation-banner";
 import { TitleSection } from "@/components/editor/title-section";
 import { PageSeoPanel } from "@/components/editor/page-seo-panel";
 import { trackEvent } from "@/lib/analytics";
@@ -625,6 +626,7 @@ export default function EditorPage({ params }: EditorPageProps) {
             pageId={selectedPageId ?? undefined}
             currentUserId={currentUserId}
           />
+          <AiGenerationBanner projectId={projectId as Id<"projects">} />
           <div className="flex min-h-0 flex-1 overflow-hidden">
             <div className="relative min-h-0 flex-1 overflow-auto">
               {/* Version diff view replaces the editor when comparing */}
