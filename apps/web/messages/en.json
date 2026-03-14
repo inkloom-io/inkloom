@@ -1404,6 +1404,15 @@
       "saveKey": "Save Key",
       "clear": "Clear",
       "byokDescription": "Provide your own <link>OpenRouter API key</link> to use AI generation without consuming InkLoom credits. BYOK usage is billed directly to your OpenRouter account.",
+      "byokPerFeatureHelp": "When a BYOK key is set, AI credits are not consumed for this feature.",
+      "perFeatureSettings": "Per-Feature Configuration",
+      "perFeatureSettingsHelp": "Configure the AI model and API key for each feature independently. If not set, the shared defaults above are used.",
+      "docGeneration": "Doc Generation",
+      "docGenerationDescription": "AI model and key used when generating documentation from your codebase.",
+      "evergreenDocs": "Evergreen Docs (GitHub Action)",
+      "evergreenDocsDescription": "AI model and key used by the GitHub Action to keep docs in sync with code changes.",
+      "chatWithDocs": "Chat with Docs",
+      "chatWithDocsDescription": "AI model and key used for the visitor-facing chat widget on your docs site.",
       "goToGeneration": "Go to AI Documentation Generation"
     },
     "page": {

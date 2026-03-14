@@ -128,8 +128,28 @@ export const coreTables = {
             defaultMode: v.optional(
               v.union(v.literal("extended"), v.literal("fast"))
             ),
+            // Legacy/shared defaults (kept for backward compat)
             defaultModel: v.optional(v.string()),
             byokOpenRouterKey: v.optional(v.string()),
+            // Per-feature overrides
+            docGeneration: v.optional(
+              v.object({
+                model: v.optional(v.string()),
+                byokOpenRouterKey: v.optional(v.string()),
+              })
+            ),
+            evergreenDocs: v.optional(
+              v.object({
+                model: v.optional(v.string()),
+                byokOpenRouterKey: v.optional(v.string()),
+              })
+            ),
+            chatWithDocs: v.optional(
+              v.object({
+                model: v.optional(v.string()),
+                byokOpenRouterKey: v.optional(v.string()),
+              })
+            ),
           })
         ),
         seo: v.optional(v.object({
