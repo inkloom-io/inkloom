@@ -52,7 +52,11 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <ReportProblemButton variant="icon" />
+        <ReportProblemButton
+          variant="icon"
+          userName={`${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || undefined}
+          userEmail={user.email}
+        />
         <ThemeToggle />
         {/* User avatar dropdown */}
         <div className="relative group">

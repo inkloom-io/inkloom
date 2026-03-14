@@ -3,8 +3,9 @@
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
-import { RefreshCw, Home, MessageSquareWarning } from "lucide-react";
+import { RefreshCw, Home } from "lucide-react";
 import { errorReportingAdapter } from "@/lib/adapters/error-reporting";
+import { ReportProblemButton } from "@/components/report-problem-button";
 
 /**
  * Dashboard-level error boundary.
@@ -85,14 +86,10 @@ export default function DashboardError({
           </a>
         </div>
 
-        {errorReportingAdapter.showFeedbackDialog && (
-          <button
-            onClick={() => errorReportingAdapter.showFeedbackDialog?.()}
-            className="mt-4 inline-flex items-center gap-1.5 text-sm text-[var(--text-dim)] underline-offset-4 transition-colors hover:text-foreground hover:underline"
-          >
-            <MessageSquareWarning className="h-3.5 w-3.5" />
-            {t("tellUsWhatHappened")}
-          </button>
+        {errorReportingAdapter.submitFeedback && (
+          <div className="mt-4">
+            <ReportProblemButton variant="full" className="text-sm text-[var(--text-dim)] underline-offset-4 transition-colors hover:text-foreground hover:underline" />
+          </div>
         )}
       </div>
 

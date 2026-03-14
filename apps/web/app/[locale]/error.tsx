@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { errorReportingAdapter } from "@/lib/adapters/error-reporting";
 import { ErrorLayout } from "@/components/error-layout";
+import { ReportProblemButton } from "@/components/report-problem-button";
 
 export default function Error({
   error,
@@ -36,22 +37,10 @@ export default function Error({
         onClick: reset,
         icon: "refresh",
       }}
-      secondaryAction={
-        errorReportingAdapter.showFeedbackDialog
-          ? {
-              label: t("tellUsWhatHappened"),
-              onClick: () => errorReportingAdapter.showFeedbackDialog?.(),
-            }
-          : { label: t("backToDashboard"), href: "/overview" }
-      }
+      secondaryAction={{ label: t("backToDashboard"), href: "/overview" }}
     >
-      {errorReportingAdapter.showFeedbackDialog && (
-        <a
-          href="/overview"
-          className="text-sm text-[var(--text-dim)] underline-offset-4 transition-colors hover:text-foreground hover:underline"
-        >
-          {t("backToDashboard")}
-        </a>
+      {errorReportingAdapter.submitFeedback && (
+        <ReportProblemButton variant="full" className="text-sm text-[var(--text-dim)] underline-offset-4 transition-colors hover:text-foreground hover:underline" />
       )}
     </ErrorLayout>
   );

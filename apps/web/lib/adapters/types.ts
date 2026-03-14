@@ -112,6 +112,10 @@ export interface ErrorReportingAdapter {
   /** Report an error to the error tracking service. */
   captureError(error: Error, context?: Record<string, unknown>): void;
 
-  /** Show a user-facing feedback dialog (optional — not all implementations support this). */
-  showFeedbackDialog?(): void;
+  /** Submit user feedback to the error tracking service. Returns true if sent. */
+  submitFeedback?(feedback: {
+    name?: string;
+    email?: string;
+    message: string;
+  }): void;
 }

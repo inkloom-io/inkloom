@@ -12,7 +12,7 @@ export const errorReportingAdapter: ErrorReportingAdapter = {
     // No-op in core mode — no external error tracking service.
   },
 
-  showFeedbackDialog() {
+  submitFeedback() {
     // No-op in core mode.
   },
 };
