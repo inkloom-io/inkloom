@@ -109,8 +109,11 @@ export interface DeployAdapter {
  * - Platform: Sentry integration with user feedback dialog.
  */
 export interface ErrorReportingAdapter {
-  /** Report an error to the error tracking service. */
-  captureError(error: Error, context?: Record<string, unknown>): void;
+  /** Report an error to the error tracking service. Returns an event ID if available. */
+  captureError(
+    error: Error,
+    context?: Record<string, unknown>,
+  ): string | undefined;
 
   /** Submit user feedback to the error tracking service. Returns true if sent. */
   submitFeedback?(feedback: {
@@ -119,5 +122,6 @@ export interface ErrorReportingAdapter {
     message: string;
     category?: "bug" | "feature" | "question";
     screenshot?: string; // base64 data URL
+    associatedEventId?: string; // Sentry event ID from error boundary
   }): void;
 }

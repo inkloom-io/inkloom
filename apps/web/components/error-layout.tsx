@@ -96,7 +96,7 @@ export function ErrorLayout({
         {/* Error digest for support */}
         {errorDigest && (
           <p className="mb-6 font-mono text-xs text-[var(--text-dim)]/50">
-            Error ID: {errorDigest}
+            Reference: {errorDigest}
           </p>
         )}
 

@@ -52,6 +52,8 @@ interface ReportProblemButtonProps {
   userName?: string;
   /** Pre-fill email field from user context */
   userEmail?: string;
+  /** Sentry event ID from error boundary, links feedback to the triggering error */
+  associatedEventId?: string;
 }
 
 type DialogState = "form" | "submitting" | "success";
@@ -73,6 +75,7 @@ export function ReportProblemButton({
   className = "",
   userName,
   userEmail,
+  associatedEventId,
 }: ReportProblemButtonProps) {
   const t = useTranslations("reportProblem");
   const [open, setOpen] = useState(false);
@@ -192,6 +195,7 @@ export function ReportProblemButton({
         email: email.trim() || undefined,
         category,
         screenshot: screenshot ?? undefined,
+        associatedEventId,
       });
     }
 
@@ -208,6 +212,7 @@ export function ReportProblemButton({
     email,
     category,
     screenshot,
+    associatedEventId,
     resetForm,
   ]);
 

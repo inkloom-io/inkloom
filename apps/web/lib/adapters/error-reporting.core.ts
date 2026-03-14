@@ -10,6 +10,7 @@ import type { ErrorReportingAdapter } from "./types";
 export const errorReportingAdapter: ErrorReportingAdapter = {
   captureError(_error: Error, _context?: Record<string, unknown>) {
     // No-op in core mode — no external error tracking service.
+    return undefined;
   },
 
   submitFeedback() {

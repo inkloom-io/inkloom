@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { errorReportingAdapter } from "@/lib/adapters/error-reporting";
@@ -16,13 +16,15 @@ export default function Error({
 }) {
   const t = useTranslations("errors");
   const pathname = usePathname();
+  const [eventId, setEventId] = useState<string>();
 
   useEffect(() => {
-    errorReportingAdapter.captureError(error, {
+    const id = errorReportingAdapter.captureError(error, {
       source: "locale-error-boundary",
       digest: error.digest,
       route: pathname,
     });
+    if (id) setEventId(id);
   }, [error, pathname]);
 
   return (
@@ -31,7 +33,7 @@ export default function Error({
       badge={t("somethingWentWrong")}
       title={t("somethingWentWrong")}
       description={t("unexpectedError")}
-      errorDigest={error.digest}
+      errorDigest={eventId ?? error.digest}
       primaryAction={{
         label: t("tryAgain"),
         onClick: reset,
@@ -40,7 +42,7 @@ export default function Error({
       secondaryAction={{ label: t("backToDashboard"), href: "/overview" }}
     >
       {errorReportingAdapter.submitFeedback && (
-        <ReportProblemButton variant="full" className="text-sm text-[var(--text-dim)] underline-offset-4 transition-colors hover:text-foreground hover:underline" />
+        <ReportProblemButton variant="full" associatedEventId={eventId} className="text-sm text-[var(--text-dim)] underline-offset-4 transition-colors hover:text-foreground hover:underline" />
       )}
     </ErrorLayout>
   );

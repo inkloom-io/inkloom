@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { RefreshCw, Home } from "lucide-react";
@@ -23,14 +23,18 @@ export default function DashboardError({
 }) {
   const t = useTranslations("errors");
   const pathname = usePathname();
+  const [eventId, setEventId] = useState<string>();
 
   useEffect(() => {
-    errorReportingAdapter.captureError(error, {
+    const id = errorReportingAdapter.captureError(error, {
       source: "dashboard-error-boundary",
       digest: error.digest,
       route: pathname,
     });
+    if (id) setEventId(id);
   }, [error, pathname]);
+
+  const referenceId = eventId ?? error.digest;
 
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-16">
@@ -56,13 +60,13 @@ export default function DashboardError({
           {t("unexpectedError")}
         </p>
 
-        {error.digest && (
+        {referenceId && (
           <p className="mb-5 font-mono text-xs text-[var(--text-dim)]/50">
-            Error ID: {error.digest}
+            Reference: {referenceId}
           </p>
         )}
 
-        {!error.digest && <div className="mb-5" />}
+        {!referenceId && <div className="mb-5" />}
 
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button
@@ -88,7 +92,7 @@ export default function DashboardError({
 
         {errorReportingAdapter.submitFeedback && (
           <div className="mt-4">
-            <ReportProblemButton variant="full" className="text-sm text-[var(--text-dim)] underline-offset-4 transition-colors hover:text-foreground hover:underline" />
+            <ReportProblemButton variant="full" associatedEventId={eventId} className="text-sm text-[var(--text-dim)] underline-offset-4 transition-colors hover:text-foreground hover:underline" />
           </div>
         )}
       </div>
