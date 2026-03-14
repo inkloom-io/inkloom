@@ -43,6 +43,16 @@ import {
 
 type FeedbackCategory = "bug" | "feature" | "question";
 
+/** App-specific session context passed by callers (user, org, project info). */
+export interface SessionContext {
+  userId?: string;
+  userEmail?: string;
+  orgId?: string;
+  orgName?: string;
+  projectId?: string;
+  projectSlug?: string;
+}
+
 interface ReportProblemButtonProps {
   /** Display variant. "icon" shows only the icon, "full" shows icon + label. */
   variant?: "icon" | "full";
@@ -54,6 +64,8 @@ interface ReportProblemButtonProps {
   userEmail?: string;
   /** Sentry event ID from error boundary, links feedback to the triggering error */
   associatedEventId?: string;
+  /** App-specific session context for diagnostics (hidden from user). */
+  sessionContext?: SessionContext;
 }
 
 type DialogState = "form" | "submitting" | "success";
@@ -70,12 +82,27 @@ const CATEGORY_CONFIG: {
   { value: "question", icon: HelpCircle },
 ];
 
+/** Collect browser-level diagnostic info (safe for core — no platform imports). */
+function collectBrowserContext(): Pick<
+  NonNullable<Parameters<NonNullable<typeof errorReportingAdapter.submitFeedback>>[0]["context"]>,
+  "userAgent" | "viewport" | "screenResolution" | "route"
+> {
+  if (typeof window === "undefined") return {};
+  return {
+    userAgent: navigator.userAgent,
+    viewport: `${window.innerWidth}x${window.innerHeight}`,
+    screenResolution: `${screen.width}x${screen.height}`,
+    route: `${window.location.pathname}${window.location.search}`,
+  };
+}
+
 export function ReportProblemButton({
   variant = "icon",
   className = "",
   userName,
   userEmail,
   associatedEventId,
+  sessionContext,
 }: ReportProblemButtonProps) {
   const t = useTranslations("reportProblem");
   const [open, setOpen] = useState(false);
@@ -189,6 +216,7 @@ export function ReportProblemButton({
     setDialogState("submitting");
 
     if (errorReportingAdapter.submitFeedback) {
+      const browserContext = collectBrowserContext();
       errorReportingAdapter.submitFeedback({
         message: buildMessage(),
         name: name.trim() || undefined,
@@ -196,6 +224,10 @@ export function ReportProblemButton({
         category,
         screenshot: screenshot ?? undefined,
         associatedEventId,
+        context: {
+          ...browserContext,
+          ...sessionContext,
+        },
       });
     }
 
@@ -213,6 +245,7 @@ export function ReportProblemButton({
     category,
     screenshot,
     associatedEventId,
+    sessionContext,
     resetForm,
   ]);
 

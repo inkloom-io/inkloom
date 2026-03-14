@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 import { RefreshCw, Home } from "lucide-react";
 import { errorReportingAdapter } from "@/lib/adapters/error-reporting";
-import { ReportProblemButton } from "@/components/report-problem-button";
+import {
+  ReportProblemButton,
+  type SessionContext,
+} from "@/components/report-problem-button";
+import { useAuth } from "@/hooks/use-auth";
+import { useAppContext } from "@/hooks/use-app-context";
 
 /**
  * Dashboard-level error boundary.
@@ -23,7 +28,26 @@ export default function DashboardError({
 }) {
   const t = useTranslations("errors");
   const pathname = usePathname();
+  const params = useParams<{ projectId?: string }>();
+  const { user: authUser } = useAuth();
+  const { tenantId, orgName } = useAppContext();
   const [eventId, setEventId] = useState<string>();
+
+  const sessionContext = useMemo((): SessionContext => {
+    const ctx: SessionContext = {};
+    if (authUser) {
+      ctx.userId = String(authUser._id);
+      ctx.userEmail = authUser.email;
+    }
+    if (tenantId && tenantId !== "local") {
+      ctx.orgId = tenantId;
+      ctx.orgName = orgName;
+    }
+    if (params?.projectId) {
+      ctx.projectId = params.projectId;
+    }
+    return ctx;
+  }, [authUser, tenantId, orgName, params?.projectId]);
 
   useEffect(() => {
     const id = errorReportingAdapter.captureError(error, {
@@ -92,7 +116,7 @@ export default function DashboardError({
 
         {errorReportingAdapter.submitFeedback && (
           <div className="mt-4">
-            <ReportProblemButton variant="full" associatedEventId={eventId} className="text-sm text-[var(--text-dim)] underline-offset-4 transition-colors hover:text-foreground hover:underline" />
+            <ReportProblemButton variant="full" associatedEventId={eventId} sessionContext={sessionContext} className="text-sm text-[var(--text-dim)] underline-offset-4 transition-colors hover:text-foreground hover:underline" />
           </div>
         )}
       </div>

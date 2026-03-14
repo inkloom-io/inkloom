@@ -1,11 +1,16 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 import { LogOut, Settings } from "lucide-react";
 import { OrgSwitcher } from "@/components/dashboard/org-switcher";
 import { ThemeToggle } from "./theme-toggle";
-import { ReportProblemButton } from "@/components/report-problem-button";
+import {
+  ReportProblemButton,
+  type SessionContext,
+} from "@/components/report-problem-button";
 import { useAppContext } from "@/hooks/use-app-context";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -23,8 +28,26 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ user }: DashboardHeaderProps) {
   const t = useTranslations("dashboard.header");
-  const { isMultiTenant } = useAppContext();
-  const { signOut } = useAuth();
+  const { isMultiTenant, tenantId, orgName } = useAppContext();
+  const { signOut, user: authUser } = useAuth();
+  const params = useParams<{ projectId?: string }>();
+
+  const sessionContext = useMemo((): SessionContext => {
+    const ctx: SessionContext = {};
+    if (authUser) {
+      ctx.userId = String(authUser._id);
+      ctx.userEmail = authUser.email;
+    }
+    if (tenantId && tenantId !== "local") {
+      ctx.orgId = tenantId;
+      ctx.orgName = orgName;
+    }
+    if (params?.projectId) {
+      ctx.projectId = params.projectId;
+    }
+    return ctx;
+  }, [authUser, tenantId, orgName, params?.projectId]);
+
   const initials = user.firstName && user.lastName
     ? `${user.firstName[0]}${user.lastName[0]}`
     : user.email?.[0]?.toUpperCase() || "U";
@@ -56,6 +79,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           variant="icon"
           userName={`${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || undefined}
           userEmail={user.email}
+          sessionContext={sessionContext}
         />
         <ThemeToggle />
         {/* User avatar dropdown */}

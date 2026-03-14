@@ -123,5 +123,20 @@ export interface ErrorReportingAdapter {
     category?: "bug" | "feature" | "question";
     screenshot?: string; // base64 data URL
     associatedEventId?: string; // Sentry event ID from error boundary
+    /** Automatic diagnostic context — hidden from the user in the modal UI. */
+    context?: {
+      userAgent?: string;
+      viewport?: string;
+      screenResolution?: string;
+      route?: string;
+      userId?: string;
+      userEmail?: string;
+      orgId?: string;
+      orgName?: string;
+      projectId?: string;
+      projectSlug?: string;
+      recentErrorEventIds?: string[];
+      appVersion?: string;
+    };
   }): void;
 }
