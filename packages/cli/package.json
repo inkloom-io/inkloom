@@ -22,16 +22,24 @@
     "cloudflare-pages"
   ],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "type": "module",
-  "bin": { "inkloom": "./dist/cli.js" },
+  "bin": {
+    "inkloom": "./dist/cli.js"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -57,6 +65,7 @@
     "tsup": "^8.1.0",
     "typescript": "^5.4.5"
   },
-  "engines": { "node": ">=20" },
-  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" }
+  "engines": {
+    "node": ">=20"
+  }
 }
