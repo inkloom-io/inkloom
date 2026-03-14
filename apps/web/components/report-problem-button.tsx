@@ -53,6 +53,7 @@ export interface SessionContext {
   projectSlug?: string;
 }
 
+
 interface ReportProblemButtonProps {
   /** Display variant. "icon" shows only the icon, "full" shows icon + label. */
   variant?: "icon" | "full";
@@ -95,6 +96,7 @@ function collectBrowserContext(): Pick<
     route: `${window.location.pathname}${window.location.search}`,
   };
 }
+
 
 export function ReportProblemButton({
   variant = "icon",
