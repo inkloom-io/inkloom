@@ -12,6 +12,7 @@ import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import type { Id } from "@/convex/_generated/dataModel";
 import { buildProject } from "@/lib/build-project";
+import { errorReportingAdapter } from "@/lib/adapters";
 
 export async function POST(request: Request) {
   try {
@@ -60,8 +61,13 @@ export async function POST(request: Request) {
       // ConvexHttpClient has no explicit close — let GC handle it
     }
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json({ error: { message } }, { status: 500 });
+    console.error("[build] Unhandled error:", error);
+    if (error instanceof Error) {
+      errorReportingAdapter.captureError(error, { source: "build-route" });
+    }
+    return NextResponse.json(
+      { error: { message: "Internal server error" } },
+      { status: 500 }
+    );
   }
 }
