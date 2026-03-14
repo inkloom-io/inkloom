@@ -682,6 +682,8 @@
       "backToEditor": "Back to editor",
       "projectNotFound": "Project not found",
       "failedToStart": "Failed to start generation",
+      "insufficientCredits": "You don't have enough AI credits to generate documentation. Upgrade your plan or add credits to continue.",
+      "upgradeOrAddCredits": "Upgrade plan or add credits",
       "lastGenerationFailed": "Last generation failed",
       "lastGeneration": "Last generation: {count} {count, plural, =1 {page} other {pages}}",
       "reviewPages": "Review Pages",
