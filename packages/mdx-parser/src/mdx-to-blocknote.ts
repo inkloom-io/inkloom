@@ -359,6 +359,80 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       return blocks;
     }
 
+    case "Steps": {
+      // Steps container block, followed by child Step blocks
+      const blocks: BlockNoteBlock[] = [
+        {
+          type: "steps",
+          content: [],
+        },
+      ];
+      if (node.children) {
+        for (const child of node.children) {
+          if (child.type === "mdxJsxFlowElement" && child.name === "Step") {
+            blocks.push(...convertMdxJsxElement(child));
+          }
+        }
+      }
+      return blocks;
+    }
+
+    case "Step": {
+      const title = getAttrValue(attrs, "title") || "Step";
+      const icon = getAttrValue(attrs, "icon");
+      const content = node.children
+        ? flattenToInline(node.children)
+        : [];
+      return [
+        {
+          type: "step",
+          props: {
+            title,
+            ...(icon ? { icon } : {}),
+          },
+          content,
+        },
+      ];
+    }
+
+    case "AccordionGroup": {
+      // AccordionGroup container block, followed by child Accordion blocks
+      const blocks: BlockNoteBlock[] = [
+        {
+          type: "accordionGroup",
+          content: [],
+        },
+      ];
+      if (node.children) {
+        for (const child of node.children) {
+          if (child.type === "mdxJsxFlowElement" && child.name === "Accordion") {
+            blocks.push(...convertMdxJsxElement(child));
+          }
+        }
+      }
+      return blocks;
+    }
+
+    case "Accordion": {
+      const title = getAttrValue(attrs, "title") || "Accordion";
+      const icon = getAttrValue(attrs, "icon");
+      const defaultOpen = getAttrValue(attrs, "defaultOpen");
+      const content = node.children
+        ? flattenToInline(node.children)
+        : [];
+      return [
+        {
+          type: "accordion",
+          props: {
+            title,
+            ...(icon ? { icon } : {}),
+            ...(defaultOpen ? { defaultOpen } : {}),
+          },
+          content,
+        },
+      ];
+    }
+
     case "Image": {
       const src = getAttrValue(attrs, "src") || "";
       const alt = getAttrValue(attrs, "alt") || "";
@@ -448,7 +522,20 @@ function serializeJsxToString(node: MdastNode): string {
     return `<${name}${attrs ? " " + attrs : ""} />`;
   }
 
-  return `<${name}${attrs ? " " + attrs : ""}> ... </${name}>`;
+  // Recursively serialize children instead of using placeholder text
+  const childText = (node.children || [])
+    .map((child) => {
+      if (child.value) return child.value;
+      if (child.type === "mdxJsxFlowElement" || child.type === "mdxJsxTextElement") {
+        return serializeJsxToString(child);
+      }
+      if (child.children) {
+        return child.children.map((c) => c.value || "").join("");
+      }
+      return "";
+    })
+    .join("\n");
+  return `<${name}${attrs ? " " + attrs : ""}>${childText}</${name}>`;
 }
 
 function flattenToInline(

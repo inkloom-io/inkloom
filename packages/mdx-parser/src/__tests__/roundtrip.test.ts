@@ -123,6 +123,36 @@ describe("mdxToBlockNote", () => {
     expect(blocks[2].props?.title).toBe("Vue");
   });
 
+  it("parses Steps with Step children", () => {
+    const mdx = `<Steps>\n<Step title="Install">\nRun the install command.\n</Step>\n<Step title="Configure">\nEdit the config file.\n</Step>\n</Steps>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[0].type).toBe("steps");
+    expect(blocks[1].type).toBe("step");
+    expect(blocks[1].props?.title).toBe("Install");
+    expect(blocks[2].type).toBe("step");
+    expect(blocks[2].props?.title).toBe("Configure");
+    // Ensure no block contains literal "..." placeholder text
+    for (const block of blocks) {
+      if (Array.isArray(block.content)) {
+        for (const item of block.content) {
+          if ("text" in item) {
+            expect(item.text).not.toBe("...");
+          }
+        }
+      }
+    }
+  });
+
+  it("parses AccordionGroup with Accordion children", () => {
+    const mdx = `<AccordionGroup>\n<Accordion title="FAQ 1">\nAnswer to FAQ 1.\n</Accordion>\n<Accordion title="FAQ 2">\nAnswer to FAQ 2.\n</Accordion>\n</AccordionGroup>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[0].type).toBe("accordionGroup");
+    expect(blocks[1].type).toBe("accordion");
+    expect(blocks[1].props?.title).toBe("FAQ 1");
+    expect(blocks[2].type).toBe("accordion");
+    expect(blocks[2].props?.title).toBe("FAQ 2");
+  });
+
   it("parses CodeGroup with code blocks", () => {
     const mdx = `<CodeGroup>\n\`\`\`javascript\nconst x = 1;\n\`\`\`\n\`\`\`python\nx = 1\n\`\`\`\n</CodeGroup>`;
     const blocks = mdxToBlockNote(mdx);
@@ -285,6 +315,14 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     {
       name: "divider",
       mdx: "<hr />",
+    },
+    {
+      name: "steps with step children",
+      mdx: `<Steps>\n<Step title="First">\nDo the first thing.\n</Step>\n<Step title="Second">\nDo the second thing.\n</Step>\n</Steps>`,
+    },
+    {
+      name: "accordion group",
+      mdx: `<AccordionGroup>\n<Accordion title="Question 1">\nAnswer 1.\n</Accordion>\n</AccordionGroup>`,
     },
   ];
 
