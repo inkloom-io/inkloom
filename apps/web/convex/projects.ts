@@ -357,8 +357,16 @@ export const updateSettings = mutation({
     const currentSettings = (project.settings as Record<string, unknown>) || {};
     const newSettings = args.settings as Record<string, unknown>;
 
+    const merged = { ...currentSettings, ...newSettings };
+    // Remove keys explicitly set to null (convention: null = "delete this key")
+    for (const key of Object.keys(newSettings)) {
+      if (newSettings[key] === null) {
+        delete merged[key];
+      }
+    }
+
     await ctx.db.patch(args.projectId, {
-      settings: { ...currentSettings, ...newSettings },
+      settings: merged,
       updatedAt: Date.now(),
     });
   },
