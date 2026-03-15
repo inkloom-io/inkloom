@@ -106,7 +106,25 @@
     "verificationCode": "Verification code",
     "verifying": "Verifying...",
     "verifyEmail": "Verify email",
-    "backToSignIn": "Back to sign in"
+    "backToSignIn": "Back to sign in",
+    "forgotPassword": "Forgot your password?",
+    "forgotPasswordTitle": "Reset your password",
+    "forgotPasswordDescription": "Enter your email and we'll send you a reset link",
+    "sendResetLink": "Send reset link",
+    "sendingResetLink": "Sending...",
+    "resetLinkSent": "Check your email for a password reset link",
+    "resetLinkSentDescription": "If an account exists with that email, you'll receive a password reset link shortly.",
+    "resetPasswordTitle": "Set new password",
+    "resetPasswordDescription": "Enter your new password below",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "resetPassword": "Reset password",
+    "resettingPassword": "Resetting...",
+    "passwordResetSuccess": "Your password has been reset successfully.",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "missingResetToken": "Missing or invalid reset token",
+    "resetLinkExpired": "Reset link is invalid or expired. Please request a new one."
   },
   "landing": {
     "nav": {
