@@ -124,7 +124,18 @@
     "passwordsDoNotMatch": "Passwords do not match",
     "passwordTooShort": "Password must be at least 8 characters",
     "missingResetToken": "Missing or invalid reset token",
-    "resetLinkExpired": "Reset link is invalid or expired. Please request a new one."
+    "resetLinkExpired": "Reset link is invalid or expired. Please request a new one.",
+    "emailMeLoginLink": "Email me a login link",
+    "magicLoginTitle": "Sign in with email",
+    "magicLoginDescription": "We'll send a login code to your email",
+    "sendLoginCode": "Send login code",
+    "sendingLoginCode": "Sending...",
+    "loginCodeSentTo": "Enter the 6-digit code sent to {email}",
+    "loginCode": "Login code",
+    "verifyLoginCode": "Verify login code",
+    "verifyingLoginCode": "Verifying...",
+    "invalidOrExpiredCode": "Invalid or expired code. Please try again.",
+    "emailAndCodeRequired": "Email and code are required"
   },
   "landing": {
     "nav": {
