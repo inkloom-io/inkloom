@@ -72,7 +72,8 @@ function generateEndpointMdx(endpoint: ParsedEndpoint): string {
 
 function generateTagIndexMdx(
   tag: string,
-  endpoints: ParsedEndpoint[]
+  endpoints: ParsedEndpoint[],
+  basePathClean: string
 ): string {
   const lines: string[] = [];
 
@@ -91,7 +92,7 @@ function generateTagIndexMdx(
     const title = ep.summary || `${ep.method} ${ep.path}`;
     const slug = endpointSlug(ep.method, ep.path);
     lines.push(
-      `<Card title="${title.replace(/"/g, '\\"')}" href="/docs/${slugify(tag)}/${slug}">`
+      `<Card title="${title.replace(/"/g, '\\"')}" href="/${basePathClean}/${slugify(tag)}/${slug}">`
     );
     lines.push(
       `\`${ep.method}\` ${ep.path}${ep.deprecated ? " *(deprecated)*" : ""}`
@@ -148,7 +149,7 @@ export function generateApiReferenceMdx(
   for (const [tag, endpoints] of Object.entries(endpointsByTag)) {
     const tagSlug = slugify(tag);
     indexLines.push(
-      `<Card title="${tag.replace(/"/g, '\\"')}" href="/docs/${basePathClean}/${tagSlug}">`
+      `<Card title="${tag.replace(/"/g, '\\"')}" href="/${basePathClean}/${tagSlug}">`
     );
     indexLines.push(`${endpoints.length} endpoint${endpoints.length !== 1 ? "s" : ""}`);
     indexLines.push(`</Card>`);
@@ -156,7 +157,7 @@ export function generateApiReferenceMdx(
   indexLines.push(`</CardGroup>`);
 
   files.push({
-    file: `docs/${basePathClean}/index.mdx`,
+    file: `docs/${basePathClean}.mdx`,
     data: indexLines.join("\n"),
   });
 
@@ -173,7 +174,7 @@ export function generateApiReferenceMdx(
     // Tag index page
     files.push({
       file: `docs/${basePathClean}/${tagSlug}.mdx`,
-      data: generateTagIndexMdx(tag, endpoints),
+      data: generateTagIndexMdx(tag, endpoints, basePathClean),
     });
 
     // Per-tag _meta.json
@@ -197,14 +198,14 @@ export function generateApiReferenceMdx(
       tagNavChildren.push({
         title:
           endpoint.summary || `${endpoint.method} ${endpoint.path}`,
-        href: `/docs/${basePathClean}/${tagSlug}/${epSlug}`,
+        href: `/${basePathClean}/${tagSlug}/${epSlug}`,
       });
 
       // Search document for this endpoint
       const searchTitle =
         endpoint.summary || `${endpoint.method} ${endpoint.path}`;
       searchDocuments.push({
-        id: `/docs/${basePathClean}/${tagSlug}/${epSlug}`,
+        id: `/${basePathClean}/${tagSlug}/${epSlug}`,
         title: searchTitle,
         headings: [
           searchTitle,
@@ -222,7 +223,7 @@ export function generateApiReferenceMdx(
           .filter(Boolean)
           .join(" "),
         codeBlocks: `${endpoint.method} ${endpoint.path}`,
-        path: `/docs/${basePathClean}/${tagSlug}/${epSlug}`,
+        path: `/${basePathClean}/${tagSlug}/${epSlug}`,
         excerpt: endpoint.description?.slice(0, 200) || `${endpoint.method} ${endpoint.path}`,
       });
     }
@@ -236,7 +237,7 @@ export function generateApiReferenceMdx(
     // Navigation entry for tag
     navigation.push({
       title: tag,
-      href: `/docs/${basePathClean}/${tagSlug}`,
+      href: `/${basePathClean}/${tagSlug}`,
       children: tagNavChildren,
     });
   }
@@ -249,12 +250,12 @@ export function generateApiReferenceMdx(
 
   // Search document for index page
   searchDocuments.push({
-    id: `/docs/${basePathClean}`,
+    id: `/${basePathClean}`,
     title: `${spec.title} - API Reference`,
     headings: "API Reference",
     content: `${spec.title} API Reference ${spec.description || ""} Version ${spec.version}`,
     codeBlocks: "",
-    path: `/docs/${basePathClean}`,
+    path: `/${basePathClean}`,
     excerpt: spec.description?.slice(0, 200) || `API Reference for ${spec.title}`,
   });
 
