@@ -1767,11 +1767,16 @@ body {
 `;
 }
 
+export interface GenerateSiteResult {
+  files: GeneratedFile[];
+  warnings?: string[];
+}
+
 export async function generateSiteFiles(
   pages: Page[],
   folders: Folder[],
   config: ProjectConfig
-): Promise<GeneratedFile[]> {
+): Promise<GenerateSiteResult> {
   // If OpenAPI is configured, filter out any manually-created folder/pages
   // that clash with the OpenAPI basePath to avoid duplicate routes
   if (config.openapi) {
@@ -1781,6 +1786,7 @@ export async function generateSiteFiles(
   }
 
   const files: GeneratedFile[] = [];
+  const warnings: string[] = [];
 
   // docs.config.ts is no longer generated for the SPA template
   // Config is embedded in HTML via buildSiteData() at publish time
@@ -2055,6 +2061,9 @@ export async function generateSiteFiles(
       apiSearchDocuments = apiResult.searchDocuments;
     } catch (err) {
       console.error("Failed to generate OpenAPI reference:", err);
+      warnings.push(
+        `API Reference generation failed: ${err instanceof Error ? err.message : String(err)}`
+      );
     }
   }
 
@@ -2072,5 +2081,5 @@ export async function generateSiteFiles(
     data: JSON.stringify(searchIndex, null, 2),
   });
 
-  return files;
+  return { files, ...(warnings.length > 0 ? { warnings } : {}) };
 }

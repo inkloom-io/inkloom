@@ -32,9 +32,9 @@ vi.mock("convex/browser", () => ({
 }));
 
 vi.mock("../generate-site", () => ({
-  generateSiteFiles: vi.fn().mockResolvedValue([
-    { file: "index.html", data: "<html></html>" },
-  ]),
+  generateSiteFiles: vi.fn().mockResolvedValue({
+    files: [{ file: "index.html", data: "<html></html>" }],
+  }),
 }));
 
 // ---------------------------------------------------------------------------

@@ -75,6 +75,7 @@ export const updateStatus = mutation({
     ),
     url: v.optional(v.string()),
     error: v.optional(v.string()),
+    warnings: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const { deploymentId, ...updates } = args;
@@ -90,6 +91,10 @@ export const updateStatus = mutation({
 
     if (updates.error !== undefined) {
       updateData.error = updates.error;
+    }
+
+    if (updates.warnings !== undefined) {
+      updateData.warnings = updates.warnings;
     }
 
     await ctx.db.patch(deploymentId, updateData);

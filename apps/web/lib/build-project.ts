@@ -112,13 +112,19 @@ export async function buildProject(
       buildPhase: "generating",
     });
 
-    const siteFiles = await generateSiteFiles(pages, folders, {
+    const { files: siteFiles, warnings: buildWarnings } = await generateSiteFiles(pages, folders, {
       name: project.name,
       description: (project as Record<string, unknown>).description as string | undefined,
       theme: (project as Record<string, unknown>).theme as "default" | undefined,
       primaryColor: (project as Record<string, unknown>).primaryColor as string | undefined,
       navTabs: (project as Record<string, unknown>).navTabs as undefined,
     });
+
+    if (buildWarnings && buildWarnings.length > 0) {
+      for (const w of buildWarnings) {
+        console.warn(`[Build] Warning: ${w}`);
+      }
+    }
 
     // 7. Write files to disk
     if (opts.clean !== false && existsSync(outDir)) {
@@ -139,6 +145,7 @@ export async function buildProject(
       deploymentId,
       status: "ready",
       url,
+      ...(buildWarnings && buildWarnings.length > 0 ? { warnings: buildWarnings } : {}),
     });
 
     return {

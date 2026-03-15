@@ -338,6 +338,7 @@ export const coreTables = {
         v.literal("propagating"),
       )
     ),
+    warnings: v.optional(v.array(v.string())),
     createdBy: v.optional(v.id("users")),
     createdAt: v.number(),
     updatedAt: v.number(),
