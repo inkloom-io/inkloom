@@ -1439,7 +1439,9 @@
       "evergreenDocsDescription": "AI model and key used by the GitHub Action to keep docs in sync with code changes.",
       "chatWithDocs": "Chat with Docs",
       "chatWithDocsDescription": "AI model and key used for the visitor-facing chat widget on your docs site.",
-      "goToGeneration": "Go to AI Documentation Generation"
+      "goToGeneration": "Go to AI Documentation Generation",
+      "openApiEnabled": "Auto-generate OpenAPI spec",
+      "openApiEnabledHelp": "Automatically generate an OpenAPI specification when API endpoints are detected in your codebase."
     },
     "page": {
       "title": "Project Settings",
@@ -1915,6 +1917,8 @@
       "docsPathPlaceholder": "docs",
       "docsPathHint": "Path to existing documentation files relative to the repository root (e.g., docs, documentation/guides)",
       "fileFormat": "File format",
+      "openApiEnabled": "Generate OpenAPI spec",
+      "openApiEnabledHelp": "Automatically generate an OpenAPI specification when API endpoints are detected.",
       "starting": "Starting...",
       "updateDocumentation": "Update Documentation",
       "generateDocumentation": "Generate Documentation"

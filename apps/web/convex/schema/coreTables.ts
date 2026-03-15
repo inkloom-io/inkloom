@@ -150,6 +150,7 @@ export const coreTables = {
                 byokOpenRouterKey: v.optional(v.string()),
               })
             ),
+            openApiEnabled: v.optional(v.boolean()),
           })
         ),
         seo: v.optional(v.object({
