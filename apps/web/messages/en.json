@@ -2031,7 +2031,9 @@
       "selectAll": "Select all",
       "preview": "Preview",
       "selectPageToPreview": "Select a page to preview",
-      "generateNewDocumentation": "Generate New Documentation"
+      "generateNewDocumentation": "Generate New Documentation",
+      "selectedCount": "{count} selected",
+      "previewPage": "Preview page"
     },
     "pagePreview": {
       "contentAvailable": "Content available ({count} chars)",
