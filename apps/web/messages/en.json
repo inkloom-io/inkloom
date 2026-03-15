@@ -98,7 +98,15 @@
     "noSSOForDomain": "No SSO configured for this domain",
     "ssoFailed": "Failed to initiate SSO login",
     "missingAuthCode": "Missing authorization code",
-    "authFailed": "Authentication failed"
+    "authFailed": "Authentication failed",
+    "verifyYourEmail": "Verify your email",
+    "verificationCodeSentTo": "Enter the 6-digit code sent to {email}",
+    "verificationCodeSent": "Enter the 6-digit code sent to your email",
+    "codeSentToEmail": "Code sent to {email}",
+    "verificationCode": "Verification code",
+    "verifying": "Verifying...",
+    "verifyEmail": "Verify email",
+    "backToSignIn": "Back to sign in"
   },
   "landing": {
     "nav": {
