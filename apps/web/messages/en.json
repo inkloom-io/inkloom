@@ -131,7 +131,7 @@
     "passwordTooShort": "Password must be at least 8 characters",
     "missingResetToken": "Missing or invalid reset token",
     "resetLinkExpired": "Reset link is invalid or expired. Please request a new one.",
-    "emailMeLoginLink": "Email me a login link",
+    "emailMeLoginCode": "Email me a login code",
     "magicLoginTitle": "Sign in with email",
     "magicLoginDescription": "We'll send a login code to your email",
     "sendLoginCode": "Send login code",
