@@ -585,7 +585,7 @@ ${generateThemeSpecificCss(themeKey)}
 /**
  * Generate theme-specific CSS enhancements for each preset
  */
-function generateThemeSpecificCss(themeKey: ThemePreset): string {
+export function generateThemeSpecificCss(themeKey: ThemePreset): string {
   switch (themeKey) {
     case "default":
       return generateSlateCss();

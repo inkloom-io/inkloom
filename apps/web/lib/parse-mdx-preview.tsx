@@ -2,15 +2,22 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import { PreviewCard } from "@/components/editor/preview-components/card";
-import { PreviewCardGroup } from "@/components/editor/preview-components/card-group";
-import { PreviewCallout } from "@/components/editor/preview-components/callout";
-import { PreviewImage } from "@/components/editor/preview-components/image";
-import { PreviewTabs, PreviewTab } from "@/components/editor/preview-components/tabs";
-import { PreviewSteps, PreviewStep } from "@/components/editor/preview-components/steps";
-import { PreviewAccordion, PreviewAccordionGroup } from "@/components/editor/preview-components/accordion";
-import { PreviewCodeGroup } from "@/components/editor/preview-components/code-group";
-import { PreviewCodeBlock } from "@/components/editor/preview-components/code-block";
+import {
+  Card,
+  CardGroup,
+  Callout,
+  Image,
+  Tabs,
+  Tab,
+  Steps,
+  Step,
+  Accordion,
+  AccordionGroup,
+  CodeGroup,
+  CodeBlock,
+  Heading,
+  CustomLink,
+} from "@inkloom/docs-renderer";
 
 interface ParsedComponent {
   type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "CodeGroup";
@@ -80,32 +87,45 @@ function preprocessCodeBlocks(content: string): { segments: ContentSegment[], ha
   return { segments, hasCodeBlocks };
 }
 
+// Shared markdown component overrides for react-markdown
+function getMarkdownComponents() {
+  return {
+    p: ({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) => <p style={style}>{children}</p>,
+    div: ({ children, style, className }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string }) => <div style={style} className={className}>{children}</div>,
+    span: ({ children, style, className }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string }) => <span style={style} className={className}>{children}</span>,
+    pre: ({ children }: { children?: React.ReactNode }) => {
+      // Extract language from child <code className="language-xxx">
+      const codeChild = React.Children.toArray(children).find(
+        (child): child is React.ReactElement =>
+          React.isValidElement(child) && (child as React.ReactElement).type === "code"
+      ) as React.ReactElement | undefined;
+      const className = codeChild?.props?.className || "";
+      const langMatch = className.match(/language-(\w+)/);
+      const lang = langMatch ? langMatch[1] : undefined;
+      const code = typeof codeChild?.props?.children === "string" ? codeChild.props.children : "";
+      return <CodeBlock language={lang}>{code}</CodeBlock>;
+    },
+    h1: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => <Heading level={1} {...props}>{children}</Heading>,
+    h2: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => <Heading level={2} {...props}>{children}</Heading>,
+    h3: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => <Heading level={3} {...props}>{children}</Heading>,
+    h4: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => <Heading level={4} {...props}>{children}</Heading>,
+    h5: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => <Heading level={5} {...props}>{children}</Heading>,
+    h6: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => <Heading level={6} {...props}>{children}</Heading>,
+    a: ({ href, children, ...props }: { href?: string; children?: React.ReactNode; [key: string]: unknown }) => <CustomLink href={href} {...props}>{children}</CustomLink>,
+  } as Record<string, React.ComponentType<Record<string, unknown>>>;
+}
+
 // Render markdown with pre-processed code blocks
 function MarkdownWithCodeBlocks({ content }: { content: string }): React.ReactNode {
   const { segments, hasCodeBlocks } = preprocessCodeBlocks(content);
+  const components = getMarkdownComponents();
 
   if (!hasCodeBlocks) {
     return (
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
-        components={{
-          p: ({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) => <p style={style}>{children}</p>,
-          div: ({ children, style, className }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string }) => <div style={style} className={className}>{children}</div>,
-          span: ({ children, style, className }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string }) => <span style={style} className={className}>{children}</span>,
-          pre: ({ children }) => {
-            // Extract language from child <code className="language-xxx">
-            const codeChild = React.Children.toArray(children).find(
-              (child): child is React.ReactElement =>
-                React.isValidElement(child) && (child as React.ReactElement).type === "code"
-            ) as React.ReactElement | undefined;
-            const className = codeChild?.props?.className || "";
-            const langMatch = className.match(/language-(\w+)/);
-            const lang = langMatch ? langMatch[1] : undefined;
-            const code = typeof codeChild?.props?.children === "string" ? codeChild.props.children : "";
-            return <PreviewCodeBlock language={lang}>{code}</PreviewCodeBlock>;
-          },
-        }}
+        components={components}
       >
         {content}
       </ReactMarkdown>
@@ -121,35 +141,20 @@ function MarkdownWithCodeBlocks({ content }: { content: string }): React.ReactNo
               key={segment.key}
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeRaw]}
-              components={{
-                p: ({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) => <p style={style}>{children}</p>,
-                div: ({ children, style, className }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string }) => <div style={style} className={className}>{children}</div>,
-                span: ({ children, style, className }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string }) => <span style={style} className={className}>{children}</span>,
-                pre: ({ children }) => {
-                  const codeChild = React.Children.toArray(children).find(
-                    (child): child is React.ReactElement =>
-                      React.isValidElement(child) && (child as React.ReactElement).type === "code"
-                  ) as React.ReactElement | undefined;
-                  const className = codeChild?.props?.className || "";
-                  const langMatch = className.match(/language-(\w+)/);
-                  const lang = langMatch ? langMatch[1] : undefined;
-                  const code = typeof codeChild?.props?.children === "string" ? codeChild.props.children : "";
-                  return <PreviewCodeBlock language={lang}>{code}</PreviewCodeBlock>;
-                },
-              }}
+              components={components}
             >
               {segment.content}
             </ReactMarkdown>
           );
         } else if (segment.type === 'codeblock') {
           return (
-            <PreviewCodeBlock
+            <CodeBlock
               key={segment.key}
               language={segment.language}
               height={segment.height}
             >
               {segment.code}
-            </PreviewCodeBlock>
+            </CodeBlock>
           );
         }
         return null;
@@ -275,39 +280,39 @@ function renderComponent(
   switch (type) {
     case "Card":
       return (
-        <PreviewCard
+        <Card
           key={key}
           title={(props.title as string) || ""}
           icon={props.icon as string}
           href={props.href as string}
         >
           {children && <span>{children}</span>}
-        </PreviewCard>
+        </Card>
       );
 
     case "CardGroup":
       return (
-        <PreviewCardGroup key={key} cols={props.cols as number}>
+        <CardGroup key={key} cols={props.cols as 2 | 3 | 4}>
           {children && (
             <MDXPreviewRenderer content={children} />
           )}
-        </PreviewCardGroup>
+        </CardGroup>
       );
 
     case "Callout":
       return (
-        <PreviewCallout
+        <Callout
           key={key}
           type={props.type as "info" | "warning" | "danger" | "success" | "tip"}
           title={props.title as string}
         >
-          {children}
-        </PreviewCallout>
+          {children || ""}
+        </Callout>
       );
 
     case "Image":
       return (
-        <PreviewImage
+        <Image
           key={key}
           src={props.src as string}
           alt={props.alt as string}
@@ -317,64 +322,64 @@ function renderComponent(
 
     case "Tabs":
       return (
-        <PreviewTabs key={key}>
-          {children && renderTabChildren(children)}
-        </PreviewTabs>
+        <Tabs key={key}>
+          {children ? renderTabChildren(children) : <></>}
+        </Tabs>
       );
 
     case "Tab":
       return (
-        <PreviewTab
+        <Tab
           key={key}
           title={props.title as string}
           icon={props.icon as string}
         >
-          {children}
-        </PreviewTab>
+          {children || ""}
+        </Tab>
       );
 
     case "Steps":
       return (
-        <PreviewSteps key={key}>
-          {children && renderStepChildren(children)}
-        </PreviewSteps>
+        <Steps key={key}>
+          {children ? renderStepChildren(children) : <></>}
+        </Steps>
       );
 
     case "Step":
       return (
-        <PreviewStep
+        <Step
           key={key}
           title={props.title as string}
           icon={props.icon as string}
         >
-          {children}
-        </PreviewStep>
+          {children || ""}
+        </Step>
       );
 
     case "CodeGroup":
       return (
-        <PreviewCodeGroup key={key}>
-          {children}
-        </PreviewCodeGroup>
+        <CodeGroup key={key}>
+          {children || ""}
+        </CodeGroup>
       );
 
     case "Accordion":
       return (
-        <PreviewAccordion
+        <Accordion
           key={key}
           title={props.title as string}
           icon={props.icon as string}
           defaultOpen={props.defaultOpen === true || props.defaultOpen === "true"}
         >
-          {children}
-        </PreviewAccordion>
+          {children || ""}
+        </Accordion>
       );
 
     case "AccordionGroup":
       return (
-        <PreviewAccordionGroup key={key}>
-          {children && renderAccordionChildren(children)}
-        </PreviewAccordionGroup>
+        <AccordionGroup key={key}>
+          {children ? renderAccordionChildren(children) : <></>}
+        </AccordionGroup>
       );
 
     default:
@@ -383,7 +388,7 @@ function renderComponent(
 }
 
 // Helper function to render Tab children within a Tabs component
-// Returns an array of PreviewTab elements (not a component wrapper)
+// Returns an array of Tab elements (not a component wrapper)
 function renderTabChildren(content: string): React.ReactNode[] {
   // Parse Tab components from the content string
   const tabRegex = /<Tab(?![a-zA-Z])\s*([^>]*)>([\s\S]*?)<\/Tab>/g;
@@ -397,13 +402,13 @@ function renderTabChildren(content: string): React.ReactNode[] {
     const props = parseAttributes(attrStr);
 
     tabs.push(
-      <PreviewTab
+      <Tab
         key={idx}
         title={props.title as string}
         icon={props.icon as string}
       >
-        {childContent}
-      </PreviewTab>
+        {childContent || ""}
+      </Tab>
     );
     idx++;
   }
@@ -412,7 +417,7 @@ function renderTabChildren(content: string): React.ReactNode[] {
 }
 
 // Helper function to render Step children within a Steps component
-// Returns an array of PreviewStep elements
+// Returns an array of Step elements
 function renderStepChildren(content: string): React.ReactNode[] {
   // Parse Step components from the content string
   const stepRegex = /<Step(?![a-zA-Z])\s*([^>]*)>([\s\S]*?)<\/Step>/g;
@@ -426,14 +431,14 @@ function renderStepChildren(content: string): React.ReactNode[] {
     const props = parseAttributes(attrStr);
 
     steps.push(
-      <PreviewStep
+      <Step
         key={idx}
         title={props.title as string}
         icon={props.icon as string}
         stepNumber={idx + 1}
       >
-        {childContent}
-      </PreviewStep>
+        {childContent || ""}
+      </Step>
     );
     idx++;
   }
@@ -442,7 +447,7 @@ function renderStepChildren(content: string): React.ReactNode[] {
 }
 
 // Helper function to render Accordion children within an AccordionGroup component
-// Returns an array of PreviewAccordion elements
+// Returns an array of Accordion elements
 function renderAccordionChildren(content: string): React.ReactNode[] {
   // Parse Accordion components from the content string
   const accordionRegex = /<Accordion(?![a-zA-Z])\s*([^>]*)>([\s\S]*?)<\/Accordion>/g;
@@ -456,14 +461,14 @@ function renderAccordionChildren(content: string): React.ReactNode[] {
     const props = parseAttributes(attrStr);
 
     accordions.push(
-      <PreviewAccordion
+      <Accordion
         key={idx}
         title={props.title as string}
         icon={props.icon as string}
         defaultOpen={props.defaultOpen === true || props.defaultOpen === "true"}
       >
-        {childContent}
-      </PreviewAccordion>
+        {childContent || ""}
+      </Accordion>
     );
     idx++;
   }

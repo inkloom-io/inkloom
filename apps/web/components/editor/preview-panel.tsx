@@ -10,6 +10,10 @@ import {
   type ThemeColors,
 } from "@/lib/theme-presets";
 import { MDXPreviewRenderer } from "@/lib/parse-mdx-preview";
+import { DocsRendererProvider } from "@inkloom/docs-renderer";
+import "@inkloom/docs-renderer/styles";
+import { highlightCode } from "@/lib/syntax-highlighter";
+import { generateThemeSpecificCss } from "@/lib/generate-site";
 import { ChevronRight, Home, Search, Sun, Moon } from "lucide-react";
 import { IconDisplay } from "./icon-picker";
 import "./preview-styles.css";
@@ -157,6 +161,34 @@ function getThemeCSSVars(
   };
 }
 
+/** Simple link wrapper for preview — links don't navigate in preview mode */
+function PreviewLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+  target?: string;
+  rel?: string;
+}) {
+  return (
+    <a href={href} className={className} onClick={(e) => e.preventDefault()}>
+      {children}
+    </a>
+  );
+}
+
+/** Adapter: wraps the app's highlightCode to match DocsRendererProvider's expected signature */
+async function highlightCodeForRenderer(
+  code: string,
+  language: string
+): Promise<string> {
+  const result = await highlightCode(code, language);
+  return result.html;
+}
+
 export function PreviewPanel({
   content,
   pageTitle,
@@ -260,125 +292,137 @@ export function PreviewPanel({
     fontFamily: activeVars["--font-sans"],
   } as React.CSSProperties;
 
+  // Generate theme-specific CSS for component styling (callouts, code blocks, etc.)
+  const themeSpecificCss = generateThemeSpecificCss(themePreset);
+
   return (
-    <div
-      className="preview-container flex h-full flex-col"
-      style={containerStyle}
+    <DocsRendererProvider
+      LinkComponent={PreviewLink}
+      highlightCode={highlightCodeForRenderer}
     >
-      {/* Inject fonts */}
-      <style>{`@import url('${fontsUrl}');`}</style>
-      <div className="preview-header sticky top-0 z-10 border-b border-[var(--color-header-border)]">
-        <div className="flex h-12 items-center justify-between px-5">
-          <span
-            className="text-sm font-semibold"
-            style={{
-              fontFamily: "var(--font-display)",
-              color: "var(--color-foreground)",
-            }}
-          >
-            {t("docs")}
-          </span>
-          <div className="flex items-center gap-2">
-            <div
-              className="preview-search-trigger flex h-8 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-2.5 text-xs"
-              style={{ color: "var(--color-muted-foreground)" }}
-            >
-              <Search className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{t("searchPlaceholder")}</span>
-              <kbd
-                className="ml-1 hidden rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-muted)] px-1.5 py-0.5 text-[0.6875rem] sm:inline"
-                style={{ fontFamily: "var(--font-mono)" }}
-              >
-                ⌘K
-              </kbd>
-            </div>
-            {/* Preview theme toggle */}
-            <button
-              onClick={() =>
-                setPreviewTheme(previewTheme === "dark" ? "light" : "dark")
-              }
-              className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] transition-colors"
+      <div
+        className="preview-container flex h-full flex-col"
+        style={containerStyle}
+      >
+        {/* Inject fonts */}
+        <style>{`@import url('${fontsUrl}');`}</style>
+        {/* Inject theme-specific CSS for component styling */}
+        {themeSpecificCss && (
+          <style>{themeSpecificCss}</style>
+        )}
+        <div className="preview-header sticky top-0 z-10 border-b border-[var(--color-header-border)]">
+          <div className="flex h-12 items-center justify-between px-5">
+            <span
+              className="text-sm font-semibold"
               style={{
-                color: "var(--color-muted-foreground)",
-                backgroundColor: "var(--color-background)",
+                fontFamily: "var(--font-display)",
+                color: "var(--color-foreground)",
               }}
-              aria-label={t("toggleTheme")}
             >
-              {isDark ? (
-                <Sun className="h-3.5 w-3.5" />
-              ) : (
-                <Moon className="h-3.5 w-3.5" />
-              )}
-            </button>
+              {t("docs")}
+            </span>
+            <div className="flex items-center gap-2">
+              <div
+                className="preview-search-trigger flex h-8 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-2.5 text-xs"
+                style={{ color: "var(--color-muted-foreground)" }}
+              >
+                <Search className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t("searchPlaceholder")}</span>
+                <kbd
+                  className="ml-1 hidden rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-muted)] px-1.5 py-0.5 text-[0.6875rem] sm:inline"
+                  style={{ fontFamily: "var(--font-mono)" }}
+                >
+                  ⌘K
+                </kbd>
+              </div>
+              {/* Preview theme toggle */}
+              <button
+                onClick={() =>
+                  setPreviewTheme(previewTheme === "dark" ? "light" : "dark")
+                }
+                className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] transition-colors"
+                style={{
+                  color: "var(--color-muted-foreground)",
+                  backgroundColor: "var(--color-background)",
+                }}
+                aria-label={t("toggleTheme")}
+              >
+                {isDark ? (
+                  <Sun className="h-3.5 w-3.5" />
+                ) : (
+                  <Moon className="h-3.5 w-3.5" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="flex-1 overflow-auto px-8 py-6">
-        <nav
-          className="mb-4 flex items-center gap-1 text-sm"
-          style={{ color: "var(--color-muted-foreground)" }}
-        >
-          <Home className="h-3.5 w-3.5 shrink-0" />
-          {breadcrumbTrail.map((segment: any, i: number) => (
-            <span key={i} className="flex items-center gap-1">
-              <ChevronRight className="mx-0.5 h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{segment}</span>
-            </span>
-          ))}
-          <ChevronRight className="mx-0.5 h-3.5 w-3.5 shrink-0" />
-          <span
-            className="truncate font-medium"
-            style={{ color: "var(--color-foreground)" }}
+        <div className="flex-1 overflow-auto px-8 py-6">
+          <nav
+            className="mb-4 flex items-center gap-1 text-sm"
+            style={{ color: "var(--color-muted-foreground)" }}
           >
-            {pageTitle}
-          </span>
-        </nav>
-        {!titleSectionHidden && (
-          <>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-3">
-                {pageIcon && !titleIconHidden && (
-                  <div className="mt-0.5 shrink-0">
-                    <IconDisplay
-                      icon={pageIcon}
-                      className="h-7 w-7 text-[1.5rem]"
-                    />
-                  </div>
-                )}
-                <h1
-                  className="text-3xl font-bold tracking-tight"
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    letterSpacing: "-0.03em",
-                    lineHeight: 1.2,
-                    color: "var(--color-foreground)",
-                  }}
-                >
-                  {pageTitle}
-                </h1>
-              </div>
-              <div className="min-w-0">
-                {pageSubtitle && (
-                  <p
-                    className="mt-2 text-base"
-                    style={{ color: "var(--color-muted-foreground)" }}
+            <Home className="h-3.5 w-3.5 shrink-0" />
+            {breadcrumbTrail.map((segment: any, i: number) => (
+              <span key={i} className="flex items-center gap-1">
+                <ChevronRight className="mx-0.5 h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{segment}</span>
+              </span>
+            ))}
+            <ChevronRight className="mx-0.5 h-3.5 w-3.5 shrink-0" />
+            <span
+              className="truncate font-medium"
+              style={{ color: "var(--color-foreground)" }}
+            >
+              {pageTitle}
+            </span>
+          </nav>
+          {!titleSectionHidden && (
+            <>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-3">
+                  {pageIcon && !titleIconHidden && (
+                    <div className="mt-0.5 shrink-0">
+                      <IconDisplay
+                        icon={pageIcon}
+                        className="h-7 w-7 text-[1.5rem]"
+                      />
+                    </div>
+                  )}
+                  <h1
+                    className="text-3xl font-bold tracking-tight"
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      letterSpacing: "-0.03em",
+                      lineHeight: 1.2,
+                      color: "var(--color-foreground)",
+                    }}
                   >
-                    {pageSubtitle}
-                  </p>
-                )}
+                    {pageTitle}
+                  </h1>
+                </div>
+                <div className="min-w-0">
+                  {pageSubtitle && (
+                    <p
+                      className="mt-2 text-base"
+                      style={{ color: "var(--color-muted-foreground)" }}
+                    >
+                      {pageSubtitle}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-            {/* Divider — full width, break out of px-6 padding. mt-4 matches editor. */}
-            <hr
-              className="-mx-6 mt-4 mb-6"
-              style={{ borderColor: "var(--color-border)" }}
-            />
-          </>
-        )}
-        <article className="prose mx-auto">
-          <MDXPreviewRenderer content={markdown} />
-        </article>
+              {/* Divider — full width, break out of px-6 padding. mt-4 matches editor. */}
+              <hr
+                className="-mx-6 mt-4 mb-6"
+                style={{ borderColor: "var(--color-border)" }}
+              />
+            </>
+          )}
+          <article className="prose mx-auto">
+            <MDXPreviewRenderer content={markdown} />
+          </article>
+        </div>
       </div>
-    </div>
+    </DocsRendererProvider>
   );
 }
