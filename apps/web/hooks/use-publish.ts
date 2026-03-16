@@ -50,6 +50,8 @@ export interface UsePublishReturn {
   isPublishing: boolean;
   /** The latest deployment record for the project. */
   latestDeployment: Doc<"deployments"> | undefined;
+  /** The most recent deployment with status "ready" (for view-site links). */
+  lastSuccessfulDeployment: Doc<"deployments"> | undefined;
   /** The tracked in-progress deployment (for progress UI). */
   trackedDeployment:
     | { buildPhase?: string; status?: string; url?: string }
@@ -113,6 +115,9 @@ export function usePublish({
   });
 
   const latestDeployment = deployments?.[0];
+  const lastSuccessfulDeployment = deployments?.find(
+    (d) => d.status === "ready"
+  );
 
   const inProgressDeployment = useQuery(
     api.deployments.getInProgressDeployment,
@@ -348,6 +353,7 @@ export function usePublish({
     resetDeployment,
     isPublishing,
     latestDeployment,
+    lastSuccessfulDeployment,
     trackedDeployment,
     unpublishedChanges: effectiveUnpublishedChanges,
     actionLabel: deployAdapter.actionLabel,

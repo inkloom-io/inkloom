@@ -226,6 +226,7 @@ export function EditorToolbar({
     resetDeployment,
     isPublishing,
     latestDeployment,
+    lastSuccessfulDeployment,
     trackedDeployment,
     unpublishedChanges,
   } = usePublish({ project, branchId });
@@ -679,10 +680,9 @@ export function EditorToolbar({
   const productionUrl = project.cfSlug
     ? getProductionUrl(project.cfSlug, activeCustomDomain)
     : undefined;
-  const deploymentUrl = latestDeployment?.url;
+  const deploymentUrl = lastSuccessfulDeployment?.url;
   const viewSiteUrl = target === "production" ? productionUrl : deploymentUrl;
-  const hasDeployedSite =
-    latestDeployment && latestDeployment.status === "ready" && deploymentUrl;
+  const hasDeployedSite = lastSuccessfulDeployment && (target === "production" ? productionUrl : deploymentUrl);
 
   return (
     <div className="relative z-10 flex h-12 items-center justify-between border-b border-[var(--glass-divider)] bg-[var(--surface-bg)] px-3">
