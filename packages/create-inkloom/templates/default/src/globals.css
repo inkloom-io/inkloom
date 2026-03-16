@@ -68,7 +68,7 @@ body {
    ============================================================================ */
 
 .prose {
-  max-width: 65ch;
+  max-width: 75ch;
   color: var(--color-foreground);
 }
 
