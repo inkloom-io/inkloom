@@ -245,10 +245,13 @@ export const hasUnpublishedChanges = query({
 
     // Get current folders and recompute paths from parent chain
     // (mirrors the publish route's computePath logic)
-    const rawFolders = await ctx.db
+    const allFolders = await ctx.db
       .query("folders")
       .withIndex("by_branch", (q: any) => q.eq("branchId", resolvedBranchId))
       .collect();
+    // Filter out aiPendingReview folders to match what deploy hashes
+    // (see folders.ts listByBranch which excludes aiPendingReview)
+    const rawFolders = allFolders.filter((f: any) => !f.aiPendingReview);
 
     const folderMap = new Map(rawFolders.map((f: any) => [f._id, f]));
     function computePath(folder: typeof rawFolders[number]): string {
@@ -264,10 +267,13 @@ export const hasUnpublishedChanges = query({
     const folders = rawFolders.map((f: any) => ({ ...f, path: computePath(f) }));
 
     // Get current pages and recompute paths from folder paths
-    const rawPages = await ctx.db
+    const allPages = await ctx.db
       .query("pages")
       .withIndex("by_branch", (q: any) => q.eq("branchId", resolvedBranchId))
       .collect();
+    // Filter out aiPendingReview pages to match what deploy hashes
+    // (see pages.ts listByBranch which excludes aiPendingReview)
+    const rawPages = allPages.filter((p: any) => !p.aiPendingReview);
 
     const pagesWithFixedPaths = rawPages.map((page: any) => {
       if (!page.folderId) {
