@@ -409,10 +409,14 @@ export default function EditorPage({ params }: EditorPageProps) {
 
   const handleContentChange = useCallback(
     (content: string) => {
-      if (!selectedPageId) return;
+      if (!selectedPageId) {
+        return;
+      }
 
       // Don't persist content changes while in read-only mode during collaboration connection
-      if (isCollaborationEnabled && !isCollaborationReady) return;
+      if (isCollaborationEnabled && !isCollaborationReady) {
+        return;
+      }
 
       // Always update local content so the preview panel shows the latest state
       setEditorContent(content);

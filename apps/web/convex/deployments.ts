@@ -221,7 +221,12 @@ export const hasUnpublishedChanges = query({
 
     const resolvedBranchId = args.branchId || project.defaultBranchId;
 
-    // Get deployments for this branch, find latest ready per target
+    // Get deployments for this branch, find latest deployed per target.
+    // We look for deployments that have contentHashes (set at "propagating"
+    // phase when CF upload succeeds), not just status "ready". This closes
+    // the race window where the client sees success at "propagating" but the
+    // query can't see the new hashes because the deployment hasn't reached
+    // "ready" yet (status update is fire-and-forget from the deploy route).
     const deployments = await ctx.db
       .query("deployments")
       .withIndex("by_branch", (q: any) => q.eq("branchId", resolvedBranchId))
@@ -229,10 +234,18 @@ export const hasUnpublishedChanges = query({
       .collect();
 
     const latestReadyPreview = deployments.find(
-      (d: any) => d.status === "ready" && d.target === "preview"
+      (d: any) =>
+        d.contentHashes &&
+        d.target === "preview" &&
+        d.status !== "error" &&
+        d.status !== "canceled"
     );
     const latestReadyProduction = deployments.find(
-      (d: any) => d.status === "ready" && d.target === "production"
+      (d: any) =>
+        d.contentHashes &&
+        d.target === "production" &&
+        d.status !== "error" &&
+        d.status !== "canceled"
     );
 
     // If neither target has a deployment, skip expensive hash computation

@@ -97,6 +97,7 @@ export function usePublish({
   const [deployedTarget, setDeployedTarget] = useState<{
     target: string;
     deploymentId: string;
+    setAt: number;
   } | null>(null);
 
   // Guard: when the user explicitly resets, prevent the resume-tracking effect
@@ -189,7 +190,7 @@ export function usePublish({
           deploymentId: deployment.deploymentId,
           url: current.url,
         });
-        setDeployedTarget({ target, deploymentId: deployment.deploymentId });
+        setDeployedTarget({ target, deploymentId: deployment.deploymentId, setAt: Date.now() });
       } else if (
         current?.status === "error" ||
         current?.status === "canceled"
@@ -216,8 +217,19 @@ export function usePublish({
   // 2. The specific deployment reached "ready" status — this guarantees the
   //    override is temporary even if the user edited content during the deploy
   //    window, which would otherwise prevent condition 1 from ever being met.
+  // 3. Safety timeout: 30 seconds after the override was set. This prevents
+  //    permanent stuck state if the fire-and-forget CF polling in the deploy
+  //    route never completes (e.g., serverless runtime killed the background
+  //    IIFE before it could update the deployment status to "ready").
   useEffect(() => {
     if (!deployedTarget) return;
+
+    // Condition 3 (safety timeout): clear override after 30s regardless.
+    const elapsed = Date.now() - deployedTarget.setAt;
+    if (elapsed >= 30_000) {
+      setDeployedTarget(null);
+      return;
+    }
 
     // Condition 1: Convex query caught up — no unpublished changes for target.
     const targetKey = deployedTarget.target as "preview" | "production";
@@ -237,6 +249,14 @@ export function usePublish({
         setDeployedTarget(null);
       }
     }
+
+    // Schedule a re-check when the safety timeout expires
+    const remaining = 30_000 - elapsed;
+    const timer = setTimeout(() => {
+      // Force a state update to trigger re-evaluation of this effect
+      setDeployedTarget((prev) => prev ? { ...prev } : null);
+    }, remaining + 100);
+    return () => clearTimeout(timer);
   }, [deployedTarget, unpublishedChanges, deployments]);
 
   const isPublishing =
