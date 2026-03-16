@@ -207,6 +207,14 @@ export const coreTables = {
             url: v.string(),
           })
         ),
+        migrationRedirects: v.optional(
+          v.array(
+            v.object({
+              from: v.string(),
+              to: v.string(),
+            })
+          )
+        ),
       })
     ),
     plan: v.optional(

@@ -221,6 +221,64 @@ export const createFromImport = mutation({
         isPublished: v.boolean(),
       })
     ),
+    navTabs: v.optional(
+      v.array(
+        v.object({
+          id: v.string(),
+          name: v.string(),
+          slug: v.string(),
+          icon: v.optional(v.string()),
+          /** Path of the folder this tab roots (resolved to folderId after creation). */
+          folderPath: v.optional(v.string()),
+          /** Items referencing folders/pages by path (resolved to IDs after creation). */
+          items: v.optional(
+            v.array(
+              v.union(
+                v.object({
+                  type: v.literal("folder"),
+                  folderPath: v.string(),
+                }),
+                v.object({
+                  type: v.literal("page"),
+                  pagePath: v.string(),
+                })
+              )
+            )
+          ),
+        })
+      )
+    ),
+    branding: v.optional(
+      v.object({
+        primaryColor: v.optional(v.string()),
+        logoAssetId: v.optional(v.id("assets")),
+        logoDarkAssetId: v.optional(v.id("assets")),
+        logoLightAssetId: v.optional(v.id("assets")),
+        faviconAssetId: v.optional(v.id("assets")),
+        socialLinks: v.optional(
+          v.array(
+            v.object({
+              platform: v.union(
+                v.literal("github"),
+                v.literal("x"),
+                v.literal("discord"),
+                v.literal("linkedin"),
+                v.literal("youtube")
+              ),
+              url: v.string(),
+            })
+          )
+        ),
+      })
+    ),
+    migrationRedirects: v.optional(
+      v.array(
+        v.object({
+          from: v.string(),
+          to: v.string(),
+        })
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const slug = slugify(args.name);
@@ -281,7 +339,9 @@ export const createFromImport = mutation({
       folderIdByPath[folder.path] = folderId;
     }
 
-    // Create pages
+    // Create pages (track path -> pageId)
+    const pageIdByPath: Record<string, Id<"pages">> = {};
+
     for (const page of args.pages) {
       const folderId = page.folderPath
         ? folderIdByPath[page.folderPath]
@@ -298,10 +358,78 @@ export const createFromImport = mutation({
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
+      pageIdByPath[page.path] = pageId;
 
       await ctx.db.insert("pageContents", {
         pageId,
         content: page.content,
+        updatedAt: Date.now(),
+      });
+    }
+
+    // Build project settings from navTabs, branding, and migrationRedirects
+    const settings: Record<string, unknown> = {};
+
+    if (args.navTabs && args.navTabs.length > 0) {
+      settings.navTabs = args.navTabs.map((tab) => {
+        const resolved: Record<string, unknown> = {
+          id: tab.id,
+          name: tab.name,
+          slug: tab.slug,
+        };
+        if (tab.icon) {
+          resolved.icon = tab.icon;
+        }
+        if (tab.folderPath && folderIdByPath[tab.folderPath]) {
+          resolved.folderId = folderIdByPath[tab.folderPath];
+        }
+        if (tab.items) {
+          resolved.items = tab.items
+            .map((item) => {
+              if (item.type === "folder") {
+                const fId = folderIdByPath[item.folderPath];
+                if (fId) return { type: "folder" as const, folderId: fId };
+              } else {
+                const pId = pageIdByPath[item.pagePath];
+                if (pId) return { type: "page" as const, pageId: pId };
+              }
+              return null;
+            })
+            .filter((item): item is NonNullable<typeof item> => item !== null);
+        }
+        return resolved;
+      });
+    }
+
+    if (args.branding) {
+      if (args.branding.primaryColor) {
+        settings.primaryColor = args.branding.primaryColor;
+      }
+      if (args.branding.logoAssetId) {
+        settings.logoAssetId = args.branding.logoAssetId;
+      }
+      if (args.branding.logoDarkAssetId) {
+        settings.logoDarkAssetId = args.branding.logoDarkAssetId;
+      }
+      if (args.branding.logoLightAssetId) {
+        settings.logoLightAssetId = args.branding.logoLightAssetId;
+      }
+      if (args.branding.faviconAssetId) {
+        settings.faviconAssetId = args.branding.faviconAssetId;
+      }
+      if (args.branding.socialLinks) {
+        settings.socialLinks = args.branding.socialLinks;
+      }
+    }
+
+    if (args.migrationRedirects && args.migrationRedirects.length > 0) {
+      settings.migrationRedirects = args.migrationRedirects;
+    }
+
+    // Patch project with settings if any were provided
+    if (Object.keys(settings).length > 0) {
+      await ctx.db.patch(projectId, {
+        settings,
         updatedAt: Date.now(),
       });
     }
