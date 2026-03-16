@@ -9,7 +9,7 @@
   border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
 }
 
-.dark .bn-code-block {
+:root.dark .bn-code-block {
   background: var(--editor-code-background, #1e1e1e);
 }
 
@@ -22,7 +22,7 @@
   background: var(--editor-code-background, #f6f8fa);
 }
 
-.dark .bn-code-block[data-in-group="true"] {
+:root.dark .bn-code-block[data-in-group="true"] {
   background: var(--editor-code-background, #1e1e1e);
 }
 
@@ -74,7 +74,7 @@
   text-transform: none;
 }
 
-.dark .bn-code-block-language-select option {
+:root.dark .bn-code-block-language-select option {
   background: #1f2937;
   color: #f9fafb;
 }
@@ -170,7 +170,7 @@
 }
 
 /* Dark mode: make textarea text transparent so Shiki highlight layer shows through */
-.dark .bn-code-textarea {
+:root.dark .bn-code-textarea {
   color: transparent;
   caret-color: var(--editor-foreground, #e5e5e5);
 }
@@ -277,8 +277,8 @@
 }
 
 /* Dark mode: switch to Shiki's dark variant colors via CSS custom properties */
-.dark .bn-code-block .shiki,
-.dark .bn-code-block .shiki span {
+:root.dark .bn-code-block .shiki,
+:root.dark .bn-code-block .shiki span {
   color: var(--shiki-dark) !important;
   background-color: transparent !important;
   font-style: var(--shiki-dark-font-style) !important;
