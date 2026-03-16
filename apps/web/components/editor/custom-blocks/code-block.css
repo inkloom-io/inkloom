@@ -5,8 +5,12 @@
   margin: 8px 0;
   border-radius: 8px;
   overflow: hidden;
-  background: var(--editor-code-background, #1e1e1e);
+  background: var(--editor-code-background, #f6f8fa);
   border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+}
+
+.dark .bn-code-block {
+  background: var(--editor-code-background, #1e1e1e);
 }
 
 /* Code blocks in a group - continues the container from CodeGroup above */
@@ -15,6 +19,10 @@
   border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
   border-top: none;
   border-radius: 0 0 12px 12px;
+  background: var(--editor-code-background, #f6f8fa);
+}
+
+.dark .bn-code-block[data-in-group="true"] {
   background: var(--editor-code-background, #1e1e1e);
 }
 
@@ -222,24 +230,34 @@
 }
 
 /* ============================================================================
-   SHIKI DUAL THEME - Dark mode syntax highlighting for editor code blocks
+   SHIKI DUAL THEME - Syntax highlighting for editor code blocks
+   ============================================================================
+
+   Shiki with defaultColor:"light" generates:
+     - inline style="color:<github-light-color>;--shiki-dark:<github-dark-color>"
+     - <pre> gets style="background-color:#fff;--shiki-dark-bg:#24292e"
+
+   Light mode: The inline `color` values ARE the github-light colors (dark text
+   designed for light backgrounds). We let them through as-is for proper syntax
+   highlighting. We only strip per-token backgrounds.
+
+   Dark mode: We override `color` with var(--shiki-dark) to switch to the
+   github-dark color palette.
    ============================================================================ */
 
 /* Force transparent backgrounds on all syntax tokens in both modes.
-   Shiki themes (github-light / github-dark) set per-token background-color
-   via inline styles and CSS custom properties. These token backgrounds are
-   visible against the code block container background and look wrong. */
+   Shiki themes set per-token background-color via inline styles that look
+   wrong against the code block container background. */
 .bn-code-block .shiki span {
   background-color: transparent !important;
 }
 
-/* Light mode: override Shiki token colors to be readable */
-.bn-code-block .shiki,
-.bn-code-block .shiki span {
-  color: var(--editor-code-foreground, hsl(222 47% 11%)) !important;
-}
+/* Light mode: Shiki's inline github-light colors are already correct
+   (dark text on light background). No color override needed — this preserves
+   full syntax highlighting. Only strip the <pre> background so the container
+   background shows through. */
 
-/* Dark mode: use Shiki dark variant colors */
+/* Dark mode: switch to Shiki's dark variant colors via CSS custom properties */
 .dark .bn-code-block .shiki,
 .dark .bn-code-block .shiki span {
   color: var(--shiki-dark) !important;
