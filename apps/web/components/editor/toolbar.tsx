@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -213,6 +213,7 @@ export function EditorToolbar({
   const [reactionsOpen, setReactionsOpen] = useState(false);
   const [versionMessage, setVersionMessage] = useState("");
   const [publishedHoverOpen, setPublishedHoverOpen] = useState(false);
+  const publishedHoverTimer = useRef<NodeJS.Timeout | null>(null);
   const [isSavingVersion, setIsSavingVersion] = useState(false);
   const createVersion = useMutation(api.pages.createVersion);
 
@@ -1037,11 +1038,17 @@ export function EditorToolbar({
               <span
                 className="inline-flex"
                 onMouseEnter={() => {
+                  if (publishedHoverTimer.current) {
+                    clearTimeout(publishedHoverTimer.current);
+                    publishedHoverTimer.current = null;
+                  }
                   if (hasChanges === false && !showSaving && !isPublishing) {
                     setPublishedHoverOpen(true);
                   }
                 }}
-                onMouseLeave={() => setPublishedHoverOpen(false)}
+                onMouseLeave={() => {
+                  publishedHoverTimer.current = setTimeout(() => setPublishedHoverOpen(false), 200);
+                }}
               >
                 <DialogTrigger asChild>
                   <button
@@ -1084,13 +1091,20 @@ export function EditorToolbar({
                 side="bottom"
                 align="end"
                 className="w-auto max-w-56 px-3 py-2"
+                onMouseEnter={() => {
+                  if (publishedHoverTimer.current) {
+                    clearTimeout(publishedHoverTimer.current);
+                    publishedHoverTimer.current = null;
+                  }
+                }}
+                onMouseLeave={() => setPublishedHoverOpen(false)}
               >
                 <p className="text-xs text-muted-foreground">
                   {t("publishedUpToDate")}
                 </p>
                 <button
                   type="button"
-                  className="mt-1 text-xs font-medium text-primary hover:underline"
+                  className="mt-1 text-xs font-medium text-primary hover:underline focus:outline-none focus-visible:outline-none"
                   onClick={() => {
                     setPublishedHoverOpen(false);
                     resetDeployment();
