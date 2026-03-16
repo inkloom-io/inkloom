@@ -382,6 +382,7 @@
       "productTitle": "Product",
       "productFeatures": "Features",
       "productPricing": "Pricing",
+      "productSelfHost": "Self-Host",
       "resourcesTitle": "Resources",
       "resourcesDocs": "Documentation",
       "resourcesApiRef": "API Reference",
