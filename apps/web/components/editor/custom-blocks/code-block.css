@@ -252,10 +252,23 @@
   background-color: transparent !important;
 }
 
-/* Light mode: Shiki's inline github-light colors are already correct
-   (dark text on light background). No color override needed — this preserves
-   full syntax highlighting. Only strip the <pre> background so the container
-   background shows through. */
+/* Light mode: FORCE dark text color on all Shiki tokens.
+   Shiki's github-light inline styles are unreliable — they produce
+   near-invisible text on light backgrounds for some content.
+   This sacrifices per-token syntax highlighting colors in light mode
+   for guaranteed readability. */
+.bn-code-block .shiki,
+.bn-code-block .shiki span,
+.bn-code-block .bn-code-highlight-layer pre,
+.bn-code-block .bn-code-highlight-layer code,
+.bn-code-block .bn-code-highlight-layer span {
+  color: var(--editor-code-foreground, #24292e) !important;
+}
+
+/* Also handle the fallback case when Shiki hasn't loaded yet */
+.bn-code-block .bn-code-highlight-layer pre > code {
+  color: var(--editor-code-foreground, #24292e) !important;
+}
 
 /* Dark mode: switch to Shiki's dark variant colors via CSS custom properties */
 .dark .bn-code-block .shiki,

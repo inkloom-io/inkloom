@@ -41,6 +41,14 @@
   background-color: transparent !important;
 }
 
+/* Light mode: FORCE dark text color on all Shiki tokens.
+   Shiki's github-light inline styles are unreliable — they produce
+   near-invisible text on light backgrounds for some content. */
+.preview-container .shiki,
+.preview-container .shiki span {
+  color: var(--color-code-foreground, #24292e) !important;
+}
+
 /* Dark mode: switch Shiki colors using the preview's own theme toggle */
 .preview-container[data-preview-theme="dark"] .shiki,
 .preview-container[data-preview-theme="dark"] .shiki span {
