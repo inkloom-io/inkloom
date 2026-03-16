@@ -1,27 +1,41 @@
 import { Sun, Moon, Monitor } from "lucide-react";
 import { useTheme } from "@/src/theme-provider";
 
-const cycle = { system: "light", light: "dark", dark: "system" } as const;
+const options = [
+  { value: "light", icon: Sun, label: "Light" },
+  { value: "dark", icon: Moon, label: "Dark" },
+  { value: "system", icon: Monitor, label: "System" },
+] as const;
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
-  const Icon = theme === "light" ? Sun : theme === "dark" ? Moon : Monitor;
-  const label =
-    theme === "light"
-      ? "Switch to dark mode"
-      : theme === "dark"
-        ? "Switch to system mode"
-        : "Switch to light mode";
-
   return (
-    <button
-      onClick={() => setTheme(cycle[theme])}
-      aria-label={label}
-      title={label}
-      className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-muted-foreground)] transition-colors hover:border-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] cursor-pointer"
+    <div
+      role="radiogroup"
+      aria-label="Theme"
+      className="flex gap-0.5 rounded-full border border-[var(--color-border)] bg-[var(--color-muted)] p-0.5"
     >
-      <Icon className="h-4 w-4" />
-    </button>
+      {options.map(({ value, icon: Icon, label }) => {
+        const isActive = theme === value;
+        return (
+          <button
+            key={value}
+            role="radio"
+            aria-checked={isActive}
+            aria-label={label}
+            title={label}
+            onClick={() => setTheme(value)}
+            className={`flex items-center justify-center rounded-full p-1.5 transition-colors cursor-pointer ${
+              isActive
+                ? "bg-[var(--color-background)] text-[var(--color-foreground)] shadow-sm"
+                : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+          </button>
+        );
+      })}
+    </div>
   );
 }
