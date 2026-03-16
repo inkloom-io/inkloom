@@ -638,21 +638,21 @@ html {
 /* Subtle gradient mesh background */
 body {
   background-image:
-    radial-gradient(at 0% 0%, hsl(238 84% 67% / 0.08) 0%, transparent 50%),
-    radial-gradient(at 100% 0%, hsl(280 84% 60% / 0.06) 0%, transparent 50%),
-    radial-gradient(at 50% 100%, hsl(217 91% 60% / 0.04) 0%, transparent 50%);
+    radial-gradient(at 0% 0%, color-mix(in srgb, var(--color-primary) 8%, transparent) 0%, transparent 50%),
+    radial-gradient(at 100% 0%, color-mix(in srgb, var(--color-primary) 6%, transparent) 0%, transparent 50%),
+    radial-gradient(at 50% 100%, color-mix(in srgb, var(--color-primary) 4%, transparent) 0%, transparent 50%);
   background-attachment: fixed;
 }
 
 /* Glowing header border */
 .site-header {
   border-bottom: 1px solid var(--color-header-border);
-  box-shadow: 0 1px 0 0 hsl(238 84% 67% / 0.2);
+  box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 /* Sidebar active state with glow */
 .sidebar-link-active {
-  box-shadow: 0 0 0 1px hsl(238 84% 67% / 0.3), 0 2px 16px -2px hsl(238 84% 67% / 0.25);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 30%, transparent), 0 2px 16px -2px color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
 /* Code blocks with gradient border */
@@ -660,12 +660,12 @@ body {
   border: 1px solid transparent;
   background:
     linear-gradient(var(--color-code-background), var(--color-code-background)) padding-box,
-    linear-gradient(135deg, hsl(238 84% 67% / 0.3), hsl(280 84% 60% / 0.2), hsl(217 91% 60% / 0.3)) border-box;
+    linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 30%, transparent), color-mix(in srgb, var(--color-primary) 20%, transparent), color-mix(in srgb, var(--color-primary) 30%, transparent)) border-box;
 }
 
 /* Links with subtle glow on hover */
 .prose a:hover {
-  text-shadow: 0 0 20px hsl(238 84% 67% / 0.3);
+  text-shadow: 0 0 20px color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 /* Callouts with gradient accents */
@@ -681,7 +681,7 @@ body {
   left: 0;
   width: 3px;
   height: 100%;
-  background: linear-gradient(180deg, var(--color-primary), hsl(280 84% 60%));
+  background: linear-gradient(180deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 60%, transparent));
   border-radius: 3px 0 0 3px;
 }
 
@@ -695,12 +695,12 @@ body {
 
 /* Button glow effect */
 .btn-primary {
-  box-shadow: 0 0 0 0 hsl(238 84% 67% / 0);
+  box-shadow: 0 0 0 0 transparent;
   transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-  box-shadow: 0 0 20px 0 hsl(238 84% 67% / 0.3);
+  box-shadow: 0 0 20px 0 color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 `;
 }
@@ -1022,8 +1022,8 @@ html {
 body {
   background-color: var(--color-background);
   background-image:
-    radial-gradient(at 0% 0%, hsl(210 90% 60% / 0.04) 0%, transparent 50%),
-    radial-gradient(at 100% 100%, hsl(210 90% 60% / 0.03) 0%, transparent 50%);
+    radial-gradient(at 0% 0%, color-mix(in srgb, var(--color-primary) 4%, transparent) 0%, transparent 50%),
+    radial-gradient(at 100% 100%, color-mix(in srgb, var(--color-primary) 3%, transparent) 0%, transparent 50%);
   background-attachment: fixed;
 }
 
@@ -1464,8 +1464,8 @@ html {
 body {
   background-color: var(--color-background);
   background-image:
-    radial-gradient(at 20% 30%, hsl(174 75% 52% / 0.06) 0%, transparent 50%),
-    radial-gradient(at 80% 70%, hsl(190 60% 50% / 0.04) 0%, transparent 50%);
+    radial-gradient(at 20% 30%, color-mix(in srgb, var(--color-primary) 6%, transparent) 0%, transparent 50%),
+    radial-gradient(at 80% 70%, color-mix(in srgb, var(--color-primary) 4%, transparent) 0%, transparent 50%);
   background-attachment: fixed;
 }
 
@@ -1626,8 +1626,8 @@ html {
 body {
   background-color: var(--color-background);
   background-image:
-    radial-gradient(at 50% 0%, hsl(275 30% 14%) 0%, transparent 60%),
-    radial-gradient(at 100% 50%, hsl(42 50% 50% / 0.03) 0%, transparent 40%);
+    radial-gradient(at 50% 0%, color-mix(in srgb, var(--color-primary) 15%, var(--color-background)) 0%, transparent 60%),
+    radial-gradient(at 100% 50%, color-mix(in srgb, var(--color-primary) 3%, transparent) 0%, transparent 40%);
   background-attachment: fixed;
 }
 
@@ -1665,7 +1665,7 @@ body {
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   border-top: 2px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
-  box-shadow: 0 4px 16px -4px rgb(40 20 60 / 0.2);
+  box-shadow: 0 4px 16px -4px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 /* Blockquotes — luxurious pull-quote with gold rule */
@@ -1746,7 +1746,7 @@ body {
   border-right: none;
   border-bottom: none;
   background: var(--color-background-subtle);
-  box-shadow: 0 2px 12px -4px rgb(40 20 60 / 0.12);
+  box-shadow: 0 2px 12px -4px color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 
 /* Inline code — plum tinted */
