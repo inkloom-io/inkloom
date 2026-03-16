@@ -87,6 +87,12 @@ export function usePublish({
     status: "idle",
   });
 
+  // After a successful deploy, locally override `hasChanges` to `false` for
+  // the deployed target until the Convex query re-evaluates with the new
+  // content hashes. This closes the race window where the button briefly
+  // shows "Publish" (enabled) between deploy success and query confirmation.
+  const [deployedTarget, setDeployedTarget] = useState<string | null>(null);
+
   // Guard: when the user explicitly resets, prevent the resume-tracking effect
   // from immediately transitioning back to "polling" in the same render cycle.
   const justResetRef = useRef(false);
@@ -177,6 +183,7 @@ export function usePublish({
           deploymentId: deployment.deploymentId,
           url: current.url,
         });
+        setDeployedTarget(target);
       } else if (
         current?.status === "error" ||
         current?.status === "canceled"
@@ -197,6 +204,17 @@ export function usePublish({
   // ---------------------------------------------------------------------------
   // Derived state
   // ---------------------------------------------------------------------------
+
+  // Clear the deployed-target override once the Convex query confirms no
+  // unpublished changes for that target (i.e. the reactive query caught up).
+  useEffect(() => {
+    if (
+      deployedTarget &&
+      unpublishedChanges?.[deployedTarget as "preview" | "production"] === false
+    ) {
+      setDeployedTarget(null);
+    }
+  }, [deployedTarget, unpublishedChanges]);
 
   const isPublishing =
     deployment.status === "publishing" || deployment.status === "polling";
@@ -268,8 +286,21 @@ export function usePublish({
 
   const resetDeployment = useCallback(() => {
     justResetRef.current = true;
+    setDeployedTarget(null);
     setDeployment({ status: "idle" });
   }, []);
+
+  // Override unpublished-changes for the just-deployed target so downstream
+  // consumers (e.g. the toolbar button) immediately see `false` after a
+  // successful deploy, even before the Convex query re-evaluates.
+  const effectiveUnpublishedChanges = unpublishedChanges
+    ? {
+        ...unpublishedChanges,
+        ...(deployedTarget
+          ? { [deployedTarget]: false as const }
+          : {}),
+      }
+    : undefined;
 
   return {
     deployment,
@@ -280,7 +311,7 @@ export function usePublish({
     isPublishing,
     latestDeployment,
     trackedDeployment,
-    unpublishedChanges,
+    unpublishedChanges: effectiveUnpublishedChanges,
     actionLabel: deployAdapter.actionLabel,
     getDeployUrl: deployAdapter.getDeployUrl,
   };
