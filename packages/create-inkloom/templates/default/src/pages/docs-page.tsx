@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router";
 import { MDXContent } from "@/components/mdx/mdx-content";
-import { Breadcrumb } from "@/components/layout/breadcrumb";
+import { CopyPageDropdown } from "@/components/layout/copy-page-dropdown";
 import { useSiteData } from "@/src/data-provider";
 import {
   Book,
@@ -197,21 +197,31 @@ export function DocsPage() {
     );
   }
 
-  const showIcon = pageData.icon && !pageData.titleIconHidden;
   const titleId = pageData.title ? slugify(pageData.title) : undefined;
+
+  // Build folder label from navigation hierarchy
+  const pathname = location.pathname.replace(/\/+$/, "") || "/";
+  const activeTab = tabs.find((tab) => pathname.startsWith(`/${tab.slug}`));
+  const navItems = activeTab ? activeTab.navigation || [] : navigation;
+  const folderTrail = buildFolderTrail(navItems, pathname);
+  const folderName = folderTrail && folderTrail.length > 0 ? folderTrail[folderTrail.length - 1] : null;
 
   return (
     <div>
-      <Breadcrumb />
       {pageData.title && !pageData.titleSectionHidden && (
-        <>
-          <div className="not-prose">
+        <div className="not-prose mb-8">
+          {folderName && (
+            <span className="mb-2 block text-xs font-medium uppercase tracking-wider text-[var(--color-primary)]">
+              {folderName}
+            </span>
+          )}
+          <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col">
               <div className="flex items-center gap-3">
-                {showIcon && (
+                {pageData.icon && !pageData.titleIconHidden && (
                   <div className="mt-0.5 shrink-0">
                     <PageIcon
-                      icon={pageData.icon!}
+                      icon={pageData.icon}
                       className="h-7 w-7 text-[1.5rem]"
                     />
                   </div>
@@ -238,29 +248,20 @@ export function DocsPage() {
                   )}
                 </h1>
               </div>
-              <div className="min-w-0">
-                {pageData.subtitle && (
-                  <p
-                    className="mt-2 text-base text-[var(--color-muted-foreground)]"
-                    style={{ marginBottom: 0 }}
-                  >
-                    {pageData.subtitle}
-                  </p>
-                )}
-              </div>
+              {pageData.subtitle && (
+                <p
+                  className="mt-2 text-base text-[var(--color-muted-foreground)]"
+                  style={{ marginBottom: 0 }}
+                >
+                  {pageData.subtitle}
+                </p>
+              )}
+            </div>
+            <div className="mt-1 shrink-0">
+              <CopyPageDropdown mdxContent={pageData.content} />
             </div>
           </div>
-          {/* Full-width divider — break out of the prose max-w-3xl and the main px-4/lg:px-16 padding */}
-          <hr
-            className="not-prose mt-4 mb-6"
-            style={{
-              borderColor: "var(--color-border)",
-              marginLeft: "calc(-1 * (50vw - 50%))",
-              marginRight: "calc(-1 * (50vw - 50%))",
-              marginTop: "1rem",
-            }}
-          />
-        </>
+        </div>
       )}
       <MDXContent source={pageData.content} />
     </div>
