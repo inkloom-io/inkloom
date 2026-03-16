@@ -482,6 +482,18 @@ function generateHtmlPage(opts: HtmlPageOptions): string {
       })}</script>`
     : "";
 
+  // Branding badge — shown when showBranding !== false
+  const siteConfig = (opts.siteData as { config?: { showBranding?: boolean } }).config;
+  const showBranding = siteConfig ? siteConfig.showBranding !== false : true;
+  const brandingBadge = showBranding
+    ? `    <div id="inkloom-badge" style="position:fixed;bottom:16px;right:16px;z-index:50;">
+      <a href="https://github.com/inkloom/inkloom" target="_blank" rel="noopener noreferrer"
+         style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;background:#f5f5f5;color:#555;font-size:12px;text-decoration:none;border:1px solid #e0e0e0;">
+        Built with <strong>InkLoom</strong>
+      </a>
+    </div>`
+    : "";
+
   return `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -494,6 +506,7 @@ ${cssLinks}
   </head>
   <body>
     <div id="root"></div>
+${brandingBadge}
     <script id="__INKLOOM_DATA__" type="application/json">${JSON.stringify(opts.siteData)}</script>
 ${pageDataScript}
 ${jsScripts}
