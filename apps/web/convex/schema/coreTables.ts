@@ -290,6 +290,7 @@ export const coreTables = {
     // Uses v.string() instead of v.id("generationJobs") — platform-only table
     aiGenerationJobId: v.optional(v.string()),
     aiPendingReview: v.optional(v.boolean()),
+    aiFolderSlug: v.optional(v.string()),
     seoTitle: v.optional(v.string()),
     seoDescription: v.optional(v.string()),
     ogImageAssetId: v.optional(v.id("assets")),
