@@ -85,10 +85,10 @@ export function FontSelector({ fonts, onChange }: FontSelectorProps) {
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Default" />
+              <SelectValue placeholder="Quicksand (Default)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__default__">{t("fontSelector.defaultSystem")}</SelectItem>
+              <SelectItem value="__default__">Quicksand (Default)</SelectItem>
               {CURATED_FONTS.map((font: any) => (
                 <SelectItem key={font} value={font}>
                   {font}
@@ -107,10 +107,10 @@ export function FontSelector({ fonts, onChange }: FontSelectorProps) {
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Default" />
+              <SelectValue placeholder="Quicksand (Default)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__default__">{t("fontSelector.defaultSystem")}</SelectItem>
+              <SelectItem value="__default__">Quicksand (Default)</SelectItem>
               {CURATED_FONTS.map((font: any) => (
                 <SelectItem key={font} value={font}>
                   {font}

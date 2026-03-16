@@ -673,6 +673,10 @@ export default function EditorPage({ params }: EditorPageProps) {
                       subtitle={selectedPage.subtitle}
                       titleSectionHidden={selectedPage.titleSectionHidden}
                       titleIconHidden={selectedPage.titleIconHidden}
+                      themePreset={
+                        (project.settings?.theme as ThemePreset) || "fossil"
+                      }
+                      customFonts={project.settings?.fonts}
                     />
                   )}
                   {/* Edit lock banner for non-Ultimate plans */}

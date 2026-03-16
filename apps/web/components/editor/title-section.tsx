@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -13,6 +13,8 @@ import {
   ImageOff,
   SmilePlus,
 } from "lucide-react";
+import type { ThemePreset } from "@/lib/theme-presets";
+import { getThemeConfig } from "@/lib/generate-editor-theme";
 import {
   Tooltip,
   TooltipContent,
@@ -27,6 +29,8 @@ interface TitleSectionProps {
   subtitle?: string;
   titleSectionHidden?: boolean;
   titleIconHidden?: boolean;
+  themePreset?: ThemePreset;
+  customFonts?: { heading?: string; body?: string; code?: string };
 }
 
 export function TitleSection({
@@ -36,11 +40,29 @@ export function TitleSection({
   subtitle,
   titleSectionHidden,
   titleIconHidden,
+  themePreset = "default",
+  customFonts,
 }: TitleSectionProps) {
   const t = useTranslations("editor.titleSection");
   const updatePage = useMutation(api.pages.update);
   const [localSubtitle, setLocalSubtitle] = useState(subtitle ?? "");
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Resolve the display font from custom fonts or theme preset
+  const themeConfig = useMemo(() => getThemeConfig(themePreset), [themePreset]);
+  const displayFontFamily = useMemo(() => {
+    if (customFonts?.heading) {
+      return `'${customFonts.heading}', ui-sans-serif, system-ui, sans-serif`;
+    }
+    return themeConfig.typography.fontDisplay;
+  }, [customFonts?.heading, themeConfig]);
+  const fontUrl = useMemo(() => {
+    if (customFonts?.heading) {
+      const encoded = customFonts.heading.replace(/ /g, "+");
+      return `https://fonts.googleapis.com/css2?family=${encoded}:wght@400;500;600;700&display=swap`;
+    }
+    return themeConfig.typography.googleFontsUrl;
+  }, [customFonts?.heading, themeConfig]);
 
   // Sync local subtitle when page changes
   useEffect(() => {
@@ -113,6 +135,8 @@ export function TitleSection({
 
   return (
     <div className="pt-8 pb-0">
+      {/* Load the display font for the title */}
+      <link rel="stylesheet" href={fontUrl} />
       <div className="mx-auto w-full max-w-[80ch] px-[6rem]">
         {/* Controls row */}
         <div className="mb-3 flex items-center justify-end gap-1">
@@ -179,7 +203,7 @@ export function TitleSection({
           <h1
             className="text-3xl font-bold tracking-tight text-[var(--text-bright)]"
             style={{
-              fontFamily: "var(--font-display, inherit)",
+              fontFamily: displayFontFamily,
               letterSpacing: "-0.03em",
               lineHeight: 1.2,
             }}
