@@ -77,3 +77,105 @@ export const getByPage = query({
     };
   },
 });
+
+/**
+ * Get aggregated feedback stats for a page, including percentages.
+ */
+export const getStats = query({
+  args: {
+    projectId: v.id("projects"),
+    pageSlug: v.string(),
+    since: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const allFeedback = await ctx.db
+      .query("pageFeedback")
+      .withIndex("by_project_and_page", (q: any) =>
+        q.eq("projectId", args.projectId).eq("pageSlug", args.pageSlug)
+      )
+      .collect();
+
+    const since = args.since;
+    const feedback = since
+      ? allFeedback.filter((f) => f.createdAt >= since)
+      : allFeedback;
+
+    const counts = { positive: 0, neutral: 0, negative: 0 };
+    for (const entry of feedback) {
+      counts[entry.reaction] += 1;
+    }
+
+    const total = feedback.length;
+
+    return {
+      total,
+      positive: counts.positive,
+      neutral: counts.neutral,
+      negative: counts.negative,
+      positivePercent: total > 0 ? Math.round((counts.positive / total) * 100) : 0,
+      neutralPercent: total > 0 ? Math.round((counts.neutral / total) * 100) : 0,
+      negativePercent: total > 0 ? Math.round((counts.negative / total) * 100) : 0,
+    };
+  },
+});
+
+/**
+ * Get time-series feedback data for charting. Returns daily reaction counts.
+ */
+export const getTimeSeries = query({
+  args: {
+    projectId: v.id("projects"),
+    pageSlug: v.string(),
+    since: v.optional(v.number()),
+    bucketSize: v.optional(v.union(v.literal("daily"), v.literal("weekly"))),
+  },
+  handler: async (ctx, args) => {
+    const allFeedback = await ctx.db
+      .query("pageFeedback")
+      .withIndex("by_project_and_page", (q: any) =>
+        q.eq("projectId", args.projectId).eq("pageSlug", args.pageSlug)
+      )
+      .collect();
+
+    const since = args.since;
+    const feedback = since
+      ? allFeedback.filter((f) => f.createdAt >= since)
+      : allFeedback;
+
+    const bucket = args.bucketSize ?? "daily";
+    const msPerDay = 86_400_000;
+    const msPerBucket = bucket === "weekly" ? msPerDay * 7 : msPerDay;
+
+    // Group by bucket
+    const buckets = new Map<
+      string,
+      { positive: number; neutral: number; negative: number }
+    >();
+
+    for (const entry of feedback) {
+      const bucketStart =
+        Math.floor(entry.createdAt / msPerBucket) * msPerBucket;
+      const isoDate = new Date(bucketStart).toISOString();
+      const key = isoDate.slice(0, isoDate.indexOf("T"));
+
+      if (!buckets.has(key)) {
+        buckets.set(key, { positive: 0, neutral: 0, negative: 0 });
+      }
+      const b = buckets.get(key);
+      if (b) {
+        b[entry.reaction] += 1;
+      }
+    }
+
+    // Sort by date and return
+    const sorted = Array.from(buckets.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, counts]) => ({
+        date,
+        ...counts,
+        total: counts.positive + counts.neutral + counts.negative,
+      }));
+
+    return sorted;
+  },
+});

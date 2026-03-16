@@ -29,6 +29,7 @@ import { Input } from "@inkloom/ui/input";
 import { Label } from "@inkloom/ui/label";
 import {
   AlertTriangle,
+  BarChart3,
   Eye,
   ExternalLink,
   FileText,
@@ -54,6 +55,7 @@ import { AnimatedFlyingMascot } from "@/components/illustrations/animated-flying
 import { ToolbarCollaboration } from "./toolbar-collaboration";
 import type { CollaborationState } from "./toolbar-collaboration";
 import { getProductionUrl, toVanityUrl } from "@/lib/domain-utils";
+import { ReaderReactionsModal } from "./reader-reactions-modal";
 
 interface EditorToolbarProps {
   project: Doc<"projects">;
@@ -206,6 +208,7 @@ export function EditorToolbar({
   const tc = useTranslations("common");
   const [publishOpen, setPublishOpen] = useState(false);
   const [saveVersionOpen, setSaveVersionOpen] = useState(false);
+  const [reactionsOpen, setReactionsOpen] = useState(false);
   const [versionMessage, setVersionMessage] = useState("");
   const [isSavingVersion, setIsSavingVersion] = useState(false);
   const createVersion = useMutation(api.pages.createVersion);
@@ -898,6 +901,15 @@ export function EditorToolbar({
                   <Save className="h-4 w-4" />
                   {t("saveVersion")}
                 </DropdownMenuItem>
+                {page && (
+                  <DropdownMenuItem
+                    onClick={() => setReactionsOpen(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    {t("readerReactions")}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
               </>
             )}
@@ -1038,6 +1050,17 @@ export function EditorToolbar({
           <DialogContent>{renderDialogContent()}</DialogContent>
         </Dialog>
       </div>
+
+      {/* Reader Reactions Modal */}
+      {page && (
+        <ReaderReactionsModal
+          open={reactionsOpen}
+          onOpenChange={setReactionsOpen}
+          projectId={project._id}
+          pageSlug={page.slug}
+          pageTitle={page.title}
+        />
+      )}
 
       {/* Save Version Dialog */}
       <Dialog
