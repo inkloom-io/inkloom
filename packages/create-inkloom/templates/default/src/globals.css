@@ -396,12 +396,12 @@ body {
 
 /* Callout variants */
 .callout-info {
-  background: hsl(217 91% 60% / 0.06);
-  border-color: hsl(217 91% 60% / 0.2);
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .callout-info .callout-icon {
-  color: hsl(217 91% 50%);
+  color: var(--color-primary);
 }
 
 .callout-warning {
