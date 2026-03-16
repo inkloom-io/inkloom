@@ -23,6 +23,7 @@ export function buildSiteData(
     search?: { enabled: boolean };
     proxyUrl?: string;
     socialLinks?: { platform: string; url: string }[];
+    ctaButton?: { label: string; url: string };
     showBranding?: boolean;
   },
   navigation: NavItem[],
@@ -41,6 +42,7 @@ export function buildSiteData(
       ...(config.socialLinks && config.socialLinks.length > 0
         ? { socialLinks: config.socialLinks }
         : {}),
+      ...(config.ctaButton ? { ctaButton: config.ctaButton } : {}),
       ...(config.showBranding !== undefined ? { showBranding: config.showBranding } : {}),
     },
     navigation,

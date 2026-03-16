@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { useState, useEffect } from "react";
-import { Menu, X, Search, Github, Youtube, Sparkles } from "lucide-react";
+import { Menu, X, Search, Github, Youtube, ArrowRight, Sparkles } from "lucide-react";
 import { useSiteData } from "@/src/data-provider";
 import { SearchDialog } from "@/components/search/search-dialog";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -172,8 +172,19 @@ export function Header() {
                 </a>
               );
             })}
-            {socialLinks.length > 0 && (
+            {(socialLinks.length > 0 || config.ctaButton) && (
               <div className="mx-1 h-5 w-px bg-[var(--color-border)]" />
+            )}
+            {config.ctaButton && (
+              <a
+                href={config.ctaButton.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cta-button group inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)] px-4 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:opacity-90 hover:shadow-md"
+              >
+                {config.ctaButton.label}
+                <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </a>
             )}
             <ThemeToggle />
           </div>
@@ -201,6 +212,19 @@ export function Header() {
                       </a>
                     );
                   })}
+                </div>
+              )}
+              {config.ctaButton && (
+                <div className="pb-3">
+                  <a
+                    href={config.ctaButton.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="cta-button group inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)] px-4 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:opacity-90 hover:shadow-md"
+                  >
+                    {config.ctaButton.label}
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </a>
                 </div>
               )}
               <div className="flex items-center gap-2 pt-2 border-t border-[var(--color-border)]">

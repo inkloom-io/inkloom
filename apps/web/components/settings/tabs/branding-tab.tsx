@@ -16,6 +16,7 @@ import { Label } from "@inkloom/ui/label";
 import { cn } from "@inkloom/ui/lib/utils";
 import { Separator } from "@inkloom/ui/separator";
 import {
+  ExternalLink,
   Globe,
   Moon,
   Palette,
@@ -80,6 +81,11 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   const [customCss, setCustomCss] = useState("");
   const [customCssInitialized, setCustomCssInitialized] = useState(false);
 
+  // CTA button
+  const [ctaButtonLabel, setCtaButtonLabel] = useState("");
+  const [ctaButtonUrl, setCtaButtonUrl] = useState("");
+  const [ctaButtonInitialized, setCtaButtonInitialized] = useState(false);
+
   // Social links
   const [socialLinks, setSocialLinks] = useState<Record<SocialPlatform, string>>({
     github: "",
@@ -131,6 +137,15 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
       setCustomCssInitialized(true);
     }
   }, [project, customCssInitialized]);
+
+  // Initialize CTA button
+  useEffect(() => {
+    if (project && !ctaButtonInitialized) {
+      setCtaButtonLabel(project.settings?.ctaButton?.label || "");
+      setCtaButtonUrl(project.settings?.ctaButton?.url || "");
+      setCtaButtonInitialized(true);
+    }
+  }, [project, ctaButtonInitialized]);
 
   // Initialize social links
   useEffect(() => {
@@ -227,6 +242,20 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
     [updateSettings, projectId]
   );
 
+  const saveCtaButton = useCallback(
+    async ({ label, url }: { label: string; url: string }) => {
+      // Only save if both label and url are provided, or clear if both are empty
+      const ctaButton = label.trim() && url.trim()
+        ? { label: label.trim(), url: url.trim() }
+        : undefined;
+      await updateSettings({
+        projectId: projectId as Id<"projects">,
+        settings: { ctaButton },
+      });
+    },
+    [updateSettings, projectId]
+  );
+
   const saveSocialLinks = useCallback(
     async (links: Record<SocialPlatform, string>) => {
       const arr = (Object.entries(links) as [SocialPlatform, string][])
@@ -259,6 +288,12 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
 
   const fontsStatus = useAutoSave(fonts, saveFonts, 800, fontsInitialized);
   const customCssStatus = useAutoSave(customCss, saveCustomCss, 800, customCssInitialized);
+  const ctaButtonStatus = useAutoSave(
+    { label: ctaButtonLabel, url: ctaButtonUrl },
+    saveCtaButton,
+    800,
+    ctaButtonInitialized
+  );
   const socialLinksStatus = useAutoSave(socialLinks, saveSocialLinks, 800, socialLinksInitialized);
 
   const handleThemeChange = (newTheme: ThemePreset) => {
@@ -337,6 +372,48 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
                 />
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ExternalLink className="h-5 w-5" />
+              <div>
+                <CardTitle>{t("ctaButton")}</CardTitle>
+                <CardDescription>
+                  {t("ctaButtonDescription")}
+                </CardDescription>
+              </div>
+            </div>
+            <SaveStatus status={ctaButtonStatus} />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 max-w-lg">
+            <div className="flex items-center gap-3">
+              <Label className="w-28 shrink-0 text-sm">{t("ctaButtonLabel")}</Label>
+              <Input
+                value={ctaButtonLabel}
+                onChange={(e) => setCtaButtonLabel(e.target.value)}
+                placeholder={t("ctaButtonLabelPlaceholder")}
+                className="flex-1"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <Label className="w-28 shrink-0 text-sm">{t("ctaButtonUrl")}</Label>
+              <Input
+                value={ctaButtonUrl}
+                onChange={(e) => setCtaButtonUrl(e.target.value)}
+                placeholder={t("ctaButtonUrlPlaceholder")}
+                className="flex-1"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t("ctaButtonHint")}
+            </p>
           </div>
         </CardContent>
       </Card>

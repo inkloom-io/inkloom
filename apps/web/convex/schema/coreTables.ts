@@ -189,6 +189,12 @@ export const coreTables = {
             })
           )
         ),
+        ctaButton: v.optional(
+          v.object({
+            label: v.string(),
+            url: v.string(),
+          })
+        ),
       })
     ),
     plan: v.optional(

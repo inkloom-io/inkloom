@@ -31,6 +31,7 @@ interface SiteConfig {
   search?: { enabled: boolean };
   proxyUrl?: string | null;
   socialLinks?: { platform: string; url: string }[];
+  ctaButton?: { label: string; url: string };
   showBranding?: boolean;
 }
 
