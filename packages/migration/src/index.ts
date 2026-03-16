@@ -12,8 +12,10 @@ export {
 } from "./types.js";
 
 export {
+  parseGitbook,
   transformGitbookBlocks,
   type TransformResult,
+  type ParseGitbookOptions,
 } from "./gitbook/index.js";
 
 export {
