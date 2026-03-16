@@ -161,8 +161,8 @@
     "hero": {
       "statusLabel": "Status",
       "statusLive": "Live",
-      "versionLabel": "v2.4",
-      "versionStatus": "Just shipped",
+      "versionLabel": "Apache 2.0",
+      "versionStatus": "Open Source",
       "titleLine1": "Documentation",
       "titleLine2": "that writes",
       "titleLine3": "itself",
