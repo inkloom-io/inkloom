@@ -121,6 +121,11 @@ interface ProjectConfig {
   backgroundColorDark?: string;
   backgroundSubtleColorLight?: string;
   backgroundSubtleColorDark?: string;
+  accentColor?: string;
+  sidebarBackgroundColor?: string;
+  headerBackgroundColor?: string;
+  linkColor?: string;
+  codeAccentColor?: string;
   navTabs?: NavTab[];
   openapi?: {
     specContent: string;
@@ -420,7 +425,18 @@ function buildFolderChildren(
  * Each theme gets its own distinct visual identity with unique typography,
  * colors, effects, and atmospheric styling.
  */
-function generateColorBlock(colors: ThemeColors, primaryOverride: string | null, backgroundOverride: string | null, backgroundSubtleOverride: string | null): string {
+interface ColorBlockOverrides {
+  primary?: string | null;
+  background?: string | null;
+  backgroundSubtle?: string | null;
+  accent?: string | null;
+  sidebarBackground?: string | null;
+  headerBackground?: string | null;
+  linkColor?: string | null;
+  codeAccent?: string | null;
+}
+
+function generateColorBlock(colors: ThemeColors, primaryOverride: string | null, backgroundOverride: string | null, backgroundSubtleOverride: string | null, extraOverrides?: ColorBlockOverrides): string {
   const primary = primaryOverride || colors.primary;
   const background = backgroundOverride || colors.background;
 
@@ -429,15 +445,19 @@ function generateColorBlock(colors: ThemeColors, primaryOverride: string | null,
   // accent: very light tint of primary (8% primary mixed into background)
   // sidebar-active: slightly stronger tint (10% primary mixed into background)
   // accent-foreground stays as the main foreground for readability on tinted surfaces
-  const accent = primaryOverride
+  const derivedAccent = primaryOverride
     ? `color-mix(in srgb, ${primaryOverride} 8%, ${background})`
     : colors.accent;
-  const accentForeground = primaryOverride
+  const derivedAccentForeground = primaryOverride
     ? colors.foreground
     : colors.accentForeground;
   const sidebarActive = primaryOverride
     ? `color-mix(in srgb, ${primaryOverride} 10%, ${background})`
     : colors.sidebarActiveBackground;
+
+  // Explicit extraOverrides take priority over derived values
+  const accent = extraOverrides?.accent || derivedAccent;
+  const accentForeground = extraOverrides?.accent ? colors.foreground : derivedAccentForeground;
 
   return `
   --color-background: ${background};
@@ -456,11 +476,13 @@ function generateColorBlock(colors: ThemeColors, primaryOverride: string | null,
   --color-code-background: ${colors.codeBackground};
   --color-code-foreground: ${colors.codeForeground};
   --color-code-highlight: ${colors.codeHighlight};
-  --color-sidebar-background: ${colors.sidebarBackground};
+  --color-sidebar-background: ${extraOverrides?.sidebarBackground || colors.sidebarBackground};
   --color-sidebar-border: ${colors.sidebarBorder};
   --color-sidebar-active: ${sidebarActive};
-  --color-header-background: ${colors.headerBackground};
-  --color-header-border: ${colors.headerBorder};`;
+  --color-header-background: ${extraOverrides?.headerBackground || colors.headerBackground};
+  --color-header-border: ${colors.headerBorder};
+  --color-link: ${extraOverrides?.linkColor || `var(--color-primary)`};
+  --color-code-accent: ${extraOverrides?.codeAccent || `var(--color-primary)`};`;
 }
 
 function generateThemeCss(config: ProjectConfig): { css: string; googleFontsUrl: string } {
@@ -490,8 +512,17 @@ function generateThemeCss(config: ProjectConfig): { css: string; googleFontsUrl:
     ? config.backgroundSubtleColorDark
     : null;
 
-  const lightBlock = generateColorBlock(colors.light, primaryColorOverride, bgLightOverride, bgSubtleLightOverride);
-  const darkBlock = generateColorBlock(colors.dark, primaryColorOverride, bgDarkOverride, bgSubtleDarkOverride);
+  // Additional Pro color overrides
+  const extraOverrides: ColorBlockOverrides = {
+    accent: config.accentColor || null,
+    sidebarBackground: config.sidebarBackgroundColor || null,
+    headerBackground: config.headerBackgroundColor || null,
+    linkColor: config.linkColor || null,
+    codeAccent: config.codeAccentColor || null,
+  };
+
+  const lightBlock = generateColorBlock(colors.light, primaryColorOverride, bgLightOverride, bgSubtleLightOverride, extraOverrides);
+  const darkBlock = generateColorBlock(colors.dark, primaryColorOverride, bgDarkOverride, bgSubtleDarkOverride, extraOverrides);
 
   const css = `/* InkLoom Theme: ${theme.name} */
 
@@ -538,6 +569,12 @@ ${lightBlock}
   color-scheme: dark;
 ${darkBlock}
 }
+
+/* Link color override */
+.prose a { color: var(--color-link, var(--color-primary)); }
+
+/* Code block accent border */
+pre[data-code-block] { border-top: 2px solid var(--color-code-accent, var(--color-primary)); }
 
 ${generateThemeSpecificCss(themeKey)}
 `;

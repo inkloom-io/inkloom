@@ -215,6 +215,14 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   const [defaultThemeMode, setDefaultThemeMode] = useState<"light" | "dark" | "system">("system");
   const [defaultThemeModeInitialized, setDefaultThemeModeInitialized] = useState(false);
 
+  // Advanced colors
+  const [accentColor, setAccentColor] = useState("");
+  const [sidebarBackgroundColor, setSidebarBackgroundColor] = useState("");
+  const [headerBackgroundColor, setHeaderBackgroundColor] = useState("");
+  const [linkColor, setLinkColor] = useState("");
+  const [codeAccentColor, setCodeAccentColor] = useState("");
+  const [advancedColorsInitialized, setAdvancedColorsInitialized] = useState(false);
+
   // Live preview
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
@@ -278,6 +286,18 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
       setDefaultThemeModeInitialized(true);
     }
   }, [project, defaultThemeModeInitialized]);
+
+  // Initialize advanced colors
+  useEffect(() => {
+    if (project && !advancedColorsInitialized) {
+      setAccentColor(project.settings?.accentColor || "");
+      setSidebarBackgroundColor(project.settings?.sidebarBackgroundColor || "");
+      setHeaderBackgroundColor(project.settings?.headerBackgroundColor || "");
+      setLinkColor(project.settings?.linkColor || "");
+      setCodeAccentColor(project.settings?.codeAccentColor || "");
+      setAdvancedColorsInitialized(true);
+    }
+  }, [project, advancedColorsInitialized]);
 
   // Initialize custom CSS
   useEffect(() => {
@@ -391,6 +411,28 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
     [updateSettings, projectId]
   );
 
+  const saveAdvancedColors = useCallback(
+    async (value: {
+      accentColor: string;
+      sidebarBackgroundColor: string;
+      headerBackgroundColor: string;
+      linkColor: string;
+      codeAccentColor: string;
+    }) => {
+      await updateSettings({
+        projectId: projectId as Id<"projects">,
+        settings: {
+          accentColor: value.accentColor || undefined,
+          sidebarBackgroundColor: value.sidebarBackgroundColor || undefined,
+          headerBackgroundColor: value.headerBackgroundColor || undefined,
+          linkColor: value.linkColor || undefined,
+          codeAccentColor: value.codeAccentColor || undefined,
+        },
+      });
+    },
+    [updateSettings, projectId]
+  );
+
   const saveCustomCss = useCallback(
     async (value: string) => {
       await updateSettings({
@@ -447,6 +489,12 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
 
   const defaultThemeModeStatus = useAutoSave(defaultThemeMode, saveDefaultThemeMode, 300, defaultThemeModeInitialized);
   const fontsStatus = useAutoSave(fonts, saveFonts, 800, fontsInitialized);
+  const advancedColorsStatus = useAutoSave(
+    { accentColor, sidebarBackgroundColor, headerBackgroundColor, linkColor, codeAccentColor },
+    saveAdvancedColors,
+    500,
+    advancedColorsInitialized
+  );
   const customCssStatus = useAutoSave(customCss, saveCustomCss, 800, customCssInitialized);
   const ctaButtonStatus = useAutoSave(
     { label: ctaButtonLabel, url: ctaButtonUrl },
@@ -862,6 +910,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
               <div className="flex items-center gap-2">
                 <SaveStatus status={logoVariantsStatus} />
                 <SaveStatus status={fontsStatus} />
+                <SaveStatus status={advancedColorsStatus} />
                 <SaveStatus status={customCssStatus} />
               </div>
             </div>
@@ -883,6 +932,109 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
               fonts={fonts}
               onChange={setFonts}
             />
+
+            <Separator />
+
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium">{t("advancedColors")}</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t("advancedColorsDescription")}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <ColorPicker
+                    label={t("accentColor")}
+                    value={accentColor}
+                    onChange={setAccentColor}
+                  />
+                  {accentColor && (
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setAccentColor("")}
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      {t("resetToThemeDefault")}
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <ColorPicker
+                    label={t("sidebarBackground")}
+                    value={sidebarBackgroundColor}
+                    onChange={setSidebarBackgroundColor}
+                  />
+                  {sidebarBackgroundColor && (
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setSidebarBackgroundColor("")}
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      {t("resetToThemeDefault")}
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <ColorPicker
+                    label={t("headerBackground")}
+                    value={headerBackgroundColor}
+                    onChange={setHeaderBackgroundColor}
+                  />
+                  {headerBackgroundColor && (
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setHeaderBackgroundColor("")}
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      {t("resetToThemeDefault")}
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <ColorPicker
+                    label={t("linkColor")}
+                    value={linkColor}
+                    onChange={setLinkColor}
+                  />
+                  {linkColor && (
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setLinkColor("")}
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      {t("resetToThemeDefault")}
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <ColorPicker
+                    label={t("codeAccentColor")}
+                    value={codeAccentColor}
+                    onChange={setCodeAccentColor}
+                  />
+                  {codeAccentColor && (
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setCodeAccentColor("")}
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      {t("resetToThemeDefault")}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
 
             <Separator />
 

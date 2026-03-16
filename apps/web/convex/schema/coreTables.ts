@@ -74,6 +74,11 @@ export const coreTables = {
           body: v.optional(v.string()),
           code: v.optional(v.string()),
         })),
+        accentColor: v.optional(v.string()),
+        sidebarBackgroundColor: v.optional(v.string()),
+        headerBackgroundColor: v.optional(v.string()),
+        linkColor: v.optional(v.string()),
+        codeAccentColor: v.optional(v.string()),
         customCss: v.optional(v.string()),
         customDomain: v.optional(v.string()),
         navTabs: v.optional(
