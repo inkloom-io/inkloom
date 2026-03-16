@@ -825,6 +825,7 @@
       "preview": "Preview",
       "moreOptions": "More options",
       "viewPublishedSite": "View published site",
+      "openDeployedSite": "Open deployed site",
       "saveVersion": "Save version",
       "readerReactions": "Reader Reactions",
       "generateWithAI": "Generate with AI",

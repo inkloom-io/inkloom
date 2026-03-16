@@ -46,6 +46,7 @@ import {
   Search,
   Settings,
   Sparkles,
+  TextSearch,
   Undo2,
   XCircle,
   PanelRightOpen,
@@ -790,7 +791,7 @@ export function EditorToolbar({
                 onClick={onTogglePageSeo}
                 aria-label="Toggle page SEO"
               >
-                <Search className="h-4 w-4" />
+                <TextSearch className="h-4 w-4" />
               </button>
             </TooltipTrigger>
             <TooltipContent>{t("pageSeoTooltip")}</TooltipContent>
@@ -857,6 +858,22 @@ export function EditorToolbar({
             <TooltipContent>
               {isPreviewOpen ? t("closePreview") : t("preview")}
             </TooltipContent>
+          </Tooltip>
+        )}
+
+        {/* Open deployed site shortcut */}
+        {hasDeployedSite && viewSiteUrl && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-dim)] transition-colors hover:bg-[var(--glass-hover)] hover:text-[var(--text-bright)]"
+                onClick={() => window.open(viewSiteUrl, "_blank")}
+                aria-label="Open deployed site"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>{t("openDeployedSite")}</TooltipContent>
           </Tooltip>
         )}
 
