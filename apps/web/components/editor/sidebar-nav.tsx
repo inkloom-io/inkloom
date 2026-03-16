@@ -9,7 +9,6 @@ import { cn } from "@inkloom/ui/lib/utils";
 import { Button } from "@inkloom/ui/button";
 import { Input } from "@inkloom/ui/input";
 import { Label } from "@inkloom/ui/label";
-import { ScrollArea } from "@inkloom/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -258,6 +257,33 @@ function NodeRenderer({
           </DropdownMenu>
         </>
       )}
+    </div>
+  );
+}
+
+function TreeContainer({
+  children,
+}: {
+  children: (height: number) => React.ReactNode;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [treeHeight, setTreeHeight] = useState(600);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) {
+        setTreeHeight(entry.contentRect.height);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="flex-1 min-h-0">
+      {children(treeHeight)}
     </div>
   );
 }
@@ -686,18 +712,18 @@ export function EditorSidebar({
           </Dialog>
         </div>
       </div>
-      <ScrollArea className="flex-1">
-        <div className="p-2">
-          {dndRoot && (
+      <TreeContainer>
+        {(treeHeight) =>
+          dndRoot && (
             <Tree
               data={treeData}
               openByDefault={false}
               width="100%"
-              height={600}
+              height={treeHeight}
               indent={24}
               rowHeight={32}
               paddingTop={4}
-              paddingBottom={40}
+              paddingBottom={10}
               dndRootElement={dndRoot}
               onMove={handleMove}
               // Pass custom props to access in NodeRenderer
@@ -717,9 +743,9 @@ export function EditorSidebar({
             >
               {(props: NodeRendererProps<TreeNodeData>) => <NodeRenderer {...props} />}
             </Tree>
-          )}
-        </div>
-      </ScrollArea>
+          )
+        }
+      </TreeContainer>
 
       {/* Edit Folder Dialog */}
       <Dialog open={editFolderOpen} onOpenChange={setEditFolderOpen}>
