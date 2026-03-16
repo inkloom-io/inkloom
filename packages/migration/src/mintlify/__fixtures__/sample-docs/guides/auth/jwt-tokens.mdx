@@ -1,0 +1,24 @@
+---
+title: JWT Tokens
+description: How to use JWT tokens
+sidebarTitle: JWT Auth
+openapi: POST /api/auth/token
+---
+
+# JWT Token Authentication
+
+Use JWT tokens for secure API access.
+
+<Info>
+Tokens expire after 24 hours by default.
+</Info>
+
+<Check>
+Your API key has been verified successfully.
+</Check>
+
+```javascript
+const token = await acme.auth.createToken({
+  scope: "read:docs",
+});
+```

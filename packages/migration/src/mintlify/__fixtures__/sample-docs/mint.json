@@ -1,0 +1,36 @@
+{
+  "name": "Acme Docs",
+  "description": "Documentation for the Acme platform",
+  "colors": {
+    "primary": "#6366F1"
+  },
+  "logo": {
+    "light": "/logo/acme-light.svg",
+    "dark": "/logo/acme-dark.svg"
+  },
+  "favicon": "/favicon.png",
+  "tabs": [
+    { "name": "API Reference", "url": "api" }
+  ],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": ["guides/introduction", "guides/quickstart"]
+    },
+    {
+      "group": "Authentication",
+      "pages": ["guides/auth/overview", "guides/auth/jwt-tokens"]
+    },
+    {
+      "group": "REST API",
+      "pages": ["api/overview", "api/endpoints"]
+    }
+  ],
+  "redirects": [
+    { "source": "/old-page", "destination": "/guides/introduction" }
+  ],
+  "topbarLinks": [
+    { "name": "GitHub", "url": "https://github.com/acme/acme" }
+  ],
+  "openapi": "openapi.yaml"
+}

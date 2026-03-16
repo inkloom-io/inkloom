@@ -54,6 +54,8 @@ export {
   transformFrontmatter,
 } from "./mintlify/transform.js";
 
+export { parseMintlify } from "./mintlify/index.js";
+
 import type { MigrationConfig, MigrationResult } from "./types.js";
 
 /**
