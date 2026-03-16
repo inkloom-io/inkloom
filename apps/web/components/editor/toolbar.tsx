@@ -999,17 +999,7 @@ export function EditorToolbar({
         </div>
         <Dialog
           open={publishOpen}
-          onOpenChange={(open) => {
-            setPublishOpen(open);
-            // Reset to idle when opening if not currently publishing
-            if (
-              open &&
-              deployment.status !== "polling" &&
-              deployment.status !== "publishing"
-            ) {
-              resetDeployment();
-            }
-          }}
+          onOpenChange={setPublishOpen}
         >
           <DialogTrigger asChild>
             <button
@@ -1019,6 +1009,17 @@ export function EditorToolbar({
                   : "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(20,184,166,0.2)]"
               }`}
               disabled={hasChanges === false || showSaving || isPublishing}
+              onClick={() => {
+                // Reset deployment state to idle before the dialog opens so the
+                // user always sees the target-selector view instead of a stale
+                // success/error screen from a prior deployment.
+                if (
+                  deployment.status !== "polling" &&
+                  deployment.status !== "publishing"
+                ) {
+                  resetDeployment();
+                }
+              }}
             >
               {showSaving || isPublishing ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />

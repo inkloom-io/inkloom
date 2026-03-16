@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
@@ -87,6 +87,10 @@ export function usePublish({
     status: "idle",
   });
 
+  // Guard: when the user explicitly resets, prevent the resume-tracking effect
+  // from immediately transitioning back to "polling" in the same render cycle.
+  const justResetRef = useRef(false);
+
   // ---------------------------------------------------------------------------
   // Convex subscriptions
   // ---------------------------------------------------------------------------
@@ -113,6 +117,13 @@ export function usePublish({
 
   useEffect(() => {
     if (inProgressDeployment && deployment.status === "idle") {
+      // Skip resume if the user just explicitly reset — this prevents the
+      // effect from immediately re-entering "polling" after a deliberate reset
+      // (e.g. when reopening the publish dialog after a prior success).
+      if (justResetRef.current) {
+        justResetRef.current = false;
+        return;
+      }
       setDeployment({
         status: "polling",
         deploymentId: inProgressDeployment._id,
@@ -256,6 +267,7 @@ export function usePublish({
   }, [project._id, branchId, target]);
 
   const resetDeployment = useCallback(() => {
+    justResetRef.current = true;
     setDeployment({ status: "idle" });
   }, []);
 
