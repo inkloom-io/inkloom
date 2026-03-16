@@ -30,9 +30,9 @@
   --color-accent-foreground: hsl(222 47% 11%);
   --color-secondary: hsl(220 14% 96%);
   --color-secondary-foreground: hsl(222 47% 11%);
-  --color-code-background: hsl(228 16% 14%);
-  --color-code-foreground: hsl(220 14% 90%);
-  --color-code-highlight: hsl(228 14% 22%);
+  --color-code-background: hsl(220 14% 96%);
+  --color-code-foreground: hsl(222 47% 11%);
+  --color-code-highlight: hsl(220 14% 92%);
   --color-sidebar-background: hsl(220 20% 99%);
   --color-sidebar-border: hsl(220 13% 92%);
   --color-sidebar-active: hsl(220 14% 95%);
@@ -82,9 +82,9 @@
   --color-accent-foreground: hsl(222 47% 11%);
   --color-secondary: hsl(220 14% 96%);
   --color-secondary-foreground: hsl(222 47% 11%);
-  --color-code-background: hsl(228 16% 14%);
-  --color-code-foreground: hsl(220 14% 90%);
-  --color-code-highlight: hsl(228 14% 22%);
+  --color-code-background: hsl(220 14% 96%);
+  --color-code-foreground: hsl(222 47% 11%);
+  --color-code-highlight: hsl(220 14% 92%);
   --color-sidebar-background: hsl(220 20% 99%);
   --color-sidebar-border: hsl(220 13% 92%);
   --color-sidebar-active: hsl(220 14% 95%);

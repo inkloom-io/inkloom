@@ -37,7 +37,7 @@
   padding: 4px 8px;
   font-size: 0.7rem;
   font-family: var(--editor-font-mono, ui-monospace, monospace);
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--editor-code-highlight, rgba(0, 0, 0, 0.08));
   color: var(--editor-code-foreground, #d4d4d4);
   cursor: pointer;
   outline: none;
@@ -214,4 +214,17 @@
 .bn-code-block[data-in-group="true"] .bn-code-resize-handle:hover,
 .bn-code-block[data-in-group="true"] .bn-code-resize-handle-active {
   background: linear-gradient(to top, color-mix(in srgb, var(--editor-primary) 20%, transparent), transparent);
+}
+
+/* ============================================================================
+   SHIKI DUAL THEME - Dark mode syntax highlighting for editor code blocks
+   ============================================================================ */
+
+.dark .bn-code-block .shiki,
+.dark .bn-code-block .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
 }

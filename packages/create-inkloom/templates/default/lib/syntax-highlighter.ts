@@ -70,7 +70,7 @@ function normalizeLanguage(lang: string): SupportedLanguage {
 export async function getHighlighter(): Promise<Highlighter> {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighter({
-      themes: ["github-dark"],
+      themes: ["github-light", "github-dark"],
       langs: LOADED_LANGUAGES,
     });
   }
@@ -90,7 +90,11 @@ export async function highlightCode(
 
   const html = highlighter.codeToHtml(code, {
     lang,
-    theme: "github-dark",
+    themes: {
+      light: "github-light",
+      dark: "github-dark",
+    },
+    defaultColor: "light",
   });
 
   return { html };

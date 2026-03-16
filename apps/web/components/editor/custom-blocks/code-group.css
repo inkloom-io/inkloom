@@ -57,7 +57,7 @@
   padding: 0.25rem 0.5rem;
   font-size: 0.7rem;
   font-family: var(--editor-font-mono, ui-monospace, monospace);
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--editor-code-highlight, rgba(0, 0, 0, 0.08));
   color: var(--editor-code-foreground, #d4d4d4);
   cursor: pointer;
   outline: none;

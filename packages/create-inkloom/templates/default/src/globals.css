@@ -1119,7 +1119,7 @@ a:has(.card) {
   font-size: 0.6875rem;
   padding: 0.1875rem 0.4375rem;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--color-code-highlight);
   color: var(--color-code-foreground);
   border: 1px solid var(--color-border-subtle);
   letter-spacing: 0.02em;
@@ -1985,6 +1985,42 @@ article:has(.api-endpoint-2col).prose {
 
 .animate-fade-in {
   animation: fade-in 0.25s ease-out forwards;
+}
+
+/* ============================================================================
+   SHIKI DUAL THEME - Dark mode syntax highlighting color switching
+   Shiki generates inline styles with light colors by default and
+   --shiki-dark CSS variables for dark mode alternatives.
+   ============================================================================ */
+
+:root[data-theme="dark"] .shiki,
+:root[data-theme="dark"] .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] .shiki,
+  :root[data-theme="system"] .shiki span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}
+
+/* Legacy fallback (sites deployed before dark/light mode) - use dark Shiki */
+:root:not([data-theme]) .shiki,
+:root:not([data-theme]) .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
 /* Respect reduced motion preference */

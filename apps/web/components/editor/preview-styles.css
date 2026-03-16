@@ -711,7 +711,7 @@
   font-size: 0.6875rem;
   padding: 0.1875rem 0.4375rem;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--color-code-highlight, rgba(0, 0, 0, 0.08));
   color: var(--color-code-foreground, #d4d4d4);
   border: 1px solid var(--color-border-subtle, rgba(128, 128, 128, 0.25));
   letter-spacing: 0.02em;
@@ -969,4 +969,18 @@
 
 .preview-accordion-open .preview-accordion-body {
   padding: 0.75rem 1rem;
+}
+
+/* ============================================================================
+   SHIKI DUAL THEME - Dark mode syntax highlighting for preview
+   The editor uses .dark class on the parent for dark mode.
+   ============================================================================ */
+
+.dark .shiki,
+.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
 }
