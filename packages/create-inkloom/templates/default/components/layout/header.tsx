@@ -119,7 +119,7 @@ export function Header() {
 
           {/* Search — on desktop, px-16 matches main content padding so left edges align */}
           {config.search?.enabled && (
-            <div className="hidden lg:flex flex-1 min-w-0 px-16">
+            <div className="hidden lg:flex flex-1 min-w-0 px-8">
               <button
                 onClick={() => setSearchOpen(true)}
                 className="search-trigger flex h-9 w-full max-w-sm items-center justify-start"
@@ -128,6 +128,15 @@ export function Header() {
                 <span className="ml-2 text-sm">Search...</span>
                 <kbd className="search-kbd ml-auto">⌘K</kbd>
               </button>
+              {hasChatWidget && (
+                <button
+                  onClick={handleAskAI}
+                  className="ask-ai-button ml-2"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Ask AI</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -135,14 +144,14 @@ export function Header() {
             {hasChatWidget && (
               <button
                 onClick={handleAskAI}
-                className="ask-ai-button"
+                className="ask-ai-button lg:hidden"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>Ask AI</span>
               </button>
             )}
             {hasChatWidget && (
-              <div className="mx-1 h-5 w-px bg-[var(--color-border)]" />
+              <div className="mx-1 h-5 w-px bg-[var(--color-border)] lg:hidden" />
             )}
             {config.search?.enabled && (
               <button
@@ -172,7 +181,8 @@ export function Header() {
                 </a>
               );
             })}
-            {(socialLinks.length > 0 || config.ctaButton) && (
+            <ThemeToggle />
+            {config.ctaButton && (
               <div className="mx-1 h-5 w-px bg-[var(--color-border)]" />
             )}
             {config.ctaButton && (
@@ -186,7 +196,6 @@ export function Header() {
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </a>
             )}
-            <ThemeToggle />
           </div>
         </div>
 

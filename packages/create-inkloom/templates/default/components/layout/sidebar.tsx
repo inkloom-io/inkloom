@@ -138,7 +138,7 @@ export function Sidebar() {
       sidebarHeight
     )}>
       <div className="flex flex-col h-full">
-        <nav className="flex-1 px-4 py-8">
+        <nav className="flex-1 px-4 pt-4 pb-8">
           {socialLinks.length > 0 && (
             <div className="mb-6">
               <div className="space-y-1">
@@ -153,7 +153,9 @@ export function Sidebar() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 px-3 py-1.5 text-xs text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"
                     >
-                      <Icon className="h-4 w-4" />
+                      <span className="flex h-7 w-7 items-center justify-center rounded-md border border-[var(--color-border-subtle)]">
+                        <Icon className="h-4 w-4" />
+                      </span>
                       <span>{SOCIAL_LABELS[link.platform] || link.platform}</span>
                     </a>
                   );

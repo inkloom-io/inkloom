@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router";
 import { cn } from "@/lib/utils";
+import { ListStart } from "lucide-react";
 import { useSiteData } from "@/src/data-provider";
 import { PageFeedback } from "./page-feedback";
 
@@ -129,6 +130,9 @@ export function TableOfContents() {
           }
         }
       }
+      if (!currentId && headings.length > 0) {
+        currentId = headings[0].id;
+      }
       setActiveId(currentId);
       ticking = false;
     };
@@ -152,7 +156,7 @@ export function TableOfContents() {
   return (
     <aside
       className={cn(
-        "toc sticky hidden w-64 xl:w-72 shrink-0 overflow-y-auto px-4 py-8 xl:block border-l border-[var(--color-sidebar-border))] bg-[var(--color-background)]",
+        "toc sticky hidden w-64 xl:w-72 shrink-0 overflow-y-auto px-4 py-8 xl:block bg-[var(--color-background)]",
         tabs.length > 0
           ? "top-[7.5rem] h-[calc(100vh-7.5rem)]"
           : "top-16 h-[calc(100vh-4rem)]"
@@ -160,7 +164,7 @@ export function TableOfContents() {
     >
       <div className="flex flex-col h-full">
         <div className="px-4 flex-1 min-h-0">
-          <h4 className="toc-title">On This Page</h4>
+          <h4 className="toc-title flex items-center gap-1.5"><ListStart className="h-4 w-4" />On This Page</h4>
           <nav>
             <ul className="space-y-1">
               {headings.map((heading) => (

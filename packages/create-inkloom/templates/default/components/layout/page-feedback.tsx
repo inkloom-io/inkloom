@@ -1,20 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router";
 import { useSiteData } from "@/src/data-provider";
-import { Check } from "lucide-react";
+import { Check, Smile, Meh, Frown } from "lucide-react";
 
 type Reaction = "positive" | "neutral" | "negative";
 
 interface ReactionOption {
   type: Reaction;
-  emoji: string;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
 }
 
 const REACTIONS: ReactionOption[] = [
-  { type: "positive", emoji: "\u{1F60A}", label: "Helpful" },
-  { type: "neutral", emoji: "\u{1F610}", label: "Neutral" },
-  { type: "negative", emoji: "\u{1F61E}", label: "Not helpful" },
+  { type: "positive", icon: Smile, label: "Helpful" },
+  { type: "neutral", icon: Meh, label: "Neutral" },
+  { type: "negative", icon: Frown, label: "Not helpful" },
 ];
 
 const SESSION_ID_KEY = "inkloom-feedback-session";
@@ -125,7 +125,7 @@ export function PageFeedback() {
         <>
           <p className="page-feedback-title">Was this page helpful?</p>
           <div className="page-feedback-buttons">
-            {REACTIONS.map(({ type, emoji, label }) => (
+            {REACTIONS.map(({ type, icon: Icon, label }) => (
               <button
                 key={type}
                 type="button"
@@ -135,9 +135,7 @@ export function PageFeedback() {
                 className={`page-feedback-btn${selected === type ? " page-feedback-btn-selected" : ""}`}
                 onClick={() => submitReaction(type)}
               >
-                <span className="page-feedback-emoji" role="img" aria-hidden="true">
-                  {emoji}
-                </span>
+                <Icon className="h-5 w-5 text-[var(--color-muted-foreground)] transition-colors hover:text-[var(--color-foreground)]" />
               </button>
             ))}
           </div>

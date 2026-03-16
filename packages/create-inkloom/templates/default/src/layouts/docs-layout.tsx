@@ -59,7 +59,7 @@ export function DocsLayout() {
       {tabs.length > 0 && <TabBar tabs={tabs} />}
       <div className="mx-auto flex max-w-8xl">
         <Sidebar />
-        <main className="min-w-0 flex-1 px-4 py-8 lg:px-16">
+        <main className="min-w-0 flex-1 px-4 py-8 lg:px-8">
           <article className="prose prose-slate dark:prose-invert max-w-4xl">
             <Outlet />
           </article>

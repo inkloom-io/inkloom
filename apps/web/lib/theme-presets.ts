@@ -123,10 +123,10 @@ const slateTheme: ThemePresetConfig = {
     },
   },
   typography: {
-    fontSans: '"Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif',
+    fontSans: '"Quicksand", ui-sans-serif, system-ui, sans-serif',
     fontMono: '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace',
-    fontDisplay: '"Space Grotesk", ui-sans-serif, system-ui, sans-serif',
-    googleFontsUrl: "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap",
+    fontDisplay: '"Quicksand", ui-sans-serif, system-ui, sans-serif',
+    googleFontsUrl: "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Quicksand:wght@400;500;600;700&display=swap",
   },
   effects: {
     shadowSm: "0 1px 2px 0 rgb(0 0 0 / 0.05), 0 1px 3px 0 rgb(0 0 0 / 0.04)",
