@@ -108,7 +108,7 @@ export function TitleSection({
 
   if (titleSectionHidden) {
     return (
-      <div className="mx-auto w-full max-w-[80ch] px-[3rem] pt-8 pb-2">
+      <div className="mx-auto w-full max-w-4xl px-[3rem] pt-8 pb-2">
         <div className="flex items-center justify-between rounded-lg border border-dashed border-[var(--glass-border)] bg-[var(--surface-bg)]/50 px-4 py-2.5">
           <span className="text-xs text-[var(--text-dim)]">
             {t("titleSectionHidden")}
@@ -137,7 +137,7 @@ export function TitleSection({
     <div className="pt-8 pb-0">
       {/* Load the display font for the title */}
       <link rel="stylesheet" href={fontUrl} />
-      <div className="mx-auto w-full max-w-[80ch] px-[3rem]">
+      <div className="mx-auto w-full max-w-4xl px-[3rem]">
         {/* Controls row */}
         <div className="mb-3 flex items-center justify-end gap-1">
           {icon && (
