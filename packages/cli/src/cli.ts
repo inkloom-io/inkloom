@@ -15,6 +15,7 @@ import { registerLlmsTxtCommands } from "./commands/llms-txt.js";
 import { registerBuildCommand } from "./commands/build.js";
 import { registerExportCommand } from "./commands/export.js";
 import { registerMigrateCommand } from "./commands/migrate.js";
+import { registerImportCommand } from "./commands/import.js";
 import {
   initErrorReporting,
   reportError,
@@ -58,6 +59,7 @@ registerLlmsTxtCommands(program);
 registerBuildCommand(program);
 registerExportCommand(program);
 registerMigrateCommand(program);
+registerImportCommand(program);
 
 async function main(): Promise<void> {
   // Initialize Sentry error reporting.
