@@ -12,6 +12,22 @@ export {
 } from "./types.js";
 
 export {
+  generateRedirects,
+  parseMintlifyRedirects,
+  parseGitbookRedirects,
+  mappingsToRedirects,
+  mergeRedirects,
+  generateSpaFallbackRules,
+  detectSubpath,
+  generateSubpathSnippets,
+  type UrlMapping,
+  type TabConfig,
+  type RedirectsResult,
+  type SubpathGuidance,
+  type PlatformSnippets,
+} from "./redirects.js";
+
+export {
   detectMimeType,
   scanContentForImages,
   scanGitbookAssetsDir,
