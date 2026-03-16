@@ -9,6 +9,7 @@ import type { BlockNoteEditor } from "@blocknote/core";
 import { Button } from "@inkloom/ui/button";
 import { usePublish } from "@/hooks/use-publish";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@inkloom/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@inkloom/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -1030,40 +1031,67 @@ export function EditorToolbar({
           open={publishOpen}
           onOpenChange={setPublishOpen}
         >
-          <DialogTrigger asChild>
-            <button
-              className={`ml-1 flex h-8 items-center gap-1.5 rounded-lg px-3.5 text-xs font-semibold transition-all disabled:opacity-40 ${
-                hasChanges === false || showSaving || isPublishing
-                  ? "bg-primary/15 text-primary/60"
-                  : "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(20,184,166,0.2)]"
-              }`}
-              disabled={hasChanges === false || showSaving || isPublishing}
-              onClick={() => {
-                // Reset deployment state to idle before the dialog opens so the
-                // user always sees the target-selector view instead of a stale
-                // success/error screen from a prior deployment.
-                if (
-                  deployment.status !== "polling" &&
-                  deployment.status !== "publishing"
-                ) {
-                  resetDeployment();
-                }
-              }}
-            >
-              {showSaving || isPublishing ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Rocket className="h-3.5 w-3.5" />
-              )}
-              {showSaving
-                ? t("saving")
-                : isPublishing
-                  ? t("publishing")
-                  : hasChanges === false
-                    ? t("published")
-                    : t("publish")}
-            </button>
-          </DialogTrigger>
+          <Popover>
+            <PopoverTrigger asChild>
+              <span className="inline-flex">
+                <DialogTrigger asChild>
+                  <button
+                    className={`ml-1 flex h-8 items-center gap-1.5 rounded-lg px-3.5 text-xs font-semibold transition-all disabled:opacity-40 ${
+                      hasChanges === false || showSaving || isPublishing
+                        ? "bg-primary/15 text-primary/60"
+                        : "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(20,184,166,0.2)]"
+                    }`}
+                    disabled={hasChanges === false || showSaving || isPublishing}
+                    onClick={() => {
+                      // Reset deployment state to idle before the dialog opens so the
+                      // user always sees the target-selector view instead of a stale
+                      // success/error screen from a prior deployment.
+                      if (
+                        deployment.status !== "polling" &&
+                        deployment.status !== "publishing"
+                      ) {
+                        resetDeployment();
+                      }
+                    }}
+                  >
+                    {showSaving || isPublishing ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Rocket className="h-3.5 w-3.5" />
+                    )}
+                    {showSaving
+                      ? t("saving")
+                      : isPublishing
+                        ? t("publishing")
+                        : hasChanges === false
+                          ? t("published")
+                          : t("publish")}
+                  </button>
+                </DialogTrigger>
+              </span>
+            </PopoverTrigger>
+            {hasChanges === false && !showSaving && !isPublishing && (
+              <PopoverContent
+                side="bottom"
+                align="end"
+                className="w-auto max-w-56 px-3 py-2"
+              >
+                <p className="text-xs text-muted-foreground">
+                  {t("publishedUpToDate")}
+                </p>
+                <button
+                  type="button"
+                  className="mt-1 text-xs font-medium text-primary hover:underline"
+                  onClick={() => {
+                    resetDeployment();
+                    setPublishOpen(true);
+                  }}
+                >
+                  {t("publishAnyway")} →
+                </button>
+              </PopoverContent>
+            )}
+          </Popover>
           <DialogContent>{renderDialogContent()}</DialogContent>
         </Dialog>
       </div>

@@ -813,6 +813,8 @@
     },
     "toolbar": {
       "published": "Published",
+      "publishedUpToDate": "Your site is up to date.",
+      "publishAnyway": "Publish anyway",
       "draft": "Draft",
       "publish": "Publish",
       "publishing": "Publishing...",
