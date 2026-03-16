@@ -26,39 +26,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Subtle dot grid background pattern */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background-image: radial-gradient(
-    circle,
-    var(--color-border-subtle) 1px,
-    transparent 1px
-  );
-  background-size: 24px 24px;
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-/* Subtle top gradient for header depth */
-body::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 300px;
-  z-index: -1;
-  background: linear-gradient(
-    to bottom,
-    var(--color-background-subtle),
-    transparent
-  );
-  pointer-events: none;
-}
-
 /* ============================================================================
    HEADER STYLES
    ============================================================================ */

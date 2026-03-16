@@ -1,0 +1,5 @@
+{
+  "title": "Introduction",
+  "description": "An introduction to Acme",
+  "content": "## What is Acme?\n\nAcme is a documentation platform.\n\n## How It Works\n\nPoint it at your repo and deploy.\n\n## Key Features\n\n- AI-powered generation\n- Rich block editor\n- Edge deployment\n\n## Next Steps\n\nSee the [Quick Start](/getting-started/quickstart)."
+}

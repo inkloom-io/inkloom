@@ -1,0 +1,91 @@
+{
+  "projectId": "fixture-project",
+  "config": {
+    "title": "Acme Docs",
+    "description": "Documentation for the Acme platform",
+    "search": { "enabled": true },
+    "socialLinks": [
+      { "platform": "github", "url": "https://github.com/acme" },
+      { "platform": "x", "url": "https://x.com/acme" },
+      { "platform": "discord", "url": "https://discord.gg/acme" }
+    ],
+    "ctaButton": { "label": "Get Started", "url": "https://acme.dev" },
+    "showBranding": true
+  },
+  "navigation": [
+    {
+      "title": "Getting Started",
+      "href": "/getting-started",
+      "children": [
+        { "title": "Introduction", "href": "/getting-started/introduction" },
+        { "title": "Quick Start", "href": "/getting-started/quickstart" },
+        { "title": "Installation & Setup", "href": "/getting-started/installation" }
+      ]
+    },
+    {
+      "title": "Guides",
+      "href": "/guides",
+      "children": [
+        { "title": "Authentication", "href": "/guides/authentication" },
+        { "title": "Deployment & Custom Domains", "href": "/guides/deployment" },
+        { "title": "Webhooks", "href": "/guides/webhooks" },
+        { "title": "CLI Usage", "href": "/guides/cli" },
+        { "title": "Configuration", "href": "/guides/configuration" }
+      ]
+    },
+    {
+      "title": "Reference",
+      "href": "/reference",
+      "children": [
+        { "title": "API Overview", "href": "/reference/api-overview", "icon": "code" },
+        { "title": "REST Endpoints", "href": "/reference/rest-endpoints", "icon": "code" },
+        { "title": "CLI Commands", "href": "/reference/cli-commands", "icon": "terminal" }
+      ]
+    }
+  ],
+  "tabs": [
+    {
+      "id": "docs",
+      "name": "Documentation",
+      "slug": "getting-started",
+      "navigation": [
+        {
+          "title": "Getting Started",
+          "href": "/getting-started",
+          "children": [
+            { "title": "Introduction", "href": "/getting-started/introduction" },
+            { "title": "Quick Start", "href": "/getting-started/quickstart" },
+            { "title": "Installation & Setup", "href": "/getting-started/installation" }
+          ]
+        },
+        {
+          "title": "Guides",
+          "href": "/guides",
+          "children": [
+            { "title": "Authentication", "href": "/guides/authentication" },
+            { "title": "Deployment & Custom Domains", "href": "/guides/deployment" },
+            { "title": "Webhooks", "href": "/guides/webhooks" },
+            { "title": "CLI Usage", "href": "/guides/cli" },
+            { "title": "Configuration", "href": "/guides/configuration" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "name": "API Reference",
+      "slug": "reference",
+      "navigation": [
+        {
+          "title": "Reference",
+          "href": "/reference",
+          "children": [
+            { "title": "API Overview", "href": "/reference/api-overview", "icon": "code" },
+            { "title": "REST Endpoints", "href": "/reference/rest-endpoints", "icon": "code" },
+            { "title": "CLI Commands", "href": "/reference/cli-commands", "icon": "terminal" }
+          ]
+        }
+      ]
+    }
+  ]
+}
