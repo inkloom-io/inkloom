@@ -302,6 +302,7 @@ export function PreviewPanel({
     >
       <div
         className="preview-container flex h-full flex-col"
+        data-preview-theme={previewTheme}
         style={containerStyle}
       >
         {/* Inject fonts */}

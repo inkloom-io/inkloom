@@ -29,14 +29,23 @@
 }
 
 /* ============================================================================
-   SHIKI DUAL THEME - Dark mode syntax highlighting for preview
-   The editor uses .dark class on the parent for dark mode.
+   SHIKI DUAL THEME - Syntax highlighting for preview panel
+   The preview panel has its own light/dark toggle independent of the app theme.
+   We use data-preview-theme on the container instead of the app-level .dark class.
    ============================================================================ */
 
-.dark .shiki,
-.dark .shiki span {
+/* Strip per-token backgrounds in ALL modes — the code-block-wrapper provides
+   the background via --color-code-background. Shiki themes set per-token
+   background-color via inline styles that look wrong against the container. */
+.preview-container .shiki span {
+  background-color: transparent !important;
+}
+
+/* Dark mode: switch Shiki colors using the preview's own theme toggle */
+.preview-container[data-preview-theme="dark"] .shiki,
+.preview-container[data-preview-theme="dark"] .shiki span {
   color: var(--shiki-dark) !important;
-  background-color: var(--shiki-dark-bg) !important;
+  background-color: transparent !important;
   font-style: var(--shiki-dark-font-style) !important;
   font-weight: var(--shiki-dark-font-weight) !important;
   text-decoration: var(--shiki-dark-text-decoration) !important;

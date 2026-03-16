@@ -325,6 +325,14 @@ a:has(.card) {
   border: none;
 }
 
+/* Strip per-token backgrounds — Shiki themes set background-color on individual
+   spans via inline styles. These look wrong against the code-block-wrapper
+   background. The wrapper provides the correct background via --color-code-background. */
+.code-block-highlighted .shiki span,
+.code-group-highlighted .shiki span {
+  background-color: transparent !important;
+}
+
 /* ============================================================================
    CODE GROUP
    ============================================================================ */

@@ -1214,15 +1214,22 @@ article:has(.api-endpoint-2col).prose {
 }
 
 /* ============================================================================
-   SHIKI DUAL THEME - Dark mode syntax highlighting color switching
+   SHIKI DUAL THEME - Syntax highlighting color switching
    Shiki generates inline styles with light colors by default and
    --shiki-dark CSS variables for dark mode alternatives.
    ============================================================================ */
 
+/* Strip per-token backgrounds in ALL modes — the code-block-wrapper provides
+   the background via --color-code-background. Shiki themes set per-token
+   background-color via inline styles that look wrong against the container. */
+.shiki span {
+  background-color: transparent !important;
+}
+
 :root[data-theme="dark"] .shiki,
 :root[data-theme="dark"] .shiki span {
   color: var(--shiki-dark) !important;
-  background-color: var(--shiki-dark-bg) !important;
+  background-color: transparent !important;
   font-style: var(--shiki-dark-font-style) !important;
   font-weight: var(--shiki-dark-font-weight) !important;
   text-decoration: var(--shiki-dark-text-decoration) !important;
@@ -1232,7 +1239,7 @@ article:has(.api-endpoint-2col).prose {
   :root[data-theme="system"] .shiki,
   :root[data-theme="system"] .shiki span {
     color: var(--shiki-dark) !important;
-    background-color: var(--shiki-dark-bg) !important;
+    background-color: transparent !important;
     font-style: var(--shiki-dark-font-style) !important;
     font-weight: var(--shiki-dark-font-weight) !important;
     text-decoration: var(--shiki-dark-text-decoration) !important;
@@ -1243,7 +1250,7 @@ article:has(.api-endpoint-2col).prose {
 :root:not([data-theme]) .shiki,
 :root:not([data-theme]) .shiki span {
   color: var(--shiki-dark) !important;
-  background-color: var(--shiki-dark-bg) !important;
+  background-color: transparent !important;
   font-style: var(--shiki-dark-font-style) !important;
   font-weight: var(--shiki-dark-font-weight) !important;
   text-decoration: var(--shiki-dark-text-decoration) !important;
