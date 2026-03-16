@@ -308,7 +308,7 @@ export function usePublish({
         captureException(apiError, { source: "use-publish", action: "publish", projectId: project._id, target });
         setDeployment({
           status: "error",
-          error: "Failed to publish",
+          error: result.error?.message || "Failed to publish",
         });
         return;
       }
