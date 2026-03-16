@@ -58,14 +58,14 @@
   font-size: 0.7rem;
   font-family: var(--editor-font-mono, ui-monospace, monospace);
   background: var(--editor-code-highlight, rgba(0, 0, 0, 0.08));
-  color: var(--editor-code-foreground, #d4d4d4);
+  color: var(--editor-code-foreground, #1a1a2e);
   cursor: pointer;
   outline: none;
   transition: all 0.15s ease;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23d4d4d4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 6px center;
   padding-right: 22px;
@@ -81,6 +81,15 @@
 }
 
 .bn-code-group-language-badge option {
+  background: var(--editor-background, #ffffff);
+  color: var(--editor-foreground, #1a1a2e);
+}
+
+.dark .bn-code-group-language-badge {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23d4d4d4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+.dark .bn-code-group-language-badge option {
   background: #1f2937;
   color: #f9fafb;
 }
@@ -113,7 +122,7 @@
 }
 
 .bn-code-group-tab-button:hover {
-  color: var(--editor-foreground, #f9fafb);
+  color: var(--editor-foreground, #1a1a2e);
   background: var(--editor-background-subtle, rgba(128, 128, 128, 0.1));
 }
 
@@ -162,6 +171,11 @@
 }
 
 .bn-code-group-tab-select option {
+  background: var(--editor-background, #ffffff);
+  color: var(--editor-foreground, #1a1a2e);
+}
+
+.dark .bn-code-group-tab-select option {
   background: #1f2937;
   color: #f9fafb;
 }
@@ -204,8 +218,8 @@
   border-radius: 4px;
   padding: 4px 10px;
   font-size: 0.75rem;
-  background: rgba(0, 0, 0, 0.2);
-  color: var(--editor-foreground, #f9fafb);
+  background: var(--editor-code-highlight, rgba(0, 0, 0, 0.06));
+  color: var(--editor-foreground, #1a1a2e);
   cursor: pointer;
   outline: none;
   transition: all 0.15s ease;

@@ -38,7 +38,7 @@
   font-size: 0.7rem;
   font-family: var(--editor-font-mono, ui-monospace, monospace);
   background: var(--editor-code-highlight, rgba(0, 0, 0, 0.08));
-  color: var(--editor-code-foreground, #d4d4d4);
+  color: var(--editor-code-foreground, #1a1a2e);
   cursor: pointer;
   outline: none;
   transition: all 0.15s ease;
@@ -61,9 +61,14 @@
 }
 
 .bn-code-block-language-select option {
+  background: var(--editor-background, #ffffff);
+  color: var(--editor-foreground, #1a1a2e);
+  text-transform: none;
+}
+
+.dark .bn-code-block-language-select option {
   background: #1f2937;
   color: #f9fafb;
-  text-transform: none;
 }
 
 /* Hide non-active code blocks in a group */
@@ -147,7 +152,7 @@
 
   /* Make text transparent but keep caret visible */
   color: transparent;
-  caret-color: var(--editor-foreground, #d4d4d4);
+  caret-color: var(--editor-foreground, #1a1a2e);
 
   /* Match highlight layer exactly */
   tab-size: 2;

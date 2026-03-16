@@ -719,10 +719,11 @@ export default function EditorPage({ params }: EditorPageProps) {
                     !collaboration.error &&
                     !collaborationEstablished && (
                       <div
-                        className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full px-3 py-1.5 text-xs text-[var(--text-dim)] border border-[var(--glass-border)]"
+                        className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full px-3 py-1.5 text-xs text-[var(--text-bright)] border border-[var(--glass-border)]"
                         style={{
-                          backgroundColor: "rgba(0,0,0,0.6)",
+                          backgroundColor: "var(--glass-surface)",
                           backdropFilter: "blur(8px)",
+                          boxShadow: "var(--glass-shadow)",
                         }}
                       >
                         <Loader2
