@@ -574,30 +574,48 @@ function generateThemeSpecificCss(themeKey: ThemePreset): string {
 }
 
 /**
- * Slate theme: Professional, clean, technical
- * Subtle gradients, refined borders, elegant shadows
+ * Slate theme: Premium technical documentation
+ * Inspired by Stripe, Linear, Vercel — minimal but meticulously refined
+ * Subtle mesh gradients, micro-shadows, crisp typography, elegant depth
  */
 function generateSlateCss(): string {
   return `
-/* Slate: Professional refinement */
+/* Slate: Premium refinement */
 html {
   --theme-name: "slate";
 }
 
-/* Subtle gradient background for depth */
+/* Sophisticated mesh gradient background with subtle depth */
 body {
+  background-color: var(--color-background);
   background-image:
-    linear-gradient(180deg, var(--color-background) 0%, var(--color-background-subtle) 100%);
+    radial-gradient(at 0% 0%, var(--color-background-subtle) 0%, transparent 50%),
+    radial-gradient(at 100% 50%, color-mix(in srgb, var(--color-border-subtle) 40%, transparent) 0%, transparent 50%),
+    radial-gradient(at 30% 100%, var(--color-background-subtle) 0%, transparent 40%);
   background-attachment: fixed;
 }
 
-/* Code blocks with subtle border */
-.prose pre {
-  position: relative;
-  border: 1px solid var(--color-border-subtle);
+/* Subtle dot-grid texture overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--color-border-subtle) 0.5px, transparent 0.5px);
+  background-size: 32px 32px;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* Sidebar link indicator line */
+/* Header — crisp frosted glass with refined border */
+.site-header {
+  border-bottom: 1px solid var(--color-header-border);
+  box-shadow:
+    0 1px 0 0 color-mix(in srgb, var(--color-border) 50%, transparent),
+    0 4px 12px -4px rgb(0 0 0 / 0.03);
+}
+
+/* Sidebar active — clean left accent with subtle highlight */
 .sidebar-link-active {
   position: relative;
 }
@@ -605,39 +623,157 @@ body {
 .sidebar-link-active::before {
   content: "";
   position: absolute;
-  left: -1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 1.25rem;
+  left: 0;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  width: 2px;
   background: var(--color-primary);
-  border-radius: 0 2px 2px 0;
+  border-radius: 0 1px 1px 0;
 }
 
-/* Table refinements */
+/* Code blocks — refined with top accent edge and layered shadow */
+.prose pre {
+  position: relative;
+  border: 1px solid var(--color-border-subtle);
+  border-top: 2px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 2px 4px -1px rgb(0 0 0 / 0.06),
+    0 1px 2px -1px rgb(0 0 0 / 0.04),
+    inset 0 1px 0 0 color-mix(in srgb, var(--color-border-subtle) 30%, transparent);
+}
+
+/* Inline code — crisp pill with subtle depth */
+.prose :not(pre) > code {
+  background: var(--color-accent);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.125em 0.375em;
+  font-size: 0.875em;
+  box-shadow: 0 1px 1px 0 rgb(0 0 0 / 0.04);
+}
+
+/* Callouts — refined card style with left accent */
+.callout {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  border-left: 3px solid var(--color-primary);
+  background: color-mix(in srgb, var(--color-background-subtle) 60%, var(--color-background));
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.04),
+    0 1px 2px -1px rgb(0 0 0 / 0.03);
+}
+
+/* Links — refined underline interaction */
+.prose a {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s ease, color 0.2s ease;
+}
+
+.prose a:hover {
+  text-decoration-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Headings — precise spacing with subtle gradient on h1 */
+.prose h1 {
+  background: linear-gradient(145deg, var(--color-foreground) 30%, var(--color-muted-foreground) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+
+.prose h2 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.prose h3 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: color-mix(in srgb, var(--color-foreground) 85%, var(--color-primary));
+}
+
+/* Tables — clean card style with refined header */
 .prose table {
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--color-border);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.03);
 }
 
-.prose th,
-.prose td {
-  border: none;
+.prose th {
+  background: var(--color-background-subtle);
   border-bottom: 1px solid var(--color-border);
+  font-weight: 600;
+  font-size: 0.8em;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+}
+
+.prose td {
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .prose tr:last-child td {
   border-bottom: none;
 }
 
-/* Blockquote with subtle left gradient */
+/* Blockquote — refined with subtle background */
 .prose blockquote {
+  border-left: 3px solid color-mix(in srgb, var(--color-primary) 50%, var(--color-border));
   background: linear-gradient(
     90deg,
-    var(--color-background-subtle) 0%,
+    color-mix(in srgb, var(--color-background-subtle) 80%, var(--color-background)) 0%,
     transparent 100%
   );
+  padding-left: 1.25rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* Horizontal rules — elegant fade */
+.prose hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-border) 20%,
+    var(--color-border) 80%,
+    transparent 100%
+  );
+  opacity: 0.7;
+}
+
+/* Sidebar section — subtle refinement */
+.site-sidebar {
+  background: var(--color-sidebar-background);
+}
+
+/* Button refinement */
+.btn-primary {
+  box-shadow:
+    0 1px 2px 0 rgb(0 0 0 / 0.08),
+    0 1px 1px 0 rgb(0 0 0 / 0.04),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.1);
+  transition: all 0.15s ease;
+}
+
+.btn-primary:hover {
+  box-shadow:
+    0 2px 4px 0 rgb(0 0 0 / 0.12),
+    0 1px 2px 0 rgb(0 0 0 / 0.06),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.1);
+  transform: translateY(-0.5px);
 }
 `;
 }
