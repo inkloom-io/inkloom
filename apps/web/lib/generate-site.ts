@@ -652,20 +652,9 @@ body::before {
     0 4px 12px -4px rgb(0 0 0 / 0.03);
 }
 
-/* Sidebar active — clean left accent with subtle highlight */
+/* Sidebar active — clean 3px accent border */
 .sidebar-link-active {
-  position: relative;
-}
-
-.sidebar-link-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.25rem;
-  bottom: 0.25rem;
-  width: 2px;
-  background: var(--color-primary);
-  border-radius: 0 1px 1px 0;
+  border-left-width: 3px;
 }
 
 /* Code blocks — refined with top accent edge and layered shadow */
@@ -700,7 +689,6 @@ body::before {
     0 1px 3px 0 rgb(0 0 0 / 0.04),
     0 1px 2px -1px rgb(0 0 0 / 0.03);
 }
-
 /* Links — refined underline interaction */
 .prose a {
   text-decoration: underline;
@@ -841,9 +829,10 @@ body {
   box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
-/* Sidebar active state with glow */
+/* Sidebar active — glowing left accent border */
 .sidebar-link-active {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 30%, transparent), 0 2px 16px -2px color-mix(in srgb, var(--color-primary) 25%, transparent);
+  border-left-width: 3px;
+  box-shadow: -3px 0 12px -2px color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 /* Code blocks with gradient border */
@@ -929,21 +918,10 @@ body {
   background: var(--color-sidebar-background);
 }
 
-/* Sidebar active with botanical accent bar */
+/* Sidebar active — botanical accent border */
 .sidebar-link-active {
-  position: relative;
-  background: var(--color-sidebar-active);
-}
-
-.sidebar-link-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.375rem;
-  bottom: 0.375rem;
-  width: 3px;
-  background: var(--color-primary);
-  border-radius: 0 3px 3px 0;
+  border-left-width: 3px;
+  border-left-color: var(--color-primary);
 }
 
 /* Code blocks — inset parchment feel */
@@ -1078,21 +1056,10 @@ body {
   background: var(--color-sidebar-background);
 }
 
-/* Sidebar active — warm accent bar with copper glow */
+/* Sidebar active — warm copper accent border */
 .sidebar-link-active {
-  position: relative;
-  background: var(--color-sidebar-active);
-}
-
-.sidebar-link-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.25rem;
-  bottom: 0.25rem;
-  width: 3px;
-  background: var(--color-primary);
-  border-radius: 0 2px 2px 0;
+  border-left-width: 3px;
+  border-left-color: var(--color-primary);
 }
 
 /* Code blocks — warm charcoal with copper accent top edge */
@@ -1224,21 +1191,10 @@ body {
   box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-primary) 19%, transparent), 0 2px 8px -2px color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
-/* Sidebar active — cyan indicator with subtle glow */
+/* Sidebar active — cyan accent border with observatory glow */
 .sidebar-link-active {
-  position: relative;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 15%, transparent), 0 0 12px -3px color-mix(in srgb, var(--color-primary) 13%, transparent);
-}
-
-.sidebar-link-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--color-primary);
-  box-shadow: 0 0 8px 0 color-mix(in srgb, var(--color-primary) 31%, transparent);
+  border-left-width: 2px;
+  box-shadow: -2px 0 10px -1px color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 /* Code blocks — sharp edges, cyan border glow */
@@ -1375,22 +1331,10 @@ body {
   background: var(--color-sidebar-background);
 }
 
-/* Sidebar active — rose accent with soft pill shape */
+/* Sidebar active — rose accent border */
 .sidebar-link-active {
-  position: relative;
-  background: var(--color-sidebar-active);
-  border-radius: var(--radius-md);
-}
-
-.sidebar-link-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.25rem;
-  bottom: 0.25rem;
-  width: 3px;
-  background: var(--color-primary);
-  border-radius: 0 3px 3px 0;
+  border-left-width: 3px;
+  border-left-color: var(--color-primary);
 }
 
 /* Code blocks — soft rounded with subtle rose border */
@@ -1522,20 +1466,10 @@ body {
   background: var(--color-sidebar-background);
 }
 
-/* Sidebar active — patina block indicator, full-height */
+/* Sidebar active — brutalist patina accent border */
 .sidebar-link-active {
-  position: relative;
-  background: var(--color-sidebar-active);
-}
-
-.sidebar-link-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--color-primary);
+  border-left-width: 4px;
+  border-left-color: var(--color-primary);
 }
 
 /* Code blocks — chiseled slab, zero radius, offset shadow */
@@ -1676,24 +1610,10 @@ body {
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* Sidebar active — glass pill with teal glow */
+/* Sidebar active — frosted teal accent border with glow */
 .sidebar-link-active {
-  position: relative;
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-  border-radius: var(--radius-md);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 13%, transparent), 0 0 16px -4px color-mix(in srgb, var(--color-primary) 9%, transparent);
-}
-
-.sidebar-link-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.375rem;
-  bottom: 0.375rem;
-  width: 3px;
-  background: var(--color-primary);
-  border-radius: 0 4px 4px 0;
-  box-shadow: 0 0 10px 0 color-mix(in srgb, var(--color-primary) 25%, transparent);
+  border-left-width: 3px;
+  box-shadow: -3px 0 14px -2px color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
 /* Code blocks — frosted glass with luminous edge */
@@ -1833,22 +1753,11 @@ body {
   background: var(--color-sidebar-background);
 }
 
-/* Sidebar active — gold accent with warm glow */
+/* Sidebar active — gold accent border with warm glow */
 .sidebar-link-active {
-  position: relative;
-  background: var(--color-sidebar-active);
-}
-
-.sidebar-link-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.25rem;
-  bottom: 0.25rem;
-  width: 3px;
-  background: linear-gradient(180deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 50%, transparent));
-  border-radius: 0 2px 2px 0;
-  box-shadow: 0 0 8px 0 color-mix(in srgb, var(--color-primary) 15%, transparent);
+  border-left-width: 3px;
+  border-image: linear-gradient(180deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 50%, transparent)) 1;
+  box-shadow: -3px 0 10px -2px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 /* Code blocks — deep plum with gold accent line */
