@@ -41,6 +41,7 @@ interface VersionDiffProps {
   onExit: () => void;
   onRestore?: (restoredContent: string) => void;
   pageTitle: string;
+  pageSubtitle?: string;
   pageFolderId?: string;
   folders: BreadcrumbFolder[];
   navTabs: NavTab[];
@@ -60,6 +61,7 @@ export function VersionDiff({
   onExit,
   onRestore,
   pageTitle,
+  pageSubtitle,
   pageFolderId,
   folders,
   navTabs,
@@ -141,6 +143,7 @@ export function VersionDiff({
               <PreviewPanel
                 content={versionData.content}
                 pageTitle={pageTitle}
+                pageSubtitle={pageSubtitle}
                 pageId={pageId}
                 folderId={pageFolderId}
                 folders={folders}
@@ -171,6 +174,7 @@ export function VersionDiff({
             <PreviewPanel
               content={currentContent}
               pageTitle={pageTitle}
+              pageSubtitle={pageSubtitle}
               pageId={pageId}
               folderId={pageFolderId}
               folders={folders}
