@@ -225,10 +225,18 @@
    SHIKI DUAL THEME - Dark mode syntax highlighting for editor code blocks
    ============================================================================ */
 
+/* Force transparent backgrounds on all syntax tokens in both modes.
+   Shiki themes (github-light / github-dark) set per-token background-color
+   via inline styles and CSS custom properties. These token backgrounds are
+   visible against the code block container background and look wrong. */
+.bn-code-block .shiki span {
+  background-color: transparent !important;
+}
+
 .dark .bn-code-block .shiki,
 .dark .bn-code-block .shiki span {
   color: var(--shiki-dark) !important;
-  background-color: var(--shiki-dark-bg) !important;
+  background-color: transparent !important;
   font-style: var(--shiki-dark-font-style) !important;
   font-weight: var(--shiki-dark-font-weight) !important;
   text-decoration: var(--shiki-dark-text-decoration) !important;

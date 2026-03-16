@@ -150,6 +150,22 @@
   color: var(--editor-muted-foreground, #6b7280);
 }
 
+/* Override shadcn Button styles inside card props to use editor theme.
+   The Button variant="outline" uses Tailwind's bg-background / border-input
+   which come from the dashboard theme (globals.css), not the editor theme.
+   This mismatch causes a dark button background in the card when the
+   dashboard is in dark mode. */
+.bn-card-prop button {
+  background: var(--editor-background-subtle, rgba(0, 0, 0, 0.06)) !important;
+  border-color: var(--editor-border, rgba(128, 128, 128, 0.2)) !important;
+  color: var(--editor-foreground, #1a1a2e) !important;
+}
+
+.bn-card-prop button:hover {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08)) !important;
+  border-color: var(--editor-primary, #6366f1) !important;
+}
+
 /* CardGroup Block Styles */
 .bn-card-group {
   width: 100%;
