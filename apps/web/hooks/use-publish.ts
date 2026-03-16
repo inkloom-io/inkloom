@@ -91,7 +91,13 @@ export function usePublish({
   // the deployed target until the Convex query re-evaluates with the new
   // content hashes. This closes the race window where the button briefly
   // shows "Publish" (enabled) between deploy success and query confirmation.
-  const [deployedTarget, setDeployedTarget] = useState<string | null>(null);
+  // We also track the deploymentId so we can clear the override when the
+  // specific deployment reaches "ready", preventing the button from getting
+  // permanently stuck if the user edits content during the deploy window.
+  const [deployedTarget, setDeployedTarget] = useState<{
+    target: string;
+    deploymentId: string;
+  } | null>(null);
 
   // Guard: when the user explicitly resets, prevent the resume-tracking effect
   // from immediately transitioning back to "polling" in the same render cycle.
@@ -183,7 +189,7 @@ export function usePublish({
           deploymentId: deployment.deploymentId,
           url: current.url,
         });
-        setDeployedTarget(target);
+        setDeployedTarget({ target, deploymentId: deployment.deploymentId });
       } else if (
         current?.status === "error" ||
         current?.status === "canceled"
@@ -205,16 +211,33 @@ export function usePublish({
   // Derived state
   // ---------------------------------------------------------------------------
 
-  // Clear the deployed-target override once the Convex query confirms no
-  // unpublished changes for that target (i.e. the reactive query caught up).
+  // Clear the deployed-target override when either:
+  // 1. The Convex query confirms no unpublished changes (query caught up), OR
+  // 2. The specific deployment reached "ready" status — this guarantees the
+  //    override is temporary even if the user edited content during the deploy
+  //    window, which would otherwise prevent condition 1 from ever being met.
   useEffect(() => {
-    if (
-      deployedTarget &&
-      unpublishedChanges?.[deployedTarget as "preview" | "production"] === false
-    ) {
+    if (!deployedTarget) return;
+
+    // Condition 1: Convex query caught up — no unpublished changes for target.
+    const targetKey = deployedTarget.target as "preview" | "production";
+    if (unpublishedChanges?.[targetKey] === false) {
       setDeployedTarget(null);
+      return;
     }
-  }, [deployedTarget, unpublishedChanges]);
+
+    // Condition 2: The tracked deployment reached "ready" — the propagation
+    // window is over, so the override is no longer needed. The query will now
+    // correctly reflect whether there are unpublished changes.
+    if (deployments) {
+      const tracked = deployments.find(
+        (d: { _id: string }) => d._id === deployedTarget.deploymentId
+      );
+      if (tracked && tracked.status === "ready") {
+        setDeployedTarget(null);
+      }
+    }
+  }, [deployedTarget, unpublishedChanges, deployments]);
 
   const isPublishing =
     deployment.status === "publishing" || deployment.status === "polling";
@@ -297,7 +320,7 @@ export function usePublish({
     ? {
         ...unpublishedChanges,
         ...(deployedTarget
-          ? { [deployedTarget]: false as const }
+          ? { [deployedTarget.target]: false as const }
           : {}),
       }
     : undefined;
