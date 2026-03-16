@@ -598,6 +598,8 @@ export function BlockEditor({
   const handleChange = useCallback(() => {
     if (!onChange) return;
     const content = JSON.stringify(editor.document);
+    // [DEBUG] Temporary instrumentation — remove after root cause identified
+    console.log("[BlockEditor handleChange] content preview:", content.substring(0, 100));
     onChange(content);
   }, [editor, onChange]);
 

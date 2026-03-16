@@ -221,6 +221,9 @@ export const hasUnpublishedChanges = query({
 
     const resolvedBranchId = args.branchId || project.defaultBranchId;
 
+    // [DEBUG] Temporary instrumentation — remove after root cause identified
+    console.log("[hasUnpublishedChanges] resolvedBranchId:", resolvedBranchId);
+
     // Get deployments for this branch, find latest ready per target
     const deployments = await ctx.db
       .query("deployments")
@@ -288,6 +291,9 @@ export const hasUnpublishedChanges = query({
 
     const publishedPages = pagesWithFixedPaths.filter((p: any) => p.isPublished);
 
+    // [DEBUG] Temporary instrumentation — remove after root cause identified
+    console.log("[hasUnpublishedChanges] publishedPages count:", publishedPages.length);
+
     // Build current content hashes
     const currentHashes: Record<string, string> = {
       "__project_settings__": projectSettingsHash,
@@ -322,8 +328,27 @@ export const hasUnpublishedChanges = query({
       currentHashes[`__folder__${folder.path}`] = hashContent(JSON.stringify(folderData));
     }
 
+    // [DEBUG] Temporary instrumentation — remove after root cause identified
+    // Log per-page hash comparison
+    for (const page of publishedPages) {
+      const currentHash = currentHashes[page.path];
+      const deployedHashPreview = latestReadyPreview?.contentHashes?.[page.path];
+      const deployedHashProduction = latestReadyProduction?.contentHashes?.[page.path];
+      console.log("[hasUnpublishedChanges] page hash comparison:", {
+        path: page.path,
+        contentHashCurrent: currentHash,
+        contentHashDeployedPreview: deployedHashPreview,
+        contentHashDeployedProduction: deployedHashProduction,
+        matchPreview: currentHash === deployedHashPreview,
+        matchProduction: currentHash === deployedHashProduction,
+      });
+    }
+    console.log("[hasUnpublishedChanges] currentHashes keys:", Object.keys(currentHashes));
+    console.log("[hasUnpublishedChanges] deployedHashes keys (preview):", latestReadyPreview?.contentHashes ? Object.keys(latestReadyPreview.contentHashes) : "none");
+    console.log("[hasUnpublishedChanges] deployedHashes keys (production):", latestReadyProduction?.contentHashes ? Object.keys(latestReadyProduction.contentHashes) : "none");
+
     // Compare against each target independently
-    return {
+    const result = {
       preview: latestReadyPreview?.contentHashes
         ? !hashesMatch(currentHashes, latestReadyPreview.contentHashes)
         : true,
@@ -331,6 +356,11 @@ export const hasUnpublishedChanges = query({
         ? !hashesMatch(currentHashes, latestReadyProduction.contentHashes)
         : true,
     };
+
+    // [DEBUG] Log final result
+    console.log("[hasUnpublishedChanges] final result:", result);
+
+    return result;
   },
 });
 

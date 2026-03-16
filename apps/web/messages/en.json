@@ -350,12 +350,11 @@
     },
     "cta": {
       "title": "Ready to ship better docs?",
-      "subtitle": "Start with the free tier. No credit card required. Deploy your first docs site in under 5 minutes.",
+      "subtitle": "Start with the free tier. Deploy your first docs site in under 5 minutes.",
       "terminalTitle": "get started",
-      "terminalWelcome": "Welcome to InkLoom. Let's build something great.",
       "startForFree": "Start for free",
       "viewOnGitHub": "View on GitHub",
-      "noCreditCard": "No credit card required. Free forever for individuals."
+      "freeForever": "Free forever for personal and open source projects."
     },
     "footer": {
       "description": "Documentation that writes itself. AI-powered docs that generate, sync, and deploy from your codebase.",

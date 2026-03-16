@@ -409,10 +409,22 @@ export default function EditorPage({ params }: EditorPageProps) {
 
   const handleContentChange = useCallback(
     (content: string) => {
-      if (!selectedPageId) return;
+      // [DEBUG] Temporary instrumentation — remove after root cause identified
+      console.log("[handleContentChange] entered, selectedPageId:", selectedPageId, "collabReady:", isCollaborationReady);
+
+      if (!selectedPageId) {
+        console.log("[handleContentChange] early return: no selectedPageId");
+        return;
+      }
 
       // Don't persist content changes while in read-only mode during collaboration connection
-      if (isCollaborationEnabled && !isCollaborationReady) return;
+      if (isCollaborationEnabled && !isCollaborationReady) {
+        console.log("[handleContentChange] early return: collab not ready");
+        return;
+      }
+
+      // [DEBUG] Log first 100 chars of content being saved
+      console.log("[handleContentChange] content preview:", content.substring(0, 100));
 
       // Always update local content so the preview panel shows the latest state
       setEditorContent(content);
@@ -431,6 +443,8 @@ export default function EditorPage({ params }: EditorPageProps) {
       const debounceMs = collaboration.connected ? 2000 : 500;
       debounceTimerRef.current = setTimeout(() => {
         const contentToSave = pendingContentRef.current;
+        // [DEBUG] Log when debounce fires
+        console.log("[handleContentChange] debounce fired, hasContent:", !!contentToSave, "pageId:", selectedPageId);
         if (contentToSave) {
           pendingContentRef.current = null;
           updateContent({
