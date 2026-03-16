@@ -477,8 +477,7 @@
       "upgradeToProDescription": "Unlock custom domains, API access, and more",
       "completeSetup": "Complete your setup",
       "completeSetupDescription": "Finish the onboarding to get the most out of InkLoom",
-      "createProjectAction": "Create a new project",
-      "createProjectActionDescription": "Start a new documentation site from a template or import"
+      "newProject": "New Project"
     },
     "onboarding": {
       "stepOf": "Step {step} of {total}",
