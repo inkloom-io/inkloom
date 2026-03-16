@@ -421,18 +421,36 @@ function buildFolderChildren(
  * colors, effects, and atmospheric styling.
  */
 function generateColorBlock(colors: ThemeColors, primaryOverride: string | null, backgroundOverride: string | null, backgroundSubtleOverride: string | null): string {
+  const primary = primaryOverride || colors.primary;
+  const background = backgroundOverride || colors.background;
+
+  // When primary is overridden, derive accent and sidebar-active from the new primary
+  // using color-mix() so they harmonize with the custom color.
+  // accent: very light tint of primary (8% primary mixed into background)
+  // sidebar-active: slightly stronger tint (10% primary mixed into background)
+  // accent-foreground stays as the main foreground for readability on tinted surfaces
+  const accent = primaryOverride
+    ? `color-mix(in srgb, ${primaryOverride} 8%, ${background})`
+    : colors.accent;
+  const accentForeground = primaryOverride
+    ? colors.foreground
+    : colors.accentForeground;
+  const sidebarActive = primaryOverride
+    ? `color-mix(in srgb, ${primaryOverride} 10%, ${background})`
+    : colors.sidebarActiveBackground;
+
   return `
-  --color-background: ${backgroundOverride || colors.background};
+  --color-background: ${background};
   --color-foreground: ${colors.foreground};
   --color-background-subtle: ${backgroundSubtleOverride || colors.backgroundSubtle};
   --color-muted: ${colors.muted};
   --color-muted-foreground: ${colors.mutedForeground};
   --color-border: ${colors.border};
   --color-border-subtle: ${colors.borderSubtle};
-  --color-primary: ${primaryOverride || colors.primary};
+  --color-primary: ${primary};
   --color-primary-foreground: ${colors.primaryForeground};
-  --color-accent: ${colors.accent};
-  --color-accent-foreground: ${colors.accentForeground};
+  --color-accent: ${accent};
+  --color-accent-foreground: ${accentForeground};
   --color-secondary: ${colors.muted};
   --color-secondary-foreground: ${colors.foreground};
   --color-code-background: ${colors.codeBackground};
@@ -440,7 +458,7 @@ function generateColorBlock(colors: ThemeColors, primaryOverride: string | null,
   --color-code-highlight: ${colors.codeHighlight};
   --color-sidebar-background: ${colors.sidebarBackground};
   --color-sidebar-border: ${colors.sidebarBorder};
-  --color-sidebar-active: ${colors.sidebarActiveBackground};
+  --color-sidebar-active: ${sidebarActive};
   --color-header-background: ${colors.headerBackground};
   --color-header-border: ${colors.headerBorder};`;
 }
