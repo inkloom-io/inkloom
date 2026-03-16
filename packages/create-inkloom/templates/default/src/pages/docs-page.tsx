@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router";
+import { useLocation, Link as RouterLink } from "react-router";
 import { MDXContent } from "@/components/mdx/mdx-content";
 import { CopyPageDropdown } from "@/components/layout/copy-page-dropdown";
 import { useSiteData } from "@/src/data-provider";
 import {
   Book,
   BookOpen,
+  ChevronLeft,
+  ChevronRight,
   Code,
   Cog,
   FileText,
@@ -144,6 +146,19 @@ function PageIcon({ icon, className }: { icon: string; className?: string }) {
   return <span className={className}>{icon}</span>;
 }
 
+/** Flatten the navigation tree into a sequential list of leaf pages (no folders). */
+function flattenNavItems(items: NavItem[]): { title: string; href: string }[] {
+  const result: { title: string; href: string }[] = [];
+  for (const item of items) {
+    if (item.children && item.children.length > 0) {
+      result.push(...flattenNavItems(item.children));
+    } else {
+      result.push({ title: item.title, href: item.href });
+    }
+  }
+  return result;
+}
+
 export function DocsPage() {
   const location = useLocation();
   const { config, navigation, tabs } = useSiteData();
@@ -206,6 +221,15 @@ export function DocsPage() {
   const folderTrail = buildFolderTrail(navItems, pathname);
   const folderName = folderTrail && folderTrail.length > 0 ? folderTrail[folderTrail.length - 1] : null;
 
+  // Build flat page list for prev/next navigation
+  const flatPages = flattenNavItems(navItems);
+  const currentIndex = flatPages.findIndex((p) => p.href === pathname);
+  const prevPage = currentIndex > 0 ? flatPages[currentIndex - 1] : null;
+  const nextPage =
+    currentIndex >= 0 && currentIndex < flatPages.length - 1
+      ? flatPages[currentIndex + 1]
+      : null;
+
   return (
     <div>
       {pageData.title && !pageData.titleSectionHidden && (
@@ -264,6 +288,35 @@ export function DocsPage() {
         </div>
       )}
       <MDXContent source={pageData.content} />
+      {(prevPage || nextPage) && (
+        <nav
+          aria-label="Page navigation"
+          className="not-prose docs-prev-next"
+        >
+          {prevPage ? (
+            <RouterLink to={prevPage.href} className="docs-prev-next-card">
+              <span className="docs-prev-next-label">Previous</span>
+              <span className="docs-prev-next-title">
+                <ChevronLeft className="docs-prev-next-arrow" />
+                {prevPage.title}
+              </span>
+            </RouterLink>
+          ) : (
+            <span />
+          )}
+          {nextPage ? (
+            <RouterLink to={nextPage.href} className="docs-prev-next-card docs-prev-next-card-next">
+              <span className="docs-prev-next-label">Next</span>
+              <span className="docs-prev-next-title">
+                {nextPage.title}
+                <ChevronRight className="docs-prev-next-arrow" />
+              </span>
+            </RouterLink>
+          ) : (
+            <span />
+          )}
+        </nav>
+      )}
     </div>
   );
 }

@@ -1776,6 +1776,99 @@ article:has(.api-endpoint-2col).prose {
 }
 
 /* ============================================================================
+   PREVIOUS / NEXT PAGE NAVIGATION
+   ============================================================================ */
+
+.docs-prev-next {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.docs-prev-next-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-background);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.docs-prev-next-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  text-decoration: none;
+}
+
+.docs-prev-next-card-next {
+  text-align: right;
+  align-items: flex-end;
+}
+
+.docs-prev-next-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.docs-prev-next-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+  transition: color 0.15s ease;
+}
+
+.docs-prev-next-card:hover .docs-prev-next-title {
+  color: var(--color-primary);
+}
+
+.docs-prev-next-arrow {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.docs-prev-next-card:hover .docs-prev-next-arrow {
+  color: var(--color-primary);
+}
+
+/* Shift arrows on hover */
+.docs-prev-next-card:not(.docs-prev-next-card-next):hover .docs-prev-next-arrow {
+  transform: translateX(-2px);
+}
+
+.docs-prev-next-card-next:hover .docs-prev-next-arrow {
+  transform: translateX(2px);
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 640px) {
+  .docs-prev-next {
+    grid-template-columns: 1fr;
+  }
+
+  .docs-prev-next-card-next {
+    text-align: left;
+    align-items: flex-start;
+  }
+}
+
+/* ============================================================================
    ANIMATIONS
    ============================================================================ */
 
