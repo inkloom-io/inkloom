@@ -914,6 +914,81 @@ a:has(.card) {
 }
 
 /* ============================================================================
+   PAGE FEEDBACK
+   ============================================================================ */
+
+.page-feedback {
+  padding-top: 0.75rem;
+  padding-bottom: 1rem;
+}
+
+.page-feedback-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin-bottom: 0.75rem;
+}
+
+.page-feedback-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-muted-foreground);
+  margin: 0 0 0.5rem;
+}
+
+.page-feedback-buttons {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.page-feedback-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.page-feedback-btn:hover {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-background));
+}
+
+.page-feedback-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.page-feedback-btn-selected {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-background));
+}
+
+.page-feedback-emoji {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.page-feedback-thanks {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.page-feedback-check-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
    SEARCH
    ============================================================================ */
 

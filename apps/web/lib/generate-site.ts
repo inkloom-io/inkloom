@@ -22,14 +22,17 @@ export function buildSiteData(
     customFonts?: { heading?: string; body?: string; code?: string };
     search?: { enabled: boolean };
     proxyUrl?: string;
+    apiUrl?: string;
     socialLinks?: { platform: string; url: string }[];
     ctaButton?: { label: string; url: string };
     showBranding?: boolean;
+    projectId?: string;
   },
   navigation: NavItem[],
   tabs: { id: string; name: string; slug: string; icon?: string; navigation: NavItem[] }[]
 ): object {
   return {
+    ...(config.projectId ? { projectId: config.projectId } : {}),
     config: {
       title: config.name,
       description: config.description || "",
@@ -39,6 +42,7 @@ export function buildSiteData(
       ...(config.customFonts ? { customFonts: config.customFonts } : {}),
       search: config.search || { enabled: true },
       proxyUrl: config.proxyUrl || null,
+      ...(config.apiUrl ? { apiUrl: config.apiUrl } : {}),
       ...(config.socialLinks && config.socialLinks.length > 0
         ? { socialLinks: config.socialLinks }
         : {}),

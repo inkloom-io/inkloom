@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import { useSiteData } from "@/src/data-provider";
+import { PageFeedback } from "./page-feedback";
 
 interface TocItem {
   id: string;
@@ -157,28 +158,33 @@ export function TableOfContents() {
           : "top-16 h-[calc(100vh-4rem)]"
       )}
     >
-      <div className="px-4">
-        <h4 className="toc-title">On This Page</h4>
-        <nav>
-          <ul className="space-y-1">
-            {headings.map((heading) => (
-              <li
-                key={heading.id}
-                style={{ paddingLeft: `${(heading.level - 2) * 12}px` }}
-              >
-                <a
-                  href={`#${heading.id}`}
-                  className={cn(
-                    "toc-link",
-                    activeId === heading.id && "toc-link-active"
-                  )}
+      <div className="flex flex-col h-full">
+        <div className="px-4 flex-1 min-h-0">
+          <h4 className="toc-title">On This Page</h4>
+          <nav>
+            <ul className="space-y-1">
+              {headings.map((heading) => (
+                <li
+                  key={heading.id}
+                  style={{ paddingLeft: `${(heading.level - 2) * 12}px` }}
                 >
-                  {heading.title}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+                  <a
+                    href={`#${heading.id}`}
+                    className={cn(
+                      "toc-link",
+                      activeId === heading.id && "toc-link-active"
+                    )}
+                  >
+                    {heading.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+        <div className="px-4 shrink-0">
+          <PageFeedback />
+        </div>
       </div>
     </aside>
   );

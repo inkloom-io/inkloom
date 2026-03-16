@@ -30,12 +30,14 @@ interface SiteConfig {
   customFonts?: { heading?: string; body?: string; code?: string };
   search?: { enabled: boolean };
   proxyUrl?: string | null;
+  apiUrl?: string | null;
   socialLinks?: { platform: string; url: string }[];
   ctaButton?: { label: string; url: string };
   showBranding?: boolean;
 }
 
 export interface SiteData {
+  projectId?: string;
   config: SiteConfig;
   navigation: NavItem[];
   tabs: TabConfig[];

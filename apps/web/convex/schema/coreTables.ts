@@ -497,4 +497,19 @@ export const coreTables = {
     folderPaths: v.string(),
     createdAt: v.number(),
   }).index("by_branch", ["branchId"]),
+
+  // Page Feedback ("Was this helpful?" reactions on published docs)
+  pageFeedback: defineTable({
+    projectId: v.id("projects"),
+    pageSlug: v.string(),
+    reaction: v.union(
+      v.literal("positive"),
+      v.literal("neutral"),
+      v.literal("negative")
+    ),
+    sessionId: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_project_and_page", ["projectId", "pageSlug"])
+    .index("by_session_and_page", ["sessionId", "pageSlug"]),
 };
