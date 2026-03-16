@@ -184,7 +184,7 @@ export function TableOfContents() {
             </ul>
           </nav>
         </div>
-        <div className="px-4 shrink-0">
+        <div className="px-4 pb-4 shrink-0">
           <PageFeedback />
         </div>
       </div>
