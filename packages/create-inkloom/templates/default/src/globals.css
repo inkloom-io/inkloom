@@ -64,9 +64,7 @@ body::after {
    ============================================================================ */
 
 .site-header {
-  background: var(--color-header-background);
-  backdrop-filter: blur(var(--header-blur));
-  -webkit-backdrop-filter: blur(var(--header-blur));
+  background: var(--color-background);
   border-color: var(--color-header-border);
 }
 
@@ -75,7 +73,7 @@ body::after {
    ============================================================================ */
 
 .site-sidebar {
-  background: var(--color-sidebar-background);
+  background: var(--color-background);
   border-color: var(--color-sidebar-border);
 }
 

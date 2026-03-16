@@ -62,8 +62,8 @@ export function TabBar({ tabs, basePath = "" }: TabBarProps) {
   return (
     <nav className="sticky top-16 z-40 border-b border-[var(--color-border)] bg-[var(--color-background)]">
       <div className="mx-auto flex max-w-8xl px-4 lg:px-0">
-        <div className="hidden lg:block lg:w-64 lg:shrink-0 bg-[var(--color-sidebar-background)]" />
-        <div className="-mb-px flex gap-1">
+        <div className="hidden lg:block lg:w-64 lg:shrink-0 lg:pl-4" />
+        <div className="-mb-px flex gap-6">
           {tabs.map((tab) => {
             const isActive = activeTab?.id === tab.id;
             // Link to first actual page in the tab's navigation, not just the tab slug
@@ -74,7 +74,7 @@ export function TabBar({ tabs, basePath = "" }: TabBarProps) {
                 key={tab.id}
                 to={href}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors",
+                  "flex items-center gap-2 py-3 text-sm font-medium border-b-2 transition-colors",
                   isActive
                     ? "border-[var(--color-primary)] text-[var(--color-primary)]"
                     : "border-transparent text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:border-[var(--color-border)]"

@@ -83,7 +83,7 @@ export function Header() {
 
   return (
     <>
-      <header className="site-header sticky top-0 z-50 w-full border-b border-[var(--color-header-border)] backdrop-blur-[var(--header-blur)]">
+      <header className="site-header sticky top-0 z-50 w-full border-b border-[var(--color-header-border)]">
         <div className="mx-auto flex h-16 max-w-8xl items-center px-4 lg:px-0">
           {/* Logo area — matches sidebar width on desktop */}
           <div className="flex items-center gap-4 lg:w-64 lg:shrink-0 lg:px-4">
