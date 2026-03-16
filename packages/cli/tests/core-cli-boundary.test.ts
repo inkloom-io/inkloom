@@ -1,3 +1,4 @@
+import "./ensure-build.js";
 /**
  * Core CLI Boundary Tests
  *
