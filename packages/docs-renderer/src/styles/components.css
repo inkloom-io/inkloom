@@ -152,3 +152,254 @@
   border: none;
   box-shadow: none;
 }
+
+/* ============================================================================
+   TABS
+   ============================================================================ */
+
+.tabs {
+  margin: 1.5rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.tabs-header {
+  display: flex;
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.tabs-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-muted-foreground);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.tabs-button:hover {
+  color: var(--color-foreground);
+  background: color-mix(in srgb, var(--color-primary) 4%, transparent);
+}
+
+.tabs-button-active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  background: var(--color-background);
+}
+
+.tabs-icon {
+  font-size: 0.875rem;
+}
+
+.tabs-content {
+  padding: 1rem 1.25rem;
+  background: var(--color-background);
+}
+
+.tabs-content p:first-child {
+  margin-top: 0;
+}
+
+.tabs-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================================================
+   STEPS
+   ============================================================================ */
+
+.steps {
+  margin: 1.5rem 0;
+}
+
+.step {
+  display: flex;
+  position: relative;
+}
+
+.step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  padding-right: 1rem;
+}
+
+.step-number,
+.step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.step-icon {
+  font-size: 0.875rem;
+}
+
+.step-line {
+  flex: 1;
+  width: 2px;
+  min-height: 24px;
+  margin-top: 0.5rem;
+  background: var(--color-border);
+}
+
+.step:last-child .step-line {
+  display: none;
+}
+
+.step-content {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 1.5rem;
+}
+
+.step:last-child .step-content {
+  padding-bottom: 0;
+}
+
+.step-title,
+.prose .step-title,
+.prose h3.step-title {
+  display: block !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  color: var(--color-foreground) !important;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0.5rem !important;
+  padding: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 1.75 !important;
+  border: none !important;
+  border-bottom: none !important;
+}
+
+.step-body {
+  font-size: 0.875rem;
+  color: var(--color-muted-foreground);
+  line-height: 1.6;
+}
+
+.step-body p {
+  margin: 0 0 0.75rem 0;
+}
+
+.step-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================================================
+   ACCORDION
+   ============================================================================ */
+
+.accordion-group {
+  margin: 1.5rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.accordion-group .accordion {
+  border-radius: 0;
+  margin: 0;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+
+.accordion-group .accordion:last-child {
+  border-bottom: 0;
+}
+
+.accordion {
+  margin: 1.5rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+  transition: background 0.15s ease;
+}
+
+.accordion-header:hover {
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.accordion-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.accordion-title {
+  flex: 1;
+}
+
+.accordion-chevron {
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
+  transition: transform 0.2s ease;
+}
+
+.accordion-open .accordion-chevron {
+  transform: rotate(90deg);
+}
+
+.accordion-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease;
+}
+
+.accordion-open .accordion-content {
+  grid-template-rows: 1fr;
+}
+
+.accordion-body {
+  overflow: hidden;
+  padding: 0 1.25rem;
+}
+
+.accordion-open .accordion-body {
+  padding: 1rem 1.25rem;
+}
+
+.accordion-body p:first-child {
+  margin-top: 0;
+}
+
+.accordion-body p:last-child {
+  margin-bottom: 0;
+}

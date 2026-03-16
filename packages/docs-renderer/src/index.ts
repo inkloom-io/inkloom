@@ -5,3 +5,6 @@ export { CodeBlock } from "./components/code-block";
 export { CodeGroup } from "./components/code-group";
 export { Heading } from "./components/heading";
 export { CustomLink } from "./components/link";
+export { Tabs, Tab } from "./components/tabs";
+export { Steps, Step } from "./components/steps";
+export { Accordion, AccordionGroup } from "./components/accordion";
