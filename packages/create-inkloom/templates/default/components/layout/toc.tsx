@@ -156,12 +156,12 @@ export function TableOfContents() {
   return (
     <aside
       className={cn(
-        "toc sticky hidden w-64 xl:w-72 shrink-0 overflow-y-auto px-4 py-8 xl:block bg-[var(--color-background)]",
+        "toc sticky hidden w-64 xl:w-72 shrink-0 px-4 py-8 xl:block bg-[var(--color-background)]",
         "top-16 h-[calc(100vh-4rem)]"
       )}
     >
       <div className="flex flex-col h-full">
-        <div className="px-4 flex-1 min-h-0">
+        <div className="px-4 flex-1 min-h-0 overflow-y-auto">
           <h4 className="toc-title flex items-center gap-1.5"><ListStart className="h-4 w-4" />On This Page</h4>
           <nav>
             <ul className="space-y-1">
