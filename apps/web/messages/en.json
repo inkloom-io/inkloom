@@ -666,6 +666,8 @@
       "installTheGitHubApp": "Install the GitHub App",
       "repositoryLabel": "Repository",
       "selectRepositoryPlaceholder": "Select repository...",
+      "dontSeeRepo": "Don't see your repository?",
+      "configureRepoAccess": "Configure repository access",
       "branchLabel": "Branch",
       "docsPathLabel": "Docs path",
       "cancelButton": "Cancel",
