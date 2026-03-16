@@ -233,6 +233,13 @@
   background-color: transparent !important;
 }
 
+/* Light mode: override Shiki token colors to be readable */
+.bn-code-block .shiki,
+.bn-code-block .shiki span {
+  color: var(--editor-code-foreground, hsl(222 47% 11%)) !important;
+}
+
+/* Dark mode: use Shiki dark variant colors */
 .dark .bn-code-block .shiki,
 .dark .bn-code-block .shiki span {
   color: var(--shiki-dark) !important;
