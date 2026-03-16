@@ -1338,7 +1338,9 @@
       "unassignedItems": "{count} {count, plural, =1 {item} other {items}} not assigned to any tab",
       "unassignedWarning": "When tabs are enabled, only content assigned to a tab will be visible on your published site.",
       "andMore": "...and {count} more",
-      "allContentAssigned": "All content is assigned to tabs. Tabs will appear in the order shown above."
+      "allContentAssigned": "All content is assigned to tabs. Tabs will appear in the order shown above.",
+      "duplicateSlugError": "A tab with this URL slug already exists",
+      "reservedSlugError": "This slug is reserved for the auto-generated API reference tab"
     },
     "openapi": {
       "validatingSpec": "Validating spec...",

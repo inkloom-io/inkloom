@@ -46,6 +46,7 @@ interface NavTabsConfigProps {
   branchId: Id<"branches">;
   initialTabs?: LegacyNavTab[];
   onSave: (tabs: NavTab[]) => Promise<void>;
+  reservedSlugs?: string[];
 }
 
 // Migrate old tab format to new format
@@ -91,6 +92,7 @@ export function NavTabsConfig({
   branchId,
   initialTabs = [],
   onSave,
+  reservedSlugs = [],
 }: NavTabsConfigProps) {
   const t = useTranslations("settings");
   // Migrate initial tabs to new format
@@ -241,6 +243,35 @@ export function NavTabsConfig({
 
   const hasChanges = JSON.stringify(tabs) !== JSON.stringify(migratedInitialTabs);
 
+  // Compute slug errors for each tab
+  const slugErrors = useMemo(() => {
+    const errors: Record<string, string> = {};
+    const reservedSet = new Set(reservedSlugs.map((s) => s.toLowerCase()));
+
+    for (const tab of tabs) {
+      if (!tab.slug) continue;
+
+      const slugLower = tab.slug.toLowerCase();
+
+      // Check for duplicates among other tabs
+      const isDuplicate = tabs.some(
+        (other) => other.id !== tab.id && other.slug.toLowerCase() === slugLower
+      );
+      if (isDuplicate) {
+        errors[tab.id] = t("navTabs.duplicateSlugError");
+        continue;
+      }
+
+      // Check against reserved slugs (e.g., auto-generated OpenAPI tab)
+      if (reservedSet.has(slugLower)) {
+        errors[tab.id] = t("navTabs.reservedSlugError");
+      }
+    }
+    return errors;
+  }, [tabs, reservedSlugs, t]);
+
+  const hasSlugErrors = Object.keys(slugErrors).length > 0;
+
   // Get display info for an item
   const getItemDisplay = (item: NavTabItem) => {
     if (item.type === "folder") {
@@ -330,11 +361,14 @@ export function NavTabsConfig({
                           handleUpdateTab(tab.id, { slug: slugify(e.target.value) })
                         }
                         placeholder="e.g., guides"
-                        className="h-8"
+                        className={`h-8 ${slugErrors[tab.id] ? "border-destructive" : ""}`}
                         autoComplete="one-time-code"
                         data-form-type="other"
                         data-lpignore="true"
                       />
+                      {slugErrors[tab.id] && (
+                        <p className="text-xs text-destructive">{slugErrors[tab.id]}</p>
+                      )}
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs">{t("navTabs.icon")}</Label>
@@ -493,7 +527,7 @@ export function NavTabsConfig({
         </Button>
 
         {hasChanges && (
-          <Button size="sm" onClick={handleSave} disabled={saving}>
+          <Button size="sm" onClick={handleSave} disabled={saving || hasSlugErrors}>
             {saving ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : saved ? (
