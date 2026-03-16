@@ -299,6 +299,9 @@ export const hasUnpublishedChanges = query({
         title: page.title,
         content: content?.content || "[]",
         icon: page.icon,
+        subtitle: page.subtitle,
+        titleSectionHidden: page.titleSectionHidden,
+        titleIconHidden: page.titleIconHidden,
       };
       currentHashes[page.path] = hashContent(JSON.stringify(pageData));
     }
