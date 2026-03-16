@@ -1,4 +1,234 @@
 /* ============================================================================
+   CALLOUTS
+   ============================================================================ */
+
+.callout {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-lg);
+  margin: 1.5rem 0;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.callout-icon {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.125rem;
+}
+
+.callout-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.callout-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.callout-body {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.callout-body p {
+  margin: 0;
+}
+
+/* Callout variants */
+.callout-info {
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.callout-info .callout-icon {
+  color: var(--color-primary);
+}
+
+.callout-warning {
+  background: hsl(38 92% 50% / 0.06);
+  border-color: hsl(38 92% 50% / 0.2);
+}
+
+.callout-warning .callout-icon {
+  color: hsl(38 92% 40%);
+}
+
+.callout-danger {
+  background: hsl(0 84% 60% / 0.06);
+  border-color: hsl(0 84% 60% / 0.2);
+}
+
+.callout-danger .callout-icon {
+  color: hsl(0 84% 50%);
+}
+
+.callout-success {
+  background: hsl(142 76% 36% / 0.06);
+  border-color: hsl(142 76% 36% / 0.2);
+}
+
+.callout-success .callout-icon {
+  color: hsl(142 76% 32%);
+}
+
+.callout-tip {
+  background: hsl(280 84% 60% / 0.06);
+  border-color: hsl(280 84% 60% / 0.2);
+}
+
+.callout-tip .callout-icon {
+  color: hsl(280 84% 50%);
+}
+
+/* ============================================================================
+   CARDS
+   ============================================================================ */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-background);
+  transition: all 0.2s ease;
+  position: relative;
+  margin: 0.5rem 0;
+}
+
+.card-interactive {
+  cursor: pointer;
+  border-left: 3px solid var(--color-primary);
+}
+
+.card-interactive:hover {
+  border-color: var(--color-primary);
+  border-left-color: var(--color-primary);
+  background: var(--color-background-subtle);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.card-header {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.card-icon {
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.card-title,
+.prose .card-title,
+.prose h3.card-title {
+  display: inline !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  color: var(--color-foreground) !important;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 1.4 !important;
+  border: none !important;
+  border-bottom: none !important;
+}
+
+.card-content {
+  margin-top: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--color-muted-foreground);
+  line-height: 1.5;
+}
+
+.card-content p {
+  margin: 0;
+}
+
+.card-arrow {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: var(--color-muted-foreground);
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+.card-interactive:hover .card-arrow {
+  transform: translateX(3px);
+  color: var(--color-primary);
+}
+
+/* Card links should not have default link styles */
+a:has(.card) {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Card Group */
+.card-group {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.card-group-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.card-group-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.card-group-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Responsive: stack cards on mobile */
+@media (max-width: 640px) {
+  .card-group-cols-2,
+  .card-group-cols-3,
+  .card-group-cols-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Medium screens: max 2 columns */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .card-group-cols-3,
+  .card-group-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ============================================================================
+   IMAGES
+   ============================================================================ */
+
+.mdx-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  margin: 1.5rem 0;
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================================================
    CODE BLOCK WRAPPER (with copy button)
    ============================================================================ */
 
