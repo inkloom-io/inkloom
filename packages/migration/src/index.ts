@@ -12,6 +12,11 @@ export {
 } from "./types.js";
 
 export {
+  transformGitbookBlocks,
+  type TransformResult,
+} from "./gitbook/index.js";
+
+export {
   generateRedirects,
   parseMintlifyRedirects,
   parseGitbookRedirects,
