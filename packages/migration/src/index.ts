@@ -47,6 +47,11 @@ export {
   type MintlifyConfigResult,
 } from "./mintlify/config.js";
 
+export {
+  transformMintlifyMdx,
+  transformFrontmatter,
+} from "./mintlify/transform.js";
+
 import type { MigrationConfig, MigrationResult } from "./types.js";
 
 /**

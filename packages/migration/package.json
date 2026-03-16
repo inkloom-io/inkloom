@@ -30,6 +30,7 @@
     "yaml": "^2.8.2"
   },
   "devDependencies": {
+    "@inkloom/mdx-parser": "workspace:*",
     "tsup": "^8.1.0",
     "typescript": "^5.4.5",
     "vitest": "^4.0.18"
