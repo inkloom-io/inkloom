@@ -642,6 +642,7 @@ export default function EditorPage({ params }: EditorPageProps) {
                     restoreEditorContent(content);
                   }}
                   pageTitle={selectedPage?.title ?? ""}
+                  pageSubtitle={selectedPage?.subtitle}
                   pageFolderId={selectedPage?.folderId ?? undefined}
                   folders={folders ?? []}
                   navTabs={project.settings?.navTabs ?? []}
