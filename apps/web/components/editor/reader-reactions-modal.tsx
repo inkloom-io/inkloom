@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@inkloom/ui/dialog";
-import { Loader2 } from "lucide-react";
+import { Loader2, MessageCircle } from "lucide-react";
 
 type DateRange = "7d" | "30d" | "90d" | "all";
 
@@ -301,6 +301,19 @@ export function ReaderReactionsModal({
         {isLoading ? (
           <div className="flex h-48 items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : stats.total === 0 ? (
+          <div className="flex h-48 flex-col items-center justify-center gap-3 text-center">
+            <MessageCircle className="h-10 w-10 text-muted-foreground/50" />
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                No reactions yet
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Reader reactions will appear here once visitors start responding
+                to this page.
+              </p>
+            </div>
           </div>
         ) : (
           <div className="space-y-6">
