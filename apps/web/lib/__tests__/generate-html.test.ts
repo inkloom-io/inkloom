@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   generateShellHtml,
   generatePageHtml,
-  generateBrandingBadge,
   generateAnalyticsSnippets,
   generateSitemapXml,
   generateRobotsTxt,
@@ -27,47 +26,7 @@ const minimalSiteData = {
 };
 
 // ---------------------------------------------------------------------------
-// generateBrandingBadge
-// ---------------------------------------------------------------------------
-
-describe("generateBrandingBadge", () => {
-  it("should return HTML containing 'Built with' text", () => {
-    const badge = generateBrandingBadge();
-    expect(badge).toContain("Built with");
-    expect(badge).toContain("InkLoom");
-  });
-
-  it("should contain a link to InkLoom GitHub", () => {
-    const badge = generateBrandingBadge();
-    expect(badge).toContain("https://github.com/inkloom/inkloom");
-  });
-
-  it("should have target=_blank and rel=noopener", () => {
-    const badge = generateBrandingBadge();
-    expect(badge).toContain('target="_blank"');
-    expect(badge).toContain('rel="noopener noreferrer"');
-  });
-
-  it("should contain an SVG icon", () => {
-    const badge = generateBrandingBadge();
-    expect(badge).toContain("<svg");
-    expect(badge).toContain("</svg>");
-  });
-
-  it("should include hover interactivity script", () => {
-    const badge = generateBrandingBadge();
-    expect(badge).toContain("onmouseenter");
-    expect(badge).toContain("onmouseleave");
-  });
-
-  it("should use the inkloom-badge element id", () => {
-    const badge = generateBrandingBadge();
-    expect(badge).toContain('id="inkloom-badge"');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// generateShellHtml — branding badge integration
+// generateShellHtml
 // ---------------------------------------------------------------------------
 
 describe("generateShellHtml", () => {
@@ -78,21 +37,9 @@ describe("generateShellHtml", () => {
     themeCss: ":root { --color-primary: #2dd4ac; }",
   };
 
-  it("should include branding badge by default (showBranding undefined)", () => {
+  it("should not include bottom-right branding badge", () => {
     const html = generateShellHtml(baseOptions);
-    expect(html).toContain("inkloom-badge");
-    expect(html).toContain("Built with");
-  });
-
-  it("should include branding badge when showBranding is true", () => {
-    const html = generateShellHtml({ ...baseOptions, showBranding: true });
-    expect(html).toContain("inkloom-badge");
-  });
-
-  it("should NOT include branding badge when showBranding is false", () => {
-    const html = generateShellHtml({ ...baseOptions, showBranding: false });
     expect(html).not.toContain("inkloom-badge");
-    expect(html).not.toContain("Built with");
   });
 
   it("should produce valid HTML structure", () => {
@@ -140,24 +87,6 @@ describe("generateShellHtml", () => {
     });
     expect(html).toContain('<script>console.log("hello")</script>');
   });
-
-  it("should place badge after custom body scripts", () => {
-    const html = generateShellHtml({
-      ...baseOptions,
-      customBodyScripts: '<script id="custom"></script>',
-    });
-    const customScriptIndex = html.indexOf('id="custom"');
-    const badgeIndex = html.indexOf("inkloom-badge");
-    expect(customScriptIndex).toBeLessThan(badgeIndex);
-  });
-
-  it("should place badge inside body, before closing tag", () => {
-    const html = generateShellHtml(baseOptions);
-    const badgeIndex = html.indexOf("inkloom-badge");
-    const bodyCloseIndex = html.indexOf("</body>");
-    expect(badgeIndex).toBeGreaterThan(0);
-    expect(badgeIndex).toBeLessThan(bodyCloseIndex);
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -175,19 +104,8 @@ describe("generatePageHtml", () => {
     themeCss: ":root {}",
   };
 
-  it("should include branding badge by default", () => {
+  it("should not include bottom-right branding badge", () => {
     const html = generatePageHtml(basePageOptions);
-    expect(html).toContain("inkloom-badge");
-    expect(html).toContain("Built with");
-  });
-
-  it("should include branding badge when showBranding is true", () => {
-    const html = generatePageHtml({ ...basePageOptions, showBranding: true });
-    expect(html).toContain("inkloom-badge");
-  });
-
-  it("should NOT include branding badge when showBranding is false", () => {
-    const html = generatePageHtml({ ...basePageOptions, showBranding: false });
     expect(html).not.toContain("inkloom-badge");
   });
 

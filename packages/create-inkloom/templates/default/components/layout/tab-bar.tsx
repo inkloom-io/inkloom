@@ -61,7 +61,7 @@ export function TabBar({ tabs, basePath = "" }: TabBarProps) {
 
   return (
     <nav className="sticky top-16 z-40 border-b border-[var(--color-border)] bg-[var(--color-background)]">
-      <div className="mx-auto max-w-8xl px-4 lg:px-8">
+      <div className="mx-auto max-w-8xl px-4 lg:pl-4">
         <div className="-mb-px flex gap-1">
           {tabs.map((tab) => {
             const isActive = activeTab?.id === tab.id;
