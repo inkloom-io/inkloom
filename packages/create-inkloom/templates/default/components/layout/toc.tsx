@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import { ListStart } from "lucide-react";
-import { useSiteData } from "@/src/data-provider";
+
 import { PageFeedback } from "./page-feedback";
 
 interface TocItem {
@@ -48,7 +48,7 @@ const EXCLUDED_HEADING_CLASSES = [
 
 export function TableOfContents() {
   const { pathname } = useLocation();
-  const { tabs } = useSiteData();
+
   const [headings, setHeadings] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
 
@@ -157,9 +157,7 @@ export function TableOfContents() {
     <aside
       className={cn(
         "toc sticky hidden w-64 xl:w-72 shrink-0 overflow-y-auto px-4 py-8 xl:block bg-[var(--color-background)]",
-        tabs.length > 0
-          ? "top-[7.5rem] h-[calc(100vh-7.5rem)]"
-          : "top-16 h-[calc(100vh-4rem)]"
+        "top-16 h-[calc(100vh-4rem)]"
       )}
     >
       <div className="flex flex-col h-full">
