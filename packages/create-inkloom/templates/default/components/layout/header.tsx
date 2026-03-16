@@ -118,41 +118,29 @@ export function Header() {
           </div>
 
           {/* Search — on desktop, px-16 matches main content padding so left edges align */}
-          {config.search?.enabled && (
-            <div className="hidden lg:flex flex-1 min-w-0 px-8">
+          <div className="flex lg:flex-1 lg:min-w-0 lg:px-8 ml-auto lg:ml-0">
+            {config.search?.enabled && (
               <button
                 onClick={() => setSearchOpen(true)}
-                className="search-trigger flex h-9 w-full max-w-sm items-center justify-start"
+                className="search-trigger hidden lg:flex h-9 w-full max-w-sm items-center justify-start"
               >
                 <Search className="h-4 w-4" />
                 <span className="ml-2 text-sm">Search...</span>
                 <kbd className="search-kbd ml-auto">⌘K</kbd>
               </button>
-              {hasChatWidget && (
-                <button
-                  onClick={handleAskAI}
-                  className="ask-ai-button ml-2"
-                >
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>Ask AI</span>
-                </button>
-              )}
-            </div>
-          )}
-
-          <div className="flex items-center gap-1 ml-auto lg:ml-0 lg:shrink-0 lg:pr-4">
+            )}
             {hasChatWidget && (
               <button
                 onClick={handleAskAI}
-                className="ask-ai-button lg:hidden"
+                className="ask-ai-button lg:ml-2"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>Ask AI</span>
               </button>
             )}
-            {hasChatWidget && (
-              <div className="mx-1 h-5 w-px bg-[var(--color-border)] lg:hidden" />
-            )}
+          </div>
+
+          <div className="flex items-center gap-1 lg:shrink-0 lg:pr-4">
             {config.search?.enabled && (
               <button
                 onClick={() => setSearchOpen(true)}
@@ -181,10 +169,10 @@ export function Header() {
                 </a>
               );
             })}
-            <ThemeToggle />
-            {config.ctaButton && (
+            {socialLinks.length > 0 && (
               <div className="mx-1 h-5 w-px bg-[var(--color-border)]" />
             )}
+            <ThemeToggle />
             {config.ctaButton && (
               <a
                 href={config.ctaButton.url}
