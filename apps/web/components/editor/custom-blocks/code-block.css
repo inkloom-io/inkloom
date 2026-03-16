@@ -158,8 +158,8 @@
   word-break: break-word;
   overflow-wrap: break-word;
 
-  /* Make text transparent but keep caret visible */
-  color: transparent;
+  /* Light mode: show text directly (highlight layer unreliable in light mode) */
+  color: var(--editor-code-foreground, #24292e);
   caret-color: var(--editor-foreground, #1a1a2e);
 
   /* Match highlight layer exactly */
@@ -167,6 +167,12 @@
   -moz-tab-size: 2;
   letter-spacing: normal;
   word-spacing: normal;
+}
+
+/* Dark mode: make textarea text transparent so Shiki highlight layer shows through */
+.dark .bn-code-textarea {
+  color: transparent;
+  caret-color: var(--editor-foreground, #e5e5e5);
 }
 
 /* Selection styling - make selected text visible */
