@@ -17,6 +17,8 @@ import { cn } from "@inkloom/ui/lib/utils";
 import { Separator } from "@inkloom/ui/separator";
 import {
   ExternalLink,
+  Eye,
+  EyeOff,
   Globe,
   Moon,
   Palette,
@@ -36,7 +38,138 @@ import { GatedSection } from "@/components/gated-section";
 import { THEME_PRESETS, type ThemePreset } from "@/lib/theme-presets";
 import { useAutoSave } from "@/hooks/use-auto-save";
 import { SaveStatus } from "@/components/settings/save-status";
+import { PreviewPanel } from "@/components/editor/preview-panel";
 import { useTranslations } from "next-intl";
+
+/**
+ * Static sample BlockNote JSON content for the theme preview.
+ * Showcases headings, paragraphs, code blocks, callouts, tables,
+ * inline code, links, blockquotes, and card groups so users can
+ * evaluate their theme against realistic documentation content.
+ */
+const SAMPLE_PREVIEW_CONTENT = JSON.stringify([
+  {
+    type: "heading",
+    props: { level: 1 },
+    content: [{ type: "text", text: "Getting Started" }],
+  },
+  {
+    type: "paragraph",
+    content: [
+      { type: "text", text: "Welcome to the documentation. This preview shows how your theme will look on your " },
+      { type: "text", text: "published site", styles: { bold: true } },
+      { type: "text", text: ". Customize your colors and fonts, then check the result here." },
+    ],
+  },
+  {
+    type: "callout",
+    props: { type: "info" },
+    content: [
+      { type: "text", text: "This is an info callout — great for tips and important notes that readers shouldn't miss." },
+    ],
+  },
+  {
+    type: "heading",
+    props: { level: 2 },
+    content: [{ type: "text", text: "Installation" }],
+  },
+  {
+    type: "paragraph",
+    content: [
+      { type: "text", text: "Install the package using " },
+      { type: "text", text: "npm install", styles: { code: true } },
+      { type: "text", text: " or your preferred package manager:" },
+    ],
+  },
+  {
+    type: "codeBlock",
+    props: { language: "bash" },
+    content: [{ type: "text", text: "npm install @example/sdk\n\n# Or with yarn\nyarn add @example/sdk" }],
+  },
+  {
+    type: "heading",
+    props: { level: 3 },
+    content: [{ type: "text", text: "Configuration" }],
+  },
+  {
+    type: "paragraph",
+    content: [
+      { type: "text", text: "After installing, create a config file. See the " },
+      { type: "link", href: "#", content: [{ type: "text", text: "configuration guide" }] },
+      { type: "text", text: " for all available options." },
+    ],
+  },
+  {
+    type: "table",
+    content: {
+      type: "tableContent",
+      rows: [
+        {
+          cells: [
+            { type: "tableCell", content: [{ type: "text", text: "Option", styles: { bold: true } }] },
+            { type: "tableCell", content: [{ type: "text", text: "Type", styles: { bold: true } }] },
+            { type: "tableCell", content: [{ type: "text", text: "Description", styles: { bold: true } }] },
+          ],
+        },
+        {
+          cells: [
+            { type: "tableCell", content: [{ type: "text", text: "apiKey", styles: { code: true } }] },
+            { type: "tableCell", content: [{ type: "text", text: "string" }] },
+            { type: "tableCell", content: [{ type: "text", text: "Your API key for authentication" }] },
+          ],
+        },
+        {
+          cells: [
+            { type: "tableCell", content: [{ type: "text", text: "debug", styles: { code: true } }] },
+            { type: "tableCell", content: [{ type: "text", text: "boolean" }] },
+            { type: "tableCell", content: [{ type: "text", text: "Enable verbose logging" }] },
+          ],
+        },
+        {
+          cells: [
+            { type: "tableCell", content: [{ type: "text", text: "timeout", styles: { code: true } }] },
+            { type: "tableCell", content: [{ type: "text", text: "number" }] },
+            { type: "tableCell", content: [{ type: "text", text: "Request timeout in milliseconds" }] },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    type: "quote",
+    content: [
+      { type: "text", text: "Good documentation is the foundation of a great developer experience." },
+    ],
+  },
+  {
+    type: "callout",
+    props: { type: "warning" },
+    content: [
+      { type: "text", text: "Never commit your API key to version control. Use environment variables instead." },
+    ],
+  },
+  {
+    type: "cardGroup",
+    props: {},
+    children: [
+      {
+        type: "card",
+        props: { title: "Quickstart", icon: "🚀" },
+        content: [{ type: "text", text: "Get up and running in under 5 minutes with our quickstart guide." }],
+      },
+      {
+        type: "card",
+        props: { title: "API Reference", icon: "📖" },
+        content: [{ type: "text", text: "Explore the full API reference with examples for every endpoint." }],
+      },
+    ],
+  },
+  {
+    type: "codeBlock",
+    props: { language: "typescript" },
+    content: [{ type: "text", text: "import { Client } from \"@example/sdk\";\n\nconst client = new Client({\n  apiKey: process.env.API_KEY,\n  debug: true,\n});\n\nconst result = await client.query(\"hello\");\nconsole.log(result);" }],
+  },
+]);
 
 type SocialPlatform = "github" | "x" | "discord" | "linkedin" | "youtube";
 
@@ -76,6 +209,9 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   // Custom fonts
   const [fonts, setFonts] = useState<{ heading?: string; body?: string; code?: string }>({});
   const [fontsInitialized, setFontsInitialized] = useState(false);
+
+  // Live preview
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   // Custom CSS
   const [customCss, setCustomCss] = useState("");
@@ -586,6 +722,43 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
             onUpload={(assetId) => setFaviconAssetId(assetId)}
             onRemove={() => setFaviconAssetId(undefined)}
           />
+
+          <Separator />
+
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => setIsPreviewOpen(!isPreviewOpen)}
+              className={cn(
+                "flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors",
+                isPreviewOpen
+                  ? "border-primary/30 bg-primary/5 text-primary"
+                  : "border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+            >
+              {isPreviewOpen ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+              {t(isPreviewOpen ? "hidePreview" : "showPreview")}
+            </button>
+            {isPreviewOpen && (
+              <div className="overflow-hidden rounded-lg border" style={{ height: 600 }}>
+                <PreviewPanel
+                  content={SAMPLE_PREVIEW_CONTENT}
+                  pageTitle={t("previewPageTitle")}
+                  pageSubtitle={t("previewPageSubtitle")}
+                  themePreset={theme}
+                  customPrimaryColor={primaryColor}
+                  customBackgroundColorLight={backgroundColorLight}
+                  customBackgroundColorDark={backgroundColorDark}
+                  customBackgroundSubtleColorLight={backgroundSubtleColorLight}
+                  customBackgroundSubtleColorDark={backgroundSubtleColorDark}
+                />
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
