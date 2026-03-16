@@ -7,6 +7,24 @@ export enum MigrationSource {
 }
 
 /**
+ * Progress stage identifiers for migration progress reporting.
+ */
+export type MigrationStage = "parsing" | "converting" | "assets" | "redirects";
+
+/**
+ * Callback for reporting migration progress.
+ *
+ * @param stage - Current stage of the migration pipeline.
+ * @param current - Current item number within the stage.
+ * @param total - Total items in the stage.
+ */
+export type OnProgressCallback = (
+  stage: MigrationStage,
+  current: number,
+  total: number,
+) => void;
+
+/**
  * Configuration for a migration run.
  */
 export interface MigrationConfig {
@@ -18,6 +36,12 @@ export interface MigrationConfig {
   projectName: string;
   /** Optional URL of the live documentation site (used for asset resolution). */
   sourceUrl?: string;
+  /** Optional progress callback for CLI progress bars and dashboard UI. */
+  onProgress?: OnProgressCallback;
+  /** When true, return the result without side effects (no asset downloads). */
+  dryRun?: boolean;
+  /** Custom fetch function for downloading remote assets (useful for testing). */
+  fetchFn?: typeof globalThis.fetch;
 }
 
 /**
@@ -140,4 +164,103 @@ export interface MigrationResult {
   urlMap: Map<string, string>;
   /** Branding configuration extracted from the source. */
   branding?: ParsedBranding;
+}
+
+/**
+ * A page with content converted to BlockNote JSON, ready for createFromImport.
+ */
+export interface ImportReadyPage {
+  /** Page title. */
+  title: string;
+  /** URL-friendly slug. */
+  slug: string;
+  /** File path relative to the source directory. */
+  path: string;
+  /** Sort position within its folder. */
+  position: number;
+  /** Folder path this page belongs to (empty string for root-level pages). */
+  folderPath: string;
+  /** JSON-serialized BlockNote blocks. */
+  content: string;
+  /** Whether the page should be published on import. */
+  isPublished: boolean;
+}
+
+/**
+ * A navigation tab in the InkLoom schema shape.
+ * Matches core/apps/web/convex/schema/coreTables.ts navTabs structure.
+ */
+export interface InkLoomNavTab {
+  /** Unique tab identifier. */
+  id: string;
+  /** Display name. */
+  name: string;
+  /** URL-friendly slug. */
+  slug: string;
+  /** Optional icon name. */
+  icon?: string;
+  /** Ordered items within the tab (folder or page references). */
+  items: Array<
+    | { type: "folder"; folderPath: string }
+    | { type: "page"; pagePath: string }
+  >;
+}
+
+/**
+ * Branding settings in the InkLoom project settings shape.
+ */
+export interface InkLoomBrandingSettings {
+  /** Primary accent color (hex). */
+  primaryColor?: string;
+  /** Logo asset path (for upload to R2). */
+  logoAssetPath?: string;
+  /** Dark-mode logo asset path. */
+  logoDarkAssetPath?: string;
+  /** Favicon asset path. */
+  faviconAssetPath?: string;
+  /** Social media links. */
+  socialLinks?: SocialLink[];
+}
+
+/**
+ * Subpath guidance returned when source URL contains a path component.
+ */
+export interface SubpathInfo {
+  /** Detected subpath (e.g. "/docs"). */
+  subpath: string;
+  /** Original hostname. */
+  originalHost: string;
+  /** Recommended subdomain. */
+  recommendedSubdomain: string;
+  /** Platform-specific redirect snippets. */
+  snippets: Record<string, string>;
+}
+
+/**
+ * Enriched migration result with BlockNote-converted content,
+ * ready for createFromImport.
+ */
+export interface EnrichedMigrationResult {
+  /** Project name for the import. */
+  projectName: string;
+  /** Pages with JSON-serialized BlockNote content. */
+  pages: ImportReadyPage[];
+  /** Folder structure for import. */
+  folders: ParsedFolder[];
+  /** Navigation tabs in InkLoom schema shape. */
+  navTabs?: InkLoomNavTab[];
+  /** Redirect rules for URL preservation. */
+  redirects: RedirectRule[];
+  /** Cloudflare _redirects file content. */
+  redirectsFileContent: string;
+  /** Discovered assets. */
+  assets: MigrationAsset[];
+  /** Branding settings in InkLoom project settings shape. */
+  branding?: InkLoomBrandingSettings;
+  /** Subpath hosting guidance (if source URL has a path component). */
+  subpathGuidance?: SubpathInfo;
+  /** URL map from source paths to InkLoom paths. */
+  urlMap: Map<string, string>;
+  /** Warnings encountered during migration. */
+  warnings: string[];
 }
