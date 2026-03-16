@@ -58,9 +58,11 @@ body {
 }
 
 .sidebar-link-active {
-  color: var(--color-accent-foreground);
-  background: var(--color-sidebar-active);
+  color: var(--color-primary);
+  background: transparent;
   font-weight: 500;
+  border-left: 2px solid var(--color-primary);
+  border-radius: 0;
 }
 
 /* ============================================================================
