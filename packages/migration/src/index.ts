@@ -40,6 +40,13 @@ export {
   type AssetCollectionResult,
 } from "./assets.js";
 
+export {
+  parseMintlifyConfig,
+  isDocsJsonFormat,
+  type RawMintlifyConfig,
+  type MintlifyConfigResult,
+} from "./mintlify/config.js";
+
 import type { MigrationConfig, MigrationResult } from "./types.js";
 
 /**
