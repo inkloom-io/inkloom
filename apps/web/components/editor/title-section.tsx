@@ -137,7 +137,7 @@ export function TitleSection({
     <div className="pt-8 pb-0">
       {/* Load the display font for the title */}
       <link rel="stylesheet" href={fontUrl} />
-      <div className="mx-auto w-full max-w-[80ch] px-[6rem]">
+      <div className="mx-auto w-full max-w-[80ch] px-[3rem]">
         {/* Controls row */}
         <div className="mb-3 flex items-center justify-end gap-1">
           {icon && (
