@@ -20,8 +20,8 @@
   --bn-colors-tooltip-text: var(--editor-foreground);
   --bn-colors-hovered-background: var(--editor-muted);
   --bn-colors-hovered-text: var(--editor-foreground);
-  --bn-colors-selected-background: var(--editor-accent);
-  --bn-colors-selected-text: var(--editor-accent-foreground);
+  --bn-colors-selected-background: color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  --bn-colors-selected-text: var(--editor-foreground);
   --bn-colors-disabled-background: var(--editor-muted);
   --bn-colors-disabled-text: var(--editor-muted-foreground);
   --bn-colors-shadow: var(--editor-shadow-sm);
@@ -294,8 +294,8 @@
    ============================================================================ */
 
 .editor-theme-wrapper ::selection {
-  background: var(--editor-accent);
-  color: var(--editor-accent-foreground);
+  background: color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  color: var(--editor-foreground);
 }
 
 .editor-theme-wrapper .ProseMirror-selectednode > * {
