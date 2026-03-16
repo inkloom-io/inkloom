@@ -212,6 +212,7 @@ export function EditorToolbar({
   const [saveVersionOpen, setSaveVersionOpen] = useState(false);
   const [reactionsOpen, setReactionsOpen] = useState(false);
   const [versionMessage, setVersionMessage] = useState("");
+  const [publishedHoverOpen, setPublishedHoverOpen] = useState(false);
   const [isSavingVersion, setIsSavingVersion] = useState(false);
   const createVersion = useMutation(api.pages.createVersion);
 
@@ -1031,9 +1032,17 @@ export function EditorToolbar({
           open={publishOpen}
           onOpenChange={setPublishOpen}
         >
-          <Popover>
+          <Popover open={publishedHoverOpen} onOpenChange={setPublishedHoverOpen}>
             <PopoverTrigger asChild>
-              <span className="inline-flex">
+              <span
+                className="inline-flex"
+                onMouseEnter={() => {
+                  if (hasChanges === false && !showSaving && !isPublishing) {
+                    setPublishedHoverOpen(true);
+                  }
+                }}
+                onMouseLeave={() => setPublishedHoverOpen(false)}
+              >
                 <DialogTrigger asChild>
                   <button
                     className={`ml-1 flex h-8 items-center gap-1.5 rounded-lg px-3.5 text-xs font-semibold transition-all disabled:opacity-40 ${
@@ -1083,6 +1092,7 @@ export function EditorToolbar({
                   type="button"
                   className="mt-1 text-xs font-medium text-primary hover:underline"
                   onClick={() => {
+                    setPublishedHoverOpen(false);
                     resetDeployment();
                     setPublishOpen(true);
                   }}
