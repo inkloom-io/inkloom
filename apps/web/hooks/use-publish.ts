@@ -177,10 +177,7 @@ export function usePublish({
       const current = deployments.find(
         (d: { _id: string }) => d._id === deployment.deploymentId
       );
-      if (
-        current?.status === "ready" ||
-        (current?.buildPhase === "propagating" && current?.url)
-      ) {
+      if (current?.status === "ready") {
         trackEvent("deployment_completed", {
           projectId: project._id,
           success: true,
@@ -217,10 +214,8 @@ export function usePublish({
   // 2. The specific deployment reached "ready" status — this guarantees the
   //    override is temporary even if the user edited content during the deploy
   //    window, which would otherwise prevent condition 1 from ever being met.
-  // 3. Safety timeout: 30 seconds after the override was set. This prevents
-  //    permanent stuck state if the fire-and-forget CF polling in the deploy
-  //    route never completes (e.g., serverless runtime killed the background
-  //    IIFE before it could update the deployment status to "ready").
+  // 3. Safety timeout: 30 seconds after the override was set, as a final
+  //    fallback in case neither condition 1 nor 2 fires (e.g. network issues).
   useEffect(() => {
     if (!deployedTarget) return;
 
