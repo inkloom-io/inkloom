@@ -274,18 +274,28 @@ async function deleteFolderRecursive(
     .withIndex("by_parent", (q: any) => q.eq("parentId", folderId))
     .collect();
 
-  // Recursively delete child folders
+  // Recursively delete child folders (preserve AI-pending-review folders by orphaning them)
   for (const child of childFolders) {
+    if (child.aiPendingReview) {
+      await ctx.db.patch(child._id, { parentId: undefined });
+      continue;
+    }
     await deleteFolderRecursive(ctx, child._id);
   }
 
-  // Delete pages in this folder
+  // Delete pages in this folder (preserve AI-pending-review pages by orphaning them)
   const pages = await ctx.db
     .query("pages")
     .withIndex("by_folder", (q: any) => q.eq("folderId", folderId))
     .collect();
 
   for (const page of pages) {
+    // Preserve AI-pending-review pages by moving them out of the folder
+    if (page.aiPendingReview) {
+      await ctx.db.patch(page._id, { folderId: undefined });
+      continue;
+    }
+
     // Delete page contents
     const contents = await ctx.db
       .query("pageContents")
