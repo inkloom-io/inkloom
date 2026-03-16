@@ -273,6 +273,21 @@
       "title": "Choose your starting point",
       "subtitle": "Start from a proven structure and customize it to fit your project. Each template comes pre-organized so you can focus on writing."
     },
+    "deployChoice": {
+      "badge": "Your Infrastructure, Your Choice",
+      "title": "Deploy your way",
+      "subtitle": "Run on our cloud for zero-config deploys, or self-host on your own infrastructure. Same product, full control either way.",
+      "managedTitle": "Managed Cloud",
+      "managedBullet1": "Zero configuration required",
+      "managedBullet2": "Global edge deployment on 300+ locations",
+      "managedBullet3": "Automatic scaling and updates",
+      "managedCta": "Start for free",
+      "selfHostTitle": "Self-Hosted",
+      "selfHostBullet1": "Apache 2.0 — fully open source",
+      "selfHostBullet2": "Complete data ownership and control",
+      "selfHostBullet3": "Run on any infrastructure",
+      "selfHostCta": "View on GitHub"
+    },
     "comparison": {
       "badge": "Why InkLoom",
       "title": "Why teams switch to InkLoom",
