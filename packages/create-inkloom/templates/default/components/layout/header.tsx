@@ -1,6 +1,6 @@
 import { Link } from "react-router";
-import { useState } from "react";
-import { Menu, X, Search, Github, Youtube } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, X, Search, Github, Youtube, Sparkles } from "lucide-react";
 import { useSiteData } from "@/src/data-provider";
 import { SearchDialog } from "@/components/search/search-dialog";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -52,6 +52,24 @@ export function Header() {
   const { searchOpen, setSearchOpen } = useSearch();
   const { resolvedTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hasChatWidget, setHasChatWidget] = useState(false);
+
+  useEffect(() => {
+    // Check if the chat widget script is present (injected for Pro users)
+    const check = () => {
+      if (document.querySelector("script[data-project-id]")) {
+        setHasChatWidget(true);
+      }
+    };
+    check();
+    // Re-check after a short delay in case the script loads after the header
+    const timer = setTimeout(check, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleAskAI = () => {
+    window.dispatchEvent(new CustomEvent("inkloom:open-chat"));
+  };
 
   const socialLinks = config.socialLinks?.filter((l) => l.url) ?? [];
 
@@ -114,6 +132,18 @@ export function Header() {
           )}
 
           <div className="flex items-center gap-1 ml-auto lg:ml-0 lg:shrink-0 lg:pr-4">
+            {hasChatWidget && (
+              <button
+                onClick={handleAskAI}
+                className="ask-ai-button"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Ask AI</span>
+              </button>
+            )}
+            {hasChatWidget && (
+              <div className="mx-1 h-5 w-px bg-[var(--color-border)]" />
+            )}
             {config.search?.enabled && (
               <button
                 onClick={() => setSearchOpen(true)}
