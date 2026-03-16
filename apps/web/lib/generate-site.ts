@@ -1999,27 +1999,31 @@ export async function generateSiteFiles(
       };
 
       if (hasTabs) {
-        // Create a dedicated tab for API Reference
+        // Create a dedicated tab for API Reference, but only if
+        // the user hasn't already defined a manual tab with the same slug
         const apiTabSlug = basePath.replace(/^\//, "");
-        tabsConfig.push({
-          id: `api-ref-${Date.now()}`,
-          name: "API Reference",
-          slug: apiTabSlug,
-          icon: undefined,
-        });
-        // Overwrite tabs.json with updated tabs
-        const tabsFileIdx = files.findIndex((f) => f.file === "lib/tabs.json");
-        if (tabsFileIdx >= 0) {
-          files[tabsFileIdx] = {
-            file: "lib/tabs.json",
-            data: JSON.stringify(tabsConfig, null, 2),
-          };
+        const existingTab = tabsConfig.find((t) => t.slug === apiTabSlug);
+        if (!existingTab) {
+          tabsConfig.push({
+            id: `api-ref-${Date.now()}`,
+            name: "API Reference",
+            slug: apiTabSlug,
+            icon: undefined,
+          });
+          // Overwrite tabs.json with updated tabs
+          const tabsFileIdx = files.findIndex((f) => f.file === "lib/tabs.json");
+          if (tabsFileIdx >= 0) {
+            files[tabsFileIdx] = {
+              file: "lib/tabs.json",
+              data: JSON.stringify(tabsConfig, null, 2),
+            };
+          }
+          // Generate navigation file for this tab
+          files.push({
+            file: `lib/navigation-${apiTabSlug}.json`,
+            data: JSON.stringify(apiResult.navigation, null, 2),
+          });
         }
-        // Generate navigation file for this tab
-        files.push({
-          file: `lib/navigation-${apiTabSlug}.json`,
-          data: JSON.stringify(apiResult.navigation, null, 2),
-        });
         allNavigations.tabs[apiTabSlug] = apiResult.navigation;
         // Update combined navigation
         const combinedIdx = files.findIndex((f) => f.file === "lib/all-navigation.json");
