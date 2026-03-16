@@ -1,0 +1,33 @@
+---
+title: Endpoints
+description: Available API endpoints
+---
+
+# Endpoints
+
+## List Projects
+
+```bash
+GET /v1/projects
+```
+
+Returns a list of all projects in your organization.
+
+<img src="https://cdn.widget.io/docs/api-flow.png" alt="API flow diagram" />
+
+## Create Project
+
+```bash
+POST /v1/projects
+```
+
+```json
+{
+  "name": "My Project",
+  "description": "A new documentation project"
+}
+```
+
+<Tip>
+Use descriptive project names to make them easy to find later.
+</Tip>

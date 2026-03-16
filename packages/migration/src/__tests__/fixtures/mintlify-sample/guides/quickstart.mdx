@@ -1,0 +1,53 @@
+---
+title: Quickstart
+description: Get up and running in 5 minutes
+---
+
+# Quickstart Guide
+
+Follow these steps to start using Widget Platform.
+
+<Warning>
+Make sure you have Node.js 20+ and npm 10+ installed before proceeding.
+</Warning>
+
+<Steps>
+  <Step title="Install the SDK">
+    Install the Widget SDK using your preferred package manager:
+
+    <CodeGroup>
+      ```bash npm
+      npm install @widget/sdk
+      ```
+      ```bash yarn
+      yarn add @widget/sdk
+      ```
+      ```bash pnpm
+      pnpm add @widget/sdk
+      ```
+    </CodeGroup>
+  </Step>
+  <Step title="Initialize the client">
+    Create a new Widget client instance:
+
+    ```javascript
+    import { WidgetClient } from "@widget/sdk";
+
+    const client = new WidgetClient({
+      apiKey: process.env.WIDGET_API_KEY,
+    });
+    ```
+  </Step>
+  <Step title="Make your first request">
+    Fetch your project details:
+
+    ```javascript
+    const project = await client.projects.get("my-project");
+    console.log(project.name);
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+You can find your API key in the [Dashboard Settings](https://app.widget.io/settings).
+</Tip>

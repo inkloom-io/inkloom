@@ -1,0 +1,46 @@
+{
+  "name": "Widget Platform Docs",
+  "description": "Documentation for the Widget platform",
+  "colors": {
+    "primary": "#2563EB"
+  },
+  "logo": {
+    "light": "/logo/widget-light.svg",
+    "dark": "/logo/widget-dark.svg"
+  },
+  "favicon": "/favicon.svg",
+  "tabs": [
+    { "name": "Guides", "url": "guides" },
+    { "name": "API Reference", "url": "api" }
+  ],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": ["guides/introduction", "guides/quickstart"]
+    },
+    {
+      "group": "Authentication",
+      "pages": ["guides/auth/overview", "guides/auth/jwt-tokens"]
+    },
+    {
+      "group": "Components Demo",
+      "pages": ["guides/components/callouts", "guides/components/interactive"]
+    },
+    {
+      "group": "API",
+      "pages": ["api/overview", "api/endpoints"]
+    }
+  ],
+  "redirects": [
+    { "source": "/old-intro", "destination": "/guides/introduction" },
+    { "source": "/legacy/auth", "destination": "/guides/auth/overview" }
+  ],
+  "topbarLinks": [
+    { "name": "GitHub", "url": "https://github.com/widgetco/widget" }
+  ],
+  "footerSocials": {
+    "twitter": "https://twitter.com/widgetco",
+    "discord": "https://discord.gg/widgetco"
+  },
+  "openapi": "openapi.yaml"
+}

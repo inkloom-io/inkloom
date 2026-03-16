@@ -1,0 +1,9 @@
+root: .
+
+structure:
+  readme: README.md
+  summary: SUMMARY.md
+
+redirects:
+  /old-getting-started: /getting-started/welcome
+  /legacy/api: /api-reference/overview

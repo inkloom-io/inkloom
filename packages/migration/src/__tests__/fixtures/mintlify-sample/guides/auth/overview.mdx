@@ -1,0 +1,46 @@
+---
+title: Auth Overview
+description: Authentication and authorization overview
+icon: shield
+---
+
+# Authentication Overview
+
+Widget Platform supports multiple authentication methods.
+
+<Info>
+All API requests must include authentication credentials.
+</Info>
+
+<CardGroup cols={2}>
+  <Card title="JWT Tokens" href="/guides/auth/jwt-tokens">
+    Token-based authentication for server-to-server communication.
+  </Card>
+  <Card title="OAuth 2.0" href="/guides/auth/oauth">
+    OAuth flow for user-facing applications.
+  </Card>
+</CardGroup>
+
+## Choosing an Auth Method
+
+<Tabs>
+  <Tab title="Server-Side">
+    Use JWT tokens for server-to-server communication. These tokens are long-lived and scoped to specific permissions.
+
+    ```javascript
+    const token = await client.auth.createToken({
+      scope: ["read:projects", "write:data"],
+    });
+    ```
+  </Tab>
+  <Tab title="Client-Side">
+    Use OAuth 2.0 for browser-based applications. This provides secure user authentication.
+
+    ```javascript
+    const auth = client.auth.oauth({
+      clientId: "your-client-id",
+      redirectUri: "https://your-app.com/callback",
+    });
+    ```
+  </Tab>
+</Tabs>

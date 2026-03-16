@@ -1,0 +1,89 @@
+---
+title: Interactive Components
+description: Tabs, Steps, Accordion, Cards, and CodeGroup demos
+---
+
+# Interactive Components
+
+This page demonstrates interactive component types.
+
+## Tabs Example
+
+<Tabs>
+  <Tab title="JavaScript">
+    ```javascript
+    const widget = new Widget({ key: "abc" });
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    widget = Widget(key="abc")
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    widget := NewWidget("abc")
+    ```
+  </Tab>
+</Tabs>
+
+## Card Group
+
+<CardGroup cols={3}>
+  <Card title="Quickstart" href="/guides/quickstart" icon="rocket">
+    Get up and running quickly.
+  </Card>
+  <Card title="Auth" href="/guides/auth/overview" icon="lock">
+    Secure your application.
+  </Card>
+  <Card title="API Ref" href="/api/overview" icon="code">
+    Explore the full API.
+  </Card>
+</CardGroup>
+
+## Accordion Group
+
+<AccordionGroup>
+  <Accordion title="What is Widget?">
+    Widget is a platform for building documentation.
+  </Accordion>
+  <Accordion title="How do I get started?">
+    Follow our [Quickstart Guide](/guides/quickstart) to set up your first project.
+  </Accordion>
+</AccordionGroup>
+
+## Code Group
+
+<CodeGroup>
+  ```javascript server.js
+  const express = require("express");
+  const app = express();
+  app.listen(3000);
+  ```
+  ```python server.py
+  from flask import Flask
+  app = Flask(__name__)
+  app.run(port=3000)
+  ```
+</CodeGroup>
+
+## Standard Markdown
+
+Here is a standard [link to external site](https://example.com).
+
+### Nested Heading
+
+> A blockquote with some **bold** and *italic* text.
+
+- Unordered list item 1
+- Unordered list item 2
+  - Nested item
+
+Inline `code` example and a standalone code block:
+
+```json
+{
+  "key": "value",
+  "nested": { "count": 42 }
+}
+```

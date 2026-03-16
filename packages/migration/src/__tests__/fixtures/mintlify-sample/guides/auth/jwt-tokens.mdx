@@ -1,0 +1,49 @@
+---
+title: JWT Tokens
+description: How to use JWT tokens for authentication
+sidebarTitle: JWT Auth
+openapi: POST /api/auth/token
+---
+
+# JWT Token Authentication
+
+Use JWT tokens for secure API access with fine-grained permissions.
+
+<Check>
+JWT tokens are the recommended authentication method for backend services.
+</Check>
+
+## Token Lifecycle
+
+<AccordionGroup>
+  <Accordion title="Creating Tokens">
+    Generate a new JWT token using your API key:
+
+    ```javascript
+    const token = await client.auth.createToken({
+      scope: "read:projects",
+      expiresIn: "24h",
+    });
+    ```
+  </Accordion>
+  <Accordion title="Refreshing Tokens">
+    Tokens can be refreshed before expiration:
+
+    ```javascript
+    const newToken = await client.auth.refreshToken(oldToken);
+    ```
+  </Accordion>
+  <Accordion title="Revoking Tokens">
+    Revoke a token when it is no longer needed:
+
+    ```javascript
+    await client.auth.revokeToken(token);
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<Info>
+Tokens expire after 24 hours by default. You can configure custom expiration times.
+</Info>
+
+![JWT flow diagram](https://cdn.widget.io/docs/jwt-flow.png)
