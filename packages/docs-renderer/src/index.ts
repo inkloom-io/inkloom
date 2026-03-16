@@ -1,3 +1,7 @@
 export { DocsRendererProvider, useDocsRenderer } from "./context";
 export type { DocsRendererConfig } from "./context";
 export { cn } from "./utils";
+export { CodeBlock } from "./components/code-block";
+export { CodeGroup } from "./components/code-group";
+export { Heading } from "./components/heading";
+export { CustomLink } from "./components/link";
