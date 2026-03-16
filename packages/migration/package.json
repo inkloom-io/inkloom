@@ -1,0 +1,35 @@
+{
+  "name": "@inkloom/migration",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Migration tool for importing documentation from Mintlify and Gitbook into InkLoom",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/inkloom-io/inkloom.git",
+    "directory": "core/packages/migration"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "dev": "tsup src/index.ts --format esm --dts --watch",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5",
+    "vitest": "^4.0.18"
+  }
+}
