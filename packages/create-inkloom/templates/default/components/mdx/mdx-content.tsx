@@ -4,21 +4,64 @@ import React from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import { Heading } from "./heading";
-import { CodeBlock } from "./code-block";
-import { CustomLink } from "./link";
-import { Card } from "./card";
-import { CardGroup } from "./card-group";
-import { Callout } from "./callout";
-import { Image } from "./image";
-import { Tabs, Tab } from "./tabs";
-import { Steps, Step } from "./steps";
-import { Accordion, AccordionGroup } from "./accordion";
-import { CodeGroup } from "./code-group";
+import {
+  Callout,
+  Card,
+  CardGroup,
+  Image,
+  Tabs,
+  Tab,
+  Steps,
+  Step,
+  Accordion,
+  AccordionGroup,
+  CodeGroup,
+  CodeBlock,
+  Heading,
+  CustomLink,
+  DocsRendererProvider,
+} from "@inkloom/docs-renderer";
+import { Link } from "react-router";
+import { highlightCode as shikiHighlightCode } from "@/lib/syntax-highlighter";
 import { ApiEndpoint } from "./api-endpoint";
 import { ParamField } from "./param-field";
 import { ResponseField } from "./response-field";
 import { Expandable } from "./expandable";
+
+// Wrapper to adapt react-router's Link (uses `to`) to docs-renderer's LinkComponent (uses `href`)
+function RouterLink({
+  href,
+  children,
+  className,
+  target,
+  rel,
+}: {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+  target?: string;
+  rel?: string;
+}) {
+  // External links use a regular <a> tag
+  if (href.startsWith("http://") || href.startsWith("https://") || href.startsWith("//")) {
+    return (
+      <a href={href} className={className} target={target || "_blank"} rel={rel || "noopener noreferrer"}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link to={href} className={className} target={target} rel={rel}>
+      {children}
+    </Link>
+  );
+}
+
+// Wrapper to adapt the template's highlightCode (returns { html }) to docs-renderer's (returns string)
+async function highlightCode(code: string, language: string): Promise<string> {
+  const result = await shikiHighlightCode(code, language);
+  return result.html;
+}
 
 interface MDXContentProps {
   source: string;
@@ -510,7 +553,11 @@ export function MDXContent({ source }: MDXContentProps) {
   const components = findMDXComponents(source);
 
   if (components.length === 0) {
-    return <MarkdownWithCodeBlocks content={source} />;
+    return (
+      <DocsRendererProvider LinkComponent={RouterLink} highlightCode={highlightCode}>
+        <MarkdownWithCodeBlocks content={source} />
+      </DocsRendererProvider>
+    );
   }
 
   // Build segments alternating between markdown and components
@@ -543,5 +590,9 @@ export function MDXContent({ source }: MDXContentProps) {
     }
   }
 
-  return <>{segments}</>;
+  return (
+    <DocsRendererProvider LinkComponent={RouterLink} highlightCode={highlightCode}>
+      {segments}
+    </DocsRendererProvider>
+  );
 }
