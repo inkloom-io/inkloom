@@ -359,8 +359,15 @@ export const getInProgressDeployment = query({
       .order("desc")
       .collect();
 
+    // A deployment stuck in "queued" or "building" for more than 5 minutes
+    // is considered abandoned (e.g. the CF polling IIFE was killed) and
+    // should not be resumed by the publish dialog.
+    const STALE_THRESHOLD = 5 * 60 * 1000; // 5 minutes
+    const now = Date.now();
+
     return deployments.find((d: any) =>
-      d.status === "queued" || d.status === "building"
+      (d.status === "queued" || d.status === "building") &&
+      (now - (d.updatedAt || d.createdAt)) < STALE_THRESHOLD
     ) ?? null;
   },
 });
