@@ -189,6 +189,13 @@ export const coreTables = {
             })
           )
         ),
+        defaultThemeMode: v.optional(
+          v.union(
+            v.literal("light"),
+            v.literal("dark"),
+            v.literal("system")
+          )
+        ),
         ctaButton: v.optional(
           v.object({
             label: v.string(),

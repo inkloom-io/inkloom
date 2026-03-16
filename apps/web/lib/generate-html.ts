@@ -45,6 +45,8 @@ interface PageHtmlOptions {
   analyticsSnippets?: string;
   customHeadScripts?: string;
   customBodyScripts?: string;
+  /** Default theme mode for first-time visitors (light/dark/system). Defaults to "system". */
+  defaultThemeMode?: "light" | "dark" | "system";
 }
 
 interface ShellHtmlOptions {
@@ -62,6 +64,8 @@ interface ShellHtmlOptions {
   analyticsSnippets?: string;
   customHeadScripts?: string;
   customBodyScripts?: string;
+  /** Default theme mode for first-time visitors (light/dark/system). Defaults to "system". */
+  defaultThemeMode?: "light" | "dark" | "system";
 }
 
 /**
@@ -217,7 +221,10 @@ export function generatePageHtml(options: PageHtmlOptions): string {
     analyticsSnippets,
     customHeadScripts,
     customBodyScripts,
+    defaultThemeMode,
   } = options;
+
+  const resolvedDefaultMode = defaultThemeMode || "system";
 
   // Title format: pageTitle | innerFolder | ... | outerFolder | projectName Documentation
   let fullTitle: string;
@@ -270,11 +277,11 @@ export function generatePageHtml(options: PageHtmlOptions): string {
   const bodyEnd = customBodyScripts || "";
 
   return `<!DOCTYPE html>
-<html lang="en" data-theme="system">
+<html lang="en" data-theme="${resolvedDefaultMode}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>(function(){var t=localStorage.getItem('inkloom-theme');if(t==='light'||t==='dark'||t==='system')document.documentElement.setAttribute('data-theme',t)})()</script>
+    <script>(function(){var t=localStorage.getItem('inkloom-theme');if(!t)t='${resolvedDefaultMode}';if(t==='light'||t==='dark'||t==='system')document.documentElement.setAttribute('data-theme',t)})()</script>
     <title>${escapeHtml(fullTitle)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
     <link rel="canonical" href="${pagePath}" />
@@ -312,7 +319,10 @@ export function generateShellHtml(options: ShellHtmlOptions): string {
     analyticsSnippets,
     customHeadScripts,
     customBodyScripts,
+    defaultThemeMode,
   } = options;
+
+  const resolvedDefaultMode = defaultThemeMode || "system";
 
   const cssLinks = assetManifest.css
     .map((href) => `<link rel="stylesheet" href="/${href}" />`)
@@ -340,11 +350,11 @@ export function generateShellHtml(options: ShellHtmlOptions): string {
   const bodyEnd = customBodyScripts || "";
 
   return `<!DOCTYPE html>
-<html lang="en" data-theme="system">
+<html lang="en" data-theme="${resolvedDefaultMode}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>(function(){var t=localStorage.getItem('inkloom-theme');if(t==='light'||t==='dark'||t==='system')document.documentElement.setAttribute('data-theme',t)})()</script>
+    <script>(function(){var t=localStorage.getItem('inkloom-theme');if(!t)t='${resolvedDefaultMode}';if(t==='light'||t==='dark'||t==='system')document.documentElement.setAttribute('data-theme',t)})()</script>
     <title>${escapeHtml(siteConfig.title)} Documentation</title>
     <meta name="description" content="${escapeHtml(siteConfig.description)}" />
     ${fontsLink}

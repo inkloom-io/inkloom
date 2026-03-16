@@ -20,6 +20,7 @@ import {
   Eye,
   EyeOff,
   Globe,
+  Monitor,
   Moon,
   Palette,
   RotateCcw,
@@ -210,6 +211,10 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   const [fonts, setFonts] = useState<{ heading?: string; body?: string; code?: string }>({});
   const [fontsInitialized, setFontsInitialized] = useState(false);
 
+  // Default theme mode
+  const [defaultThemeMode, setDefaultThemeMode] = useState<"light" | "dark" | "system">("system");
+  const [defaultThemeModeInitialized, setDefaultThemeModeInitialized] = useState(false);
+
   // Live preview
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
@@ -265,6 +270,14 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
       setFontsInitialized(true);
     }
   }, [project, fontsInitialized]);
+
+  // Initialize default theme mode
+  useEffect(() => {
+    if (project && !defaultThemeModeInitialized) {
+      setDefaultThemeMode(project.settings?.defaultThemeMode || "system");
+      setDefaultThemeModeInitialized(true);
+    }
+  }, [project, defaultThemeModeInitialized]);
 
   // Initialize custom CSS
   useEffect(() => {
@@ -368,6 +381,16 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
     [updateSettings, projectId]
   );
 
+  const saveDefaultThemeMode = useCallback(
+    async (value: "light" | "dark" | "system") => {
+      await updateSettings({
+        projectId: projectId as Id<"projects">,
+        settings: { defaultThemeMode: value },
+      });
+    },
+    [updateSettings, projectId]
+  );
+
   const saveCustomCss = useCallback(
     async (value: string) => {
       await updateSettings({
@@ -422,6 +445,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
     faviconInitialized
   );
 
+  const defaultThemeModeStatus = useAutoSave(defaultThemeMode, saveDefaultThemeMode, 300, defaultThemeModeInitialized);
   const fontsStatus = useAutoSave(fonts, saveFonts, 800, fontsInitialized);
   const customCssStatus = useAutoSave(customCss, saveCustomCss, 800, customCssInitialized);
   const ctaButtonStatus = useAutoSave(
@@ -702,6 +726,59 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">{t("defaultThemeMode")}</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {t("defaultThemeModeDescription")}
+                </p>
+              </div>
+              <SaveStatus status={defaultThemeModeStatus} />
+            </div>
+            <div className="inline-flex items-center rounded-md border bg-muted p-0.5 text-sm">
+              <button
+                type="button"
+                onClick={() => setDefaultThemeMode("light")}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-sm px-3 py-1 transition-colors",
+                  defaultThemeMode === "light"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Sun className="h-3.5 w-3.5" />
+                {t("light")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDefaultThemeMode("dark")}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-sm px-3 py-1 transition-colors",
+                  defaultThemeMode === "dark"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Moon className="h-3.5 w-3.5" />
+                {t("dark")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDefaultThemeMode("system")}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-sm px-3 py-1 transition-colors",
+                  defaultThemeMode === "system"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Monitor className="h-3.5 w-3.5" />
+                {t("system")}
+              </button>
             </div>
           </div>
 
