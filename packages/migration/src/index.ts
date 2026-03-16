@@ -11,6 +11,14 @@ export {
   type MigrationAsset,
 } from "./types.js";
 
+export {
+  detectMimeType,
+  scanContentForImages,
+  scanGitbookAssetsDir,
+  collectAssets,
+  type AssetCollectionResult,
+} from "./assets.js";
+
 import type { MigrationConfig, MigrationResult } from "./types.js";
 
 /**
