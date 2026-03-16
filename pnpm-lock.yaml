@@ -159,9 +159,6 @@ importers:
 
   packages/cli:
     dependencies:
-      '@inkloom/mdx-parser':
-        specifier: workspace:*
-        version: link:../mdx-parser
       '@sentry/node':
         specifier: ^9.0.0
         version: 9.47.1
@@ -171,9 +168,6 @@ importers:
       convex:
         specifier: ^1.14.0
         version: 1.32.0(react@19.2.4)
-      create-inkloom:
-        specifier: workspace:*
-        version: link:../create-inkloom
       fs-extra:
         specifier: ^11.2.0
         version: 11.3.4
@@ -184,6 +178,9 @@ importers:
         specifier: ^2.4.2
         version: 2.4.2
     devDependencies:
+      '@inkloom/mdx-parser':
+        specifier: workspace:*
+        version: link:../mdx-parser
       '@types/fs-extra':
         specifier: ^11.0.4
         version: 11.0.4
@@ -193,6 +190,9 @@ importers:
       '@types/prompts':
         specifier: ^2.4.9
         version: 2.4.9
+      create-inkloom:
+        specifier: workspace:*
+        version: link:../create-inkloom
       tsup:
         specifier: ^8.1.0
         version: 8.5.1(@swc/core@1.15.18)(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
@@ -288,6 +288,28 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.35)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
 
+  packages/docs-renderer:
+    dependencies:
+      clsx:
+        specifier: ^2.1.0
+        version: 2.1.1
+      lucide-react:
+        specifier: ^0.563.0
+        version: 0.563.0(react@19.2.4)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.4
+    devDependencies:
+      '@inkloom/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^18.2.0
+        version: 18.3.28
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+
   packages/eslint-config:
     devDependencies:
       '@typescript-eslint/eslint-plugin':
@@ -326,6 +348,22 @@ importers:
       unified:
         specifier: ^11.0.5
         version: 11.0.5
+    devDependencies:
+      tsup:
+        specifier: ^8.1.0
+        version: 8.5.1(@swc/core@1.15.18)(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.35)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/migration:
+    dependencies:
+      yaml:
+        specifier: ^2.8.2
+        version: 2.8.2
     devDependencies:
       tsup:
         specifier: ^8.1.0

@@ -26,7 +26,9 @@
     "test:watch": "vitest --config vitest.config.ts",
     "type-check": "tsc --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "yaml": "^2.8.2"
+  },
   "devDependencies": {
     "tsup": "^8.1.0",
     "typescript": "^5.4.5",
