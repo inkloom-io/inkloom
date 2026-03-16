@@ -284,7 +284,11 @@
       "openapiAutoGen": "OpenAPI auto-gen",
       "realtimeCollab": "Real-time collab",
       "edgeDeployment": "Edge deployment",
-      "selfHostOption": "Self-host option"
+      "selfHostOption": "Self-host option",
+      "oneClickMigration": "One-click migration",
+      "migrationTitle": "Already on Mintlify or GitBook?",
+      "migrationSubtitle": "Import your entire docs site in one click — pages, navigation, components, and branding. Your URLs stay the same, so nothing breaks.",
+      "migrationCta": "Start migrating"
     },
     "pricing": {
       "badge": "Pricing",
