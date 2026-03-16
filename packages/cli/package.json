@@ -48,6 +48,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@inkloom/migration": "workspace:*",
     "commander": "^12.0.0",
     "convex": "^1.14.0",
     "fs-extra": "^11.2.0",
