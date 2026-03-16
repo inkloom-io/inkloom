@@ -43,7 +43,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "pretest": "pnpm --filter @inkloom/mdx-parser --filter create-inkloom build && pnpm build",
+    "pretest": "pnpm --filter @inkloom/mdx-parser --filter create-inkloom --filter @inkloom/migration build && pnpm build",
     "test": "node --import tsx --test tests/**/*.test.ts",
     "type-check": "tsc --noEmit"
   },
@@ -53,10 +53,12 @@
     "fs-extra": "^11.2.0",
     "picocolors": "^1.0.0",
     "prompts": "^2.4.2",
+    "yaml": "^2.8.2",
     "@sentry/node": "^9.0.0"
   },
   "devDependencies": {
     "@inkloom/mdx-parser": "workspace:*",
+    "@inkloom/migration": "workspace:*",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.14.0",
     "@types/prompts": "^2.4.9",
