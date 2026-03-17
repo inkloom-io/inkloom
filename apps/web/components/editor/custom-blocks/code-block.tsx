@@ -40,6 +40,7 @@ const LANGUAGES = [
   { value: "kotlin", label: "Kotlin" },
   { value: "yaml", label: "YAML" },
   { value: "markdown", label: "Markdown" },
+  { value: "mermaid", label: "Mermaid" },
   { value: "plaintext", label: "Plaintext" },
 ];
 

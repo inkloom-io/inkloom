@@ -25,6 +25,7 @@ const LANGUAGE_LABELS: Record<string, string> = {
   kotlin: "Kotlin",
   yaml: "YAML",
   markdown: "Markdown",
+  mermaid: "Mermaid",
   plaintext: "Plaintext",
   text: "Plaintext",
 };
