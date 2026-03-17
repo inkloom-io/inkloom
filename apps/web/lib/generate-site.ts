@@ -933,7 +933,6 @@ body {
 
 /* Header with a fine ruled line */
 .site-header {
-  background: var(--color-header-background);
   border-bottom: 1px solid var(--color-header-border);
   box-shadow: 0 1px 0 0 var(--color-border-subtle);
 }
@@ -1688,7 +1687,6 @@ body::before {
 
 /* Header — frosted glass with luminous border */
 .site-header {
-  background: var(--color-header-background);
   backdrop-filter: blur(24px) saturate(1.4);
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
   border-bottom: 1px solid var(--color-header-border);

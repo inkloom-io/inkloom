@@ -126,8 +126,8 @@ export function Sidebar() {
     ? (activeTab.navigation || [])
     : navigation;
 
-  const stickyTop = "top-16";
-  const sidebarHeight = "h-[calc(100vh-4rem)]";
+  const stickyTop = "top-28";
+  const sidebarHeight = "h-[calc(100vh-7rem)]";
 
   const socialLinks = config.socialLinks?.filter((l) => l.url) ?? [];
 

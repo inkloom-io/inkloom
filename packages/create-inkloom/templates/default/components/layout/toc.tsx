@@ -157,7 +157,7 @@ export function TableOfContents() {
     <aside
       className={cn(
         "toc sticky hidden w-64 xl:w-72 shrink-0 px-4 py-8 xl:block",
-        "top-16 h-[calc(100vh-4rem)]"
+        "top-28 h-[calc(100vh-7rem)]"
       )}
     >
       <div className="flex flex-col h-full">

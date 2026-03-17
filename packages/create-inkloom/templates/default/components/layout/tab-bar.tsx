@@ -60,7 +60,7 @@ export function TabBar({ tabs, basePath = "" }: TabBarProps) {
   );
 
   return (
-    <nav className="sticky top-16 z-40 border-b border-[var(--color-border)] bg-[var(--color-header-background)] backdrop-blur-[var(--header-blur)]">
+    <nav className="sticky top-16 z-40 border-b border-[var(--color-border)] backdrop-blur-[var(--header-blur)]">
       <div className="mx-auto max-w-8xl px-4">
         <div className="-mb-px flex gap-6">
           {tabs.map((tab) => {

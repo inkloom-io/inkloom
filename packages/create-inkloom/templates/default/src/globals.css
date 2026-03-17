@@ -31,7 +31,6 @@ body {
    ============================================================================ */
 
 .site-header {
-  background: var(--color-header-background);
   backdrop-filter: blur(var(--header-blur));
   -webkit-backdrop-filter: blur(var(--header-blur));
   border-color: var(--color-header-border);
