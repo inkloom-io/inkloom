@@ -1140,6 +1140,10 @@
         "accordionGroup": "Accordion Group",
         "accordionGroupSubtext": "Group multiple collapsible sections",
         "accordionDefault": "Accordion {number}",
+        "responseField": "Response Field",
+        "responseFieldSubtext": "Add an API response field with name, type, and description",
+        "expandable": "Expandable",
+        "expandableSubtext": "Add a collapsible content section",
         "columns": "Columns",
         "columnsSubtext": "Add a responsive column layout"
       }

@@ -37,6 +37,8 @@ import {
   RiBracesLine,
   RiExpandUpDownLine,
   RiStackLine,
+  RiFileList3Line,
+  RiArrowDownSLine,
   RiLayoutColumnLine,
 } from "react-icons/ri";
 import { Button } from "@inkloom/ui/button";
@@ -455,6 +457,34 @@ export function BlockEditor({
         aliases: ["accordiongroup", "faqgroup", "collapsible"],
         group: t("slashMenu.componentsGroup"),
         icon: <RiStackLine size={18} />,
+      },
+      {
+        title: t("slashMenu.responseField"),
+        subtext: t("slashMenu.responseFieldSubtext"),
+        onItemClick: () => {
+          editorInstance.insertBlocks(
+            [{ type: "responseField" as const, props: { name: "", type: "", required: "false" } }],
+            editorInstance.getTextCursorPosition().block,
+            "after"
+          );
+        },
+        aliases: ["response", "field", "param", "parameter", "api"],
+        group: t("slashMenu.componentsGroup"),
+        icon: <RiFileList3Line size={18} />,
+      },
+      {
+        title: t("slashMenu.expandable"),
+        subtext: t("slashMenu.expandableSubtext"),
+        onItemClick: () => {
+          editorInstance.insertBlocks(
+            [{ type: "expandable" as const, props: { title: "Details", type: "" } }],
+            editorInstance.getTextCursorPosition().block,
+            "after"
+          );
+        },
+        aliases: ["expandable", "collapsible", "details", "toggle"],
+        group: t("slashMenu.componentsGroup"),
+        icon: <RiArrowDownSLine size={18} />,
       },
       {
         title: t("slashMenu.columns"),

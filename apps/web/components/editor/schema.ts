@@ -6,6 +6,8 @@ import { Steps, Step } from "./custom-blocks/steps";
 import { Accordion, AccordionGroup } from "./custom-blocks/accordion";
 import { CodeGroup } from "./custom-blocks/code-group";
 import { CodeBlock } from "./custom-blocks/code-block";
+import { ResponseField } from "./custom-blocks/response-field";
+import { Expandable } from "./custom-blocks/expandable";
 import { Columns, Column } from "./custom-blocks/columns";
 
 // Create a copy of default specs without the built-in codeBlock
@@ -25,6 +27,8 @@ export const schema = BlockNoteSchema.create({
     accordionGroup: AccordionGroup(),
     codeGroup: CodeGroup(),
     codeBlock: CodeBlock(),
+    responseField: ResponseField(),
+    expandable: Expandable(),
     columns: Columns(),
     column: Column(),
   },
