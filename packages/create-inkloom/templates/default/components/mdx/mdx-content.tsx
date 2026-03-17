@@ -110,6 +110,32 @@ function parseAttributes(attrString: string): Record<string, string | number | b
   return attrs;
 }
 
+// Find the balanced closing tag for a component, handling nested same-name tags
+function findBalancedCloseTag(content: string, tagName: string, searchFrom: number): number {
+  let depth = 1;
+  const openRegex = new RegExp(`<${tagName}(?![a-zA-Z])\\s*[^>]*(?<!/)>`, "g");
+  const closeTag = `</${tagName}>`;
+  let pos = searchFrom;
+
+  while (pos < content.length && depth > 0) {
+    const closeIdx = content.indexOf(closeTag, pos);
+    if (closeIdx === -1) return -1;
+
+    // Count any non-self-closing opening tags between pos and closeIdx
+    openRegex.lastIndex = pos;
+    let openMatch;
+    while ((openMatch = openRegex.exec(content)) !== null && openMatch.index < closeIdx) {
+      depth++;
+    }
+
+    depth--;
+    if (depth === 0) return closeIdx;
+    pos = closeIdx + closeTag.length;
+  }
+
+  return -1;
+}
+
 // Find all MDX components in the content
 function findMDXComponents(content: string): ParsedComponent[] {
   const components: ParsedComponent[] = [];
@@ -135,21 +161,24 @@ function findMDXComponents(content: string): ParsedComponent[] {
       });
     }
 
-    // Match components with children: <Card ...>...</Card>
-    // Use negative lookbehind (?<!/) to avoid matching self-closing tags like <Card ... />
-    const withChildrenRegex = new RegExp(
-      `${namePattern}\\s*([^>]*)(?<!/)>([\\s\\S]*?)</${name}>`,
-      "g"
-    );
-    while ((match = withChildrenRegex.exec(content)) !== null) {
+    // Match components with children using balanced tag matching
+    // This correctly handles nested same-name tags (e.g., ResponseField inside ResponseField)
+    const openTagRegex = new RegExp(`${namePattern}\\s*([^>]*)(?<!/)>`, "g");
+    while ((match = openTagRegex.exec(content)) !== null) {
       const attrStr = match[1] ?? "";
-      const childrenStr = match[2] ?? "";
+      const contentStart = match.index + match[0].length;
+      const closeIdx = findBalancedCloseTag(content, name, contentStart);
+      if (closeIdx === -1) continue;
+
+      const childrenStr = content.slice(contentStart, closeIdx);
+      const endIndex = closeIdx + `</${name}>`.length;
+
       components.push({
         type: name as ParsedComponent["type"],
         props: parseAttributes(attrStr),
         children: childrenStr.trim(),
         startIndex: match.index,
-        endIndex: match.index + match[0].length,
+        endIndex,
       });
     }
   }
@@ -529,7 +558,7 @@ function renderComponent(
           type={props.type as string}
           required={props.required === true || props.required === "true"}
         >
-          {children && <span>{children}</span>}
+          {children && <MDXContent source={children} />}
         </ResponseField>
       );
 
