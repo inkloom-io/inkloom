@@ -122,10 +122,11 @@ describe("E2E: migrate() with Mintlify fixture", () => {
   // ── Page counts & structure ───────────────────────────────────────────
 
   describe("pages", () => {
-    it("converts all 8 fixture pages", () => {
+    it("converts all 9 fixture pages", () => {
       // introduction, quickstart, auth/overview, auth/jwt-tokens,
-      // components/callouts, components/interactive, api/overview, api/endpoints
-      expect(result.pages).toHaveLength(8);
+      // components/callouts, components/interactive, components/columns,
+      // api/overview, api/endpoints
+      expect(result.pages).toHaveLength(9);
     });
 
     it("every page matches createFromImport args shape", () => {
@@ -164,6 +165,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
       expect(slugs).toContain("guides/auth/jwt-tokens");
       expect(slugs).toContain("guides/components/callouts");
       expect(slugs).toContain("guides/components/interactive");
+      expect(slugs).toContain("guides/components/columns");
       expect(slugs).toContain("api/overview");
       expect(slugs).toContain("api/endpoints");
     });
@@ -506,6 +508,38 @@ describe("E2E: migrate() with Mintlify fixture", () => {
       const blocks = parseBlocks(introPage.content);
       const images = findBlocks(blocks, "image");
       expect(images.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("preserves Columns with Card children as cardGroup blocks", () => {
+      const columnsPage = result.pages.find(
+        (p) => p.slug === "guides/components/columns",
+      );
+      expect(columnsPage).toBeDefined();
+      if (!columnsPage) return;
+
+      const blocks = parseBlocks(columnsPage.content);
+      const cardGroups = findBlocks(blocks, "cardGroup");
+      expect(cardGroups.length).toBeGreaterThanOrEqual(1);
+      expect(cardGroups[0].props?.cols).toBe("2");
+
+      const cards = findBlocks(blocks, "card");
+      expect(cards.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("preserves Columns with non-card children as columns + column blocks", () => {
+      const columnsPage = result.pages.find(
+        (p) => p.slug === "guides/components/columns",
+      );
+      expect(columnsPage).toBeDefined();
+      if (!columnsPage) return;
+
+      const blocks = parseBlocks(columnsPage.content);
+      const columnsBlocks = findBlocks(blocks, "columns");
+      expect(columnsBlocks.length).toBeGreaterThanOrEqual(1);
+      expect(columnsBlocks[0].props?.cols).toBe("3");
+
+      const columnBlocks = findBlocks(blocks, "column");
+      expect(columnBlocks.length).toBeGreaterThanOrEqual(3);
     });
 
     it("preserves paragraph and list blocks", () => {

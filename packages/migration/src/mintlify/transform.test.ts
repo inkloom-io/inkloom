@@ -94,6 +94,25 @@ describe("transformMintlifyMdx", () => {
       const { mdx } = await transformMintlifyMdx(input);
       expect(mdx).toContain("<CodeGroup");
     });
+
+    it("leaves Columns unchanged (not renamed by renameComponents)", async () => {
+      const input = `<Columns cols={2}>\n<Card title="A">Content A</Card>\n<Card title="B">Content B</Card>\n</Columns>`;
+      const { mdx } = await transformMintlifyMdx(input);
+      expect(mdx).toContain("<Columns");
+      expect(mdx).toContain("cols={2}");
+      expect(mdx).toContain("<Card");
+      expect(mdx).not.toContain("<CardGroup");
+    });
+
+    it("leaves Columns with non-card children unchanged", async () => {
+      const input = `<Columns cols={3}>\n<div>col1</div>\n<div>col2</div>\n<div>col3</div>\n</Columns>`;
+      const { mdx } = await transformMintlifyMdx(input);
+      expect(mdx).toContain("<Columns");
+      expect(mdx).toContain("cols={3}");
+      expect(mdx).toContain("col1");
+      expect(mdx).toContain("col2");
+      expect(mdx).toContain("col3");
+    });
   });
 
   describe("frontmatter handling", () => {
@@ -317,6 +336,69 @@ icon: book
     expect(blockTypes).toContain("step");
     expect(blockTypes).toContain("accordionGroup");
     expect(blockTypes).toContain("accordion");
+  });
+});
+
+describe("integration: Columns migration", () => {
+  it("converts Mintlify Columns with Card children to cardGroup blocks", async () => {
+    const mintlifyInput = `
+<Columns cols={2}>
+<Card title="Feature A">
+Description A
+</Card>
+<Card title="Feature B">
+Description B
+</Card>
+</Columns>
+`;
+
+    const { mdx } = await transformMintlifyMdx(mintlifyInput);
+
+    // Columns passes through unchanged
+    expect(mdx).toContain("<Columns");
+    expect(mdx).toContain("cols={2}");
+
+    // Parse to BlockNote — should produce cardGroup (backward-compatible)
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks).toBeDefined();
+
+    const cardGroupBlock = blocks.find((b: { type: string }) => b.type === "cardGroup");
+    expect(cardGroupBlock).toBeDefined();
+    expect(cardGroupBlock?.props?.cols).toBe("2");
+
+    const cardBlocks = blocks.filter((b: { type: string }) => b.type === "card");
+    expect(cardBlocks).toHaveLength(2);
+    expect(cardBlocks[0]?.props?.title).toBe("Feature A");
+    expect(cardBlocks[1]?.props?.title).toBe("Feature B");
+  });
+
+  it("converts Mintlify Columns with non-card children to columns + column blocks", async () => {
+    const mintlifyInput = `
+<Columns cols={2}>
+<div>
+Left column content
+</div>
+<div>
+Right column content
+</div>
+</Columns>
+`;
+
+    const { mdx } = await transformMintlifyMdx(mintlifyInput);
+
+    // Columns passes through unchanged
+    expect(mdx).toContain("<Columns");
+
+    // Parse to BlockNote — should produce columns + column blocks
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks).toBeDefined();
+
+    const columnsBlock = blocks.find((b: { type: string }) => b.type === "columns");
+    expect(columnsBlock).toBeDefined();
+    expect(columnsBlock?.props?.cols).toBe("2");
+
+    const columnBlocks = blocks.filter((b: { type: string }) => b.type === "column");
+    expect(columnBlocks).toHaveLength(2);
   });
 });
 

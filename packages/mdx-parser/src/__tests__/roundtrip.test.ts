@@ -60,6 +60,50 @@ describe("mdxToBlockNote", () => {
     expect(blocks[1].props?.title).toBe("First");
   });
 
+  it("parses Columns with Card children as cardGroup (backward-compatible)", () => {
+    const mdx = `<Columns cols={2}>\n<Card title="A">\nDesc A\n</Card>\n<Card title="B">\nDesc B\n</Card>\n</Columns>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks.length).toBeGreaterThanOrEqual(3);
+    expect(blocks[0].type).toBe("cardGroup");
+    expect(blocks[0].props?.cols).toBe("2");
+    expect(blocks[1].type).toBe("card");
+    expect(blocks[1].props?.title).toBe("A");
+    expect(blocks[2].type).toBe("card");
+    expect(blocks[2].props?.title).toBe("B");
+  });
+
+  it("parses Columns with non-card content as columns + column blocks", () => {
+    const mdx = `<Columns cols={2}>\n<div>\ntext1\n</div>\n<div>\ntext2\n</div>\n</Columns>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks.length).toBeGreaterThanOrEqual(3);
+    expect(blocks[0].type).toBe("columns");
+    expect(blocks[0].props?.cols).toBe("2");
+    expect(blocks[1].type).toBe("column");
+    const col1Content = blocks[1].content as Array<{ type: string; text?: string }>;
+    expect(col1Content.some((c) => c.text === "text1")).toBe(true);
+    expect(blocks[2].type).toBe("column");
+    const col2Content = blocks[2].content as Array<{ type: string; text?: string }>;
+    expect(col2Content.some((c) => c.text === "text2")).toBe(true);
+  });
+
+  it("parses Columns with cols={3}", () => {
+    const mdx = `<Columns cols={3}>\n<div>\na\n</div>\n<div>\nb\n</div>\n<div>\nc\n</div>\n</Columns>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[0].type).toBe("columns");
+    expect(blocks[0].props?.cols).toBe("3");
+    const columnBlocks = blocks.filter((b) => b.type === "column");
+    expect(columnBlocks).toHaveLength(3);
+  });
+
+  it("parses Columns with cols={4}", () => {
+    const mdx = `<Columns cols={4}>\n<div>\n1\n</div>\n<div>\n2\n</div>\n<div>\n3\n</div>\n<div>\n4\n</div>\n</Columns>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[0].type).toBe("columns");
+    expect(blocks[0].props?.cols).toBe("4");
+    const columnBlocks = blocks.filter((b) => b.type === "column");
+    expect(columnBlocks).toHaveLength(4);
+  });
+
   it("parses a bullet list", () => {
     const mdx = "- Item 1\n- Item 2\n- Item 3";
     const blocks = mdxToBlockNote(mdx);
@@ -493,6 +537,32 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</Frame>");
   });
 
+  it("converts columns with column blocks", () => {
+    const mdx = blockNoteToMDX([
+      { type: "columns", props: { cols: "2" }, content: [] },
+      { type: "column", content: [{ type: "text", text: "Left side" }] },
+      { type: "column", content: [{ type: "text", text: "Right side" }] },
+    ]);
+    expect(mdx).toContain("<Columns cols={2}>");
+    expect(mdx).toContain("Left side");
+    expect(mdx).toContain("Right side");
+    expect(mdx).toContain("</Columns>");
+  });
+
+  it("converts columns with cols={3}", () => {
+    const mdx = blockNoteToMDX([
+      { type: "columns", props: { cols: "3" }, content: [] },
+      { type: "column", content: [{ type: "text", text: "A" }] },
+      { type: "column", content: [{ type: "text", text: "B" }] },
+      { type: "column", content: [{ type: "text", text: "C" }] },
+    ]);
+    expect(mdx).toContain("<Columns cols={3}>");
+    expect(mdx).toContain("A");
+    expect(mdx).toContain("B");
+    expect(mdx).toContain("C");
+    expect(mdx).toContain("</Columns>");
+  });
+
   it("converts empty responseField as self-closing", () => {
     const mdx = blockNoteToMDX([
       {
@@ -550,6 +620,10 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     {
       name: "responseField with expandable",
       mdx: `<ResponseField name="navigation" type="Navigation[]" required>\nDescription text here\n<Expandable title="Navigation">\n<ResponseField name="group" type="string">\nNested description\n</ResponseField>\n</Expandable>\n</ResponseField>`,
+    },
+    {
+      name: "columns with cards (backward-compatible cardGroup)",
+      mdx: `<Columns cols={2}>\n<Card title="A">\nDesc A\n</Card>\n<Card title="B">\nDesc B\n</Card>\n</Columns>`,
     },
   ];
 

@@ -24,7 +24,7 @@
     },
     {
       "group": "Components Demo",
-      "pages": ["guides/components/callouts", "guides/components/interactive"]
+      "pages": ["guides/components/callouts", "guides/components/interactive", "guides/components/columns"]
     },
     {
       "group": "API",
