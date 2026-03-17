@@ -312,6 +312,7 @@
       "monthly": "Monthly",
       "annual": "Annual",
       "annualDiscount": "-20%",
+      "twoMonthsFree": "2 months free!",
       "mostPopular": "Most Popular",
       "perSeatSuffix": "/seat/mo",
       "onlyCollaborators": "only collaborators on this project",
@@ -330,18 +331,18 @@
         "name": "Pro",
         "description": "For growing teams shipping docs regularly.",
         "feature1": "Custom domains",
-        "feature2": "API access & CLI",
-        "feature3": "Remove branding",
-        "feature4": "Version history",
-        "feature5": "GitHub integration",
+        "feature2": "GitHub integration",
+        "feature3": "Navigation tabs",
+        "feature4": "AI docs generation (20 credits/mo)",
+        "feature5": "API & CLI access",
         "cta": "Start free trial"
       },
       "ultimate": {
         "name": "Ultimate",
         "description": "For teams that need automation and scale.",
         "feature1": "Everything in Pro",
-        "feature2": "Realtime collaboration",
-        "feature3": "AI documentation tools",
+        "feature2": "5× AI credits (100/mo included)",
+        "feature3": "Realtime collaboration",
         "feature4": "Authenticated access",
         "feature5": "Priority support",
         "cta": "Start free trial"
@@ -460,7 +461,10 @@
       "aiDocsTools": "AI docs tools",
       "prioritySupport": "Priority support",
       "trialsRemaining": "{count} free trial{count, plural, =1 {} other {s}} remaining",
-      "noTrialsRemaining": "No free trials remaining — paid plans start immediately"
+      "noTrialsRemaining": "No free trials remaining — paid plans start immediately",
+      "navigationTabs": "Navigation tabs",
+      "higherAiCredits": "5× AI credits (100/mo)",
+      "twoMonthsFree": "2 months free!"
     },
     "overview": {
       "welcomeBack": "Welcome back, {firstName}",
@@ -1599,7 +1603,8 @@
       "seatsNote": "Seats are billed per project. Each collaborator is counted once at their highest-tier project.",
       "trialsRemaining": "{count} free trial{count, plural, =1 {} other {s}} remaining for this organization",
       "projectAlreadyTrialed": "This project already used a free trial — upgrades start billing immediately",
-      "noTrialsRemaining": "No free trials remaining — upgrades start billing immediately"
+      "noTrialsRemaining": "No free trials remaining — upgrades start billing immediately",
+      "twoMonthsFree": "2 months free!"
     },
     "credits": {
       "title": "AI Credits",
@@ -1679,7 +1684,10 @@
       "ssoSaml": "SSO / SAML",
       "uptimeSla": "99.99% uptime SLA",
       "dedicatedSupport": "Dedicated support",
-      "customIntegrations": "Custom integrations"
+      "customIntegrations": "Custom integrations",
+      "navigationTabs": "Navigation tabs",
+      "aiDocsGeneration": "AI docs generation (20 credits/mo)",
+      "higherAiCredits": "5× AI credits (100/mo included)"
     },
     "page": {
       "title": "Billing",
