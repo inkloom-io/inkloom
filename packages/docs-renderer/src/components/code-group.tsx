@@ -35,6 +35,7 @@ interface CodeGroupProps {
 interface CodeBlockInfo {
   language: string;
   code: string;
+  title?: string;
   height?: number;
   content?: ReactElement;
 }
@@ -44,18 +45,20 @@ interface CodeElementProps {
   children?: ReactNode;
 }
 
-// Parse code blocks from markdown string (```lang {height=200}\ncode```)
+// Parse code blocks from markdown string (```lang title {height=200}\ncode```)
 function parseCodeBlocksFromString(content: string): CodeBlockInfo[] {
   const blocks: CodeBlockInfo[] = [];
-  // Match code blocks with optional height metadata
-  const codeBlockRegex = /```(\w*)\s*(?:\{height=(\d+)\})?\n([\s\S]*?)```/g;
+  // Match code blocks with optional title and height metadata
+  const codeBlockRegex = /```(\w*)\s*(.*?)(?:\{height=(\d+)\})?\n([\s\S]*?)```/g;
   let match;
 
   while ((match = codeBlockRegex.exec(content)) !== null) {
+    const title = match[2] ? match[2].trim() : undefined;
     blocks.push({
       language: match[1] || "code",
-      height: match[2] ? parseInt(match[2], 10) : undefined,
-      code: match[3]?.trim() || "",
+      title: title || undefined,
+      height: match[3] ? parseInt(match[3], 10) : undefined,
+      code: match[4]?.trim() || "",
     });
   }
 
@@ -121,7 +124,7 @@ export function CodeGroup({ children }: CodeGroupProps) {
               className={`code-group-tab ${index === activeIndex ? "code-group-tab-active" : ""}`}
               onClick={() => setActiveIndex(index)}
             >
-              {LANGUAGE_LABELS[block.language] || block.language}
+              {block.title || LANGUAGE_LABELS[block.language] || block.language}
             </button>
           ))}
         </div>
@@ -177,7 +180,7 @@ export function CodeGroup({ children }: CodeGroupProps) {
             className={`code-group-tab ${index === activeIndex ? "code-group-tab-active" : ""}`}
             onClick={() => setActiveIndex(index)}
           >
-            {LANGUAGE_LABELS[block.language] || block.language}
+            {block.title || LANGUAGE_LABELS[block.language] || block.language}
           </button>
         ))}
       </div>

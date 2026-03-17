@@ -41,6 +41,27 @@ describe("mdxToBlockNote", () => {
     expect(blocks[0].props?.height).toBe("300");
   });
 
+  it("parses a code block with title", () => {
+    const blocks = mdxToBlockNote("```java HelloWorld.java\nclass HelloWorld {}\n```");
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("codeBlock");
+    expect(blocks[0].props?.language).toBe("java");
+    expect(blocks[0].props?.title).toBe("HelloWorld.java");
+    expect(blocks[0].props?.code).toBe("class HelloWorld {}");
+  });
+
+  it("parses a code block with title and height", () => {
+    const blocks = mdxToBlockNote("```typescript src/index.ts {height=300}\nconst x = 1;\n```");
+    expect(blocks[0].props?.title).toBe("src/index.ts");
+    expect(blocks[0].props?.height).toBe("300");
+  });
+
+  it("does not set title when only height meta exists", () => {
+    const blocks = mdxToBlockNote("```python {height=200}\nprint('hello')\n```");
+    expect(blocks[0].props?.title).toBeUndefined();
+    expect(blocks[0].props?.height).toBe("200");
+  });
+
   it("parses a Callout component", () => {
     const mdx = `<Callout type="warning" title="Watch out">\nBe careful here.\n</Callout>`;
     const blocks = mdxToBlockNote(mdx);
@@ -346,6 +367,20 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("```");
   });
 
+  it("serializes a code block with title", () => {
+    const mdx = blockNoteToMDX([
+      { type: "codeBlock", props: { language: "java", code: "class Foo {}", title: "Foo.java" } },
+    ]);
+    expect(mdx).toContain("```java Foo.java");
+  });
+
+  it("serializes a code block with title and height", () => {
+    const mdx = blockNoteToMDX([
+      { type: "codeBlock", props: { language: "typescript", code: "const x = 1;", title: "example.ts", height: "300" } },
+    ]);
+    expect(mdx).toContain("```typescript example.ts {height=300}");
+  });
+
   it("converts a callout", () => {
     const mdx = blockNoteToMDX([
       {
@@ -638,4 +673,11 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
       expect(blocks2[0].type).toBe(blocks[0].type);
     });
   }
+
+  it("round-trips code block with title", () => {
+    const input = "```java HelloWorld.java\nclass HelloWorld {}\n```";
+    const blocks = mdxToBlockNote(input);
+    const output = blockNoteToMDX(blocks);
+    expect(output.trim()).toBe(input);
+  });
 });

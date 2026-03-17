@@ -828,11 +828,16 @@ function convertBlockNode(node: MdastNode): BlockNoteBlock[] {
       const code = node.value || "";
       const props: Record<string, unknown> = { language, code };
 
-      // Parse height from meta if present (e.g., {height=300})
       if (node.meta) {
-        const heightMatch = node.meta.match(/height=(\d+)/);
+        // Parse height from meta if present (e.g., {height=300})
+        const heightMatch = node.meta.match(/\{height=(\d+)\}/);
         if (heightMatch) {
           props.height = heightMatch[1];
+        }
+        // Title is everything in meta except {key=value} metadata blocks
+        const title = node.meta.replace(/\{[^}]*\}/g, "").trim();
+        if (title) {
+          props.title = title;
         }
       }
 

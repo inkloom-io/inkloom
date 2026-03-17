@@ -221,19 +221,21 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       const rawLang = (block.props?.language as string) || "javascript";
       const language = rawLang === "text" ? "plaintext" : rawLang;
       const height = block.props?.height as string | undefined;
+      const title = block.props?.title as string | undefined;
       // Code is stored in props.code (custom code block) or as inline content (legacy)
       const codeFromProps = (block.props?.code as string) || "";
       const codeFromContent = block.content && isInlineContentArray(block.content)
         ? convertInlineContent(block.content)
         : "";
       const text = codeFromProps || codeFromContent;
-      // Include height as metadata in fenced code block syntax
+      // Build meta string: title first, then {height=N} if non-default
       const defaultHeight = "150";
-      if (height && height !== defaultHeight) {
-        result = `\`\`\`${language} {height=${height}}\n${text}\n\`\`\`\n\n`;
-      } else {
-        result = `\`\`\`${language}\n${text}\n\`\`\`\n\n`;
-      }
+      const metaParts: string[] = [];
+      if (title) metaParts.push(title);
+      if (height && height !== defaultHeight) metaParts.push(`{height=${height}}`);
+      const meta = metaParts.length > 0 ? ` ${metaParts.join(" ")}` : "";
+
+      result = `\`\`\`${language}${meta}\n${text}\n\`\`\`\n\n`;
       break;
     }
 
