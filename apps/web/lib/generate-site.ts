@@ -1,5 +1,5 @@
 import { blockNoteToMDX, parseBlockNoteContent } from "./blocknote-to-mdx";
-import { THEME_PRESETS, type ThemeColors } from "./theme-presets";
+import { THEME_PRESETS, type ThemeColors, computeContrastForeground } from "./theme-presets";
 import { extractSearchableText, parseBlockNoteContent as parseBlocks } from "./search/extract-text";
 import type { SearchDocument } from "./search/types";
 import { parseOpenApiSpec } from "./openapi/parse-spec";
@@ -468,7 +468,7 @@ function generateColorBlock(colors: ThemeColors, primaryOverride: string | null,
   --color-border: ${colors.border};
   --color-border-subtle: ${colors.borderSubtle};
   --color-primary: ${primary};
-  --color-primary-foreground: ${colors.primaryForeground};
+  --color-primary-foreground: ${primaryOverride ? computeContrastForeground(primaryOverride) : colors.primaryForeground};
   --color-accent: ${accent};
   --color-accent-foreground: ${accentForeground};
   --color-secondary: ${colors.muted};

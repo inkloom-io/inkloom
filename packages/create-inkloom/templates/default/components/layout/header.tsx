@@ -137,7 +137,7 @@ export function Header() {
                 href={config.ctaButton.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="cta-button group inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)] px-3 py-1 text-xs lg:px-4 lg:py-1.5 lg:text-sm font-medium text-white shadow-sm transition-all hover:opacity-90 hover:shadow-md"
+                className="cta-button group inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)] px-3 py-1 text-xs lg:px-4 lg:py-1.5 lg:text-sm font-medium text-[var(--color-primary-foreground)] shadow-sm transition-all hover:opacity-90 hover:shadow-md"
               >
                 {config.ctaButton.label}
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
