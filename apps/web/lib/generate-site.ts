@@ -622,31 +622,9 @@ html {
   --theme-name: "slate";
 }
 
-/* Gradient splash — refined mesh with primary accent radiating from top */
+/* Body background */
 body {
   background-color: var(--color-background);
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--color-primary) 10%, transparent) 0%, transparent 100%),
-    radial-gradient(at 0% 0%, var(--color-background-subtle) 0%, transparent 50%),
-    radial-gradient(at 100% 50%, color-mix(in srgb, var(--color-border-subtle) 40%, transparent) 0%, transparent 50%),
-    radial-gradient(at 30% 100%, var(--color-background-subtle) 0%, transparent 40%);
-  background-attachment: fixed;
-}
-
-/* Title section background pattern — subtle dot grid that fades out */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 600px;
-  background-image: radial-gradient(circle, color-mix(in srgb, var(--color-border-subtle) 60%, transparent) 0.5px, transparent 0.5px);
-  background-size: 32px 32px;
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
-  pointer-events: none;
-  z-index: 0;
 }
 
 /* Header — crisp frosted glass with refined border */
@@ -819,36 +797,9 @@ html {
   --theme-name: "aurora";
 }
 
-/* Gradient splash — vibrant primary glow radiating from top */
+/* Body background */
 body {
-  background-image:
-    radial-gradient(ellipse 90% 50% at 50% -5%, color-mix(in srgb, var(--color-primary) 14%, transparent) 0%, transparent 100%),
-    radial-gradient(at 0% 0%, color-mix(in srgb, var(--color-primary) 8%, transparent) 0%, transparent 50%),
-    radial-gradient(at 100% 0%, color-mix(in srgb, var(--color-primary) 6%, transparent) 0%, transparent 50%),
-    radial-gradient(at 50% 100%, color-mix(in srgb, var(--color-primary) 4%, transparent) 0%, transparent 50%);
-  background-attachment: fixed;
-}
-
-/* Title section background pattern — hexagonal circuit-board grid */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 600px;
-  background-image:
-    linear-gradient(30deg, color-mix(in srgb, var(--color-primary) 6%, transparent) 12%, transparent 12.5%, transparent 87%, color-mix(in srgb, var(--color-primary) 6%, transparent) 87.5%, color-mix(in srgb, var(--color-primary) 6%, transparent)),
-    linear-gradient(150deg, color-mix(in srgb, var(--color-primary) 6%, transparent) 12%, transparent 12.5%, transparent 87%, color-mix(in srgb, var(--color-primary) 6%, transparent) 87.5%, color-mix(in srgb, var(--color-primary) 6%, transparent)),
-    linear-gradient(30deg, color-mix(in srgb, var(--color-primary) 6%, transparent) 12%, transparent 12.5%, transparent 87%, color-mix(in srgb, var(--color-primary) 6%, transparent) 87.5%, color-mix(in srgb, var(--color-primary) 6%, transparent)),
-    linear-gradient(150deg, color-mix(in srgb, var(--color-primary) 6%, transparent) 12%, transparent 12.5%, transparent 87%, color-mix(in srgb, var(--color-primary) 6%, transparent) 87.5%, color-mix(in srgb, var(--color-primary) 6%, transparent)),
-    linear-gradient(60deg, color-mix(in srgb, var(--color-primary) 4%, transparent) 25%, transparent 25.5%, transparent 75%, color-mix(in srgb, var(--color-primary) 4%, transparent) 75%, color-mix(in srgb, var(--color-primary) 4%, transparent));
-  background-size: 40px 70px;
-  background-position: 0 0, 0 0, 20px 35px, 20px 35px, 0 0;
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.15) 50%, transparent 100%);
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.15) 50%, transparent 100%);
-  pointer-events: none;
-  z-index: 0;
+  background-color: var(--color-background);
 }
 
 /* Glowing header border */
@@ -925,13 +876,9 @@ html {
   --theme-name: "verdant";
 }
 
-/* Warm ivory background with subtle dot-grid texture */
+/* Body background */
 body {
   background-color: var(--color-background);
-  background-image:
-    radial-gradient(circle, var(--color-border) 0.5px, transparent 0.5px);
-  background-size: 24px 24px;
-  background-attachment: fixed;
 }
 
 /* Header with a fine ruled line */
@@ -1066,33 +1013,9 @@ html {
   --theme-name: "ember";
 }
 
-/* Gradient splash — warm copper/amber glow from top */
+/* Body background */
 body {
-  background-image:
-    radial-gradient(ellipse 70% 45% at 50% -5%, color-mix(in srgb, var(--color-primary) 10%, transparent) 0%, transparent 100%),
-    linear-gradient(180deg, var(--color-background) 0%, var(--color-background-subtle) 100%);
-  background-attachment: fixed;
-}
-
-/* Title section background pattern — editorial ruled lines */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 600px;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent,
-    transparent 39px,
-    color-mix(in srgb, var(--color-border-subtle) 50%, transparent) 39px,
-    color-mix(in srgb, var(--color-border-subtle) 50%, transparent) 40px
-  );
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 50%, transparent 100%);
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.15) 50%, transparent 100%);
-  pointer-events: none;
-  z-index: 0;
+  background-color: var(--color-background);
 }
 
 /* Header with warm bottom glow */
@@ -1226,32 +1149,9 @@ html {
   --theme-name: "midnight";
 }
 
-/* Gradient splash — celestial glow radiating from top */
+/* Body background */
 body {
   background-color: var(--color-background);
-  background-image:
-    radial-gradient(ellipse 80% 45% at 50% -10%, color-mix(in srgb, var(--color-primary) 12%, transparent) 0%, transparent 100%),
-    radial-gradient(at 0% 0%, color-mix(in srgb, var(--color-primary) 4%, transparent) 0%, transparent 50%),
-    radial-gradient(at 100% 100%, color-mix(in srgb, var(--color-primary) 3%, transparent) 0%, transparent 50%);
-  background-attachment: fixed;
-}
-
-/* Title section background pattern — fine observatory grid */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 600px;
-  background-image:
-    linear-gradient(to right, color-mix(in srgb, var(--color-primary) 5%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--color-primary) 5%, transparent) 1px, transparent 1px);
-  background-size: 48px 48px;
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.12) 50%, transparent 100%);
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.12) 50%, transparent 100%);
-  pointer-events: none;
-  z-index: 0;
 }
 
 /* Header — sharp edge with cyan underline glow */
@@ -1382,30 +1282,9 @@ html {
   --theme-name: "dune";
 }
 
-/* Gradient splash — soft rose glow from top */
+/* Body background */
 body {
-  background-image:
-    radial-gradient(ellipse 75% 45% at 50% -5%, color-mix(in srgb, var(--color-primary) 9%, transparent) 0%, transparent 100%),
-    linear-gradient(180deg, var(--color-background) 0%, var(--color-background-subtle) 100%);
-  background-attachment: fixed;
-}
-
-/* Title section background pattern — minimal geometric diamond grid */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 600px;
-  background-image:
-    linear-gradient(45deg, color-mix(in srgb, var(--color-border-subtle) 40%, transparent) 1px, transparent 1px),
-    linear-gradient(-45deg, color-mix(in srgb, var(--color-border-subtle) 40%, transparent) 1px, transparent 1px);
-  background-size: 36px 36px;
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
-  pointer-events: none;
-  z-index: 0;
+  background-color: var(--color-background);
 }
 
 /* Header — soft with rose-tinted bottom edge */
@@ -1536,11 +1415,9 @@ html {
   --theme-name: "fossil";
 }
 
-/* Raw concrete — flat gradient, no texture */
+/* Body background */
 body {
-  background-image:
-    linear-gradient(180deg, var(--color-background) 0%, var(--color-background-subtle) 100%);
-  background-attachment: fixed;
+  background-color: var(--color-background);
 }
 
 /* Header — solid slab, heavy bottom rule, no glow */
@@ -1673,48 +1550,21 @@ html {
   --theme-name: "vapor";
 }
 
-/* Gradient splash — teal luminous glow from top */
+/* Body background */
 body {
   background-color: var(--color-background);
-  background-image:
-    radial-gradient(ellipse 85% 50% at 50% -10%, color-mix(in srgb, var(--color-primary) 11%, transparent) 0%, transparent 100%),
-    radial-gradient(at 20% 30%, color-mix(in srgb, var(--color-primary) 6%, transparent) 0%, transparent 50%),
-    radial-gradient(at 80% 70%, color-mix(in srgb, var(--color-primary) 4%, transparent) 0%, transparent 50%);
-  background-attachment: fixed;
 }
 
-/* Title section background pattern — frosted square grid */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 600px;
-  background-image:
-    linear-gradient(to right, color-mix(in srgb, var(--color-primary) 5%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--color-primary) 5%, transparent) 1px, transparent 1px);
-  background-size: 40px 40px;
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Header — frosted glass with luminous border */
+/* Header — with luminous border */
 .site-header {
   background: var(--color-header-background);
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
   border-bottom: 1px solid var(--color-header-border);
   box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-primary) 8%, transparent), 0 4px 16px -4px rgb(0 0 0 / 0.12);
 }
 
-/* Sidebar — frosted glass surface */
+/* Sidebar */
 .site-sidebar {
   background: var(--color-sidebar-background);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
 }
 
 /* Sidebar active — frosted teal accent border with glow */
@@ -1840,43 +1690,9 @@ html {
   --theme-name: "aubergine";
 }
 
-/* Gradient splash — deep purple/gold luxury glow from top */
+/* Body background */
 body {
   background-color: var(--color-background);
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -8%, color-mix(in srgb, var(--color-primary) 13%, transparent) 0%, transparent 100%),
-    radial-gradient(at 50% 0%, color-mix(in srgb, var(--color-primary) 15%, var(--color-background)) 0%, transparent 60%),
-    radial-gradient(at 100% 50%, color-mix(in srgb, var(--color-primary) 3%, transparent) 0%, transparent 40%);
-  background-attachment: fixed;
-}
-
-/* Title section background pattern — luxury minimal diagonal crosshatch */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 600px;
-  background-image:
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 44px,
-      color-mix(in srgb, var(--color-primary) 5%, transparent) 44px,
-      color-mix(in srgb, var(--color-primary) 5%, transparent) 45px
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      transparent,
-      transparent 44px,
-      color-mix(in srgb, var(--color-primary) 5%, transparent) 44px,
-      color-mix(in srgb, var(--color-primary) 5%, transparent) 45px
-    );
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
-  pointer-events: none;
-  z-index: 0;
 }
 
 /* Header — velvet with gold trim */
