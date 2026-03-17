@@ -64,6 +64,8 @@ export {
 
 export { parseMintlify } from "./mintlify/index.js";
 
+export { sanitizeForMdx } from "./sanitize-mdx.js";
+
 import { mdxToBlockNote } from "@inkloom/mdx-parser";
 
 import {
@@ -87,6 +89,7 @@ import {
   generateRedirects,
   type UrlMapping,
 } from "./redirects.js";
+import { sanitizeForMdx } from "./sanitize-mdx.js";
 
 // ---------------------------------------------------------------------------
 // NavTab mapping
@@ -175,7 +178,9 @@ function mapBranding(
 function convertPageToBlockNote(page: ParsedPage): ImportReadyPage {
   // Strip frontmatter before converting — mdxToBlockNote expects pure MDX/markdown
   const contentWithoutFrontmatter = stripFrontmatter(page.mdxContent);
-  const blocks = mdxToBlockNote(contentWithoutFrontmatter);
+  // Sanitize MDX-incompatible patterns (curly braces, void elements, angle brackets)
+  const sanitizedContent = sanitizeForMdx(contentWithoutFrontmatter);
+  const blocks = mdxToBlockNote(sanitizedContent);
 
   return {
     title: page.title,
