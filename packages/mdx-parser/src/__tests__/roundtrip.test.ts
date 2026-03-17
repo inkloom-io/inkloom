@@ -198,6 +198,41 @@ describe("mdxToBlockNote", () => {
     expect(blocks[1].props?.name).toBe("key");
   });
 
+  it("parses Frame with image child", () => {
+    const mdx = `<Frame caption="Yosemite National Park">\n<img src="/images/yosemite.png" alt="Yosemite" />\n</Frame>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("frame");
+    expect(blocks[0].props?.caption).toBe("Yosemite National Park");
+    expect(blocks[0].children).toBeDefined();
+    expect(blocks[0].children?.length).toBeGreaterThan(0);
+  });
+
+  it("parses Frame with hint prop", () => {
+    const mdx = `<Frame hint="Important context">\n<img src="/images/photo.png" alt="Photo" />\n</Frame>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("frame");
+    expect(blocks[0].props?.hint).toBe("Important context");
+  });
+
+  it("parses Frame with both hint and caption", () => {
+    const mdx = `<Frame hint="Plan ahead" caption="A beautiful park">\n<img src="/images/park.png" alt="Park" />\n</Frame>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("frame");
+    expect(blocks[0].props?.hint).toBe("Plan ahead");
+    expect(blocks[0].props?.caption).toBe("A beautiful park");
+  });
+
+  it("parses Frame with code block child", () => {
+    const mdx = '<Frame caption="Example code">\n\n```javascript\nconst x = 1;\n```\n\n</Frame>';
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("frame");
+    expect(blocks[0].children?.some((c) => c.type === "codeBlock")).toBe(true);
+  });
+
   it("returns at least one block for empty input", () => {
     const blocks = mdxToBlockNote("");
     expect(blocks).toHaveLength(1);
@@ -368,6 +403,51 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</ResponseField>");
   });
 
+  it("converts a frame with image child", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "frame",
+        props: { caption: "A beautiful scene" },
+        content: [],
+        children: [
+          { type: "image", props: { url: "https://img.com/pic.png", caption: "Photo" } },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<Frame caption="A beautiful scene">');
+    expect(mdx).toContain("</Frame>");
+    expect(mdx).toContain("pic.png");
+  });
+
+  it("converts a frame with hint and caption", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "frame",
+        props: { hint: "Pro tip", caption: "Example" },
+        content: [],
+        children: [
+          { type: "image", props: { url: "/img.png", caption: "Img" } },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<Frame hint="Pro tip" caption="Example">');
+    expect(mdx).toContain("</Frame>");
+  });
+
+  it("converts a frame with no props", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "frame",
+        content: [],
+        children: [
+          { type: "image", props: { url: "/img.png", caption: "Img" } },
+        ],
+      },
+    ]);
+    expect(mdx).toContain("<Frame>");
+    expect(mdx).toContain("</Frame>");
+  });
+
   it("converts empty responseField as self-closing", () => {
     const mdx = blockNoteToMDX([
       {
@@ -413,6 +493,14 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     {
       name: "simple responseField",
       mdx: `<ResponseField name="id" type="string" required>\nThe unique identifier.\n</ResponseField>`,
+    },
+    {
+      name: "frame with image",
+      mdx: `<Frame caption="A beautiful park">\n\n![Yosemite](https://example.com/yosemite.png)\n\n</Frame>`,
+    },
+    {
+      name: "frame with hint and caption",
+      mdx: `<Frame hint="Plan ahead" caption="Visit info">\n\n![Park](https://example.com/park.png)\n\n</Frame>`,
     },
     {
       name: "responseField with expandable",

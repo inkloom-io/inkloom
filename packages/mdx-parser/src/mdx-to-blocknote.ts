@@ -433,6 +433,28 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       ];
     }
 
+    case "Frame": {
+      const hint = getAttrValue(attrs, "hint");
+      const caption = getAttrValue(attrs, "caption");
+      const childBlocks: BlockNoteBlock[] = [];
+      if (node.children) {
+        for (const child of node.children) {
+          childBlocks.push(...convertBlockNode(child));
+        }
+      }
+      return [
+        {
+          type: "frame",
+          props: {
+            ...(hint ? { hint } : {}),
+            ...(caption ? { caption } : {}),
+          },
+          content: [],
+          children: childBlocks,
+        },
+      ];
+    }
+
     case "ResponseField": {
       const rfName = getAttrValue(attrs, "name") || "";
       const rfType = getAttrValue(attrs, "type");

@@ -578,6 +578,24 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       break;
     }
 
+    case "frame": {
+      const hint = block.props?.hint as string;
+      const caption = block.props?.caption as string;
+      const frameAttrs: string[] = [];
+      if (hint) frameAttrs.push(`hint="${hint}"`);
+      if (caption) frameAttrs.push(`caption="${caption}"`);
+      const attrStr = frameAttrs.length > 0 ? ` ${frameAttrs.join(" ")}` : "";
+      let childContent = "";
+      if (block.children && block.children.length > 0) {
+        for (const child of block.children) {
+          childContent += convertBlock(child, 0);
+        }
+      }
+      result = `<Frame${attrStr}>\n${childContent}</Frame>\n\n`;
+      // Return early to skip default child processing (children already handled)
+      return result;
+    }
+
     case "divider": {
       result = `<hr />\n\n`;
       break;
