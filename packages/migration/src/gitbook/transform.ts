@@ -57,6 +57,17 @@ export function transformGitbookBlocks(input: string): TransformResult {
     content = transformTabBlocks(content);
     content = transformTabsContainer(content);
 
+    // Transform step blocks (individual steps first, then stepper container)
+    content = transformStepBlocks(content);
+    content = transformStepperContainer(content);
+
+    // Transform column blocks (individual columns first, then columns container)
+    content = transformColumnBlocks(content);
+    content = transformColumnsContainer(content);
+
+    // Transform content-ref blocks to Card components
+    content = transformContentRefs(content);
+
     // Transform HTML details/summary to Accordion
     content = transformDetails(content);
 
@@ -114,6 +125,148 @@ function transformTabsContainer(content: string): string {
     const trimmed = inner.trim();
     return `<Tabs>\n${trimmed}\n</Tabs>`;
   });
+}
+
+/**
+ * Convert individual {% step %}...{% endstep %} to <Step title="...">...</Step>
+ *
+ * Extracts the title from the first heading inside the step content and removes
+ * that heading from the body.
+ * Uses negative lookahead to match innermost steps first.
+ */
+function transformStepBlocks(content: string): string {
+  const stepRe =
+    /\{%\s*step\s*%\}((?:(?!\{%\s*step\s)[\s\S])*?)\{%\s*endstep\s*%\}/g;
+
+  return content.replace(stepRe, (_match, inner: string) => {
+    const trimmed = inner.trim();
+
+    // Extract title from the first heading (any level)
+    const headingRe = /^(#{1,6})\s+(.+)$/m;
+    const headingMatch = trimmed.match(headingRe);
+
+    let title = "Step";
+    let body = trimmed;
+
+    if (headingMatch) {
+      title = headingMatch[2].trim();
+      // Remove the heading line from the body
+      body = trimmed.replace(headingRe, "").trim();
+    }
+
+    // Escape double quotes in title for JSX attribute
+    const escapedTitle = title.replace(/"/g, "&quot;");
+    return `<Step title="${escapedTitle}">\n${body}\n</Step>`;
+  });
+}
+
+/**
+ * Convert {% stepper %}...{% endstepper %} container to <Steps>...</Steps>
+ *
+ * Should run after transformStepBlocks so inner <Step> elements are already converted.
+ */
+function transformStepperContainer(content: string): string {
+  const stepperRe =
+    /\{%\s*stepper\s*%\}((?:(?!\{%\s*stepper\s*%\})[\s\S])*?)\{%\s*endstepper\s*%\}/g;
+
+  return content.replace(stepperRe, (_match, inner: string) => {
+    const trimmed = inner.trim();
+    return `<Steps>\n${trimmed}\n</Steps>`;
+  });
+}
+
+/**
+ * Convert individual {% column %}...{% endcolumn %} to <Column>...</Column>
+ *
+ * Uses negative lookahead to match innermost columns first.
+ */
+function transformColumnBlocks(content: string): string {
+  const columnRe =
+    /\{%\s*column\s*%\}((?:(?!\{%\s*column\s)[\s\S])*?)\{%\s*endcolumn\s*%\}/g;
+
+  return content.replace(columnRe, (_match, inner: string) => {
+    const trimmed = inner.trim();
+    return `<Column>\n${trimmed}\n</Column>`;
+  });
+}
+
+/**
+ * Convert {% columns %}...{% endcolumns %} container to <Columns>...</Columns>
+ *
+ * Should run after transformColumnBlocks so inner <Column> elements are already converted.
+ */
+function transformColumnsContainer(content: string): string {
+  const columnsRe =
+    /\{%\s*columns\s*%\}((?:(?!\{%\s*columns\s*%\})[\s\S])*?)\{%\s*endcolumns\s*%\}/g;
+
+  return content.replace(columnsRe, (_match, inner: string) => {
+    const trimmed = inner.trim();
+    return `<Columns>\n${trimmed}\n</Columns>`;
+  });
+}
+
+/**
+ * Convert {% content-ref url="..." %}...{% endcontent-ref %} to <Card title="..." href="..."></Card>
+ *
+ * Extracts URL from the block attribute and title from the markdown link inside.
+ * If no readable title is found, derives one from the URL path.
+ */
+function transformContentRefs(content: string): string {
+  const contentRefRe =
+    /\{%\s*content-ref\s+url=["']([^"']+)["']\s*%\}([\s\S]*?)\{%\s*endcontent-ref\s*%\}/g;
+
+  return content.replace(
+    contentRefRe,
+    (_match, url: string, inner: string) => {
+      const trimmed = inner.trim();
+
+      // Try to extract title from markdown link [title](url)
+      const linkRe = /\[([^\]]*)\]\([^)]*\)/;
+      const linkMatch = trimmed.match(linkRe);
+
+      let title = url;
+      if (linkMatch && linkMatch[1]) {
+        const linkText = linkMatch[1].trim();
+        // Check if the link text is useful (not just "." or empty)
+        if (linkText && linkText !== ".") {
+          title = linkText;
+        } else {
+          // Derive title from the URL path
+          title = deriveTitleFromUrl(url);
+        }
+      }
+
+      // Escape double quotes in title for JSX attribute
+      const escapedTitle = title.replace(/"/g, "&quot;");
+      return `<Card title="${escapedTitle}" href="${url}">\n</Card>`;
+    },
+  );
+}
+
+/**
+ * Derive a human-readable title from a URL path.
+ *
+ * @example deriveTitleFromUrl("path/to/my-page") => "My Page"
+ * @example deriveTitleFromUrl("./") => "./"
+ */
+function deriveTitleFromUrl(url: string): string {
+  // Remove leading ./ and trailing /
+  const cleaned = url.replace(/^\.\//, "").replace(/\/$/, "");
+  if (!cleaned) return url;
+
+  // Get the last path segment
+  const segments = cleaned.split("/");
+  const lastSegment = segments[segments.length - 1];
+  if (!lastSegment) return url;
+
+  // Remove file extension
+  const withoutExt = lastSegment.replace(/\.\w+$/, "");
+  if (!withoutExt) return url;
+
+  // Convert kebab-case/snake_case to Title Case
+  return withoutExt
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /**

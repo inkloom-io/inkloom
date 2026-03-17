@@ -618,6 +618,335 @@ describe("transformGitbookBlocks", () => {
     });
   });
 
+  // ─── Stepper/Step Blocks ───────────────────────────────────────
+
+  describe("stepper/step blocks", () => {
+    it("converts simple stepper structure", () => {
+      const input = [
+        "{% stepper %}",
+        "{% step %}",
+        "### step 1",
+        "step content",
+        "{% endstep %}",
+        "{% step %}",
+        "### step 2",
+        "step 2 content",
+        "{% endstep %}",
+        "{% endstepper %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<Steps>");
+      expect(result.content).toContain('<Step title="step 1">');
+      expect(result.content).toContain("step content");
+      expect(result.content).toContain('<Step title="step 2">');
+      expect(result.content).toContain("step 2 content");
+      expect(result.content).toContain("</Step>");
+      expect(result.content).toContain("</Steps>");
+      expect(result.hasJsx).toBe(true);
+    });
+
+    it("extracts title from heading and removes it from body", () => {
+      const input = [
+        "{% stepper %}",
+        "{% step %}",
+        "### Install dependencies",
+        "Run `npm install`.",
+        "{% endstep %}",
+        "{% endstepper %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain('<Step title="Install dependencies">');
+      expect(result.content).toContain("Run `npm install`.");
+      // Heading should be removed from body
+      expect(result.content).not.toContain("### Install dependencies");
+    });
+
+    it("handles step without heading", () => {
+      const input = [
+        "{% stepper %}",
+        "{% step %}",
+        "Some content without heading.",
+        "{% endstep %}",
+        "{% endstepper %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain('<Step title="Step">');
+      expect(result.content).toContain("Some content without heading.");
+    });
+
+    it("handles different heading levels", () => {
+      const input = [
+        "{% stepper %}",
+        "{% step %}",
+        "## Big Heading",
+        "Content.",
+        "{% endstep %}",
+        "{% endstepper %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain('<Step title="Big Heading">');
+    });
+
+    it("handles empty step", () => {
+      const input = [
+        "{% stepper %}",
+        "{% step %}",
+        "{% endstep %}",
+        "{% endstepper %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain('<Step title="Step">');
+      expect(result.content).toContain("</Step>");
+    });
+
+    it("handles step with multiline content", () => {
+      const input = [
+        "{% stepper %}",
+        "{% step %}",
+        "### Configure",
+        "Line one.",
+        "",
+        "Line two.",
+        "",
+        "- Item A",
+        "- Item B",
+        "{% endstep %}",
+        "{% endstepper %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain('<Step title="Configure">');
+      expect(result.content).toContain("Line one.");
+      expect(result.content).toContain("Line two.");
+      expect(result.content).toContain("- Item A");
+    });
+
+    it("handles hint inside step", () => {
+      const input = [
+        "{% stepper %}",
+        "{% step %}",
+        "### Setup",
+        '{% hint style="warning" %}',
+        "Be careful!",
+        "{% endhint %}",
+        "{% endstep %}",
+        "{% endstepper %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<Steps>");
+      expect(result.content).toContain('<Step title="Setup">');
+      expect(result.content).toContain('<Callout type="warning">');
+    });
+  });
+
+  // ─── Columns/Column Blocks ───────────────────────────────────
+
+  describe("columns/column blocks", () => {
+    it("converts simple columns structure", () => {
+      const input = [
+        "{% columns %}",
+        "{% column %}",
+        "column 1",
+        "{% endcolumn %}",
+        "{% column %}",
+        "column 2",
+        "{% endcolumn %}",
+        "{% endcolumns %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<Columns>");
+      expect(result.content).toContain("<Column>");
+      expect(result.content).toContain("column 1");
+      expect(result.content).toContain("column 2");
+      expect(result.content).toContain("</Column>");
+      expect(result.content).toContain("</Columns>");
+      expect(result.hasJsx).toBe(true);
+    });
+
+    it("handles single column", () => {
+      const input = [
+        "{% columns %}",
+        "{% column %}",
+        "Only column content.",
+        "{% endcolumn %}",
+        "{% endcolumns %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<Columns>");
+      expect(result.content).toContain("<Column>");
+      expect(result.content).toContain("Only column content.");
+    });
+
+    it("handles empty column", () => {
+      const input = [
+        "{% columns %}",
+        "{% column %}",
+        "{% endcolumn %}",
+        "{% endcolumns %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<Column>");
+      expect(result.content).toContain("</Column>");
+    });
+
+    it("handles column with multiline content", () => {
+      const input = [
+        "{% columns %}",
+        "{% column %}",
+        "# Title",
+        "",
+        "Paragraph here.",
+        "",
+        "- List item",
+        "{% endcolumn %}",
+        "{% endcolumns %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("# Title");
+      expect(result.content).toContain("Paragraph here.");
+      expect(result.content).toContain("- List item");
+    });
+
+    it("handles hint inside column", () => {
+      const input = [
+        "{% columns %}",
+        "{% column %}",
+        '{% hint style="info" %}',
+        "Info in column.",
+        "{% endhint %}",
+        "{% endcolumn %}",
+        "{% endcolumns %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<Columns>");
+      expect(result.content).toContain("<Column>");
+      expect(result.content).toContain('<Callout type="info">');
+    });
+
+    it("produces balanced Column tags", () => {
+      const input = [
+        "{% columns %}",
+        "{% column %}",
+        "A",
+        "{% endcolumn %}",
+        "{% column %}",
+        "B",
+        "{% endcolumn %}",
+        "{% column %}",
+        "C",
+        "{% endcolumn %}",
+        "{% endcolumns %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      const columnOpens = (result.content.match(/<Column>/g) || []).length;
+      const columnCloses = (result.content.match(/<\/Column>/g) || []).length;
+      expect(columnOpens).toBe(3);
+      expect(columnCloses).toBe(3);
+    });
+  });
+
+  // ─── Content-ref Blocks ──────────────────────────────────────
+
+  describe("content-ref blocks", () => {
+    it("converts content-ref with markdown link to Card", () => {
+      const input = [
+        '{% content-ref url="path/to/page" %}',
+        "[Page Title](path/to/page)",
+        "{% endcontent-ref %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain('<Card title="Page Title" href="path/to/page">');
+      expect(result.content).toContain("</Card>");
+      expect(result.hasJsx).toBe(true);
+    });
+
+    it("derives title from URL when link text is dot", () => {
+      const input = [
+        '{% content-ref url="./" %}',
+        "[.](./) ",
+        "{% endcontent-ref %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain('<Card title="./"');
+      expect(result.content).toContain('href="./"');
+    });
+
+    it("derives title from URL path", () => {
+      const input = [
+        '{% content-ref url="guides/getting-started" %}',
+        "[.](guides/getting-started)",
+        "{% endcontent-ref %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain('<Card title="Getting Started"');
+      expect(result.content).toContain('href="guides/getting-started"');
+    });
+
+    it("handles content-ref with single-quoted URL", () => {
+      const input = [
+        "{% content-ref url='other-page' %}",
+        "[Other Page](other-page)",
+        "{% endcontent-ref %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain('<Card title="Other Page" href="other-page">');
+    });
+
+    it("handles multiple content-refs", () => {
+      const input = [
+        '{% content-ref url="page-a" %}',
+        "[Page A](page-a)",
+        "{% endcontent-ref %}",
+        "",
+        '{% content-ref url="page-b" %}',
+        "[Page B](page-b)",
+        "{% endcontent-ref %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain('<Card title="Page A" href="page-a">');
+      expect(result.content).toContain('<Card title="Page B" href="page-b">');
+    });
+
+    it("handles content-ref without inner markdown link", () => {
+      const input = [
+        '{% content-ref url="some/path" %}',
+        "Just plain text",
+        "{% endcontent-ref %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain('<Card title="some/path" href="some/path">');
+    });
+
+    it("does not leave {% content-ref %} syntax in output", () => {
+      const input = [
+        '{% content-ref url="page" %}',
+        "[Page](page)",
+        "{% endcontent-ref %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).not.toMatch(/\{%.*content-ref.*%\}/);
+    });
+  });
+
   // ─── Valid MDX Output ──────────────────────────────────────────
 
   describe("valid MDX output", () => {
