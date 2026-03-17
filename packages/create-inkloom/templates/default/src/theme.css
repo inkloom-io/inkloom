@@ -2,6 +2,7 @@
 
 /* Fonts, effects, radii — mode-independent */
 @theme {
+  --container-8xl: 88rem;
   --font-sans: "Quicksand", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --font-display: "Quicksand", ui-sans-serif, system-ui, sans-serif;
