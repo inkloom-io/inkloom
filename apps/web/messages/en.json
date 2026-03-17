@@ -315,16 +315,18 @@
       "twoMonthsFree": "2 months free!",
       "mostPopular": "Most Popular",
       "perSeatSuffix": "/seat/mo",
-      "onlyCollaborators": "only collaborators on this project",
+      "onlyCollaborators": "only editors on this project",
       "billedAnnually": "billed annually",
       "free": {
         "name": "Free",
         "price": "$0",
         "description": "Perfect for personal projects and open source.",
-        "feature1": "Unlimited pages",
-        "feature2": "*.inkloom.dev subdomain",
-        "feature3": "Community support",
-        "feature4": "Basic analytics",
+        "feature1": "Free forever",
+        "feature2": "Unlimited pages",
+        "feature3": "*.inkloom.dev subdomain",
+        "feature4": "Community support",
+        "feature5": "Block-based editor",
+        "feature6": "Interactive OpenAPI docs",
         "cta": "Get started"
       },
       "pro": {
@@ -1747,7 +1749,7 @@
       "unlimitedPages": "Unlimited pages",
       "inkloomSubdomain": "*.inkloom.dev subdomain",
       "communitySupport": "Community support",
-      "basicAnalytics": "Basic analytics",
+      "blockEditor": "Block-based editor",
       "customDomains": "Custom domains",
       "apiCliAccess": "API access & CLI",
       "removeBranding": "Remove branding",
@@ -2466,12 +2468,14 @@
       "free": {
         "name": "Free",
         "description": "Perfect for personal projects and open source.",
-        "feature1": "Unlimited pages",
-        "feature2": "*.inkloom.dev subdomain",
-        "feature3": "Community support",
-        "feature4": "Basic analytics",
+        "feature1": "Free forever",
+        "feature2": "Unlimited pages",
+        "feature3": "*.inkloom.dev subdomain",
+        "feature4": "Community support",
+        "feature5": "Block-based editor",
+        "feature6": "Interactive OpenAPI docs",
         "cta": "Get started",
-        "note": "1 user per project"
+        "note": "1 free user per project"
       },
       "pro": {
         "name": "Pro",
@@ -2501,7 +2505,95 @@
         "feature5": "Custom integrations",
         "cta": "Contact sales"
       },
-      "ctaContact": "Contact sales"
+      "ctaContact": "Contact sales",
+      "configurator": {
+        "title": "Configure your plan",
+        "freeProjects": "Free projects",
+        "proProjects": "Pro projects",
+        "ultimateProject": "Ultimate project",
+        "total": "Total",
+        "plusSeats": "+ seats"
+      }
+    },
+    "calculator": {
+      "title": "Configure your plan",
+      "summary": "Your estimate",
+      "freeProjects": "Free projects",
+      "proProjects": "Pro projects",
+      "ultimateProjects": "Ultimate projects",
+      "users": "Users across org",
+      "billingCycle": "Billing",
+      "migrationCheckbox": "I'm migrating from GitBook or Mintlify",
+      "presets": "Try:",
+      "preset": {
+        "startup": "Startup docs",
+        "publicInternal": "Public + internal docs",
+        "multiProduct": "Multi-product team"
+      },
+      "lineProProjects": "{count, plural, one {# Pro project} other {# Pro projects}}",
+      "lineUltimateProjects": "{count, plural, one {# Ultimate project} other {# Ultimate projects}}",
+      "lineSeats": "{count, plural, one {# user seat} other {# user seats}}",
+      "lineFreeProjects": "{count, plural, one {# Free project} other {# Free projects}}",
+      "perMonth": "/mo",
+      "perMonthShort": "/mo",
+      "perYear": "/yr",
+      "effectiveMonthly": "Monthly cost",
+      "monthlyTotal": "Monthly total",
+      "annualTotal": "Annual total",
+      "annualSavingsLabel": "Annual savings",
+      "migrationCredit": "Migration credit (1 month)",
+      "firstYearTotal": "First-year total",
+      "migrationNote": "Eligible after successful import",
+      "emptyState": "Add Pro or Ultimate projects to see pricing",
+      "ultimateProject": "Ultimate project",
+      "total": "Total",
+      "plusSeats": "+ seats",
+      "footnote": "10 docs projects, one org — pay only for the 3 that need paid features"
+    },
+    "featureMatrix": {
+      "features": "Features",
+      "plans": {
+        "free": "Free",
+        "pro": "Pro",
+        "ultimate": "Ultimate",
+        "enterprise": "Enterprise"
+      },
+      "freeSpecial": {
+        "unlimitedPages": "Unlimited pages",
+        "inkloomSubdomain": "*.inkloom.dev subdomain",
+        "communitySupport": "Community support"
+      },
+      "categories": {
+        "publishingCustomization": "Publishing & Customization",
+        "collaborationPermissions": "Collaboration & Permissions",
+        "integrations": "Integrations",
+        "aiEvergreen": "AI & Evergreen Docs",
+        "governanceCompliance": "Governance & Compliance",
+        "support": "Support"
+      },
+      "featureNames": {
+        "custom_domains": "Custom domains",
+        "remove_branding": "Remove InkLoom branding",
+        "advanced_branding": "Custom branding & theming",
+        "custom_og_image": "Custom OpenGraph images",
+        "analytics_scripts": "Custom analytics scripts",
+        "navigation_tabs": "Navigation tabs",
+        "realtime_collaboration": "Real-time collaboration",
+        "merge_requests": "Merge requests & branches",
+        "authenticated_access": "Password-protected docs",
+        "github_integration": "GitHub integration",
+        "api_access": "REST API & CLI",
+        "ai_codebase_indexing": "AI codebase indexing",
+        "ai_documentation_updating": "AI documentation updating",
+        "ai_assistants": "Chat with Docs widget",
+        "version_history": "Version history",
+        "sso_saml": "SSO / SAML",
+        "priority_support": "Priority support",
+        "dedicated_support": "Dedicated support",
+        "uptime_sla": "99.99% uptime SLA",
+        "whiteglove_migration": "White-glove migration",
+        "custom_integrations": "Custom integrations"
+      }
     },
     "migration": {
       "title": "Migrate in three steps",
@@ -2548,7 +2640,7 @@
       },
       "aiCredits": {
         "question": "How do AI credits work? What about overages?",
-        "answer": "Pro includes 20 AI credits per month and Ultimate includes 100. Credits reset monthly. If you exceed your allocation, additional usage is billed at $0.01 per credit on your next invoice."
+        "answer": "Pro includes 20 AI credits per month and Ultimate includes 100. Credits reset monthly. If you exceed your allocation, additional usage is billed in dollars on your next invoice."
       },
       "trialUsers": {
         "question": "How many users during the trial?",
@@ -2556,7 +2648,7 @@
       },
       "migrateBeforePaid": {
         "question": "Can I migrate before choosing a paid plan?",
-        "answer": "Yes. You can import your docs into a free project first, review everything, and then upgrade to Pro or Ultimate when you're ready."
+        "answer": "One-click migration from GitBook and Mintlify requires a paid plan or an active trial. You can start a 14-day free trial to use one-click import, review your content, and decide before the trial ends. Alternatively, you can manually recreate your docs in the editor on any project, including free ones."
       }
     },
     "competitor": {
