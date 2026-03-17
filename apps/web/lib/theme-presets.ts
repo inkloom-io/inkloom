@@ -838,11 +838,11 @@ export function computeContrastForeground(color: string): string {
   let r: number, g: number, b: number;
 
   const hslMatch = color.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
-  if (hslMatch) {
+  if (hslMatch && hslMatch[1] && hslMatch[2] && hslMatch[3]) {
     // Convert HSL to linear RGB
-    const h = parseInt(hslMatch[1]!, 10) / 360;
-    const s = parseInt(hslMatch[2]!, 10) / 100;
-    const l = parseInt(hslMatch[3]!, 10) / 100;
+    const h = parseInt(hslMatch[1], 10) / 360;
+    const s = parseInt(hslMatch[2], 10) / 100;
+    const l = parseInt(hslMatch[3], 10) / 100;
 
     const hue2rgb = (p: number, q: number, t: number) => {
       if (t < 0) t += 1;
@@ -865,10 +865,10 @@ export function computeContrastForeground(color: string): string {
   } else {
     // Assume hex
     const hexMatch = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
-    if (hexMatch) {
-      r = parseInt(hexMatch[1]!, 16) / 255;
-      g = parseInt(hexMatch[2]!, 16) / 255;
-      b = parseInt(hexMatch[3]!, 16) / 255;
+    if (hexMatch && hexMatch[1] && hexMatch[2] && hexMatch[3]) {
+      r = parseInt(hexMatch[1], 16) / 255;
+      g = parseInt(hexMatch[2], 16) / 255;
+      b = parseInt(hexMatch[3], 16) / 255;
     } else {
       // Fallback: assume dark background, use white
       return "hsl(0 0% 100%)";
