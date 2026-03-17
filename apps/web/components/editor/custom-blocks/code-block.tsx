@@ -233,12 +233,15 @@ export const CodeBlock = createReactBlockSpec(
       height: {
         default: String(DEFAULT_HEIGHT),
       },
+      title: {
+        default: "",
+      },
     },
     content: "none",
   },
   {
     render: (props) => {
-      const { language: rawLanguage, code, height: heightStr } = props.block.props;
+      const { language: rawLanguage, code, height: heightStr, title } = props.block.props;
       // BlockNote's built-in codeBlock defaults to "text" — normalize to "plaintext"
       const language = rawLanguage === "text" ? "plaintext" : rawLanguage;
       const height = parseInt(heightStr || String(DEFAULT_HEIGHT), 10);
@@ -345,6 +348,18 @@ export const CodeBlock = createReactBlockSpec(
                 </option>
               ))}
             </select>
+            <input
+              type="text"
+              className="bn-code-block-title-input"
+              placeholder="Untitled"
+              value={title}
+              onChange={(e) => {
+                props.editor.updateBlock(props.block, {
+                  props: { title: e.target.value },
+                });
+              }}
+              contentEditable={false}
+            />
           </div>
           <SyntaxHighlightedEditor
             code={code}

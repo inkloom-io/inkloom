@@ -79,6 +79,27 @@
   color: #f9fafb;
 }
 
+.bn-code-block-title-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--editor-font-mono, ui-monospace, monospace);
+  font-size: 0.7rem;
+  color: var(--editor-foreground, #1a1a2e);
+  outline: none;
+  padding: 4px 8px;
+  min-width: 0;
+}
+
+.bn-code-block-title-input::placeholder {
+  color: var(--editor-muted-foreground, #9ca3af);
+  opacity: 0.6;
+}
+
+:root.dark .bn-code-block-title-input {
+  color: var(--editor-foreground, #f9fafb);
+}
+
 /* Hide non-active code blocks in a group */
 .bn-code-block[data-in-group="true"][data-is-active="false"] {
   display: none !important;

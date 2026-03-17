@@ -34,9 +34,10 @@ interface CodeBlockProps extends React.HTMLAttributes<HTMLPreElement> {
   children?: React.ReactNode;
   language?: string;
   height?: number;
+  title?: string;
 }
 
-export function CodeBlock({ children, className, language, height, ...props }: CodeBlockProps) {
+export function CodeBlock({ children, className, language, height, title, ...props }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
   const { highlightCode } = useDocsRenderer();
@@ -123,7 +124,7 @@ export function CodeBlock({ children, className, language, height, ...props }: C
     <div className="code-block-wrapper group">
       <div className="code-block-label">
         <span className="code-block-label-text">
-          {LANGUAGE_LABELS[lang] || lang}
+          {title || LANGUAGE_LABELS[lang] || lang}
         </span>
       </div>
       {highlightedHtml ? (

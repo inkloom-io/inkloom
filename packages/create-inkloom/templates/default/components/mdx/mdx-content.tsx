@@ -214,6 +214,7 @@ interface CodeBlockSegment {
   type: 'codeblock';
   language: string;
   height: number;
+  title: string;
   code: string;
   key: string;
 }
@@ -230,8 +231,9 @@ type ContentSegment = CodeBlockSegment | MarkdownSegment;
 // Returns segments of markdown and CodeBlock components
 function preprocessCodeBlocks(content: string): { segments: ContentSegment[], hasCodeBlocks: boolean } {
   const segments: ContentSegment[] = [];
-  // Match code blocks with height metadata: ```lang {height=N}\ncode\n```
-  const codeBlockRegex = /```(\w*)\s*\{height=(\d+)\}\n([\s\S]*?)```/g;
+  // Match code blocks with extra info after language (title and/or height metadata)
+  // Group 1: language, Group 2: extra info (title + optional {height=N}), Group 3: code
+  const codeBlockRegex = /```(\w+)[ \t]+(.*?)\n([\s\S]*?)```/g;
   let lastIndex = 0;
   let match;
   let idx = 0;
@@ -247,11 +249,18 @@ function preprocessCodeBlocks(content: string): { segments: ContentSegment[], ha
       }
     }
 
+    // Parse height and title from the extra info
+    const extra = match[2] || "";
+    const heightMatch = extra.match(/\{height=(\d+)\}/);
+    const height = heightMatch ? parseInt(heightMatch[1], 10) : 150;
+    const title = extra.replace(/\{[^}]*\}/g, "").trim();
+
     // Add the code block component
     segments.push({
       type: 'codeblock',
       language: match[1] || 'plaintext',
-      height: parseInt(match[2] || '150', 10),
+      height,
+      title,
       code: match[3] || '',
       key: `code-${idx}`
     });
@@ -360,6 +369,7 @@ function MarkdownWithCodeBlocks({ content }: { content: string }) {
               key={segment.key}
               language={segment.language}
               height={segment.height}
+              title={segment.title || undefined}
             >
               {segment.code}
             </CodeBlock>
