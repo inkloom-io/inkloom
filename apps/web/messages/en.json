@@ -2463,6 +2463,26 @@
       "ctaTrial": "Start 14-day trial",
       "viewGitHub": "View on GitHub",
       "freeNote": "Free forever for personal and open source projects."
+    },
+    "scenarios": {
+      "title": "Common setups",
+      "subtitle": "See what real teams pay with InkLoom's per-project pricing.",
+      "annualEffective": "Annual effective monthly",
+      "projects": "Projects",
+      "users": "Users",
+      "perMonth": "/mo",
+      "solo": {
+        "title": "Solo developer",
+        "mix": "1 free + 1 Pro"
+      },
+      "startup": {
+        "title": "Growing startup",
+        "mix": "3 free + 2 Pro"
+      },
+      "enterprise": {
+        "title": "Enterprise team",
+        "mix": "2 free + 3 Pro + 2 Ultimate"
+      }
     }
   },
   "gitbookAlternative": {
