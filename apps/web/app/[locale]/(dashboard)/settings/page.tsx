@@ -295,16 +295,6 @@ export default function SettingsPage() {
               >
                 {user?.email}
               </p>
-              <div
-                className="mt-2 inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium"
-                style={{
-                  backgroundColor: "rgba(20,184,166,0.1)",
-                  color: "#14b8a6",
-                  border: "1px solid rgba(20,184,166,0.2)",
-                }}
-              >
-                {t("freePlan")}
-              </div>
             </div>
           </div>
         </div>
