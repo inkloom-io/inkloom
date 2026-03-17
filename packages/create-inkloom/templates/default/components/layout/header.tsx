@@ -118,11 +118,11 @@ export function Header() {
           </div>
 
           {/* Search — on desktop, px-16 matches main content padding so left edges align */}
-          <div className="flex xl:flex-1 xl:min-w-0 xl:px-8 ml-auto xl:ml-0">
+          <div className="hidden xl:flex xl:flex-1 xl:min-w-0 xl:px-8">
             {config.search?.enabled && (
               <button
                 onClick={() => setSearchOpen(true)}
-                className="search-trigger hidden xl:flex h-9 w-full max-w-sm items-center justify-start"
+                className="search-trigger flex h-9 w-full max-w-sm items-center justify-start"
               >
                 <Search className="h-4 w-4" />
                 <span className="ml-2 text-sm">Search...</span>
@@ -132,7 +132,7 @@ export function Header() {
             {hasChatWidget && (
               <button
                 onClick={handleAskAI}
-                className="ask-ai-button hidden xl:flex xl:ml-2"
+                className="ask-ai-button flex ml-2"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>Ask AI</span>
