@@ -17,3 +17,5 @@ export { Columns } from "./components/columns";
 export { Column } from "./components/column";
 export { Frame } from "./components/frame";
 export { Latex } from "./components/latex";
+export { Video } from "./components/video";
+export { IFrame } from "./components/iframe";
