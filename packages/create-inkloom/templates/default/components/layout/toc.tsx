@@ -156,7 +156,7 @@ export function TableOfContents() {
   return (
     <aside
       className={cn(
-        "toc sticky hidden w-64 xl:w-72 shrink-0 px-4 py-8 xl:block bg-[var(--color-background)]",
+        "toc sticky hidden w-64 xl:w-72 shrink-0 px-4 py-8 xl:block",
         "top-16 h-[calc(100vh-4rem)]"
       )}
     >
