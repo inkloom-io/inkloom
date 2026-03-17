@@ -124,9 +124,9 @@ describe("E2E: migrate() with Mintlify fixture", () => {
   describe("pages", () => {
     it("converts all non-endpoint fixture pages", () => {
       // introduction, quickstart, auth/overview, components/callouts,
-      // components/interactive, components/columns, api/overview, api/endpoints
+      // components/interactive, components/columns, components/latex, api/overview, api/endpoints
       // (jwt-tokens, list-plants, create-plant are skipped — they have openapi: directives)
-      expect(result.pages).toHaveLength(8);
+      expect(result.pages).toHaveLength(9);
     });
 
     it("every page matches createFromImport args shape", () => {
@@ -573,6 +573,22 @@ describe("E2E: migrate() with Mintlify fixture", () => {
 
       const columnBlocks = findBlocks(blocks, "column");
       expect(columnBlocks.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it("preserves LaTeX blocks", () => {
+      const latexPage = result.pages.find(
+        (p) => p.slug === "guides/components/latex",
+      );
+      expect(latexPage).toBeDefined();
+      if (!latexPage) return;
+
+      const blocks = parseBlocks(latexPage.content);
+      const latexBlocks = findBlocks(blocks, "latex");
+      expect(latexBlocks.length).toBeGreaterThanOrEqual(2);
+
+      const expressions = latexBlocks.map((b) => b.props?.expression);
+      expect(expressions).toContain("E = mc^2");
+      expect(expressions).toContain("\\alpha^2 + \\beta^2 = \\gamma^2");
     });
 
     it("preserves paragraph and list blocks", () => {

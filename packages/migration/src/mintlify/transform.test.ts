@@ -105,6 +105,14 @@ describe("transformMintlifyMdx", () => {
       expect(mdx).not.toContain("<CardGroup");
     });
 
+    it("leaves Latex unchanged", async () => {
+      const input = `<Latex>x^2 + y^2 = z^2</Latex>`;
+      const { mdx } = await transformMintlifyMdx(input);
+      expect(mdx).toContain("<Latex>");
+      expect(mdx).toContain("x^2 + y^2 = z^2");
+      expect(mdx).toContain("</Latex>");
+    });
+
     it("leaves Columns with non-card children unchanged", async () => {
       const input = `<Columns cols={3}>\n<div>col1</div>\n<div>col2</div>\n<div>col3</div>\n</Columns>`;
       const { mdx } = await transformMintlifyMdx(input);

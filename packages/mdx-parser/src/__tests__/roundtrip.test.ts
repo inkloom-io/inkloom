@@ -362,6 +362,27 @@ describe("mdxToBlockNote", () => {
     expect(blocks[0].type).toBe("paragraph");
   });
 
+  it("parses a LaTeX block", () => {
+    const blocks = mdxToBlockNote("<Latex>\nx^2 + y^2 = z^2\n</Latex>");
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("latex");
+    expect(blocks[0].props?.expression).toBe("x^2 + y^2 = z^2");
+  });
+
+  it("parses LaTeX with special chars", () => {
+    const blocks = mdxToBlockNote("<Latex>\n\\alpha^2 + \\beta^2 = \\gamma^2\n</Latex>");
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("latex");
+    expect(blocks[0].props?.expression).toBe("\\alpha^2 + \\beta^2 = \\gamma^2");
+  });
+
+  it("parses empty LaTeX", () => {
+    const blocks = mdxToBlockNote("<Latex>\n\n</Latex>");
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("latex");
+    expect(blocks[0].props?.expression).toBe("");
+  });
+
   it("parses iframe basic", () => {
     const blocks = mdxToBlockNote('<iframe src="https://youtube.com/embed/abc"></iframe>');
     expect(blocks).toHaveLength(1);
@@ -672,6 +693,15 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</Frame>");
   });
 
+  it("converts a LaTeX block", () => {
+    const mdx = blockNoteToMDX([
+      { type: "latex", props: { expression: "E = mc^2" }, content: [] },
+    ]);
+    expect(mdx).toContain("<Latex>");
+    expect(mdx).toContain("E = mc^2");
+    expect(mdx).toContain("</Latex>");
+  });
+
   it("converts columns with column blocks", () => {
     const mdx = blockNoteToMDX([
       { type: "columns", props: { cols: "2" }, content: [] },
@@ -807,6 +837,10 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     {
       name: "columns with cards (backward-compatible cardGroup)",
       mdx: `<Columns cols={2}>\n<Card title="A">\nDesc A\n</Card>\n<Card title="B">\nDesc B\n</Card>\n</Columns>`,
+    },
+    {
+      name: "latex block",
+      mdx: `<Latex>\nE = mc^2\n</Latex>`,
     },
   ];
 
