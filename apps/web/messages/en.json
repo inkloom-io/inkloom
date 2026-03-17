@@ -2490,7 +2490,18 @@
         "feature3": "Realtime collaboration",
         "feature4": "Authenticated access",
         "feature5": "Priority support"
-      }
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "For organizations with advanced requirements.",
+        "feature1": "Everything in Ultimate",
+        "feature2": "SSO / SAML",
+        "feature3": "99.99% uptime SLA",
+        "feature4": "Dedicated support",
+        "feature5": "Custom integrations",
+        "cta": "Contact sales"
+      },
+      "ctaContact": "Contact sales"
     },
     "migration": {
       "title": "Migrate in three steps",
