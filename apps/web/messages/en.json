@@ -2323,6 +2323,104 @@
     "successMessage": "Thanks for your feedback!",
     "submitHint": "{shortcut} to send"
   },
+  "mintlifyAlternative": {
+    "hero": {
+      "headline": "Outgrow Mintlify without rebuilding your docs",
+      "subhead": "Import from Mintlify in one click. Remove 1-project-per-org and 5-user bottlenecks. Keep docs evergreen with AI.",
+      "importCta": "Import from Mintlify",
+      "pricingCta": "See pricing",
+      "creditNote": "Save 20% on annual. Eligible Mintlify migrations also receive a 1-month migration credit."
+    },
+    "problems": {
+      "badge": "Pain Points",
+      "title": "Hitting Mintlify's walls?",
+      "oneProjectTitle": "One project per org",
+      "oneProjectDesc": "Can't manage multiple doc sites under a single organization. Need separate orgs — and separate invoices — for every project.",
+      "userCapTitle": "5-user cap on paid plans",
+      "userCapDesc": "Team growth blocked at 5 users. Adding collaborators means upgrading to Enterprise or splitting across orgs.",
+      "migrationRiskTitle": "Migration feels risky",
+      "migrationRiskDesc": "Afraid of losing content, broken URLs, and weeks of manual rework just to switch documentation platforms."
+    },
+    "comparison": {
+      "badge": "Comparison",
+      "title": "InkLoom vs Mintlify",
+      "feature": "Feature",
+      "inkloom": "InkLoom",
+      "mintlify": "Mintlify",
+      "projectsPerOrg": "Projects per org",
+      "projectsPerOrgInkloom": "Unlimited",
+      "projectsPerOrgMintlify": "1",
+      "userCap": "Paid-plan user cap",
+      "userCapInkloom": "Unlimited",
+      "userCapMintlify": "5",
+      "perProjectTiering": "Per-project tiering",
+      "perProjectTieringInkloom": "Yes (Free/Pro/Ultimate independently)",
+      "perProjectTieringMintlify": "No (one plan)",
+      "singleInvoice": "Single invoice",
+      "singleInvoiceInkloom": "Yes",
+      "singleInvoiceMintlify": "N/A",
+      "migrationPath": "Migration path",
+      "migrationPathInkloom": "One-click import",
+      "migrationPathMintlify": "N/A",
+      "aiEvergreen": "AI-powered evergreen docs",
+      "aiEvergreenInkloom": "Yes",
+      "aiEvergreenMintlify": "No",
+      "disclaimer": "Competitor information based on publicly available pricing as of March 2026."
+    },
+    "pricingProof": {
+      "badge": "Pricing",
+      "title": "Real savings for growing teams",
+      "scenario": "Scenario: 3 doc projects, 8 users, annual billing",
+      "mintlifyEstimate": "Mintlify estimate",
+      "mintlifyEstimateNote": "3 separate orgs required at Startup tier (~$150/mo each)",
+      "inkloomCost": "InkLoom cost",
+      "inkloomCostBreakdown": "{freeCount} Free + {proCount} Pro + {ultimateCount} Ultimate projects, {seatCount} seats",
+      "perMonth": "/mo",
+      "savings": "You save",
+      "savingsPerYear": "/year"
+    },
+    "migration": {
+      "badge": "Migration",
+      "title": "Switch in three simple steps",
+      "step1Title": "Connect",
+      "step1Desc": "Sign up and choose \"Import from Mintlify\" during onboarding. We'll connect to your existing docs.",
+      "step2Title": "Import",
+      "step2Desc": "One-click import pulls your pages, navigation, and assets. Review everything before publishing.",
+      "step3Title": "Launch",
+      "step3Desc": "Point your custom domain to InkLoom. Set up redirects automatically — zero broken URLs."
+    },
+    "ai": {
+      "badge": "AI-Powered",
+      "title": "Docs that stay current, automatically",
+      "subtitle": "InkLoom's AI keeps your documentation in sync with your codebase — no manual updates required.",
+      "indexingTitle": "Codebase indexing",
+      "indexingDesc": "InkLoom indexes your repository to understand your APIs, types, and architecture.",
+      "autoUpdateTitle": "Auto-updating docs",
+      "autoUpdateDesc": "GitHub Actions detect code changes and propose documentation updates via pull requests.",
+      "chatTitle": "Chat with Docs",
+      "chatDesc": "Embed an AI-powered chat widget that answers questions from your documentation instantly."
+    },
+    "faq": {
+      "badge": "FAQ",
+      "title": "Migration questions answered",
+      "q1": "How does the Mintlify import work?",
+      "a1": "During onboarding, select \"Import from Mintlify\" and provide your Mintlify project URL. InkLoom's CLI pulls your pages, navigation structure, and assets, then creates matching pages in your new InkLoom project. You can review and edit everything before publishing.",
+      "q2": "Will my URLs break?",
+      "a2": "No. InkLoom preserves your existing URL slugs during import. When you point your domain to InkLoom, all existing links continue working. We also generate a redirect map for any structural changes.",
+      "q3": "What about my custom components?",
+      "a3": "InkLoom supports MDX, so most custom components work as-is. Our import tool maps common Mintlify components (callouts, tabs, accordions) to InkLoom equivalents. For anything custom, you can bring your own React components.",
+      "q4": "What is the migration credit?",
+      "a4": "Eligible Mintlify migrations receive a 1-month migration credit applied to your first annual invoice. Complete your import during the trial period and select an annual plan to redeem it.",
+      "q5": "Can I try before committing?",
+      "a5": "Absolutely. Every InkLoom project starts with a generous free tier. Import your docs, explore the editor, and only upgrade when you're ready. No credit card required to start."
+    },
+    "finalCta": {
+      "title": "Ready to switch?",
+      "subtitle": "Import your Mintlify docs in minutes — not weeks.",
+      "importCta": "Import from Mintlify",
+      "trialCta": "Start free trial"
+    }
+  },
   "pricing": {
     "hero": {
       "headline": "Pay only for the docs projects that need more",
