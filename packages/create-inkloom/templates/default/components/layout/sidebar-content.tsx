@@ -9,6 +9,7 @@ interface NavItem {
   title: string;
   href: string;
   icon?: string;
+  method?: string;
   children?: NavItem[];
 }
 
@@ -74,6 +75,11 @@ function NavLink({
           isActive && "sidebar-link-active"
         )}
       >
+        {item.method && (
+          <span className={`sidebar-method-badge sidebar-method-${item.method.toLowerCase()}`}>
+            {item.method === "DELETE" ? "DEL" : item.method}
+          </span>
+        )}
         {item.icon && <IconDisplay icon={item.icon} />}
         <span>{item.title}</span>
       </Link>

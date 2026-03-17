@@ -15,6 +15,7 @@ interface NavItem {
   title: string;
   href: string;
   icon?: string;
+  method?: string;
   children?: NavItem[];
 }
 
@@ -196,9 +197,9 @@ export function generateApiReferenceMdx(
       });
 
       tagNavChildren.push({
-        title:
-          endpoint.summary || `${endpoint.method} ${endpoint.path}`,
+        title: endpoint.summary || endpoint.path,
         href: `/${basePathClean}/${tagSlug}/${epSlug}`,
+        method: endpoint.method.toUpperCase(),
       });
 
       // Search document for this endpoint
