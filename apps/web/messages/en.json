@@ -2700,7 +2700,7 @@
       },
       "migrateBeforePaid": {
         "question": "Can I migrate before choosing a paid plan?",
-        "answer": "One-click migration from GitBook and Mintlify requires a paid plan or an active trial. You can start a 14-day free trial to use one-click import, review your content, and decide before the trial ends. Alternatively, you can manually recreate your docs in the editor on any project, including free ones."
+        "answer": "Yes. Our automated importer supports migrating from Mintlify and GitBook on any plan, including free. Import your docs, explore the platform, and upgrade whenever you're ready."
       }
     },
     "competitor": {
