@@ -158,7 +158,12 @@ function decodeDataUri(dataUri: string): { buffer: Buffer; mimeType: string } | 
  */
 function readLocalFile(sourceDir: string, relativePath: string): Buffer | null {
   try {
-    const fullPath = resolve(sourceDir, relativePath);
+    // Strip leading "/" so root-relative paths (e.g. "/images/foo.png" from Mintlify)
+    // resolve against sourceDir instead of being treated as absolute filesystem paths.
+    const normalized = relativePath.startsWith("/")
+      ? relativePath.slice(1)
+      : relativePath;
+    const fullPath = resolve(sourceDir, normalized);
     return readFileSync(fullPath);
   } catch {
     return null;
