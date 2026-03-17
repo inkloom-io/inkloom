@@ -10,6 +10,7 @@ import { resolve, relative, basename, dirname, extname, posix } from "path";
 
 import type {
   MigrationResult,
+  MigrationOpenApiSpec,
   ParsedPage,
   ParsedFolder,
   ParsedNavTab,
@@ -320,6 +321,29 @@ export async function parseMintlify(
   const configResult = parseMintlifyConfig(configFile.config);
   warnings.push(...configResult.warnings);
 
+  // ── Step 2b: Read OpenAPI spec files ────────────────────────────────────
+  const openapiSpecs: MigrationOpenApiSpec[] = [];
+  for (const specPath of configResult.openApiPaths) {
+    const fullPath = resolve(resolvedDir, specPath);
+    if (existsSync(fullPath)) {
+      const buffer = readFileSync(fullPath);
+      const ext = extname(specPath).toLowerCase();
+      const format: "json" | "yaml" = ext === ".json" ? "json" : "yaml";
+      const apiTab = configResult.navTabs.find(
+        (t) =>
+          t.slug === "api" ||
+          t.slug === "api-reference" ||
+          t.name.toLowerCase().includes("api"),
+      );
+      const basePath = apiTab ? `/${apiTab.slug}` : "/api-reference";
+      openapiSpecs.push({ path: specPath, buffer, format, basePath });
+    } else {
+      warnings.push(
+        `OpenAPI spec referenced in config but not found: ${specPath}`,
+      );
+    }
+  }
+
   // ── Step 3: Build page-folder assignment map from raw navigation ────────
   const pageFolderMap = buildPageFolderMap(configFile.config);
 
@@ -327,6 +351,7 @@ export async function parseMintlify(
   const pages: ParsedPage[] = [];
   const allMdxContents: string[] = [];
   const resolvedPageRefs = new Set<string>();
+  let skippedEndpointPages = 0;
 
   // Track per-folder page positions when not available from nav
   const folderPositionCounters = new Map<string, number>();
@@ -345,6 +370,12 @@ export async function parseMintlify(
     // Read and transform
     const rawContent = readFileSync(resolved.filePath, "utf-8");
     const transformed = await transformMintlifyMdx(rawContent);
+
+    // Skip endpoint placeholder pages (will be auto-generated from OpenAPI spec)
+    if (transformed.openapiDirective) {
+      skippedEndpointPages++;
+      continue;
+    }
 
     // Build full MDX content (frontmatter + body)
     const mdxContent = transformed.frontmatter
@@ -422,6 +453,12 @@ export async function parseMintlify(
     const rawContent = readFileSync(filePath, "utf-8");
     const transformed = await transformMintlifyMdx(rawContent);
 
+    // Skip endpoint placeholder pages (will be auto-generated from OpenAPI spec)
+    if (transformed.openapiDirective) {
+      skippedEndpointPages++;
+      continue;
+    }
+
     const mdxContent = transformed.frontmatter
       ? `${transformed.frontmatter}\n\n${transformed.mdx}`
       : transformed.mdx;
@@ -450,6 +487,33 @@ export async function parseMintlify(
     });
   }
 
+  // ── Step 5b: Emit skipped endpoint pages warning ─────────────────────────
+  if (skippedEndpointPages > 0) {
+    warnings.push(
+      `Skipped ${skippedEndpointPages} endpoint page${skippedEndpointPages === 1 ? "" : "s"} (will be auto-generated from OpenAPI spec)`,
+    );
+  }
+
+  // ── Step 5c: Prune empty folders ────────────────────────────────────────
+  // After skipping endpoint pages, some folders may have zero remaining pages.
+  // Remove those folders to keep the navigation clean.
+  const referencedFolderPaths = new Set<string>();
+  for (const page of pages) {
+    if (page.folderPath) {
+      // Mark this folder and all its ancestors as referenced
+      let fp = page.folderPath;
+      referencedFolderPaths.add(fp);
+      while (fp.includes("/")) {
+        fp = fp.slice(0, fp.lastIndexOf("/"));
+        if (fp) referencedFolderPaths.add(fp);
+      }
+    }
+  }
+
+  const prunedFolders = configResult.folders.filter((folder) =>
+    referencedFolderPaths.has(folder.path),
+  );
+
   // ── Step 6: Build URL map ────────────────────────────────────────────────
   // Mintlify URLs are file-path based and map nearly 1:1 to InkLoom URLs
   const urlMap = new Map<string, string>();
@@ -467,7 +531,7 @@ export async function parseMintlify(
   // ── Step 8: Assemble result ──────────────────────────────────────────────
   const result: MigrationResult = {
     pages,
-    folders: configResult.folders,
+    folders: prunedFolders,
     navTabs:
       configResult.navTabs.length > 0 ? configResult.navTabs : undefined,
     redirects: configResult.redirects,
@@ -475,6 +539,7 @@ export async function parseMintlify(
     warnings,
     urlMap,
     branding: configResult.branding,
+    openapiSpecs: openapiSpecs.length > 0 ? openapiSpecs : undefined,
   };
 
   return result;

@@ -2,6 +2,7 @@ export {
   MigrationSource,
   type MigrationConfig,
   type MigrationResult,
+  type MigrationOpenApiSpec,
   type ParsedPage,
   type ParsedFolder,
   type ParsedNavTab,
@@ -368,6 +369,7 @@ export async function migrate(
     assets: parseResult.assets,
     branding,
     subpathGuidance,
+    openapiSpecs: parseResult.openapiSpecs,
     urlMap: enrichedUrlMap,
     warnings,
   };

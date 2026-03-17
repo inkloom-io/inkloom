@@ -1,0 +1,12 @@
+openapi: 3.0.3
+info:
+  title: Acme API
+  version: 1.0.0
+paths:
+  /api/auth/token:
+    post:
+      operationId: createToken
+      summary: Create auth token
+      responses:
+        "200":
+          description: Token created

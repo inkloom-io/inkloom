@@ -122,11 +122,11 @@ describe("E2E: migrate() with Mintlify fixture", () => {
   // ── Page counts & structure ───────────────────────────────────────────
 
   describe("pages", () => {
-    it("converts all 9 fixture pages", () => {
-      // introduction, quickstart, auth/overview, auth/jwt-tokens,
-      // components/callouts, components/interactive, components/columns,
-      // api/overview, api/endpoints
-      expect(result.pages).toHaveLength(9);
+    it("converts all non-endpoint fixture pages", () => {
+      // introduction, quickstart, auth/overview, components/callouts,
+      // components/interactive, components/columns, api/overview, api/endpoints
+      // (jwt-tokens, list-plants, create-plant are skipped — they have openapi: directives)
+      expect(result.pages).toHaveLength(8);
     });
 
     it("every page matches createFromImport args shape", () => {
@@ -162,12 +162,13 @@ describe("E2E: migrate() with Mintlify fixture", () => {
       expect(slugs).toContain("guides/introduction");
       expect(slugs).toContain("guides/quickstart");
       expect(slugs).toContain("guides/auth/overview");
-      expect(slugs).toContain("guides/auth/jwt-tokens");
       expect(slugs).toContain("guides/components/callouts");
       expect(slugs).toContain("guides/components/interactive");
       expect(slugs).toContain("guides/components/columns");
       expect(slugs).toContain("api/overview");
       expect(slugs).toContain("api/endpoints");
+      // jwt-tokens is skipped (has openapi: directive)
+      expect(slugs).not.toContain("guides/auth/jwt-tokens");
     });
 
     it("assigns correct folder paths", () => {
@@ -303,6 +304,42 @@ describe("E2E: migrate() with Mintlify fixture", () => {
     });
   });
 
+  // ── OpenAPI specs ────────────────────────────────────────────────────
+
+  describe("openapi specs", () => {
+    it("reads OpenAPI spec files referenced in config", () => {
+      expect(result.openapiSpecs).toBeDefined();
+      expect(result.openapiSpecs).toHaveLength(1);
+
+      const spec = result.openapiSpecs?.[0];
+      expect(spec?.path).toBe("openapi.yaml");
+      expect(spec?.format).toBe("yaml");
+      expect(spec?.basePath).toBe("/api");
+      expect(spec?.buffer).toBeInstanceOf(Buffer);
+      expect(spec?.buffer.length).toBeGreaterThan(0);
+    });
+
+    it("skips endpoint placeholder pages with openapi: frontmatter", () => {
+      const slugs = result.pages.map((p) => p.slug);
+      expect(slugs).not.toContain("api/list-plants");
+      expect(slugs).not.toContain("api/create-plant");
+    });
+
+    it("emits a warning summarizing skipped endpoint pages", () => {
+      const warning = result.warnings.find((w) =>
+        w.includes("Skipped") && w.includes("endpoint page"),
+      );
+      expect(warning).toBeDefined();
+      // jwt-tokens + list-plants + create-plant = 3 endpoint pages
+      expect(warning).toContain("3");
+    });
+
+    it("prunes folders that only contained endpoint pages", () => {
+      const folderPaths = result.folders.map((f) => f.path);
+      expect(folderPaths).not.toContain("plant-endpoints");
+    });
+  });
+
   // ── Subpath guidance ──────────────────────────────────────────────────
 
   describe("subpath guidance", () => {
@@ -315,8 +352,8 @@ describe("E2E: migrate() with Mintlify fixture", () => {
   // ── URL Map ───────────────────────────────────────────────────────────
 
   describe("URL map", () => {
-    it("has an entry for every page", () => {
-      expect(result.urlMap.size).toBeGreaterThanOrEqual(8);
+    it("has an entry for every non-skipped page", () => {
+      expect(result.urlMap.size).toBeGreaterThanOrEqual(7);
     });
 
     it("maps source paths to InkLoom paths accurately", () => {
@@ -432,16 +469,12 @@ describe("E2E: migrate() with Mintlify fixture", () => {
       expect(cardGroups.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("preserves AccordionGroup blocks", () => {
+    it("does not include skipped endpoint pages in output", () => {
+      // jwt-tokens has openapi: directive and should be excluded
       const jwtPage = result.pages.find(
         (p) => p.slug === "guides/auth/jwt-tokens",
       );
-      expect(jwtPage).toBeDefined();
-      if (!jwtPage) return;
-
-      const blocks = parseBlocks(jwtPage.content);
-      const accordionGroups = findBlocks(blocks, "accordionGroup");
-      expect(accordionGroups.length).toBeGreaterThanOrEqual(1);
+      expect(jwtPage).toBeUndefined();
     });
 
     it("preserves Steps blocks", () => {

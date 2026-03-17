@@ -1,0 +1,32 @@
+openapi: 3.0.3
+info:
+  title: Widget API
+  version: 1.0.0
+  description: REST API for the Widget platform
+paths:
+  /v1/plants:
+    get:
+      operationId: listPlants
+      summary: List all plants
+      responses:
+        "200":
+          description: A list of plants
+    post:
+      operationId: createPlant
+      summary: Create a plant
+      responses:
+        "201":
+          description: Plant created
+  /v1/plants/{id}:
+    get:
+      operationId: getPlant
+      summary: Get a plant by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A plant

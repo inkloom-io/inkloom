@@ -147,6 +147,20 @@ export interface MigrationAsset {
 }
 
 /**
+ * An OpenAPI spec file discovered during migration.
+ */
+export interface MigrationOpenApiSpec {
+  /** Relative path to spec file in source directory. */
+  path: string;
+  /** Raw file content. */
+  buffer: Buffer;
+  /** Spec file format. */
+  format: "json" | "yaml";
+  /** Base path for generated endpoint pages, derived from API tab slug. */
+  basePath: string;
+}
+
+/**
  * Complete result of a migration run.
  */
 export interface MigrationResult {
@@ -166,6 +180,8 @@ export interface MigrationResult {
   urlMap: Map<string, string>;
   /** Branding configuration extracted from the source. */
   branding?: ParsedBranding;
+  /** OpenAPI spec files referenced in the source config. */
+  openapiSpecs?: MigrationOpenApiSpec[];
 }
 
 /**
@@ -261,6 +277,8 @@ export interface EnrichedMigrationResult {
   branding?: InkLoomBrandingSettings;
   /** Subpath hosting guidance (if source URL has a path component). */
   subpathGuidance?: SubpathInfo;
+  /** OpenAPI spec files referenced in the source config. */
+  openapiSpecs?: MigrationOpenApiSpec[];
   /** URL map from source paths to InkLoom paths. */
   urlMap: Map<string, string>;
   /** Warnings encountered during migration. */

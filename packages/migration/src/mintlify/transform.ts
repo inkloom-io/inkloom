@@ -27,6 +27,8 @@ interface FrontmatterResult {
   frontmatter: string;
   /** Extracted metadata for use by the migration pipeline. */
   metadata: Record<string, string>;
+  /** OpenAPI directive value if this page is an endpoint placeholder (e.g. "POST /plants"). */
+  openapiDirective?: string;
 }
 
 /**
@@ -43,6 +45,7 @@ export function transformFrontmatter(raw: string): FrontmatterResult {
 
   let hasTitle = false;
   let sidebarTitleValue: string | null = null;
+  let openapiDirective: string | undefined;
 
   // First pass: parse all fields and identify what we have
   for (const line of lines) {
@@ -63,6 +66,12 @@ export function transformFrontmatter(raw: string): FrontmatterResult {
     if (key === "sidebarTitle") {
       sidebarTitleValue = trimmedValue;
       continue; // Don't add yet; we'll decide below
+    }
+
+    if (key === "openapi" || key === "api") {
+      if (trimmedValue) {
+        openapiDirective = trimmedValue;
+      }
     }
 
     if (MINTLIFY_ONLY_FIELDS.has(key)) {
@@ -86,12 +95,13 @@ export function transformFrontmatter(raw: string): FrontmatterResult {
   const meaningful = kept.filter((l) => l.trim() !== "");
 
   if (meaningful.length === 0) {
-    return { frontmatter: "", metadata };
+    return { frontmatter: "", metadata, openapiDirective };
   }
 
   return {
     frontmatter: `---\n${meaningful.join("\n")}\n---`,
     metadata,
+    openapiDirective,
   };
 }
 
@@ -196,13 +206,13 @@ function renameComponents(body: string): string {
  */
 export async function transformMintlifyMdx(
   mintlifyMdx: string,
-): Promise<{ mdx: string; frontmatter?: string; metadata: Record<string, string> }> {
+): Promise<{ mdx: string; frontmatter?: string; metadata: Record<string, string>; openapiDirective?: string }> {
   const { rawFrontmatter, body } = splitFrontmatter(mintlifyMdx);
 
   // Transform frontmatter
-  const { frontmatter, metadata } = rawFrontmatter
+  const { frontmatter, metadata, openapiDirective } = rawFrontmatter
     ? transformFrontmatter(rawFrontmatter)
-    : { frontmatter: "", metadata: {} };
+    : { frontmatter: "", metadata: {}, openapiDirective: undefined };
 
   // Rename Mintlify components in MDX body
   const transformedBody = renameComponents(body);
@@ -211,5 +221,6 @@ export async function transformMintlifyMdx(
     mdx: transformedBody.trim() + "\n",
     frontmatter: frontmatter || undefined,
     metadata,
+    openapiDirective,
   };
 }

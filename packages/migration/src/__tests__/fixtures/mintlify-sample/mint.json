@@ -29,6 +29,10 @@
     {
       "group": "API",
       "pages": ["api/overview", "api/endpoints"]
+    },
+    {
+      "group": "Plant Endpoints",
+      "pages": ["api/list-plants", "api/create-plant"]
     }
   ],
   "redirects": [

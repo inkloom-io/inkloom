@@ -54,7 +54,7 @@ describe("migrate() orchestrator", () => {
     // ── Pages with BlockNote JSON content ─────────────────────────────────
 
     it("converts pages to ImportReadyPage shape", () => {
-      expect(result.pages.length).toBeGreaterThanOrEqual(6);
+      expect(result.pages.length).toBeGreaterThanOrEqual(5);
 
       for (const page of result.pages) {
         expect(page).toHaveProperty("title");
@@ -228,7 +228,7 @@ describe("migrate() orchestrator", () => {
     // ── URL Map ──────────────────────────────────────────────────────────
 
     it("includes URL map", () => {
-      expect(result.urlMap.size).toBeGreaterThanOrEqual(6);
+      expect(result.urlMap.size).toBeGreaterThanOrEqual(5);
     });
 
     // ── Progress callback ────────────────────────────────────────────────
