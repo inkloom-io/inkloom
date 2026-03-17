@@ -278,6 +278,66 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       ];
     }
 
+    case "Columns": {
+      const cols = getAttrValue(attrs, "cols") || "2";
+
+      // Smart detection: check if ALL JSX children are <Card> elements
+      const jsxChildren = (node.children || []).filter(
+        (child) => child.type === "mdxJsxFlowElement"
+      );
+      const allCards =
+        jsxChildren.length > 0 &&
+        jsxChildren.every((child) => child.name === "Card");
+
+      if (allCards) {
+        // All children are Cards → produce cardGroup + card blocks (legacy behavior)
+        const blocks: BlockNoteBlock[] = [
+          {
+            type: "cardGroup",
+            props: { cols },
+            content: [],
+          },
+        ];
+        for (const child of jsxChildren) {
+          blocks.push(...convertMdxJsxElement(child));
+        }
+        return blocks;
+      }
+
+      // Mixed or non-card content → produce columns + column blocks
+      const blocks: BlockNoteBlock[] = [
+        {
+          type: "columns",
+          props: { cols },
+          content: [],
+        },
+      ];
+      if (node.children) {
+        for (const child of node.children) {
+          if (child.type === "mdxJsxFlowElement") {
+            // Each JSX child becomes a column block
+            const childBlocks = child.children
+              ? child.children.flatMap((grandchild) =>
+                  convertBlockNode(grandchild)
+                )
+              : [];
+            // Flatten inline content from child blocks into the column's content
+            const columnContent: BlockNoteInlineContent[] = [];
+            for (const cb of childBlocks) {
+              if (cb.content && Array.isArray(cb.content)) {
+                columnContent.push(...(cb.content as BlockNoteInlineContent[]));
+              }
+            }
+            blocks.push({
+              type: "column",
+              content: columnContent,
+            });
+          }
+        }
+      }
+      return blocks;
+    }
+
     case "CardGroup": {
       const cols = getAttrValue(attrs, "cols") || "2";
       // CardGroup container block, followed by child Card blocks

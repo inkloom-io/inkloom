@@ -476,6 +476,18 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       break;
     }
 
+    case "column": {
+      const text = block.content && isInlineContentArray(block.content) ? convertInlineContent(block.content) : "";
+      result = `${text}\n`;
+      break;
+    }
+
+    case "columns": {
+      // columns container is handled in blockNoteToMDX for proper grouping
+      result = "";
+      break;
+    }
+
     case "cardGroup": {
       // cardGroup is handled in blockNoteToMDX for proper grouping
       result = "";
@@ -800,6 +812,28 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
       }
       mdx += "</Steps>\n\n";
       prevBlockType = "steps";
+      continue;
+    }
+
+    // Handle columns container - collect following column blocks (skipping empty paragraphs)
+    if (block.type === "columns") {
+      const cols = (block.props?.cols as string) || "2";
+      mdx += `<Columns cols={${cols}}>\n`;
+      i++;
+      // Skip empty paragraphs and collect all following column blocks
+      while (i < blocks.length) {
+        const nextBlock = blocks[i];
+        if (!nextBlock) break;
+        if (isEmptyParagraph(nextBlock)) {
+          i++;
+          continue;
+        }
+        if (nextBlock.type !== "column") break;
+        mdx += convertBlock(nextBlock);
+        i++;
+      }
+      mdx += "</Columns>\n\n";
+      prevBlockType = "columns";
       continue;
     }
 
