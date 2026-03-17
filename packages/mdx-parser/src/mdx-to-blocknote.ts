@@ -531,13 +531,15 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
     case "Image": {
       const src = getAttrValue(attrs, "src") || "";
       const alt = getAttrValue(attrs, "alt") || "";
+      const caption = getAttrValue(attrs, "caption") || "";
       const width = getAttrValue(attrs, "width");
       return [
         {
           type: "image",
           props: {
             url: src,
-            caption: alt || undefined,
+            ...(alt ? { alt } : {}),
+            ...(caption ? { caption } : {}),
             ...(width ? { previewWidth: parseInt(width, 10) } : {}),
           },
         },
@@ -696,7 +698,7 @@ function convertBlockNode(node: MdastNode): BlockNoteBlock[] {
             type: "image",
             props: {
               url: img.url || "",
-              caption: img.alt || undefined,
+              ...(img.alt ? { alt: img.alt } : {}),
             },
           },
         ];
@@ -767,7 +769,7 @@ function convertBlockNode(node: MdastNode): BlockNoteBlock[] {
           type: "image",
           props: {
             url: node.url || "",
-            caption: node.alt || undefined,
+            ...(node.alt ? { alt: node.alt } : {}),
           },
         },
       ];

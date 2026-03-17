@@ -103,6 +103,24 @@ describe("mdxToBlockNote", () => {
     expect(blocks).toHaveLength(1);
     expect(blocks[0].type).toBe("image");
     expect(blocks[0].props?.url).toBe("https://example.com/img.png");
+    expect(blocks[0].props?.alt).toBe("Alt text");
+  });
+
+  it("parses an Image component with separate alt and caption", () => {
+    const blocks = mdxToBlockNote('<Image src="https://example.com/img.png" alt="descriptive text" caption="Figure 1" />');
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("image");
+    expect(blocks[0].props?.url).toBe("https://example.com/img.png");
+    expect(blocks[0].props?.alt).toBe("descriptive text");
+    expect(blocks[0].props?.caption).toBe("Figure 1");
+  });
+
+  it("parses an image without alt text", () => {
+    const blocks = mdxToBlockNote("![](https://example.com/img.png)");
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("image");
+    expect(blocks[0].props?.url).toBe("https://example.com/img.png");
+    expect(blocks[0].props?.alt).toBeUndefined();
   });
 
   it("parses a link", () => {
@@ -350,17 +368,44 @@ describe("blockNoteToMDX", () => {
 
   it("converts image with custom width using Image component", () => {
     const mdx = blockNoteToMDX([
-      { type: "image", props: { url: "https://img.com/pic.png", caption: "My pic", previewWidth: 300 } },
+      { type: "image", props: { url: "https://img.com/pic.png", alt: "My pic", previewWidth: 300 } },
     ]);
     expect(mdx).toContain('<Image src="https://img.com/pic.png"');
+    expect(mdx).toContain('alt="My pic"');
     expect(mdx).toContain("width={300}");
   });
 
   it("converts image with default width using markdown", () => {
     const mdx = blockNoteToMDX([
-      { type: "image", props: { url: "https://img.com/pic.png", caption: "My pic" } },
+      { type: "image", props: { url: "https://img.com/pic.png", alt: "My pic" } },
     ]);
     expect(mdx).toContain("![My pic](https://img.com/pic.png)");
+  });
+
+  it("converts image with separate alt and caption", () => {
+    const mdx = blockNoteToMDX([
+      { type: "image", props: { url: "https://img.com/pic.png", alt: "A descriptive alt", caption: "Figure 1" } },
+    ]);
+    expect(mdx).toContain('<Image src="https://img.com/pic.png"');
+    expect(mdx).toContain('alt="A descriptive alt"');
+    expect(mdx).toContain('caption="Figure 1"');
+  });
+
+  it("converts image without alt falls back to caption", () => {
+    const mdx = blockNoteToMDX([
+      { type: "image", props: { url: "https://img.com/pic.png", caption: "My caption" } },
+    ]);
+    // Caption triggers Image component, alt falls back to caption
+    expect(mdx).toContain('<Image src="https://img.com/pic.png"');
+    expect(mdx).toContain('alt="My caption"');
+    expect(mdx).toContain('caption="My caption"');
+  });
+
+  it("converts image without alt or caption using default alt", () => {
+    const mdx = blockNoteToMDX([
+      { type: "image", props: { url: "https://img.com/pic.png" } },
+    ]);
+    expect(mdx).toContain("![Image](https://img.com/pic.png)");
   });
 
   it("converts a simple responseField", () => {

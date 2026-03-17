@@ -240,15 +240,19 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
     case "image": {
       const url = block.props?.url as string;
       const caption = block.props?.caption as string;
+      const altText = (block.props?.alt as string) || "";
       const previewWidth = block.props?.previewWidth as number;
-      const alt = caption || "Image";
+      const alt = altText || caption || "Image";
 
-      // If image has a custom width, use Image component to preserve it
-      if (previewWidth && previewWidth !== 512) {
+      // If image has a custom width or caption, use Image component to preserve them
+      if ((previewWidth && previewWidth !== 512) || caption) {
         const attrs = [
           `src="${url}"`,
           `alt="${alt}"`,
-          `width={${previewWidth}}`,
+          ...(previewWidth && previewWidth !== 512
+            ? [`width={${previewWidth}}`]
+            : []),
+          ...(caption ? [`caption="${caption}"`] : []),
         ].join(" ");
         result = `<Image ${attrs} />\n\n`;
       } else {

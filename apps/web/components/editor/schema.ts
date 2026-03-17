@@ -6,16 +6,18 @@ import { Steps, Step } from "./custom-blocks/steps";
 import { Accordion, AccordionGroup } from "./custom-blocks/accordion";
 import { CodeGroup } from "./custom-blocks/code-group";
 import { CodeBlock } from "./custom-blocks/code-block";
+import { CustomImage } from "./custom-blocks/image";
 import { ResponseField } from "./custom-blocks/response-field";
 import { Expandable } from "./custom-blocks/expandable";
 import { Columns, Column } from "./custom-blocks/columns";
 
-// Create a copy of default specs without the built-in codeBlock
-const { codeBlock: _defaultCodeBlock, ...otherDefaultSpecs } = defaultBlockSpecs;
+// Create a copy of default specs without the built-in codeBlock and image
+const { codeBlock: _defaultCodeBlock, image: _defaultImage, ...otherDefaultSpecs } = defaultBlockSpecs;
 
 export const schema = BlockNoteSchema.create({
   blockSpecs: {
     ...otherDefaultSpecs,
+    image: CustomImage(),
     card: Card(),
     cardGroup: CardGroup(),
     callout: Callout(),
