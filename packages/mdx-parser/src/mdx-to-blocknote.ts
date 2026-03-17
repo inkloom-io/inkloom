@@ -200,9 +200,15 @@ function convertListItem(
 
   for (const child of node.children || []) {
     if (child.type === "paragraph") {
-      inlineContent = child.children
-        ? convertInlineNodes(child.children)
-        : [];
+      // First paragraph becomes the list item's inline content
+      if (inlineContent.length === 0) {
+        inlineContent = child.children
+          ? convertInlineNodes(child.children)
+          : [];
+      } else {
+        // Additional paragraphs become nested children
+        nestedBlocks.push(...convertBlockNode(child));
+      }
     } else if (child.type === "list") {
       // Nested list -> children
       for (const listItem of child.children || []) {
@@ -210,6 +216,9 @@ function convertListItem(
           ...convertListItem(listItem, child.ordered ?? false)
         );
       }
+    } else {
+      // Code blocks, blockquotes, images, JSX elements, etc. → children
+      nestedBlocks.push(...convertBlockNode(child));
     }
   }
 

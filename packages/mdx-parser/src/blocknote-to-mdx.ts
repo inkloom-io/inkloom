@@ -189,8 +189,22 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
     case "numberedListItem": {
       const text = block.content && isInlineContentArray(block.content) ? convertInlineContent(block.content) : "";
       result = `${indent}1. ${text}\n`;
+      // Serialize children indented under the list item
+      if (block.children && block.children.length > 0) {
+        result += "\n";
+        for (const child of block.children) {
+          const childMdx = convertBlock(child, 0);
+          // Indent child content by 4 spaces for markdown list continuation
+          const indentedChild = childMdx
+            .split("\n")
+            .map((line) => (line.trim() ? `    ${line}` : line))
+            .join("\n");
+          result += indentedChild;
+        }
+      }
       result = wrapWithBlockStyles(result, block.props);
-      break;
+      // Return early to skip default child processing (children already handled)
+      return result;
     }
 
     case "toggleListItem": {

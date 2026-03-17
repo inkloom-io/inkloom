@@ -141,6 +141,20 @@ describe("mdxToBlockNote", () => {
     expect(blocks[0].type).toBe("numberedListItem");
   });
 
+  it("parses ordered list with code block children", () => {
+    const mdx = "1. First item:\n\n   ```javascript\n   const x = 1;\n   ```\n\n2. Second item";
+    const blocks = mdxToBlockNote(mdx);
+    // First item should have code block as child
+    expect(blocks[0].type).toBe("numberedListItem");
+    expect(blocks[0].children).toBeDefined();
+    if (blocks[0].children) {
+      expect(blocks[0].children.length).toBeGreaterThan(0);
+      expect(blocks[0].children[0].type).toBe("codeBlock");
+    }
+    // Second item should be numbered correctly
+    expect(blocks[1].type).toBe("numberedListItem");
+  });
+
   it("parses a checklist", () => {
     const mdx = "- [x] Done\n- [ ] Not done";
     const blocks = mdxToBlockNote(mdx);
@@ -699,6 +713,25 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
       expect(blocks2[0].type).toBe(blocks[0].type);
     });
   }
+
+  it("round-trips ordered list with block content", () => {
+    const input = "1. Step one:\n\n   ```bash\n   npm install\n   ```\n\n1. Step two:\n\n   ```bash\n   npm start\n   ```\n";
+    const blocks = mdxToBlockNote(input);
+    const output = blockNoteToMDX(blocks);
+    // Both items should be numbered list items
+    const numberedItems = blocks.filter(b => b.type === "numberedListItem");
+    expect(numberedItems).toHaveLength(2);
+    // Each should have a code block child
+    for (const item of numberedItems) {
+      if (item.children) {
+        expect(item.children.some(c => c.type === "codeBlock")).toBe(true);
+      }
+    }
+    // Re-parse should produce same structure
+    const blocks2 = mdxToBlockNote(output);
+    const numberedItems2 = blocks2.filter(b => b.type === "numberedListItem");
+    expect(numberedItems2).toHaveLength(2);
+  });
 
   it("round-trips code block with title", () => {
     const input = "```java HelloWorld.java\nclass HelloWorld {}\n```";
