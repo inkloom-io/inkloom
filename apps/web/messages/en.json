@@ -2302,6 +2302,148 @@
     "successMessage": "Thanks for your feedback!",
     "submitHint": "{shortcut} to send"
   },
+  "pricing": {
+    "hero": {
+      "headline": "Pay only for the docs projects that need more",
+      "subhead": "Every organization gets unlimited projects. Each project picks Free, Pro, or Ultimate independently. Users are billed at one rate across the org, and everything lands on a single invoice.",
+      "ctaTrial": "Start 14-day trial",
+      "ctaCalculator": "Calculate your price",
+      "trialBadge": "Unlimited users during trial",
+      "migrationBadge": "One-click migration from GitBook and Mintlify",
+      "annualBadge": "Annual saves 20%",
+      "migrationNote": "Switching from GitBook or Mintlify? Eligible annual migrations receive a 1-month credit after successful import."
+    },
+    "howBilling": {
+      "title": "How billing works",
+      "subtitle": "No surprises. Simple, transparent per-project billing.",
+      "freeStaysFree": {
+        "title": "Free stays free",
+        "description": "Free projects have no time limit. Use them forever."
+      },
+      "tierPerProject": {
+        "title": "Choose a tier per project",
+        "description": "Each project picks Free, Pro, or Ultimate independently."
+      },
+      "orgWideUsers": {
+        "title": "Users are billed org-wide",
+        "description": "One user rate across all projects — $15/mo or $12/mo annual."
+      },
+      "oneInvoice": {
+        "title": "One invoice",
+        "description": "Everything on a single monthly or annual invoice."
+      },
+      "noLockIn": "No org-wide plan lock-in",
+      "noUserCap": "No paid-plan user cap"
+    },
+    "plans": {
+      "title": "Choose a plan for each project",
+      "subtitle": "Upgrade only the projects that need paid features.",
+      "perProjectMo": "/project/mo",
+      "perSeatMo": "/seat/mo",
+      "twoMonthsFree": "2 months free!",
+      "recommended": "Recommended",
+      "trialBadge": "14-day free trial",
+      "ctaTrial": "Start 14-day free trial",
+      "free": {
+        "name": "Free",
+        "description": "Perfect for personal projects and open source.",
+        "feature1": "Unlimited pages",
+        "feature2": "*.inkloom.dev subdomain",
+        "feature3": "Community support",
+        "feature4": "Basic analytics",
+        "cta": "Get started",
+        "note": "1 user per project"
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "For growing teams shipping docs regularly.",
+        "feature1": "Custom domains",
+        "feature2": "GitHub integration",
+        "feature3": "Navigation tabs",
+        "feature4": "AI docs generation (20 credits/mo)",
+        "feature5": "API & CLI access"
+      },
+      "ultimate": {
+        "name": "Ultimate",
+        "description": "For teams that need automation and scale.",
+        "feature1": "Everything in Pro",
+        "feature2": "5× AI credits (100/mo included)",
+        "feature3": "Realtime collaboration",
+        "feature4": "Authenticated access",
+        "feature5": "Priority support"
+      }
+    },
+    "migration": {
+      "title": "Migrate in three steps",
+      "subtitle": "Move from GitBook, Mintlify, or any Markdown-based platform.",
+      "connect": {
+        "title": "Connect your docs",
+        "description": "Link a GitHub repo or upload a ZIP of your docs."
+      },
+      "review": {
+        "title": "Review imported content",
+        "description": "Check pages, fix warnings, and customize your layout."
+      },
+      "publish": {
+        "title": "Publish and go live",
+        "description": "Deploy to your domain with a single click."
+      },
+      "creditNote": "Eligible annual migrations receive a 1-month credit after successful import."
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "usersBilled": {
+        "question": "How are users billed?",
+        "answer": "Users are billed at a flat org-wide rate — $15/mo per seat (or $12/mo on annual). This rate applies across all projects in your organization, regardless of which plan each project uses."
+      },
+      "differentPlans": {
+        "question": "Can different projects use different plans?",
+        "answer": "Yes. Each project in your organization independently chooses Free, Pro, or Ultimate. There's no org-wide plan lock-in."
+      },
+      "freeProjects": {
+        "question": "What happens with free projects?",
+        "answer": "Free projects stay free forever — no time limit, no credit card required. You only pay when you upgrade a specific project to Pro or Ultimate."
+      },
+      "userLimits": {
+        "question": "Are there user limits on paid plans?",
+        "answer": "No. Pro and Ultimate projects support unlimited users. You pay per seat at the org level, but there's no ceiling on how many seats you can add."
+      },
+      "annualBilling": {
+        "question": "How does annual billing work?",
+        "answer": "Annual billing saves 20% compared to monthly. You pay upfront for the year and receive the equivalent of two months free."
+      },
+      "migrationCredit": {
+        "question": "What is the migration credit and who is eligible?",
+        "answer": "When you migrate from GitBook or Mintlify and choose an annual plan, you receive a 1-month credit applied to your first invoice. The migration must be completed successfully to qualify."
+      },
+      "aiCredits": {
+        "question": "How do AI credits work? What about overages?",
+        "answer": "Pro includes 20 AI credits per month and Ultimate includes 100. Credits reset monthly. If you exceed your allocation, additional usage is billed at $0.01 per credit on your next invoice."
+      },
+      "trialUsers": {
+        "question": "How many users during the trial?",
+        "answer": "Trials include unlimited users for the full 14-day period. After the trial, you choose a plan and start paying per seat."
+      },
+      "migrateBeforePaid": {
+        "question": "Can I migrate before choosing a paid plan?",
+        "answer": "Yes. You can import your docs into a free project first, review everything, and then upgrade to Pro or Ultimate when you're ready."
+      }
+    },
+    "competitor": {
+      "title": "Why teams switch from GitBook and Mintlify",
+      "noLockIn": "No org-wide plan lock-in — choose a tier per project instead of paying for your entire organization.",
+      "noUserCeiling": "No 5-user paid-plan ceiling — add unlimited users at a flat per-seat rate.",
+      "oneClickMigration": "One-click migration and AI-powered evergreen docs — import your existing site and keep it automatically up to date.",
+      "ctaMintlify": "Compare with Mintlify →",
+      "ctaGitBook": "Compare with GitBook →"
+    },
+    "cta": {
+      "headline": "Ready to ship better docs?",
+      "ctaTrial": "Start 14-day trial",
+      "viewGitHub": "View on GitHub",
+      "freeNote": "Free forever for personal and open source projects."
+    }
+  },
   "gitbookAlternative": {
     "nav": {
       "features": "Features",
