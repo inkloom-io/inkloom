@@ -97,8 +97,11 @@ export interface RawMintlifyConfig {
   favicon?: string | { light?: string; dark?: string };
   colors?: ColorsConfig;
 
-  // Navigation — docs.json format
-  navigation?: DocsJsonNavItem[] | MintJsonNavGroup[];
+  // Navigation — docs.json format (array or object-wrapped)
+  navigation?:
+    | DocsJsonNavItem[]
+    | MintJsonNavGroup[]
+    | { tabs?: DocsJsonNavItem[]; global?: { anchors?: Array<{ name: string; url: string; icon?: string }> } };
 
   // Navigation — mint.json format
   tabs?: MintJsonTab[];
@@ -156,6 +159,16 @@ function slugify(name: string): string {
  * or mint.json format (separate tabs + flat navigation groups).
  */
 export function isDocsJsonFormat(config: RawMintlifyConfig): boolean {
+  // New docs.json format: navigation is an object with { tabs: [...], global: {...} }
+  if (
+    config.navigation &&
+    !Array.isArray(config.navigation) &&
+    typeof config.navigation === "object" &&
+    "tabs" in config.navigation
+  ) {
+    return true;
+  }
+
   if (!Array.isArray(config.navigation)) return false;
 
   // docs.json: navigation items can contain { tab: ... } entries
@@ -227,7 +240,18 @@ function parseDocsJsonNavigation(config: RawMintlifyConfig): {
   folders: ParsedFolder[];
   pageRefs: string[];
 } {
-  const navItems = (config.navigation ?? []) as DocsJsonNavItem[];
+  // Handle object-wrapped navigation: { tabs: [...], global: {...} }
+  let navItems: DocsJsonNavItem[];
+  if (
+    config.navigation &&
+    !Array.isArray(config.navigation) &&
+    typeof config.navigation === "object" &&
+    "tabs" in config.navigation
+  ) {
+    navItems = (config.navigation.tabs ?? []) as DocsJsonNavItem[];
+  } else {
+    navItems = (config.navigation ?? []) as DocsJsonNavItem[];
+  }
   const navTabs: ParsedNavTab[] = [];
   const allFolders: ParsedFolder[] = [];
   const allPageRefs: string[] = [];
@@ -623,7 +647,16 @@ export function parseMintlifyConfig(
   if (!config.colors?.primary) {
     warnings.push("Missing 'colors.primary' field in Mintlify config");
   }
-  if (!config.navigation || (config.navigation as unknown[]).length === 0) {
+  if (!config.navigation) {
+    warnings.push("Empty or missing 'navigation' in Mintlify config");
+  } else if (Array.isArray(config.navigation) && config.navigation.length === 0) {
+    warnings.push("Empty or missing 'navigation' in Mintlify config");
+  } else if (
+    !Array.isArray(config.navigation) &&
+    typeof config.navigation === "object" &&
+    "tabs" in config.navigation &&
+    (!config.navigation.tabs || config.navigation.tabs.length === 0)
+  ) {
     warnings.push("Empty or missing 'navigation' in Mintlify config");
   }
 

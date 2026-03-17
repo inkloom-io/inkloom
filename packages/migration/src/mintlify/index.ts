@@ -205,7 +205,19 @@ function buildPageFolderMap(config: RawMintlifyConfig): PageFolderMap {
   const mapping = new Map<string, string>();
   const positions = new Map<string, number>();
 
-  const navItems = (config.navigation ?? []) as unknown as Array<Record<string, unknown>>;
+  // Handle object-wrapped navigation: { tabs: [...], global: {...} }
+  let rawNav: unknown;
+  if (
+    config.navigation &&
+    !Array.isArray(config.navigation) &&
+    typeof config.navigation === "object" &&
+    "tabs" in config.navigation
+  ) {
+    rawNav = (config.navigation as Record<string, unknown>).tabs ?? [];
+  } else {
+    rawNav = config.navigation ?? [];
+  }
+  const navItems = rawNav as Array<Record<string, unknown>>;
 
   function walkGroup(
     group: Record<string, unknown>,

@@ -601,3 +601,96 @@ describe("parseMintlifyConfig — docs.json tab with pages array", () => {
     expect(result.pageRefs).toContain("basics/intro");
   });
 });
+
+// ── Object-wrapped navigation (new Mintlify starter format) ──────────────────
+
+describe("parseMintlifyConfig — object-wrapped navigation", () => {
+  const objectNavConfig: RawMintlifyConfig = {
+    $schema: "https://mintlify.com/docs.json",
+    name: "Modern Starter",
+    colors: { primary: "#6366F1" },
+    navigation: {
+      tabs: [
+        {
+          tab: "Guides",
+          groups: [
+            {
+              group: "Get Started",
+              pages: ["guides/introduction", "guides/quickstart"],
+            },
+            {
+              group: "Advanced",
+              pages: ["guides/advanced/config"],
+            },
+          ],
+        },
+        {
+          tab: "API Reference",
+          groups: [
+            {
+              group: "REST API",
+              pages: ["api/overview", "api/auth"],
+            },
+          ],
+        },
+      ],
+      global: {
+        anchors: [
+          { name: "GitHub", url: "https://github.com/example/repo" },
+        ],
+      },
+    } as RawMintlifyConfig["navigation"],
+  };
+
+  it("detects object-wrapped navigation as docs.json format", () => {
+    expect(isDocsJsonFormat(objectNavConfig)).toBe(true);
+  });
+
+  it("extracts tabs from navigation.tabs", () => {
+    const result = parseMintlifyConfig(objectNavConfig);
+    expect(result.navTabs).toHaveLength(2);
+    expect(result.navTabs.map((t) => t.name)).toEqual([
+      "Guides",
+      "API Reference",
+    ]);
+  });
+
+  it("extracts folders from object-wrapped navigation", () => {
+    const result = parseMintlifyConfig(objectNavConfig);
+    const folderNames = result.folders.map((f) => f.name);
+    expect(folderNames).toContain("Get Started");
+    expect(folderNames).toContain("Advanced");
+    expect(folderNames).toContain("REST API");
+  });
+
+  it("collects all page refs from object-wrapped navigation", () => {
+    const result = parseMintlifyConfig(objectNavConfig);
+    expect(result.pageRefs).toContain("guides/introduction");
+    expect(result.pageRefs).toContain("guides/quickstart");
+    expect(result.pageRefs).toContain("guides/advanced/config");
+    expect(result.pageRefs).toContain("api/overview");
+    expect(result.pageRefs).toContain("api/auth");
+  });
+
+  it("produces no errors for valid object-wrapped config", () => {
+    const result = parseMintlifyConfig(objectNavConfig);
+    expect(result.warnings).toHaveLength(0);
+  });
+
+  it("handles object-wrapped navigation with empty tabs", () => {
+    const config: RawMintlifyConfig = {
+      name: "Empty Tabs",
+      colors: { primary: "#000" },
+      navigation: {
+        tabs: [],
+        global: {},
+      } as RawMintlifyConfig["navigation"],
+    };
+    const result = parseMintlifyConfig(config);
+    expect(result.navTabs).toHaveLength(0);
+    expect(result.pageRefs).toHaveLength(0);
+    expect(result.warnings).toContain(
+      "Empty or missing 'navigation' in Mintlify config"
+    );
+  });
+});
