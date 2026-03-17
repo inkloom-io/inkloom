@@ -183,7 +183,7 @@ function convertPageToBlockNote(page: ParsedPage): ImportReadyPage {
     position: page.position,
     folderPath: page.folderPath,
     content: JSON.stringify(blocks),
-    isPublished: true,
+    isPublished: !page.isOrphaned,
   };
 }
 
@@ -285,7 +285,7 @@ export async function migrate(
             content: [{ type: "text", text: page.mdxContent }],
           },
         ]),
-        isPublished: true,
+        isPublished: !page.isOrphaned,
       });
     }
     onProgress?.("converting", i + 1, totalPages);

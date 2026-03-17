@@ -446,6 +446,7 @@ export async function parseMintlify(
       folderPath: "",
       position: pages.length,
       metadata: transformed.metadata,
+      isOrphaned: true,
     });
   }
 

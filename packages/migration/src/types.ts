@@ -62,6 +62,8 @@ export interface ParsedPage {
   position: number;
   /** Additional metadata extracted from frontmatter. */
   metadata: Record<string, unknown>;
+  /** True when the page was found on disk but not referenced in navigation. */
+  isOrphaned?: boolean;
 }
 
 /**
