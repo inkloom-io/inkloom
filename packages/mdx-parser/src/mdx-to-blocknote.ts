@@ -496,13 +496,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
     case "Frame": {
       const hint = getAttrValue(attrs, "hint");
       const caption = getAttrValue(attrs, "caption");
-      const childBlocks: BlockNoteBlock[] = [];
-      if (node.children) {
-        for (const child of node.children) {
-          childBlocks.push(...convertBlockNode(child));
-        }
-      }
-      return [
+      // Frame uses the group/sibling pattern: frame container followed by frameContent children
+      const result: BlockNoteBlock[] = [
         {
           type: "frame",
           props: {
@@ -510,9 +505,38 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             ...(caption ? { caption } : {}),
           },
           content: [],
-          children: childBlocks,
+          children: [],
         },
       ];
+      // Convert child nodes into frameContent blocks (siblings after the frame container)
+      if (node.children) {
+        for (const child of node.children) {
+          const childBlocks = convertBlockNode(child);
+          for (const childBlock of childBlocks) {
+            // Wrap each child's inline content in a frameContent block
+            if (childBlock.content && Array.isArray(childBlock.content) && childBlock.content.length > 0) {
+              result.push({
+                type: "frameContent",
+                props: {},
+                content: childBlock.content,
+                children: [],
+              });
+            } else if (childBlock.type === "paragraph" && childBlock.content) {
+              result.push({
+                type: "frameContent",
+                props: {},
+                content: childBlock.content,
+                children: [],
+              });
+            } else {
+              // For block-level content that doesn't map to inline, add as-is
+              // (it will appear after the frame group in the editor)
+              result.push(childBlock);
+            }
+          }
+        }
+      }
+      return result;
     }
 
     case "img": {

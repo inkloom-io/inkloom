@@ -1145,7 +1145,9 @@
         "expandable": "Expandable",
         "expandableSubtext": "Add a collapsible content section",
         "columns": "Columns",
-        "columnsSubtext": "Add a responsive column layout"
+        "columnsSubtext": "Add a responsive column layout",
+        "frame": "Frame",
+        "frameSubtext": "Add a bordered frame with optional hint and caption"
       }
     },
     "blocks": {
@@ -1198,7 +1200,12 @@
       "columnsContainer": "Columns",
       "columnCount": "{count} {count, plural, =1 {column} other {columns}}",
       "addColumn": "+ Add Column",
-      "columnsHint": "Click \"+ Add Column\" to add columns to this layout."
+      "columnsHint": "Click \"+ Add Column\" to add columns to this layout.",
+      "frameContainer": "Frame",
+      "addFrameContent": "+ Add Content",
+      "frameHint": "Click \"+ Add Content\" to add content inside this frame.",
+      "frameHintPlaceholder": "Add hint...",
+      "frameCaptionPlaceholder": "Add caption..."
     },
     "page": {
       "projectNotFound": "Project not found",

@@ -8,6 +8,7 @@ export const GROUP_MAPPINGS = {
   codeGroup: "codeBlock",
   accordionGroup: "accordion",
   columns: "column",
+  frame: "frameContent",
 } as const;
 
 export type GroupContainerType = keyof typeof GROUP_MAPPINGS;

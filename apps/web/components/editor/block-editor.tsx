@@ -40,6 +40,7 @@ import {
   RiFileList3Line,
   RiArrowDownSLine,
   RiLayoutColumnLine,
+  RiCropLine,
 } from "react-icons/ri";
 import { Button } from "@inkloom/ui/button";
 import {
@@ -504,6 +505,24 @@ export function BlockEditor({
         aliases: ["columns", "grid", "layout"],
         group: t("slashMenu.componentsGroup"),
         icon: <RiLayoutColumnLine size={18} />,
+      },
+      {
+        title: t("slashMenu.frame"),
+        subtext: t("slashMenu.frameSubtext"),
+        onItemClick: () => {
+          const cursorBlock = editorInstance.getTextCursorPosition().block;
+          editorInstance.insertBlocks(
+            [
+              { type: "frame" as const },
+              { type: "frameContent" as const },
+            ],
+            cursorBlock,
+            "after"
+          );
+        },
+        aliases: ["frame", "border", "container", "wrap"],
+        group: t("slashMenu.componentsGroup"),
+        icon: <RiCropLine size={18} />,
       },
     ];
   }, [t]);

@@ -595,21 +595,15 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
     }
 
     case "frame": {
-      const hint = block.props?.hint as string;
-      const caption = block.props?.caption as string;
-      const frameAttrs: string[] = [];
-      if (hint) frameAttrs.push(`hint="${hint}"`);
-      if (caption) frameAttrs.push(`caption="${caption}"`);
-      const attrStr = frameAttrs.length > 0 ? ` ${frameAttrs.join(" ")}` : "";
-      let childContent = "";
-      if (block.children && block.children.length > 0) {
-        for (const child of block.children) {
-          childContent += convertBlock(child, 0);
-        }
-      }
-      result = `<Frame${attrStr}>\n${childContent}</Frame>\n\n`;
-      // Return early to skip default child processing (children already handled)
-      return result;
+      // frame is handled in blockNoteToMDX for proper grouping
+      result = "";
+      break;
+    }
+
+    case "frameContent": {
+      const text = block.content && isInlineContentArray(block.content) ? convertInlineContent(block.content) : "";
+      result = text ? `${text}\n\n` : "";
+      break;
     }
 
     case "divider": {
@@ -935,6 +929,32 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
       }
       mdx += "</AccordionGroup>\n\n";
       prevBlockType = "accordionGroup";
+      continue;
+    }
+
+    // Handle frame - collect following frameContent blocks (skipping empty paragraphs)
+    if (block.type === "frame") {
+      const hint = (block.props?.hint as string) || "";
+      const caption = (block.props?.caption as string) || "";
+      const frameAttrs: string[] = [];
+      if (hint) frameAttrs.push(`hint="${hint}"`);
+      if (caption) frameAttrs.push(`caption="${caption}"`);
+      const attrStr = frameAttrs.length > 0 ? ` ${frameAttrs.join(" ")}` : "";
+      mdx += `<Frame${attrStr}>\n`;
+      i++;
+      while (i < blocks.length) {
+        const nextBlock = blocks[i];
+        if (!nextBlock) break;
+        if (isEmptyParagraph(nextBlock)) {
+          i++;
+          continue;
+        }
+        if (nextBlock.type !== "frameContent") break;
+        mdx += convertBlock(nextBlock);
+        i++;
+      }
+      mdx += `</Frame>\n\n`;
+      prevBlockType = "frame";
       continue;
     }
 

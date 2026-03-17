@@ -1,0 +1,180 @@
+/* Frame Container Block Styles */
+
+.bn-frame-container {
+  width: 100%;
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-radius: 0.5rem;
+  margin: 8px 0;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.bn-frame-container[data-has-children="true"] {
+  border-radius: 0.5rem 0.5rem 0 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.bn-frame-container[data-has-children="false"] {
+  border-radius: 0.5rem;
+}
+
+/* Hint area — above the frame header */
+.bn-frame-hint-area {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px 4px 12px;
+}
+
+.bn-frame-hint-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--editor-muted-foreground, #9ca3af);
+  flex-shrink: 0;
+}
+
+.bn-frame-hint-input {
+  flex: 1;
+  font-size: 0.8125rem;
+  color: var(--editor-muted-foreground, #9ca3af);
+  border: none;
+  background: transparent;
+  padding: 2px 4px;
+  border-radius: 4px;
+  outline: none;
+  font-style: normal;
+}
+
+.bn-frame-hint-input:hover {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+}
+
+.bn-frame-hint-input:focus {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+  color: var(--editor-foreground, #f9fafb);
+}
+
+.bn-frame-hint-input::placeholder {
+  color: var(--editor-muted-foreground, #6b7280);
+  opacity: 0.6;
+}
+
+/* Frame header with label and add button */
+.bn-frame-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--editor-border, rgba(128, 128, 128, 0.15));
+  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
+}
+
+.bn-frame-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--editor-muted-foreground, #9ca3af);
+}
+
+.bn-frame-add-button {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--editor-foreground, #f9fafb);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.bn-frame-add-button:hover {
+  background: var(--editor-primary, #6366f1);
+  border-color: var(--editor-primary, #6366f1);
+}
+
+/* Empty state hint */
+.bn-frame-empty-hint {
+  margin: 0;
+  padding: 16px;
+  font-size: 0.8rem;
+  color: var(--editor-muted-foreground, #6b7280);
+  text-align: center;
+}
+
+/* Caption area */
+.bn-frame-caption-area {
+  display: flex;
+  justify-content: center;
+  padding: 6px 12px 8px 12px;
+  border-top: 1px solid var(--editor-border, rgba(128, 128, 128, 0.1));
+}
+
+.bn-frame-caption-input {
+  font-size: 0.8125rem;
+  color: var(--editor-muted-foreground, #9ca3af);
+  border: none;
+  background: transparent;
+  padding: 2px 8px;
+  border-radius: 4px;
+  outline: none;
+  text-align: center;
+  width: 100%;
+  max-width: 80%;
+}
+
+.bn-frame-caption-input:hover {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+}
+
+.bn-frame-caption-input:focus {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+  color: var(--editor-foreground, #f9fafb);
+}
+
+.bn-frame-caption-input::placeholder {
+  color: var(--editor-muted-foreground, #6b7280);
+  opacity: 0.6;
+}
+
+/* FrameContent child block styles */
+.bn-frame-content-block {
+  width: 100%;
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-top: none;
+  margin: 0;
+  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.02));
+  transition: border-color 0.15s ease;
+}
+
+.bn-frame-content-block[data-in-group="true"] {
+  border-radius: 0;
+}
+
+.bn-frame-content-block[data-is-last="true"] {
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.bn-frame-content-block[data-in-group="false"] {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-radius: 0.5rem;
+  margin: 8px 0;
+}
+
+/* Content area inside frame content block */
+.bn-frame-content {
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  color: var(--editor-foreground, #f9fafb);
+  line-height: 1.6;
+  min-height: 40px;
+}
+
+.bn-frame-content:empty::before {
+  content: "Add content inside the frame...";
+  color: var(--editor-muted-foreground, #6b7280);
+  opacity: 0.6;
+}
