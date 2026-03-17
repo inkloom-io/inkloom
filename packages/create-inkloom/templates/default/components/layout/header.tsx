@@ -118,11 +118,11 @@ export function Header() {
           </div>
 
           {/* Search — on desktop, px-16 matches main content padding so left edges align */}
-          <div className="flex lg:flex-1 lg:min-w-0 lg:px-8 ml-auto lg:ml-0">
+          <div className="flex xl:flex-1 xl:min-w-0 xl:px-8 ml-auto xl:ml-0">
             {config.search?.enabled && (
               <button
                 onClick={() => setSearchOpen(true)}
-                className="search-trigger hidden lg:flex h-9 w-full max-w-sm items-center justify-start"
+                className="search-trigger hidden xl:flex h-9 w-full max-w-sm items-center justify-start"
               >
                 <Search className="h-4 w-4" />
                 <span className="ml-2 text-sm">Search...</span>
@@ -132,7 +132,7 @@ export function Header() {
             {hasChatWidget && (
               <button
                 onClick={handleAskAI}
-                className="ask-ai-button hidden lg:flex lg:ml-2"
+                className="ask-ai-button hidden xl:flex xl:ml-2"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>Ask AI</span>
@@ -140,11 +140,11 @@ export function Header() {
             )}
           </div>
 
-          <div className="flex items-center gap-1 lg:shrink-0 lg:pr-4">
+          <div className="flex items-center gap-2 lg:shrink-0 lg:pr-4">
             {config.search?.enabled && (
               <button
                 onClick={() => setSearchOpen(true)}
-                className="lg:hidden flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)] transition-colors"
+                className="xl:hidden flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)] transition-colors"
                 aria-label="Search"
               >
                 <Search className="h-4 w-4" />
@@ -180,7 +180,7 @@ export function Header() {
                 href={config.ctaButton.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="cta-button group hidden lg:inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)] px-4 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:opacity-90 hover:shadow-md"
+                className="cta-button group inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)] text-xs px-3 py-1 lg:text-sm lg:px-4 lg:py-1.5 font-medium text-white shadow-sm transition-all hover:opacity-90 hover:shadow-md"
               >
                 {config.ctaButton.label}
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
