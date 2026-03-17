@@ -437,7 +437,14 @@
           "whiteglove_migration": "White-glove migration",
           "custom_integrations": "Custom integrations"
         }
-      }
+      },
+      "migrationCredit": "Switching from GitBook or Mintlify? Import in one click and get a migration credit on your first annual invoice.",
+      "viewFullPricing": "View full pricing →",
+      "startTrial": "Start 14-day trial",
+      "trustLine": "Unlimited users during trial • One-click migration from GitBook and Mintlify",
+      "exampleOrg": "e.g., 5 free + 2 Pro + 1 Ultimate with 8 users = ",
+      "exampleOrgPerMo": "/mo annual",
+      "trialBadge": "14-day free trial"
     },
     "cta": {
       "title": "Ready to ship better docs?",
@@ -468,7 +475,9 @@
       "copyright": "© 2026 InkLoom. All rights reserved.",
       "twitter": "Twitter",
       "github": "GitHub",
-      "discord": "Discord"
+      "discord": "Discord",
+      "resourcesMintlifyAlt": "Mintlify Alternative",
+      "resourcesGitbookAlt": "GitBook Alternative"
     }
   },
   "changelog": {
@@ -1417,7 +1426,7 @@
       "pushToGithub": "Push to GitHub",
       "pullFromGithub": "Pull from GitHub",
       "pushSuccess": "Changes pushed to GitHub successfully.",
-      "pushSuccessPr": "Changes submitted as PR \u2014",
+      "pushSuccessPr": "Changes submitted as PR —",
       "viewOnGithub": "View on GitHub",
       "pushFailed": "Push failed. Please try again.",
       "pullSuccess": "Changes pulled from GitHub successfully.",
@@ -1684,7 +1693,7 @@
       "creditsUnit": "credits",
       "remaining": "{amount} remaining",
       "remainingCredits": "{credits} credits remaining",
-      "creditBreakdown": "{count} Ultimate projects \u00d7 {perProject} credits/mo",
+      "creditBreakdown": "{count} Ultimate projects × {perProject} credits/mo",
       "periodExpired": "Period expired",
       "resetsIn": "Resets in {days} day{days, plural, =1 {} other {s}}",
       "lowCreditsWarning": "{percent}% of included credits used.",
