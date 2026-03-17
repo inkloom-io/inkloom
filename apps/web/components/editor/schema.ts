@@ -11,6 +11,7 @@ import { ResponseField } from "./custom-blocks/response-field";
 import { Expandable } from "./custom-blocks/expandable";
 import { Columns, Column } from "./custom-blocks/columns";
 import { Frame, FrameContent } from "./custom-blocks/frame";
+import { Latex } from "./custom-blocks/latex";
 import { Video } from "./custom-blocks/video";
 import { IFrame } from "./custom-blocks/iframe";
 
@@ -38,6 +39,7 @@ export const schema = BlockNoteSchema.create({
     column: Column(),
     frame: Frame(),
     frameContent: FrameContent(),
+    latex: Latex(),
     video: Video(),
     iframe: IFrame(),
   },

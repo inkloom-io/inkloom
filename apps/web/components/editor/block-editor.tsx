@@ -41,6 +41,7 @@ import {
   RiArrowDownSLine,
   RiLayoutColumnLine,
   RiCropLine,
+  RiFunctionLine,
   RiVideoLine,
   RiCodeBoxLine,
 } from "react-icons/ri";
@@ -525,6 +526,20 @@ export function BlockEditor({
         aliases: ["frame", "border", "container", "wrap"],
         group: t("slashMenu.componentsGroup"),
         icon: <RiCropLine size={18} />,
+      },
+      {
+        title: t("slashMenu.latex"),
+        subtext: t("slashMenu.latexSubtext"),
+        onItemClick: () => {
+          editorInstance.insertBlocks(
+            [{ type: "latex" as const, props: { expression: "" } }],
+            editorInstance.getTextCursorPosition().block,
+            "after"
+          );
+        },
+        aliases: ["latex", "math", "equation", "katex"],
+        group: t("slashMenu.componentsGroup"),
+        icon: <RiFunctionLine size={18} />,
       },
       {
         title: t("slashMenu.video"),
