@@ -622,6 +622,41 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       break;
     }
 
+    case "iframe": {
+      const src = (block.props?.src as string) || "";
+      const title = block.props?.title as string;
+      const width = block.props?.width as string;
+      const height = block.props?.height as string;
+      const allow = block.props?.allow as string;
+      const allowFullScreen = block.props?.allowFullScreen === "true";
+
+      const attrParts = [
+        `src="${src}"`,
+        title ? `title="${title}"` : null,
+        width ? `width="${width}"` : null,
+        height ? `height="${height}"` : null,
+        allow ? `allow="${allow}"` : null,
+        allowFullScreen ? "allowFullScreen" : null,
+      ].filter(Boolean).join("\n  ");
+
+      result = `<iframe\n  ${attrParts}\n></iframe>\n\n`;
+      break;
+    }
+
+    case "video": {
+      const src = (block.props?.src as string) || "";
+      const boolAttrs = ["autoPlay", "muted", "loop", "playsInline", "controls"]
+        .filter((attr) => block.props?.[attr] === "true");
+
+      const attrParts = [
+        ...boolAttrs,
+        `src="${src}"`,
+      ].join("\n  ");
+
+      result = `<video\n  ${attrParts}\n></video>\n\n`;
+      break;
+    }
+
     case "divider": {
       result = `<hr />\n\n`;
       break;

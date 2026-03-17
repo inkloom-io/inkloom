@@ -548,6 +548,61 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       return result;
     }
 
+    case "iframe": {
+      const src = getAttrValue(attrs, "src") || "";
+      const title = getAttrValue(attrs, "title") || "";
+      const width = getAttrValue(attrs, "width") || "";
+      const height = getAttrValue(attrs, "height") || "";
+      const allow = getAttrValue(attrs, "allow") || "";
+      // allowFullScreen is a boolean attribute — check presence (value may be null, true, or undefined)
+      const allowFullScreen = attrs?.some((a) => a.name === "allowFullScreen") ? "true" : "false";
+      return [
+        {
+          type: "iframe",
+          props: {
+            src,
+            ...(title ? { title } : {}),
+            ...(width ? { width } : {}),
+            ...(height ? { height } : {}),
+            ...(allow ? { allow } : {}),
+            allowFullScreen,
+          },
+        },
+      ];
+    }
+
+    case "video": {
+      const src = getAttrValue(attrs, "src") || "";
+      // Boolean attributes — check presence (value may be null, true, or undefined)
+      const autoPlay = attrs?.some((a) => a.name === "autoPlay") ? "true" : "false";
+      const muted = attrs?.some((a) => a.name === "muted") ? "true" : "false";
+      const loop = attrs?.some((a) => a.name === "loop") ? "true" : "false";
+      const playsInline = attrs?.some((a) => a.name === "playsInline") ? "true" : "false";
+      const controls = attrs?.some((a) => a.name === "controls") ? "true" : "false";
+      return [
+        {
+          type: "video",
+          props: {
+            src,
+            autoPlay,
+            muted,
+            loop,
+            playsInline,
+            controls,
+          },
+        },
+      ];
+    }
+
+    case "br": {
+      return [
+        {
+          type: "paragraph",
+          content: [],
+        },
+      ];
+    }
+
     case "img": {
       const src = getAttrValue(attrs, "src") || "";
       const alt = getAttrValue(attrs, "alt") || "";
