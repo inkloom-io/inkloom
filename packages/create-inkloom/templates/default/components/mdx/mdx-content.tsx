@@ -30,6 +30,7 @@ import { ApiEndpoint } from "./api-endpoint";
 import { ParamField } from "./param-field";
 import { ResponseField } from "./response-field";
 import { Expandable } from "./expandable";
+import { MermaidDiagram } from "./mermaid-diagram";
 
 // Wrapper to adapt react-router's Link (uses `to`) to docs-renderer's LinkComponent (uses `href`)
 function RouterLink({
@@ -297,7 +298,34 @@ function MarkdownRenderer({ content }: { content: string }) {
             <code>{children}</code>
           );
         },
-        pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
+        pre: ({ children }) => {
+          // Check if the child <code> has className="language-mermaid"
+          if (
+            children &&
+            typeof children === "object" &&
+            "props" in (children as React.ReactElement)
+          ) {
+            const codeElement = children as React.ReactElement<{
+              className?: string;
+              children?: React.ReactNode;
+            }>;
+            if (
+              codeElement.props.className &&
+              codeElement.props.className.includes("language-mermaid")
+            ) {
+              const codeText =
+                typeof codeElement.props.children === "string"
+                  ? codeElement.props.children
+                  : Array.isArray(codeElement.props.children)
+                    ? codeElement.props.children
+                        .map((c: unknown) => (typeof c === "string" ? c : ""))
+                        .join("")
+                    : "";
+              return <MermaidDiagram code={codeText} />;
+            }
+          }
+          return <CodeBlock>{children}</CodeBlock>;
+        },
         blockquote: ({ children }) => <blockquote>{children}</blockquote>,
         table: ({ children }) => <table>{children}</table>,
         th: ({ children, style }) => <th style={style}>{children}</th>,

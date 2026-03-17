@@ -10,6 +10,8 @@
   "dependencies": {
     "@inkloom/docs-renderer": "workspace:*",
     "clsx": "^2.1.1",
+    "elkjs": "^0.9.3",
+    "mermaid": "^11.4.0",
     "lucide-react": "^0.563.0",
     "minisearch": "^7.2.0",
     "react": "^19.0.0",
