@@ -433,6 +433,79 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       ];
     }
 
+    case "ResponseField": {
+      const rfName = getAttrValue(attrs, "name") || "";
+      const rfType = getAttrValue(attrs, "type");
+      const rfRequired = attrs
+        ? attrs.some(
+            (a) =>
+              a.name === "required" && (a.value === null || a.value === true),
+          )
+        : false;
+      // Separate inline content from nested block children (Expandable, ResponseField)
+      const inlineNodes: MdastNode[] = [];
+      const nestedChildren: MdastNode[] = [];
+      if (node.children) {
+        for (const child of node.children) {
+          if (
+            child.type === "mdxJsxFlowElement" &&
+            (child.name === "Expandable" || child.name === "ResponseField")
+          ) {
+            nestedChildren.push(child);
+          } else {
+            inlineNodes.push(child);
+          }
+        }
+      }
+      const rfContent = flattenToInline(inlineNodes);
+      const blocks: BlockNoteBlock[] = [
+        {
+          type: "responseField",
+          props: {
+            name: rfName,
+            ...(rfType ? { type: rfType } : {}),
+            ...(rfRequired ? { required: true } : {}),
+          },
+          content: rfContent,
+        },
+      ];
+      for (const child of nestedChildren) {
+        if (
+          child.type === "mdxJsxFlowElement" &&
+          (child.name === "Expandable" || child.name === "ResponseField")
+        ) {
+          blocks.push(...convertMdxJsxElement(child));
+        }
+      }
+      return blocks;
+    }
+
+    case "Expandable": {
+      const expTitle = getAttrValue(attrs, "title") || "Details";
+      const expType = getAttrValue(attrs, "type");
+      const blocks: BlockNoteBlock[] = [
+        {
+          type: "expandable",
+          props: {
+            title: expTitle,
+            ...(expType ? { type: expType } : {}),
+          },
+          content: [],
+        },
+      ];
+      if (node.children) {
+        for (const child of node.children) {
+          if (
+            child.type === "mdxJsxFlowElement" &&
+            (child.name === "ResponseField" || child.name === "Expandable")
+          ) {
+            blocks.push(...convertMdxJsxElement(child));
+          }
+        }
+      }
+      return blocks;
+    }
+
     case "Image": {
       const src = getAttrValue(attrs, "src") || "";
       const alt = getAttrValue(attrs, "alt") || "";

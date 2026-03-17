@@ -163,6 +163,41 @@ describe("mdxToBlockNote", () => {
     expect(blocks[2].props?.language).toBe("python");
   });
 
+  it("parses a simple ResponseField", () => {
+    const mdx = `<ResponseField name="id" type="string" required>\nThe unique identifier.\n</ResponseField>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("responseField");
+    expect(blocks[0].props?.name).toBe("id");
+    expect(blocks[0].props?.type).toBe("string");
+    expect(blocks[0].props?.required).toBe(true);
+    const content = blocks[0].content as Array<{ type: string; text?: string }>;
+    expect(content.some((c) => c.text?.includes("unique identifier"))).toBe(true);
+  });
+
+  it("parses ResponseField with nested Expandable and child ResponseFields", () => {
+    const mdx = `<ResponseField name="navigation" type="Navigation[]" required>\nDescription text here\n<Expandable title="Navigation">\n<ResponseField name="group" type="string">\nNested description\n</ResponseField>\n</Expandable>\n</ResponseField>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[0].type).toBe("responseField");
+    expect(blocks[0].props?.name).toBe("navigation");
+    expect(blocks[0].props?.type).toBe("Navigation[]");
+    expect(blocks[0].props?.required).toBe(true);
+    expect(blocks[1].type).toBe("expandable");
+    expect(blocks[1].props?.title).toBe("Navigation");
+    expect(blocks[2].type).toBe("responseField");
+    expect(blocks[2].props?.name).toBe("group");
+    expect(blocks[2].props?.type).toBe("string");
+  });
+
+  it("parses Expandable with ResponseField children", () => {
+    const mdx = `<Expandable title="Properties">\n<ResponseField name="key" type="string">\nA key value.\n</ResponseField>\n</Expandable>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[0].type).toBe("expandable");
+    expect(blocks[0].props?.title).toBe("Properties");
+    expect(blocks[1].type).toBe("responseField");
+    expect(blocks[1].props?.name).toBe("key");
+  });
+
   it("returns at least one block for empty input", () => {
     const blocks = mdxToBlockNote("");
     expect(blocks).toHaveLength(1);
@@ -292,6 +327,57 @@ describe("blockNoteToMDX", () => {
     ]);
     expect(mdx).toContain("![My pic](https://img.com/pic.png)");
   });
+
+  it("converts a simple responseField", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "responseField",
+        props: { name: "id", type: "string", required: true },
+        content: [{ type: "text", text: "The unique identifier" }],
+      },
+    ]);
+    expect(mdx).toContain('<ResponseField name="id" type="string" required>');
+    expect(mdx).toContain("The unique identifier");
+    expect(mdx).toContain("</ResponseField>");
+  });
+
+  it("converts responseField with expandable children", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "responseField",
+        props: { name: "navigation", type: "Navigation[]", required: true },
+        content: [{ type: "text", text: "Description text" }],
+      },
+      {
+        type: "expandable",
+        props: { title: "Navigation" },
+        content: [],
+      },
+      {
+        type: "responseField",
+        props: { name: "group", type: "string" },
+        content: [{ type: "text", text: "Nested description" }],
+      },
+    ]);
+    expect(mdx).toContain('<ResponseField name="navigation" type="Navigation[]" required>');
+    expect(mdx).toContain("Description text");
+    expect(mdx).toContain('<Expandable title="Navigation">');
+    expect(mdx).toContain('<ResponseField name="group" type="string">');
+    expect(mdx).toContain("Nested description");
+    expect(mdx).toContain("</Expandable>");
+    expect(mdx).toContain("</ResponseField>");
+  });
+
+  it("converts empty responseField as self-closing", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "responseField",
+        props: { name: "id", type: "string" },
+        content: [],
+      },
+    ]);
+    expect(mdx).toContain('<ResponseField name="id" type="string" />');
+  });
 });
 
 describe("round-trip: MDX → BlockNote → MDX", () => {
@@ -323,6 +409,14 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     {
       name: "accordion group",
       mdx: `<AccordionGroup>\n<Accordion title="Question 1">\nAnswer 1.\n</Accordion>\n</AccordionGroup>`,
+    },
+    {
+      name: "simple responseField",
+      mdx: `<ResponseField name="id" type="string" required>\nThe unique identifier.\n</ResponseField>`,
+    },
+    {
+      name: "responseField with expandable",
+      mdx: `<ResponseField name="navigation" type="Navigation[]" required>\nDescription text here\n<Expandable title="Navigation">\n<ResponseField name="group" type="string">\nNested description\n</ResponseField>\n</Expandable>\n</ResponseField>`,
     },
   ];
 
