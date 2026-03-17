@@ -132,7 +132,7 @@ export function Header() {
             {hasChatWidget && (
               <button
                 onClick={handleAskAI}
-                className="ask-ai-button lg:ml-2"
+                className="ask-ai-button hidden lg:flex lg:ml-2"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>Ask AI</span>
@@ -151,26 +151,28 @@ export function Header() {
               </button>
             )}
             {config.search?.enabled && socialLinks.length > 0 && (
-              <div className="mx-1 h-5 w-px bg-[var(--color-border)] lg:hidden" />
+              <div className="mx-1 h-5 w-px bg-[var(--color-border)] hidden lg:block" />
             )}
-            {socialLinks.map((link) => {
-              const Icon = SOCIAL_ICONS[link.platform];
-              if (!Icon) return null;
-              return (
-                <a
-                  key={link.platform}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)] transition-colors"
-                  aria-label={SOCIAL_LABELS[link.platform] || link.platform}
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              );
-            })}
+            <div className="hidden lg:flex items-center gap-1">
+              {socialLinks.map((link) => {
+                const Icon = SOCIAL_ICONS[link.platform];
+                if (!Icon) return null;
+                return (
+                  <a
+                    key={link.platform}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)] transition-colors"
+                    aria-label={SOCIAL_LABELS[link.platform] || link.platform}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </a>
+                );
+              })}
+            </div>
             {socialLinks.length > 0 && (
-              <div className="mx-1 h-5 w-px bg-[var(--color-border)]" />
+              <div className="mx-1 h-5 w-px bg-[var(--color-border)] hidden lg:block" />
             )}
             <ThemeToggle />
             {config.ctaButton && (
@@ -178,7 +180,7 @@ export function Header() {
                 href={config.ctaButton.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="cta-button group inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)] px-4 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:opacity-90 hover:shadow-md"
+                className="cta-button group hidden lg:inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary)] px-4 py-1.5 text-sm font-medium text-white shadow-sm transition-all hover:opacity-90 hover:shadow-md"
               >
                 {config.ctaButton.label}
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
