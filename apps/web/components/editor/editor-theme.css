@@ -1073,6 +1073,80 @@
 }
 
 /* ============================================================================
+   COLUMNS GROUP - Responsive Grid Layout
+   Similar to Card Group but for arbitrary content columns
+   ============================================================================ */
+
+/* Column blocks in a group - inline-block for grid layout */
+.editor-theme-wrapper .bn-block-outer:has(.bn-column[data-in-group="true"]) {
+  display: inline-block !important;
+  vertical-align: top !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  box-sizing: border-box !important;
+}
+
+/* Fallback selector - without wrapper prefix */
+.bn-block-outer:has(.bn-column[data-in-group="true"]) {
+  display: inline-block !important;
+  vertical-align: top !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  box-sizing: border-box !important;
+}
+
+/* 2 columns - with wrapper */
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-column[data-in-group="true"][data-group-cols="2"]) {
+  width: 50% !important;
+}
+/* 2 columns - without wrapper */
+.bn-block-outer:has(.bn-column[data-in-group="true"][data-group-cols="2"]) {
+  width: 50% !important;
+}
+
+/* 3 columns - with wrapper */
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-column[data-in-group="true"][data-group-cols="3"]) {
+  width: 33.333% !important;
+}
+/* 3 columns - without wrapper */
+.bn-block-outer:has(.bn-column[data-in-group="true"][data-group-cols="3"]) {
+  width: 33.333% !important;
+}
+
+/* 4 columns - with wrapper */
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-column[data-in-group="true"][data-group-cols="4"]) {
+  width: 25% !important;
+}
+/* 4 columns - without wrapper */
+.bn-block-outer:has(.bn-column[data-in-group="true"][data-group-cols="4"]) {
+  width: 25% !important;
+}
+
+/* Column blocks that are NOT in a group - reset to normal flow */
+.editor-theme-wrapper .bn-block-outer:has(.bn-column:not([data-in-group="true"])),
+.bn-block-outer:has(.bn-column:not([data-in-group="true"])) {
+  display: block !important;
+  width: auto !important;
+}
+
+/* Ensure the column fills its container */
+.bn-column[data-in-group="true"] {
+  margin: 0 !important;
+  height: 100%;
+  box-sizing: border-box !important;
+}
+
+/* Columns container - connects to columns below */
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-columns[data-has-children="true"]),
+.bn-block-outer:has(.bn-columns[data-has-children="true"]) {
+  margin-bottom: 0 !important;
+}
+
+/* ============================================================================
    TABS GROUP - Tabbed Interface
    Hides non-active tabs when they're part of a Tabs container
    ============================================================================ */

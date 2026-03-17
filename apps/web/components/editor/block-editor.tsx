@@ -37,6 +37,7 @@ import {
   RiBracesLine,
   RiExpandUpDownLine,
   RiStackLine,
+  RiLayoutColumnLine,
 } from "react-icons/ri";
 import { Button } from "@inkloom/ui/button";
 import {
@@ -454,6 +455,25 @@ export function BlockEditor({
         aliases: ["accordiongroup", "faqgroup", "collapsible"],
         group: t("slashMenu.componentsGroup"),
         icon: <RiStackLine size={18} />,
+      },
+      {
+        title: t("slashMenu.columns"),
+        subtext: t("slashMenu.columnsSubtext"),
+        onItemClick: () => {
+          const cursorBlock = editorInstance.getTextCursorPosition().block;
+          editorInstance.insertBlocks(
+            [
+              { type: "columns" as const, props: { cols: "2" as const } },
+              { type: "column" as const },
+              { type: "column" as const },
+            ],
+            cursorBlock,
+            "after"
+          );
+        },
+        aliases: ["columns", "grid", "layout"],
+        group: t("slashMenu.componentsGroup"),
+        icon: <RiLayoutColumnLine size={18} />,
       },
     ];
   }, [t]);

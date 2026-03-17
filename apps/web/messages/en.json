@@ -1139,7 +1139,9 @@
         "accordionDefaultTitle": "Accordion Title",
         "accordionGroup": "Accordion Group",
         "accordionGroupSubtext": "Group multiple collapsible sections",
-        "accordionDefault": "Accordion {number}"
+        "accordionDefault": "Accordion {number}",
+        "columns": "Columns",
+        "columnsSubtext": "Add a responsive column layout"
       }
     },
     "blocks": {
@@ -1184,7 +1186,11 @@
       "cardCount": "{count} {count, plural, =1 {card} other {cards}}",
       "columns": "{count} columns",
       "addCard": "+ Add Card",
-      "cardGroupHint": "Click \"+ Add Card\" or use /card to add cards to this group."
+      "cardGroupHint": "Click \"+ Add Card\" or use /card to add cards to this group.",
+      "columnsContainer": "Columns",
+      "columnCount": "{count} {count, plural, =1 {column} other {columns}}",
+      "addColumn": "+ Add Column",
+      "columnsHint": "Click \"+ Add Column\" to add columns to this layout."
     },
     "page": {
       "projectNotFound": "Project not found",
