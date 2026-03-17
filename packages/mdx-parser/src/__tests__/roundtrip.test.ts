@@ -362,6 +362,66 @@ describe("mdxToBlockNote", () => {
     expect(blocks[0].type).toBe("paragraph");
   });
 
+  it("parses iframe basic", () => {
+    const blocks = mdxToBlockNote('<iframe src="https://youtube.com/embed/abc"></iframe>');
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("iframe");
+    expect(blocks[0].props?.src).toBe("https://youtube.com/embed/abc");
+  });
+
+  it("parses iframe with full attributes", () => {
+    const mdx = '<iframe src="https://youtube.com/embed/abc" title="YouTube" width="560" height="315" allow="accelerometer; autoplay" allowFullScreen></iframe>';
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("iframe");
+    expect(blocks[0].props?.src).toBe("https://youtube.com/embed/abc");
+    expect(blocks[0].props?.title).toBe("YouTube");
+    expect(blocks[0].props?.width).toBe("560");
+    expect(blocks[0].props?.height).toBe("315");
+    expect(blocks[0].props?.allow).toBe("accelerometer; autoplay");
+    expect(blocks[0].props?.allowFullScreen).toBe("true");
+  });
+
+  it("parses video basic with controls", () => {
+    const blocks = mdxToBlockNote('<video src="/demo.mp4" controls></video>');
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("video");
+    expect(blocks[0].props?.src).toBe("/demo.mp4");
+    expect(blocks[0].props?.controls).toBe("true");
+  });
+
+  it("parses video with all boolean props", () => {
+    const blocks = mdxToBlockNote('<video autoPlay muted loop playsInline src="/demo.mp4"></video>');
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("video");
+    expect(blocks[0].props?.src).toBe("/demo.mp4");
+    expect(blocks[0].props?.autoPlay).toBe("true");
+    expect(blocks[0].props?.muted).toBe("true");
+    expect(blocks[0].props?.loop).toBe("true");
+    expect(blocks[0].props?.playsInline).toBe("true");
+  });
+
+  it("parses br tag as empty paragraph", () => {
+    const blocks = mdxToBlockNote("<br />");
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("paragraph");
+    expect(blocks[0].content).toEqual([]);
+  });
+
+  it("parses br between content as paragraph, empty paragraph, paragraph", () => {
+    const mdx = "text before\n\n<br />\n\ntext after";
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks).toHaveLength(3);
+    expect(blocks[0].type).toBe("paragraph");
+    const firstContent = blocks[0].content as Array<{ type: string; text?: string }>;
+    expect(firstContent.some((c) => c.text === "text before")).toBe(true);
+    expect(blocks[1].type).toBe("paragraph");
+    expect(blocks[1].content).toEqual([]);
+    expect(blocks[2].type).toBe("paragraph");
+    const lastContent = blocks[2].content as Array<{ type: string; text?: string }>;
+    expect(lastContent.some((c) => c.text === "text after")).toBe(true);
+  });
+
   it("skips import/export statements", () => {
     const mdx = `import Component from './component'\n\n## Title`;
     const blocks = mdxToBlockNote(mdx);
@@ -638,6 +698,54 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</Columns>");
   });
 
+  it("converts an iframe block to MDX", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "iframe",
+        props: {
+          src: "https://youtube.com/embed/abc",
+          title: "YouTube",
+          width: "560",
+          height: "315",
+          allow: "accelerometer; autoplay",
+          allowFullScreen: "true",
+        },
+      },
+    ]);
+    expect(mdx).toContain('src="https://youtube.com/embed/abc"');
+    expect(mdx).toContain('title="YouTube"');
+    expect(mdx).toContain('width="560"');
+    expect(mdx).toContain('height="315"');
+    expect(mdx).toContain('allow="accelerometer; autoplay"');
+    expect(mdx).toContain("allowFullScreen");
+    expect(mdx).not.toContain('allowFullScreen="true"');
+    expect(mdx).toContain("</iframe>");
+  });
+
+  it("converts a video block to MDX", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "video",
+        props: {
+          src: "/demo.mp4",
+          autoPlay: "true",
+          muted: "true",
+          loop: "true",
+          playsInline: "true",
+          controls: "false",
+        },
+      },
+    ]);
+    expect(mdx).toContain('src="/demo.mp4"');
+    expect(mdx).toContain("autoPlay");
+    expect(mdx).toContain("muted");
+    expect(mdx).toContain("loop");
+    expect(mdx).toContain("playsInline");
+    expect(mdx).not.toContain("controls");
+    expect(mdx).not.toContain('autoPlay="true"');
+    expect(mdx).toContain("</video>");
+  });
+
   it("converts empty responseField as self-closing", () => {
     const mdx = blockNoteToMDX([
       {
@@ -713,6 +821,58 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
       expect(blocks2[0].type).toBe(blocks[0].type);
     });
   }
+
+  it("round-trips iframe with all props preserved", () => {
+    const blocks = [
+      {
+        type: "iframe",
+        props: {
+          src: "https://youtube.com/embed/abc",
+          title: "YouTube",
+          width: "560",
+          height: "315",
+          allow: "accelerometer; autoplay",
+          allowFullScreen: "true",
+        },
+      },
+    ];
+    const mdx = blockNoteToMDX(blocks);
+    const parsed = mdxToBlockNote(mdx);
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].type).toBe("iframe");
+    expect(parsed[0].props?.src).toBe("https://youtube.com/embed/abc");
+    expect(parsed[0].props?.title).toBe("YouTube");
+    expect(parsed[0].props?.width).toBe("560");
+    expect(parsed[0].props?.height).toBe("315");
+    expect(parsed[0].props?.allow).toBe("accelerometer; autoplay");
+    expect(parsed[0].props?.allowFullScreen).toBe("true");
+  });
+
+  it("round-trips video with boolean props preserved", () => {
+    const blocks = [
+      {
+        type: "video",
+        props: {
+          src: "/demo.mp4",
+          autoPlay: "true",
+          muted: "true",
+          loop: "true",
+          playsInline: "true",
+          controls: "false",
+        },
+      },
+    ];
+    const mdx = blockNoteToMDX(blocks);
+    const parsed = mdxToBlockNote(mdx);
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].type).toBe("video");
+    expect(parsed[0].props?.src).toBe("/demo.mp4");
+    expect(parsed[0].props?.autoPlay).toBe("true");
+    expect(parsed[0].props?.muted).toBe("true");
+    expect(parsed[0].props?.loop).toBe("true");
+    expect(parsed[0].props?.playsInline).toBe("true");
+    expect(parsed[0].props?.controls).toBe("false");
+  });
 
   it("round-trips ordered list with block content", () => {
     const input = "1. Step one:\n\n   ```bash\n   npm install\n   ```\n\n1. Step two:\n\n   ```bash\n   npm start\n   ```\n";
