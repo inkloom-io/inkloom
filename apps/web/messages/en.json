@@ -366,6 +366,51 @@
         "total": "Total",
         "plusSeats": "+ seats",
         "footnote": "10 docs projects, one org — pay only for the 3 that need paid features"
+      },
+      "featureMatrix": {
+        "features": "Features",
+        "plans": {
+          "free": "Free",
+          "pro": "Pro",
+          "ultimate": "Ultimate",
+          "enterprise": "Enterprise"
+        },
+        "freeSpecial": {
+          "unlimitedPages": "Unlimited pages",
+          "inkloomSubdomain": "*.inkloom.dev subdomain",
+          "communitySupport": "Community support"
+        },
+        "categories": {
+          "publishingCustomization": "Publishing & Customization",
+          "collaborationPermissions": "Collaboration & Permissions",
+          "integrations": "Integrations",
+          "aiEvergreen": "AI & Evergreen Docs",
+          "governanceCompliance": "Governance & Compliance",
+          "support": "Support"
+        },
+        "featureNames": {
+          "custom_domains": "Custom domains",
+          "remove_branding": "Remove InkLoom branding",
+          "advanced_branding": "Custom branding & theming",
+          "custom_og_image": "Custom OpenGraph images",
+          "analytics_scripts": "Custom analytics scripts",
+          "navigation_tabs": "Navigation tabs",
+          "realtime_collaboration": "Real-time collaboration",
+          "merge_requests": "Merge requests & branches",
+          "authenticated_access": "Password-protected docs",
+          "github_integration": "GitHub integration",
+          "api_access": "REST API & CLI",
+          "ai_codebase_indexing": "AI codebase indexing",
+          "ai_documentation_updating": "AI documentation updating",
+          "ai_assistants": "Chat with Docs widget",
+          "version_history": "Version history",
+          "sso_saml": "SSO / SAML",
+          "priority_support": "Priority support",
+          "dedicated_support": "Dedicated support",
+          "uptime_sla": "99.99% uptime SLA",
+          "whiteglove_migration": "White-glove migration",
+          "custom_integrations": "Custom integrations"
+        }
       }
     },
     "cta": {
