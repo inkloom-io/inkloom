@@ -143,7 +143,7 @@ export function SidebarContent(
         </ul>
       </nav>
       {config.showBranding && (
-        <div className="shrink-0 px-4 py-3">
+        <div className="shrink-0 px-4 pt-4 pb-6">
           <div
             className="h-px w-full mb-3"
             style={{

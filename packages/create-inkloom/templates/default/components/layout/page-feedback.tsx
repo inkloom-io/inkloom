@@ -110,7 +110,7 @@ export function PageFeedback() {
   );
 
   // Don't render if required config is missing (OSS / local mode)
-  if (!config.proxyUrl || !config.apiUrl || !projectId) return null;
+  // if (!config.proxyUrl || !config.apiUrl || !projectId) return null;
 
   return (
     <div className="page-feedback">

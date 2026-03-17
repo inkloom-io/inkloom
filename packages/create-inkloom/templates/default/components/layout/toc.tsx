@@ -156,13 +156,16 @@ export function TableOfContents() {
   return (
     <aside
       className={cn(
-        "toc sticky hidden w-64 xl:w-72 shrink-0 px-4 py-8 xl:block",
+        "toc sticky hidden w-64 xl:w-72 shrink-0 px-4 pt-8 pb-4 xl:block",
         "top-28 h-[calc(100vh-7rem)]"
       )}
     >
       <div className="flex flex-col h-full">
         <div className="px-4 flex-1 min-h-0 overflow-y-auto">
-          <h4 className="toc-title flex items-center gap-1.5"><ListStart className="h-4 w-4" />On This Page</h4>
+          <h4 className="toc-title flex items-center gap-1.5">
+            <ListStart className="h-4 w-4" />
+            On This Page
+          </h4>
           <nav>
             <ul className="space-y-1">
               {headings.map((heading) => (
@@ -184,7 +187,7 @@ export function TableOfContents() {
             </ul>
           </nav>
         </div>
-        <div className="px-4 pb-4 shrink-0">
+        <div className="px-4 shrink-0">
           <PageFeedback />
         </div>
       </div>

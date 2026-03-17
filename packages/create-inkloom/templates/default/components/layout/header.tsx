@@ -78,12 +78,12 @@ export function Header() {
                 <kbd className="search-kbd ml-auto">⌘K</kbd>
               </button>
             )}
-            {/* {hasChatWidget && ( */}
-            <button onClick={handleAskAI} className="ask-ai-button flex ml-2">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Ask AI</span>
-            </button>
-            {/* )} */}
+            {hasChatWidget && (
+              <button onClick={handleAskAI} className="ask-ai-button flex ml-2">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Ask AI</span>
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-2 lg:shrink-0 lg:pr-4">
@@ -96,15 +96,15 @@ export function Header() {
                 <Search className="h-4 w-4" />
               </button>
             )}
-            {/* {hasChatWidget && ( */}
-            <button
-              onClick={handleAskAI}
-              className="ask-ai-button inline-flex lg:hidden"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Ask AI</span>
-            </button>
-            {/* )} */}
+            {hasChatWidget && (
+              <button
+                onClick={handleAskAI}
+                className="ask-ai-button inline-flex lg:hidden"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Ask AI</span>
+              </button>
+            )}
             {socialLinks.length > 0 && (
               <div className="mx-1 h-5 w-px bg-[var(--color-border)] hidden md:block lg:hidden" />
             )}
