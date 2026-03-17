@@ -166,6 +166,22 @@ function convertInlineNodes(
             }
             result.push(child);
           }
+        } else if (tagName === "Latex") {
+          // Inline LaTeX — extract text content as expression
+          const expression = node.children
+            ? node.children
+                .filter((c) => c.type === "text" || c.type === "paragraph")
+                .map((c) =>
+                  c.value ||
+                  (c.children
+                    ? c.children.map((cc) => cc.value || "").join("")
+                    : "")
+                )
+                .join("")
+                .trim()
+            : "";
+          // Return as text placeholder since inline LaTeX can't be a block
+          result.push({ type: "text", text: `$${expression}$` });
         } else {
           // Unknown inline JSX element — extract text
           if (node.children) {
@@ -692,6 +708,29 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
         }
       }
       return blocks;
+    }
+
+    case "Latex": {
+      // Extract the text content as the LaTeX expression
+      const expression = node.children
+        ? node.children
+            .filter((c) => c.type === "text" || c.type === "paragraph")
+            .map((c) =>
+              c.value ||
+              (c.children
+                ? c.children.map((cc) => cc.value || "").join("")
+                : "")
+            )
+            .join("")
+            .trim()
+        : "";
+      return [
+        {
+          type: "latex",
+          props: { expression },
+          content: [],
+        },
+      ];
     }
 
     case "Image": {

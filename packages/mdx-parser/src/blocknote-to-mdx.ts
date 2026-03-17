@@ -622,6 +622,12 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       break;
     }
 
+    case "latex": {
+      const expression = (block.props?.expression as string) || "";
+      result = `<Latex>\n${expression}\n</Latex>\n\n`;
+      break;
+    }
+
     case "iframe": {
       const src = (block.props?.src as string) || "";
       const title = block.props?.title as string;
