@@ -60,7 +60,7 @@ export function DocsLayout() {
       <div className="mx-auto flex max-w-8xl gap-16">
         <Sidebar />
         <main className="min-w-0 flex-1 px-4 py-8 lg:px-0">
-          <article className="prose prose-slate dark:prose-invert max-w-4xl">
+          <article className="prose prose-slate dark:prose-invert max-w-[100ch]! lg:max-w-[72ch]! mr-0 lg:mr-6">
             <Outlet />
           </article>
         </main>

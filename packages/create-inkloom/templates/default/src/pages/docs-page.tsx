@@ -168,7 +168,8 @@ export function DocsPage() {
   const [loading, setLoading] = useState(!pageData);
 
   useEffect(() => {
-    const slug = location.pathname.replace(/^\/+/, "").replace(/\/+$/, "") || "index";
+    const slug =
+      location.pathname.replace(/^\/+/, "").replace(/\/+$/, "") || "index";
 
     setLoading(true);
     fetch(`/_content/${slug}.json`)
@@ -189,7 +190,11 @@ export function DocsPage() {
     const navItems = activeTab ? activeTab.navigation || [] : navigation;
     const folderTrail = buildFolderTrail(navItems, pathname) || [];
     // Title format: pageTitle | innerFolder | ... | outerFolder | projectName Documentation
-    const parts = [pageData.title, ...folderTrail.reverse(), `${config.title} Documentation`];
+    const parts = [
+      pageData.title,
+      ...folderTrail.reverse(),
+      `${config.title} Documentation`,
+    ];
     document.title = parts.join(" | ");
   }, [pageData, location.pathname, config.title, navigation, tabs]);
 
@@ -219,7 +224,10 @@ export function DocsPage() {
   const activeTab = tabs.find((tab) => pathname.startsWith(`/${tab.slug}`));
   const navItems = activeTab ? activeTab.navigation || [] : navigation;
   const folderTrail = buildFolderTrail(navItems, pathname);
-  const folderName = folderTrail && folderTrail.length > 0 ? folderTrail[folderTrail.length - 1] : null;
+  const folderName =
+    folderTrail && folderTrail.length > 0
+      ? folderTrail[folderTrail.length - 1]
+      : null;
 
   // Build flat page list for prev/next navigation
   const flatPages = flattenNavItems(navItems);
@@ -289,33 +297,46 @@ export function DocsPage() {
       )}
       <MDXContent source={pageData.content} />
       {(prevPage || nextPage) && (
-        <nav
-          aria-label="Page navigation"
-          className="not-prose docs-prev-next"
-        >
-          {prevPage ? (
-            <RouterLink to={prevPage.href} className="docs-prev-next-card">
-              <span className="docs-prev-next-label">Previous</span>
-              <span className="docs-prev-next-title">
-                <ChevronLeft className="docs-prev-next-arrow" />
-                {prevPage.title}
-              </span>
-            </RouterLink>
-          ) : (
-            <span />
-          )}
-          {nextPage ? (
-            <RouterLink to={nextPage.href} className="docs-prev-next-card docs-prev-next-card-next">
-              <span className="docs-prev-next-label">Next</span>
-              <span className="docs-prev-next-title">
-                {nextPage.title}
-                <ChevronRight className="docs-prev-next-arrow" />
-              </span>
-            </RouterLink>
-          ) : (
-            <span />
-          )}
-        </nav>
+        <>
+          <div
+            className="mt-12 h-px w-full"
+            style={{
+              background:
+                "linear-gradient(90deg, var(--color-border) 0%, hsl(240 4% 8%) 100%)",
+            }}
+          />
+
+          <nav
+            aria-label="Page navigation"
+            className="not-prose docs-prev-next"
+          >
+            {prevPage ? (
+              <RouterLink to={prevPage.href} className="docs-prev-next-card">
+                <span className="docs-prev-next-label">Previous</span>
+                <span className="docs-prev-next-title">
+                  <ChevronLeft className="docs-prev-next-arrow" />
+                  {prevPage.title}
+                </span>
+              </RouterLink>
+            ) : (
+              <span />
+            )}
+            {nextPage ? (
+              <RouterLink
+                to={nextPage.href}
+                className="docs-prev-next-card docs-prev-next-card-next"
+              >
+                <span className="docs-prev-next-label">Next</span>
+                <span className="docs-prev-next-title">
+                  {nextPage.title}
+                  <ChevronRight className="docs-prev-next-arrow" />
+                </span>
+              </RouterLink>
+            ) : (
+              <span />
+            )}
+          </nav>
+        </>
       )}
     </div>
   );
