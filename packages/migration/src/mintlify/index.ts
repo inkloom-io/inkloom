@@ -385,6 +385,21 @@ export async function parseMintlify(
   }
 
   // ── Step 5: Find orphaned pages (on disk but not in navigation) ────────
+  // Known Mintlify non-page directory prefixes (reusable content fragments)
+  const SNIPPET_DIR_PREFIXES = ["snippets/", "_snippets/"];
+  // Well-known repo meta-file basenames (never documentation pages)
+  const REPO_META_BASENAMES = new Set([
+    "readme",
+    "contributing",
+    "changelog",
+    "license",
+    "code_of_conduct",
+    "agents",
+    "claude",
+    "security",
+    "codeowners",
+  ]);
+
   const allDiskFiles = walkDirectory(resolvedDir, resolvedDir);
   for (const diskFile of allDiskFiles) {
     if (resolvedPageRefs.has(diskFile)) continue;
@@ -393,8 +408,14 @@ export async function parseMintlify(
     const ext = extname(diskFile);
     if (!PAGE_EXTENSIONS.has(ext)) continue;
 
-    // Check if this is an index or overview page
+    // Skip files in Mintlify snippet directories
+    if (SNIPPET_DIR_PREFIXES.some((prefix) => diskFile.startsWith(prefix)))
+      continue;
+
+    // Skip well-known repo meta-files
     const baseName = basename(diskFile, ext);
+    if (REPO_META_BASENAMES.has(baseName.toLowerCase())) continue;
+
     const isIndex = baseName === "index" || baseName === "README";
 
     const filePath = resolve(resolvedDir, diskFile);
