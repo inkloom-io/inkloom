@@ -94,10 +94,11 @@ export function CodeBlock({ children, className, language, height, title, ...pro
 
   const code = getCodeContent();
   const lang = getLanguage();
+  const isMdxSnippet = lang === "mdx";
 
-  // Highlight the code
+  // Highlight the code (skip for mdx snippets — render as plain text)
   useEffect(() => {
-    if (!code) return;
+    if (!code || isMdxSnippet) return;
 
     let cancelled = false;
 
@@ -110,7 +111,7 @@ export function CodeBlock({ children, className, language, height, title, ...pro
     return () => {
       cancelled = true;
     };
-  }, [code, lang, highlightCode]);
+  }, [code, lang, highlightCode, isMdxSnippet]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code);
@@ -122,12 +123,18 @@ export function CodeBlock({ children, className, language, height, title, ...pro
 
   return (
     <div className="code-block-wrapper group">
-      <div className="code-block-label">
-        <span className="code-block-label-text">
-          {title || LANGUAGE_LABELS[lang] || lang}
-        </span>
-      </div>
-      {highlightedHtml ? (
+      {(!isMdxSnippet || title) && (
+        <div className="code-block-label">
+          <span className="code-block-label-text">
+            {title || LANGUAGE_LABELS[lang] || lang}
+          </span>
+        </div>
+      )}
+      {isMdxSnippet ? (
+        <pre className={className} style={preStyle} {...props}>
+          <code>{code}</code>
+        </pre>
+      ) : highlightedHtml ? (
         <div
           className="code-block-highlighted"
           style={preStyle}

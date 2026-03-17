@@ -41,6 +41,7 @@ const LANGUAGES = [
   { value: "yaml", label: "YAML" },
   { value: "markdown", label: "Markdown" },
   { value: "mermaid", label: "Mermaid" },
+  { value: "mdx", label: "MDX Snippet" },
   { value: "plaintext", label: "Plaintext" },
 ];
 
@@ -332,22 +333,24 @@ export const CodeBlock = createReactBlockSpec(
           data-code-index={groupInfo?.index ?? 0}
         >
           <div className="bn-code-block-header">
-            <select
-              className="bn-code-block-language-select"
-              value={language}
-              onChange={(e) => {
-                props.editor.updateBlock(props.block, {
-                  props: { language: e.target.value },
-                });
-              }}
-              contentEditable={false}
-            >
-              {LANGUAGES.map((lang: any) => (
-                <option key={lang.value} value={lang.value}>
-                  {lang.label}
-                </option>
-              ))}
-            </select>
+            {language !== "mdx" && (
+              <select
+                className="bn-code-block-language-select"
+                value={language}
+                onChange={(e) => {
+                  props.editor.updateBlock(props.block, {
+                    props: { language: e.target.value },
+                  });
+                }}
+                contentEditable={false}
+              >
+                {LANGUAGES.map((lang: any) => (
+                  <option key={lang.value} value={lang.value}>
+                    {lang.label}
+                  </option>
+                ))}
+              </select>
+            )}
             <input
               type="text"
               className="bn-code-block-title-input"
