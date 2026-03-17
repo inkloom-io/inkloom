@@ -46,7 +46,6 @@ interface NavTabsConfigProps {
   branchId: Id<"branches">;
   initialTabs?: LegacyNavTab[];
   onSave: (tabs: NavTab[]) => Promise<void>;
-  reservedSlugs?: string[];
 }
 
 // Migrate old tab format to new format
@@ -92,7 +91,6 @@ export function NavTabsConfig({
   branchId,
   initialTabs = [],
   onSave,
-  reservedSlugs = [],
 }: NavTabsConfigProps) {
   const t = useTranslations("settings");
   // Migrate initial tabs to new format
@@ -246,7 +244,6 @@ export function NavTabsConfig({
   // Compute slug errors for each tab
   const slugErrors = useMemo(() => {
     const errors: Record<string, string> = {};
-    const reservedSet = new Set(reservedSlugs.map((s) => s.toLowerCase()));
 
     for (const tab of tabs) {
       if (!tab.slug) continue;
@@ -259,16 +256,10 @@ export function NavTabsConfig({
       );
       if (isDuplicate) {
         errors[tab.id] = t("navTabs.duplicateSlugError");
-        continue;
-      }
-
-      // Check against reserved slugs (e.g., auto-generated OpenAPI tab)
-      if (reservedSet.has(slugLower)) {
-        errors[tab.id] = t("navTabs.reservedSlugError");
       }
     }
     return errors;
-  }, [tabs, reservedSlugs, t]);
+  }, [tabs, t]);
 
   const hasSlugErrors = Object.keys(slugErrors).length > 0;
 

@@ -130,6 +130,7 @@ interface ProjectConfig {
   openapi?: {
     specContent: string;
     basePath: string;
+    tabId?: string;
   };
 }
 
@@ -1995,14 +1996,6 @@ export async function generateSiteFiles(
   folders: Folder[],
   config: ProjectConfig
 ): Promise<GenerateSiteResult> {
-  // If OpenAPI is configured, filter out any manually-created folder/pages
-  // that clash with the OpenAPI basePath to avoid duplicate routes
-  if (config.openapi) {
-    const basePath = config.openapi.basePath || "/api-reference";
-    folders = folders.filter((f) => f.path !== basePath);
-    pages = pages.filter((p) => !p.path.startsWith(basePath + "/"));
-  }
-
   const files: GeneratedFile[] = [];
   const warnings: string[] = [];
 
@@ -2217,11 +2210,38 @@ export async function generateSiteFiles(
       };
 
       if (hasTabs) {
-        // Create a dedicated tab for API Reference, but only if
-        // the user hasn't already defined a manual tab with the same slug
+        // Determine target tab: use tabId if set, otherwise find by slug match,
+        // otherwise auto-create a new tab
         const apiTabSlug = basePath.replace(/^\//, "");
-        const existingTab = tabsConfig.find((t) => t.slug === apiTabSlug);
-        if (!existingTab) {
+        const targetTabId = config.openapi?.tabId;
+        const existingTab = targetTabId
+          ? tabsConfig.find((t) => t.id === targetTabId)
+          : tabsConfig.find((t) => t.slug === apiTabSlug);
+
+        if (existingTab) {
+          // Merge: append generated API navigation into the existing tab's navigation
+          const existingNavKey = existingTab.slug;
+          const navFileIdx = files.findIndex(
+            (f) => f.file === `lib/navigation-${existingNavKey}.json`
+          );
+          if (navFileIdx >= 0) {
+            const existingNavigation: NavItem[] = JSON.parse(files[navFileIdx]!.data);
+            existingNavigation.push(apiNavGroup);
+            files[navFileIdx] = {
+              file: `lib/navigation-${existingNavKey}.json`,
+              data: JSON.stringify(existingNavigation, null, 2),
+            };
+            allNavigations.tabs[existingNavKey] = existingNavigation;
+          } else {
+            // Navigation file for this tab doesn't exist yet (edge case)
+            files.push({
+              file: `lib/navigation-${existingNavKey}.json`,
+              data: JSON.stringify([apiNavGroup], null, 2),
+            });
+            allNavigations.tabs[existingNavKey] = [apiNavGroup];
+          }
+        } else {
+          // Auto-create a new tab for API Reference
           tabsConfig.push({
             id: `api-ref-${Date.now()}`,
             name: "API Reference",
@@ -2241,8 +2261,8 @@ export async function generateSiteFiles(
             file: `lib/navigation-${apiTabSlug}.json`,
             data: JSON.stringify(apiResult.navigation, null, 2),
           });
+          allNavigations.tabs[apiTabSlug] = apiResult.navigation;
         }
-        allNavigations.tabs[apiTabSlug] = apiResult.navigation;
         // Update combined navigation
         const combinedIdx = files.findIndex((f) => f.file === "lib/all-navigation.json");
         if (combinedIdx >= 0) {

@@ -121,6 +121,7 @@ export const coreTables = {
               })
             ),
             basePath: v.optional(v.string()),
+            tabId: v.optional(v.string()),
             updatedAt: v.number(),
           })
         ),

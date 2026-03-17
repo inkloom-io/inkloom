@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id, Doc } from "@/convex/_generated/dataModel";
@@ -33,19 +32,6 @@ export function ContentTab({ projectId, project, folders }: ContentTabProps) {
   const updateSettings = useMutation(api.projects.updateSettings);
   const t = useTranslations("settings.content");
 
-  // Compute reserved slugs from OpenAPI config (auto-generated tab slug)
-  const reservedSlugs = useMemo(() => {
-    const slugs: string[] = [];
-    if (project.settings?.openapi) {
-      const basePath = (project.settings.openapi as { basePath?: string }).basePath;
-      const slug = basePath ? basePath.replace(/^\//, "") : "api-reference";
-      if (slug) {
-        slugs.push(slug);
-      }
-    }
-    return slugs;
-  }, [project.settings?.openapi]);
-
   return (
     <div className="space-y-6">
       <GatedSection
@@ -73,7 +59,6 @@ export function ContentTab({ projectId, project, folders }: ContentTabProps) {
               <NavTabsConfig
                 branchId={project.defaultBranchId}
                 initialTabs={project.settings?.navTabs ?? []}
-                reservedSlugs={reservedSlugs}
                 onSave={async (tabs) => {
                   await updateSettings({
                     projectId: projectId as Id<"projects">,
@@ -103,6 +88,7 @@ export function ContentTab({ projectId, project, folders }: ContentTabProps) {
             projectId={projectId}
             initialConfig={project.settings?.openapi}
             folders={folders}
+            navTabs={project.settings?.navTabs ?? []}
             onSave={async (openapiConfig: NonNullable<typeof project.settings>["openapi"]) => {
               await updateSettings({
                 projectId: projectId as Id<"projects">,
