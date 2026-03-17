@@ -15,10 +15,12 @@
   },
   "dependencies": {
     "clsx": "^2.1.0",
+    "katex": "^0.16.38",
     "lucide-react": "^0.563.0"
   },
   "devDependencies": {
     "@inkloom/typescript-config": "workspace:*",
+    "@types/katex": "^0.16.8",
     "@types/react": "^18.2.0",
     "typescript": "^5.4.5"
   },

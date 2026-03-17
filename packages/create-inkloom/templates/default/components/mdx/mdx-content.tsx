@@ -22,6 +22,7 @@ import {
   Heading,
   CustomLink,
   Frame,
+  Latex,
   DocsRendererProvider,
 } from "@inkloom/docs-renderer";
 import { Link } from "react-router";
@@ -72,7 +73,7 @@ interface MDXContentProps {
 }
 
 interface ParsedComponent {
-  type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "Columns" | "Column" | "CodeGroup" | "ApiEndpoint" | "ParamField" | "ResponseField" | "Expandable" | "Frame";
+  type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "Columns" | "Column" | "CodeGroup" | "ApiEndpoint" | "ParamField" | "ResponseField" | "Expandable" | "Frame" | "Latex";
   props: Record<string, string | number | boolean>;
   children: string;
   startIndex: number;
@@ -143,7 +144,7 @@ function findBalancedCloseTag(content: string, tagName: string, searchFrom: numb
 // Find all MDX components in the content
 function findMDXComponents(content: string): ParsedComponent[] {
   const components: ParsedComponent[] = [];
-  const componentNames = ["Card", "CardGroup", "Callout", "Image", "Tabs", "Tab", "Steps", "Step", "Accordion", "AccordionGroup", "Columns", "Column", "CodeGroup", "ApiEndpoint", "ParamField", "ResponseField", "Expandable", "Frame"];
+  const componentNames = ["Card", "CardGroup", "Callout", "Image", "Tabs", "Tab", "Steps", "Step", "Accordion", "AccordionGroup", "Columns", "Column", "CodeGroup", "ApiEndpoint", "ParamField", "ResponseField", "Expandable", "Frame", "Latex"];
 
   for (const name of componentNames) {
     // Use negative lookahead to ensure exact component name matching
@@ -650,6 +651,9 @@ function renderComponent(
           {children && <MDXContent source={children} />}
         </Frame>
       );
+
+    case "Latex":
+      return <Latex key={key} expression={props.expression as string} />;
 
     default:
       return null;

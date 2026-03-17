@@ -57,6 +57,7 @@
   "dependencies": {
     "commander": "^12.0.0",
     "fs-extra": "^11.2.0",
+    "katex": "^0.16.38",
     "picocolors": "^1.0.0",
     "prompts": "^2.4.2"
   },
