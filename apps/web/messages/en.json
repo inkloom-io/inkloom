@@ -1496,7 +1496,11 @@
       "failedToConnect": "Failed to connect",
       "repoNotFound": "Repository not found",
       "syncFailed": "Sync failed. Please try again.",
-      "disconnectFailed": "Failed to disconnect repository. Please try again."
+      "disconnectFailed": "Failed to disconnect repository. Please try again.",
+      "branch": "Branch",
+      "selectBranchPlaceholder": "Select a branch",
+      "loadingBranches": "Loading branches...",
+      "branchLabel": "Branch"
     },
     "navTabs": {
       "noTabsConfigured": "No navigation tabs configured. Add tabs to organize your documentation into sections.",
