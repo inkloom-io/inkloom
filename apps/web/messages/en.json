@@ -1900,6 +1900,19 @@
       "monthly": "Monthly",
       "annual": "Annual",
       "discount": "-20%"
+    },
+    "migrationCredit": {
+      "signupBanner": "You're eligible for a 1-month migration credit if you complete your import and start an annual plan.",
+      "onboardingBanner": "Start your import to unlock your annual migration credit.",
+      "onboardingCta": "Start import",
+      "dashboardBanner": "Switching from Mintlify or GitBook? Import your docs and unlock a migration credit on your first annual plan.",
+      "wizardHelper": "Complete your import during trial and apply your migration credit when you go annual.",
+      "importSuccessTitle": "Your migration credit is unlocked.",
+      "importSuccessDescription": "Choose an annual plan to apply it to your first invoice.",
+      "planSelectorNote": "Annual saves 20%, plus your migration credit will be applied at checkout.",
+      "checkoutLineItem": "Migration credit (1 month)",
+      "checkoutTooltip": "Migration credit equals 1 month of your selected annual plan and is applied once on your first annual invoice after successful import.",
+      "postPurchase": "Your first annual invoice includes a one-time migration credit of {amount}. Future renewals use the standard annual price."
     }
   },
   "plans": {
