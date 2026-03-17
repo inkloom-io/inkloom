@@ -2275,5 +2275,133 @@
     "submitting": "Sending…",
     "successMessage": "Thanks for your feedback!",
     "submitHint": "{shortcut} to send"
+  },
+  "gitbookAlternative": {
+    "nav": {
+      "features": "Features",
+      "pricing": "Pricing",
+      "docs": "Docs",
+      "signIn": "Sign in",
+      "getStartedFree": "Get started free"
+    },
+    "hero": {
+      "badge": "GitBook Alternative",
+      "headline": "Stop upgrading your whole org for one docs project",
+      "subhead": "Migrate from GitBook in one click. Keep a single invoice. Choose Pro or Ultimate per project instead of locking the whole org to one tier.",
+      "ctaImport": "Import from GitBook",
+      "ctaPricing": "Compare pricing",
+      "note": "Save 20% on annual. Eligible GitBook migrations also receive a 1-month migration credit."
+    },
+    "problems": {
+      "title": "GitBook pain points you know too well",
+      "subtitle": "Great product, but the pricing model creates friction as your team grows.",
+      "card1Title": "Org-wide tier lock-in",
+      "card1Description": "Need advanced features for one project? You have to upgrade your entire organization. Every project, every user — all at the highest tier.",
+      "card2Title": "Per-user costs stack quickly",
+      "card2Description": "All users sit at the same tier price regardless of what they work on. Five users editing a simple changelog pay the same as five editing enterprise API docs.",
+      "card3Title": "Public and internal docs share a plan",
+      "card3Description": "Your public developer docs and internal knowledge base rarely need the same feature set. With GitBook, they're locked to the same plan anyway."
+    },
+    "comparison": {
+      "title": "InkLoom vs GitBook",
+      "feature": "Feature",
+      "inkloom": "InkLoom",
+      "gitbook": "GitBook",
+      "orgWidePlan": "Org-wide plan requirement",
+      "perProject": "No (per-project)",
+      "orgWide": "Yes (org-wide)",
+      "perProjectTiering": "Per-project tiering",
+      "yes": "Yes",
+      "no": "No",
+      "unlimitedProjects": "Unlimited projects",
+      "varies": "Varies",
+      "singleInvoice": "Single invoice",
+      "migrationPath": "Migration path",
+      "oneClickImport": "One-click import",
+      "na": "N/A",
+      "aiDocs": "AI-powered evergreen docs",
+      "disclaimer": "Competitor information based on publicly available pricing as of March 2026."
+    },
+    "pricingProof": {
+      "title": "Honest pricing examples",
+      "subtitle": "Real scenarios comparing InkLoom's per-project model to GitBook's org-wide approach.",
+      "example1Badge": "Simple team",
+      "example1Title": "2 projects, 5 users",
+      "example1Desc": "A small team running two Pro documentation projects — one for public API docs and one for internal guides.",
+      "inkloomCost": "InkLoom (annual)",
+      "perMonth": "/mo",
+      "example1Breakdown": "2 Pro projects × ${projectCost}/mo + 5 seats × ${seatCost}/mo",
+      "example2Badge": "Mixed-tier org",
+      "example2Title": "8 projects, 10 users",
+      "example2Desc": "A growing org with 5 free projects (changelogs, FAQs), 2 Pro projects (API docs, guides), and 1 Ultimate project (enterprise portal).",
+      "example2Breakdown": "5 Free + 2 Pro × ${proCost}/mo + 1 Ultimate × ${ultimateCost}/mo + 10 seats × ${seatCost}/mo",
+      "example2Highlight": "Only pay Ultimate pricing for the project that needs it — not the entire org.",
+      "disclaimer": "Prices shown at annual rates. Actual savings depend on your specific team size and project mix."
+    },
+    "flexibility": {
+      "title": "Why pay Ultimate prices for a simple changelog?",
+      "subtitle": "With InkLoom, every project gets its own tier. Mix Free, Pro, and Ultimate within a single organization — one invoice, maximum flexibility.",
+      "point1": "Free tier for simple changelogs, FAQs, and public guides",
+      "point2": "Pro tier for projects that need custom domains and analytics",
+      "point3": "Ultimate tier only where you need automation and scale",
+      "visualLabel": "One org, multiple tiers",
+      "projectPublicDocs": "Public Docs",
+      "projectApiRef": "API Reference",
+      "projectChangelog": "Changelog",
+      "projectInternalKb": "Internal KB",
+      "projectEnterpriseDocs": "Enterprise Docs",
+      "projectGuides": "Guides",
+      "tierFree": "Free",
+      "tierPro": "Pro",
+      "tierUltimate": "Ultimate",
+      "visualCaption": "Each project picks its own tier — no org-wide lock-in."
+    },
+    "migration": {
+      "title": "Migrate in minutes, not days",
+      "subtitle": "Our one-click importer handles the heavy lifting so you can focus on your docs.",
+      "step1Title": "Sign up and connect",
+      "step1Desc": "Create your InkLoom account and select 'Import from GitBook' during onboarding.",
+      "step2Title": "Select your spaces",
+      "step2Desc": "Choose which GitBook spaces to import. We preserve your page structure, navigation, and content.",
+      "step3Title": "Review and customize",
+      "step3Desc": "Preview your imported docs, pick a theme, and configure your custom domain.",
+      "step4Title": "Go live",
+      "step4Desc": "Deploy to production with a single click. Your docs are live on the edge in seconds."
+    },
+    "ai": {
+      "badge": "AI-Powered",
+      "title": "Documentation that stays up to date automatically",
+      "description": "InkLoom uses AI to generate, update, and maintain your documentation. Connect your codebase and let AI keep your docs in sync with every commit.",
+      "feature1": "Generate docs from your codebase with one command",
+      "feature2": "Auto-detect outdated content and suggest updates",
+      "feature3": "AI-powered search that understands technical context",
+      "feature4": "BYOK support — use your own OpenAI or Anthropic key",
+      "cardLabel": "AI Documentation Engine",
+      "cardLine1Prefix": "Scan:",
+      "cardLine1": "Analyzing 847 source files across 12 modules…",
+      "cardLine2Prefix": "Generate:",
+      "cardLine2": "Created 23 pages with API references, guides, and examples",
+      "cardLine3Prefix": "Update:",
+      "cardLine3": "Detected 4 outdated sections — drafts ready for review"
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "q1": "How does the GitBook import work?",
+      "a1": "Our CLI-based importer connects to your GitBook workspace and pulls your content, page structure, and navigation. It converts GitBook-specific blocks to InkLoom's format automatically. The entire process typically takes a few minutes.",
+      "q2": "Will my URLs and redirects be preserved?",
+      "a2": "InkLoom preserves your page slugs during import. You can set up your custom domain and configure redirects in your project settings to ensure existing links continue working.",
+      "q3": "Can I keep some projects on GitBook while testing InkLoom?",
+      "a3": "Absolutely. Import one project first, test it out, and migrate the rest when you're ready. InkLoom doesn't require an all-or-nothing switch.",
+      "q4": "What about the migration credit?",
+      "a4": "Eligible GitBook migrations receive a 1-month credit on their first paid project. The credit is applied automatically when you import from GitBook during signup.",
+      "q5": "How does per-project pricing work?",
+      "a5": "Each project in your organization can be on a different tier — Free, Pro, or Ultimate. You only pay for the tier each project needs. Seats are shared across your organization, so you pay once per editor regardless of how many projects they access."
+    },
+    "finalCta": {
+      "title": "Ready to switch?",
+      "subtitle": "Import your GitBook docs in minutes. Get per-project pricing, AI-powered documentation, and the flexibility your team deserves.",
+      "ctaImport": "Import from GitBook",
+      "ctaTrial": "Start free trial"
+    }
   }
 }
