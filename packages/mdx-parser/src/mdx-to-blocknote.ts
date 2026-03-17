@@ -550,7 +550,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
           type: "image",
           props: {
             url: src,
-            caption: alt || undefined,
+            ...(alt ? { alt, caption: alt } : {}),
             ...(width ? { previewWidth: parseInt(width, 10) } : {}),
           },
         },

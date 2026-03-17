@@ -180,6 +180,32 @@ describe("mdxToBlockNote", () => {
     expect(blocks[0].props?.caption).toBe("Figure 1");
   });
 
+  it("parses an HTML img tag", () => {
+    const blocks = mdxToBlockNote('<img src="https://example.com/photo.jpg" alt="A photo" />');
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("image");
+    expect(blocks[0].props?.url).toBe("https://example.com/photo.jpg");
+    expect(blocks[0].props?.alt).toBe("A photo");
+    expect(blocks[0].props?.caption).toBe("A photo");
+  });
+
+  it("parses an HTML img tag with width", () => {
+    const blocks = mdxToBlockNote('<img src="https://example.com/photo.jpg" alt="A photo" width="400" />');
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("image");
+    expect(blocks[0].props?.url).toBe("https://example.com/photo.jpg");
+    expect(blocks[0].props?.alt).toBe("A photo");
+    expect(blocks[0].props?.previewWidth).toBe(400);
+  });
+
+  it("parses an HTML img tag without alt text", () => {
+    const blocks = mdxToBlockNote('<img src="https://example.com/photo.jpg" />');
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("image");
+    expect(blocks[0].props?.url).toBe("https://example.com/photo.jpg");
+    expect(blocks[0].props?.alt).toBeUndefined();
+  });
+
   it("parses an image without alt text", () => {
     const blocks = mdxToBlockNote("![](https://example.com/img.png)");
     expect(blocks).toHaveLength(1);
