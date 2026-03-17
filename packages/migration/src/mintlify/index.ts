@@ -26,6 +26,118 @@ import {
 import { transformMintlifyMdx } from "./transform.js";
 import { collectAssets } from "../assets.js";
 
+// ── Snippet inlining ─────────────────────────────────────────────────────────
+
+/** Maximum recursion depth for nested snippet resolution to prevent infinite loops. */
+const MAX_SNIPPET_DEPTH = 5;
+
+/**
+ * Resolve a snippet file path from an import path.
+ * Mintlify snippet imports use paths like '/snippets/foo.mdx' or '/snippets/foo'
+ * (with optional .mdx extension). The leading slash is relative to the docs root.
+ */
+function resolveSnippetFile(
+  dirPath: string,
+  importPath: string,
+): string | null {
+  // Strip leading slash — import paths are relative to the docs root
+  const cleaned = importPath.replace(/^\//, "");
+
+  // Try the path as-is first
+  const direct = resolve(dirPath, cleaned);
+  if (existsSync(direct)) {
+    return direct;
+  }
+
+  // Try appending .mdx extension
+  const withMdx = resolve(dirPath, cleaned + ".mdx");
+  if (existsSync(withMdx)) {
+    return withMdx;
+  }
+
+  // Try appending .md extension
+  const withMd = resolve(dirPath, cleaned + ".md");
+  if (existsSync(withMd)) {
+    return withMd;
+  }
+
+  return null;
+}
+
+/**
+ * Inline snippet component references in an MDX body.
+ *
+ * For each entry in the snippet imports map, reads the snippet file,
+ * transforms it (stripping frontmatter, renaming components), and replaces
+ * all `<ComponentName />` and `<ComponentName>...</ComponentName>` occurrences
+ * with the snippet's transformed MDX content.
+ *
+ * Handles nested snippets recursively up to MAX_SNIPPET_DEPTH.
+ */
+async function inlineSnippets(
+  body: string,
+  snippetImports: Record<string, string>,
+  dirPath: string,
+  warnings: string[],
+  depth: number = 0,
+): Promise<string> {
+  if (Object.keys(snippetImports).length === 0) {
+    return body;
+  }
+
+  if (depth >= MAX_SNIPPET_DEPTH) {
+    warnings.push(
+      `Snippet inlining depth limit (${MAX_SNIPPET_DEPTH}) reached — some snippets may not be fully resolved`,
+    );
+    return body;
+  }
+
+  let result = body;
+
+  for (const [componentName, importPath] of Object.entries(snippetImports)) {
+    const snippetFilePath = resolveSnippetFile(dirPath, importPath);
+    if (!snippetFilePath) {
+      warnings.push(
+        `Snippet file not found for import: ${componentName} from '${importPath}'`,
+      );
+      continue;
+    }
+
+    const snippetRaw = readFileSync(snippetFilePath, "utf-8");
+    const snippetTransformed = await transformMintlifyMdx(snippetRaw);
+
+    // Recursively resolve nested snippets in the snippet content
+    let snippetContent = snippetTransformed.mdx;
+    if (Object.keys(snippetTransformed.snippetImports).length > 0) {
+      snippetContent = await inlineSnippets(
+        snippetContent,
+        snippetTransformed.snippetImports,
+        dirPath,
+        warnings,
+        depth + 1,
+      );
+    }
+
+    const trimmedSnippet = snippetContent.trim();
+
+    // Replace self-closing: <ComponentName /> or <ComponentName/>
+    const selfCloseRe = new RegExp(
+      `<${componentName}\\s*/>`,
+      "g",
+    );
+    result = result.replace(selfCloseRe, trimmedSnippet);
+
+    // Replace with children: <ComponentName>...</ComponentName>
+    const fullElementRe = new RegExp(
+      `<${componentName}>[\\s\\S]*?</${componentName}>`,
+      "g",
+    );
+    result = result.replace(fullElementRe, trimmedSnippet);
+  }
+
+  return result;
+}
+
 // ── Config detection ─────────────────────────────────────────────────────────
 
 /** Supported config file names, in priority order. */
@@ -377,10 +489,18 @@ export async function parseMintlify(
       continue;
     }
 
+    // Inline snippet references in the transformed body
+    const inlinedMdx = await inlineSnippets(
+      transformed.mdx,
+      transformed.snippetImports,
+      resolvedDir,
+      warnings,
+    );
+
     // Build full MDX content (frontmatter + body)
     const mdxContent = transformed.frontmatter
-      ? `${transformed.frontmatter}\n\n${transformed.mdx}`
-      : transformed.mdx;
+      ? `${transformed.frontmatter}\n\n${inlinedMdx}`
+      : inlinedMdx;
 
     allMdxContents.push(mdxContent);
 
@@ -459,9 +579,17 @@ export async function parseMintlify(
       continue;
     }
 
+    // Inline snippet references in orphaned pages too
+    const inlinedMdx = await inlineSnippets(
+      transformed.mdx,
+      transformed.snippetImports,
+      resolvedDir,
+      warnings,
+    );
+
     const mdxContent = transformed.frontmatter
-      ? `${transformed.frontmatter}\n\n${transformed.mdx}`
-      : transformed.mdx;
+      ? `${transformed.frontmatter}\n\n${inlinedMdx}`
+      : inlinedMdx;
 
     allMdxContents.push(mdxContent);
 

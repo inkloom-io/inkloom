@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   transformMintlifyMdx,
   transformFrontmatter,
+  extractSnippetImports,
 } from "./transform.js";
 import { mdxToBlockNote } from "@inkloom/mdx-parser";
 
@@ -475,6 +476,80 @@ describe("integration: Frame migration", () => {
     const imageChild = frameBlock?.children?.find((b: { type: string }) => b.type === "image");
     expect(imageChild).toBeDefined();
     expect(imageChild?.props?.url).toBe("/images/simple.png");
+  });
+});
+
+describe("extractSnippetImports", () => {
+  it("extracts single snippet import", () => {
+    const body = `import Foo from '/snippets/foo.mdx';\n\n<Foo />`;
+    const { snippetImports, bodyWithoutImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({ Foo: "/snippets/foo.mdx" });
+    expect(bodyWithoutImports).not.toContain("import");
+    expect(bodyWithoutImports).toContain("<Foo />");
+  });
+
+  it("extracts multiple snippet imports", () => {
+    const body = `import Foo from '/snippets/foo.mdx';\nimport Bar from '/snippets/bar.mdx';\n\n<Foo />\n<Bar />`;
+    const { snippetImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({
+      Foo: "/snippets/foo.mdx",
+      Bar: "/snippets/bar.mdx",
+    });
+  });
+
+  it("handles imports without .mdx extension", () => {
+    const body = `import Intro from '/snippets/intro';\n\n<Intro />`;
+    const { snippetImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({ Intro: "/snippets/intro" });
+  });
+
+  it("handles nested snippet paths", () => {
+    const body = `import Deep from '/snippets/nested/deep.mdx';\n\n<Deep />`;
+    const { snippetImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({ Deep: "/snippets/nested/deep.mdx" });
+  });
+
+  it("returns empty map when no imports present", () => {
+    const body = `# Hello\n\nSome content.`;
+    const { snippetImports, bodyWithoutImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({});
+    expect(bodyWithoutImports).toBe(body);
+  });
+
+  it("handles imports with single quotes", () => {
+    const body = `import Foo from '/snippets/foo.mdx';\n\n<Foo />`;
+    const { snippetImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({ Foo: "/snippets/foo.mdx" });
+  });
+
+  it("handles imports with double quotes", () => {
+    const body = `import Foo from "/snippets/foo.mdx";\n\n<Foo />`;
+    const { snippetImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({ Foo: "/snippets/foo.mdx" });
+  });
+});
+
+describe("transformMintlifyMdx snippet imports", () => {
+  it("returns snippetImports in the result", async () => {
+    const input = `---
+title: Test
+---
+
+import Foo from '/snippets/foo.mdx';
+
+# Hello
+
+<Foo />`;
+    const result = await transformMintlifyMdx(input);
+    expect(result.snippetImports).toEqual({ Foo: "/snippets/foo.mdx" });
+    expect(result.mdx).not.toContain("import Foo");
+    expect(result.mdx).toContain("<Foo />");
+  });
+
+  it("returns empty snippetImports when no imports", async () => {
+    const input = `# No imports here`;
+    const result = await transformMintlifyMdx(input);
+    expect(result.snippetImports).toEqual({});
   });
 });
 

@@ -231,6 +231,32 @@ describe("parseMintlify", () => {
       expect(github?.url).toBe("https://github.com/acme/acme");
     });
 
+    // ── Snippets ──────────────────────────────────────────────────────────
+
+    it("inlines snippet content into pages that import them", () => {
+      const quickstartPage = result.pages.find(
+        (p) => p.slug === "guides/quickstart"
+      );
+      expect(quickstartPage).toBeDefined();
+      // The snippet content should be inlined
+      expect(quickstartPage?.mdxContent).toContain("Before you begin");
+      expect(quickstartPage?.mdxContent).toContain("Node.js 18 or later");
+      expect(quickstartPage?.mdxContent).toContain("Acme API key");
+      // The import statement should be removed
+      expect(quickstartPage?.mdxContent).not.toContain("import Prereqs");
+      // The component placeholder should be replaced
+      expect(quickstartPage?.mdxContent).not.toContain("<Prereqs");
+    });
+
+    it("does not import snippet files as standalone pages", () => {
+      const snippetPage = result.pages.find(
+        (p) =>
+          p.slug.startsWith("snippets/") ||
+          p.path.startsWith("snippets/")
+      );
+      expect(snippetPage).toBeUndefined();
+    });
+
     // ── OpenAPI ─────────────────────────────────────────────────────────
 
     it("reads OpenAPI spec files referenced in config", () => {

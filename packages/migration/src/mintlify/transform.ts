@@ -193,20 +193,81 @@ function renameComponents(body: string): string {
 }
 
 /**
+ * Regex to match Mintlify snippet import statements.
+ * Captures: component name (group 1) and file path (group 2).
+ *
+ * Matches patterns like:
+ *   import ComponentName from '/snippets/file-name.mdx';
+ *   import ComponentName from '/snippets/nested/file-name.mdx';
+ *   import ComponentName from '/snippets/file-name';
+ */
+const SNIPPET_IMPORT_RE = /import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g;
+
+/**
+ * Extract snippet import statements from MDX content.
+ * Returns a map of component name → file path, and the body with import lines removed.
+ */
+export function extractSnippetImports(body: string): {
+  snippetImports: Record<string, string>;
+  bodyWithoutImports: string;
+} {
+  const snippetImports: Record<string, string> = {};
+  const importLines = new Set<string>();
+
+  let match: RegExpExecArray | null;
+  // Reset lastIndex to ensure clean matching
+  SNIPPET_IMPORT_RE.lastIndex = 0;
+  while ((match = SNIPPET_IMPORT_RE.exec(body)) !== null) {
+    const componentName = match[1];
+    const filePath = match[2];
+    if (componentName && filePath) {
+      snippetImports[componentName] = filePath;
+      importLines.add(match[0]);
+    }
+  }
+
+  // Remove import lines from body
+  let bodyWithoutImports = body;
+  for (const importLine of importLines) {
+    // Remove the full line containing the import (including trailing semicolons and newlines)
+    bodyWithoutImports = bodyWithoutImports.replace(
+      new RegExp(`^[ \\t]*${escapeRegExp(importLine)}[;]?[ \\t]*\\n?`, "gm"),
+      "",
+    );
+  }
+
+  return { snippetImports, bodyWithoutImports };
+}
+
+/**
+ * Escape special regex characters in a string for use in a RegExp constructor.
+ */
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
  * Transform Mintlify MDX content to InkLoom-compatible MDX.
  *
  * This function:
  * 1. Parses frontmatter and strips/maps Mintlify-specific fields
- * 2. Renames Mintlify callout components (Note, Warning, Tip, Info, Check) to <Callout type="...">
- * 3. Leaves all other components unchanged (they're already InkLoom-compatible)
- * 4. Returns the MDX body (without frontmatter) ready for mdxToBlockNote()
+ * 2. Extracts snippet import statements and builds a component-name → file-path map
+ * 3. Renames Mintlify callout components (Note, Warning, Tip, Info, Check) to <Callout type="...">
+ * 4. Leaves all other components unchanged (they're already InkLoom-compatible)
+ * 5. Returns the MDX body (without frontmatter) ready for mdxToBlockNote()
  *
  * @param mintlifyMdx - Raw Mintlify MDX content string
- * @returns Object with mdx body, optional frontmatter string, and metadata
+ * @returns Object with mdx body, optional frontmatter string, metadata, and snippet imports
  */
 export async function transformMintlifyMdx(
   mintlifyMdx: string,
-): Promise<{ mdx: string; frontmatter?: string; metadata: Record<string, string>; openapiDirective?: string }> {
+): Promise<{
+  mdx: string;
+  frontmatter?: string;
+  metadata: Record<string, string>;
+  snippetImports: Record<string, string>;
+  openapiDirective?: string;
+}> {
   const { rawFrontmatter, body } = splitFrontmatter(mintlifyMdx);
 
   // Transform frontmatter
@@ -214,13 +275,17 @@ export async function transformMintlifyMdx(
     ? transformFrontmatter(rawFrontmatter)
     : { frontmatter: "", metadata: {}, openapiDirective: undefined };
 
+  // Extract snippet imports before component renaming
+  const { snippetImports, bodyWithoutImports } = extractSnippetImports(body);
+
   // Rename Mintlify components in MDX body
-  const transformedBody = renameComponents(body);
+  const transformedBody = renameComponents(bodyWithoutImports);
 
   return {
     mdx: transformedBody.trim() + "\n",
     frontmatter: frontmatter || undefined,
     metadata,
+    snippetImports,
     openapiDirective,
   };
 }
