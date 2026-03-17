@@ -15,6 +15,8 @@ import {
   Step,
   Accordion,
   AccordionGroup,
+  Columns,
+  Column,
   CodeGroup,
   CodeBlock,
   Heading,
@@ -68,7 +70,7 @@ interface MDXContentProps {
 }
 
 interface ParsedComponent {
-  type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "CodeGroup" | "ApiEndpoint" | "ParamField" | "ResponseField" | "Expandable";
+  type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "Columns" | "Column" | "CodeGroup" | "ApiEndpoint" | "ParamField" | "ResponseField" | "Expandable";
   props: Record<string, string | number | boolean>;
   children: string;
   startIndex: number;
@@ -139,7 +141,7 @@ function findBalancedCloseTag(content: string, tagName: string, searchFrom: numb
 // Find all MDX components in the content
 function findMDXComponents(content: string): ParsedComponent[] {
   const components: ParsedComponent[] = [];
-  const componentNames = ["Card", "CardGroup", "Callout", "Image", "Tabs", "Tab", "Steps", "Step", "Accordion", "AccordionGroup", "CodeGroup", "ApiEndpoint", "ParamField", "ResponseField", "Expandable"];
+  const componentNames = ["Card", "CardGroup", "Callout", "Image", "Tabs", "Tab", "Steps", "Step", "Accordion", "AccordionGroup", "Columns", "Column", "CodeGroup", "ApiEndpoint", "ParamField", "ResponseField", "Expandable"];
 
   for (const name of componentNames) {
     // Use negative lookahead to ensure exact component name matching
@@ -422,6 +424,28 @@ function renderAccordionChildren(content: string): React.ReactNode[] {
   return accordions;
 }
 
+// Parse and render Column children within a Columns component
+function renderColumnChildren(content: string): React.ReactNode[] {
+  const columns: React.ReactNode[] = [];
+  // Use negative lookahead to match Column but not Columns
+  const columnRegex = /<Column(?![a-zA-Z])\s*([^>]*)>([\s\S]*?)<\/Column>/g;
+  let match;
+  let index = 0;
+
+  while ((match = columnRegex.exec(content)) !== null) {
+    const childContent = match[2] ?? "";
+
+    columns.push(
+      <Column key={index}>
+        <MDXContent source={childContent.trim()} />
+      </Column>
+    );
+    index++;
+  }
+
+  return columns;
+}
+
 // Render a single parsed component
 function renderComponent(
   component: ParsedComponent,
@@ -523,6 +547,20 @@ function renderComponent(
         <AccordionGroup key={key}>
           {children && renderAccordionChildren(children)}
         </AccordionGroup>
+      );
+
+    case "Columns":
+      return (
+        <Columns key={key} cols={props.cols as 2 | 3 | 4}>
+          {children && renderColumnChildren(children)}
+        </Columns>
+      );
+
+    case "Column":
+      return (
+        <Column key={key}>
+          {children && <MDXContent source={children} />}
+        </Column>
       );
 
     case "ApiEndpoint":

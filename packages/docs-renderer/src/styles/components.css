@@ -641,3 +641,55 @@ a:has(.card) {
 .accordion-body p:last-child {
   margin-bottom: 0;
 }
+
+/* ============================================================================
+   COLUMNS
+   ============================================================================ */
+
+.columns {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.columns-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.columns-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.columns-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.column {
+  padding: 0.5rem;
+  min-width: 0;
+}
+
+.column p:first-child {
+  margin-top: 0;
+}
+
+.column p:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive: stack columns on mobile */
+@media (max-width: 640px) {
+  .columns-cols-2,
+  .columns-cols-3,
+  .columns-cols-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Medium screens: max 2 columns */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .columns-cols-3,
+  .columns-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

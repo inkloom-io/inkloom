@@ -13,3 +13,5 @@ export { CustomLink } from "./components/link";
 export { Tabs, Tab } from "./components/tabs";
 export { Steps, Step } from "./components/steps";
 export { Accordion, AccordionGroup } from "./components/accordion";
+export { Columns } from "./components/columns";
+export { Column } from "./components/column";
