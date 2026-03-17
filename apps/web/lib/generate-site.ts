@@ -784,10 +784,7 @@ body::before {
   opacity: 0.7;
 }
 
-/* Sidebar section — subtle refinement */
-.site-sidebar {
-  background: var(--color-sidebar-background);
-}
+/* Sidebar section — transparent to show body gradient */
 
 /* Button refinement */
 .btn-primary {
@@ -941,10 +938,7 @@ body {
   box-shadow: 0 1px 0 0 var(--color-border-subtle);
 }
 
-/* Sidebar with clean ivory finish */
-.site-sidebar {
-  background: var(--color-sidebar-background);
-}
+/* Sidebar — transparent to show body gradient */
 
 /* Sidebar active — botanical accent border */
 .sidebar-link-active {
@@ -1101,10 +1095,7 @@ body::before {
   box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-primary) 13%, transparent);
 }
 
-/* Sidebar with warm finish */
-.site-sidebar {
-  background: var(--color-sidebar-background);
-}
+/* Sidebar — transparent to show body gradient */
 
 /* Sidebar active — warm copper accent border */
 .sidebar-link-active {
@@ -1414,10 +1405,7 @@ body::before {
   box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
-/* Sidebar — clean and airy */
-.site-sidebar {
-  background: var(--color-sidebar-background);
-}
+/* Sidebar — transparent to show body gradient */
 
 /* Sidebar active — rose accent border */
 .sidebar-link-active {
@@ -1549,10 +1537,7 @@ body {
   box-shadow: none;
 }
 
-/* Sidebar — raw concrete surface */
-.site-sidebar {
-  background: var(--color-sidebar-background);
-}
+/* Sidebar — transparent to show body gradient */
 
 /* Sidebar active — brutalist patina accent border */
 .sidebar-link-active {
@@ -1710,12 +1695,7 @@ body::before {
   box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-primary) 8%, transparent), 0 4px 16px -4px rgb(0 0 0 / 0.12);
 }
 
-/* Sidebar — frosted glass surface */
-.site-sidebar {
-  background: var(--color-sidebar-background);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
+/* Sidebar — transparent to show body gradient */
 
 /* Sidebar active — frosted teal accent border with glow */
 .sidebar-link-active {
@@ -1885,10 +1865,7 @@ body::before {
   box-shadow: 0 1px 0 0 color-mix(in srgb, var(--color-primary) 9%, transparent);
 }
 
-/* Sidebar — deep velvet */
-.site-sidebar {
-  background: var(--color-sidebar-background);
-}
+/* Sidebar — transparent to show body gradient */
 
 /* Sidebar active — gold accent border with warm glow */
 .sidebar-link-active {
