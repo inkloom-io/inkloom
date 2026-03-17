@@ -21,6 +21,7 @@ import {
   CodeBlock,
   Heading,
   CustomLink,
+  Frame,
   DocsRendererProvider,
 } from "@inkloom/docs-renderer";
 import { Link } from "react-router";
@@ -70,7 +71,7 @@ interface MDXContentProps {
 }
 
 interface ParsedComponent {
-  type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "Columns" | "Column" | "CodeGroup" | "ApiEndpoint" | "ParamField" | "ResponseField" | "Expandable";
+  type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "Columns" | "Column" | "CodeGroup" | "ApiEndpoint" | "ParamField" | "ResponseField" | "Expandable" | "Frame";
   props: Record<string, string | number | boolean>;
   children: string;
   startIndex: number;
@@ -141,7 +142,7 @@ function findBalancedCloseTag(content: string, tagName: string, searchFrom: numb
 // Find all MDX components in the content
 function findMDXComponents(content: string): ParsedComponent[] {
   const components: ParsedComponent[] = [];
-  const componentNames = ["Card", "CardGroup", "Callout", "Image", "Tabs", "Tab", "Steps", "Step", "Accordion", "AccordionGroup", "Columns", "Column", "CodeGroup", "ApiEndpoint", "ParamField", "ResponseField", "Expandable"];
+  const componentNames = ["Card", "CardGroup", "Callout", "Image", "Tabs", "Tab", "Steps", "Step", "Accordion", "AccordionGroup", "Columns", "Column", "CodeGroup", "ApiEndpoint", "ParamField", "ResponseField", "Expandable", "Frame"];
 
   for (const name of componentNames) {
     // Use negative lookahead to ensure exact component name matching
@@ -609,6 +610,17 @@ function renderComponent(
         >
           {children && <MDXContent source={children} />}
         </Expandable>
+      );
+
+    case "Frame":
+      return (
+        <Frame
+          key={key}
+          hint={props.hint as string}
+          caption={props.caption as string}
+        >
+          {children && <MDXContent source={children} />}
+        </Frame>
       );
 
     default:

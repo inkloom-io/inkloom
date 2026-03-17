@@ -15,3 +15,4 @@ export { Steps, Step } from "./components/steps";
 export { Accordion, AccordionGroup } from "./components/accordion";
 export { Columns } from "./components/columns";
 export { Column } from "./components/column";
+export { Frame } from "./components/frame";
