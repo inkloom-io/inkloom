@@ -455,6 +455,24 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       ];
     }
 
+    case "img": {
+      const src = getAttrValue(attrs, "src") || "";
+      const alt = getAttrValue(attrs, "alt") || "";
+      const width = getAttrValue(attrs, "width");
+      // Style props (e.g. borderRadius) are intentionally dropped —
+      // the parent Frame provides border treatment.
+      return [
+        {
+          type: "image",
+          props: {
+            url: src,
+            caption: alt || undefined,
+            ...(width ? { previewWidth: parseInt(width, 10) } : {}),
+          },
+        },
+      ];
+    }
+
     case "ResponseField": {
       const rfName = getAttrValue(attrs, "name") || "";
       const rfType = getAttrValue(attrs, "type");

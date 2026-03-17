@@ -320,6 +320,82 @@ icon: book
   });
 });
 
+describe("integration: Frame migration", () => {
+  it("converts Mintlify Frame with caption, hint, and inner <img> to frame + image blocks", async () => {
+    const mintlifyInput = `
+<Frame caption="Dashboard overview" hint="Click to enlarge">
+  <img src="/images/dashboard.png" alt="Dashboard screenshot" />
+</Frame>
+`;
+
+    const { mdx } = await transformMintlifyMdx(mintlifyInput);
+
+    // Frame passes through unchanged (same name in Mintlify and InkLoom)
+    expect(mdx).toContain("<Frame");
+    expect(mdx).toContain('caption="Dashboard overview"');
+    expect(mdx).toContain('hint="Click to enlarge"');
+
+    // Parse to BlockNote
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks).toBeDefined();
+
+    const frameBlock = blocks.find((b: { type: string }) => b.type === "frame");
+    expect(frameBlock).toBeDefined();
+    expect(frameBlock?.props?.caption).toBe("Dashboard overview");
+    expect(frameBlock?.props?.hint).toBe("Click to enlarge");
+
+    // Frame should have an image child block
+    const children = frameBlock?.children;
+    expect(children).toBeDefined();
+    expect(children?.length).toBeGreaterThanOrEqual(1);
+    const imageChild = children?.find((b: { type: string }) => b.type === "image");
+    expect(imageChild).toBeDefined();
+    expect(imageChild?.props?.url).toBe("/images/dashboard.png");
+    expect(imageChild?.props?.caption).toBe("Dashboard screenshot");
+  });
+
+  it("drops style props (borderRadius) from inner <img> tags", async () => {
+    const mintlifyInput = `
+<Frame caption="Styled image">
+  <img src="/images/example.png" style={{ borderRadius: '0.5rem' }} />
+</Frame>
+`;
+
+    const { mdx } = await transformMintlifyMdx(mintlifyInput);
+    const blocks = mdxToBlockNote(mdx);
+
+    const frameBlock = blocks.find((b: { type: string }) => b.type === "frame");
+    expect(frameBlock).toBeDefined();
+
+    const imageChild = frameBlock?.children?.find((b: { type: string }) => b.type === "image");
+    expect(imageChild).toBeDefined();
+    expect(imageChild?.props?.url).toBe("/images/example.png");
+    // style prop should not appear in the image block props
+    expect(imageChild?.props?.style).toBeUndefined();
+    expect(imageChild?.props?.borderRadius).toBeUndefined();
+  });
+
+  it("handles Frame with no props and bare <img>", async () => {
+    const mintlifyInput = `
+<Frame>
+  <img src="/images/simple.png" />
+</Frame>
+`;
+
+    const { mdx } = await transformMintlifyMdx(mintlifyInput);
+    const blocks = mdxToBlockNote(mdx);
+
+    const frameBlock = blocks.find((b: { type: string }) => b.type === "frame");
+    expect(frameBlock).toBeDefined();
+    expect(frameBlock?.props?.caption).toBeUndefined();
+    expect(frameBlock?.props?.hint).toBeUndefined();
+
+    const imageChild = frameBlock?.children?.find((b: { type: string }) => b.type === "image");
+    expect(imageChild).toBeDefined();
+    expect(imageChild?.props?.url).toBe("/images/simple.png");
+  });
+});
+
 describe("transformFrontmatter", () => {
   it("returns empty frontmatter when all fields are stripped", () => {
     const result = transformFrontmatter("openapi: get /users\napi: POST /create");
