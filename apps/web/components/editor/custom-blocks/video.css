@@ -1,0 +1,71 @@
+/* Video Block Styles */
+
+.bn-video-block {
+  width: 100%;
+  margin: 8px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+}
+
+.bn-video-url-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+.bn-video-url-input {
+  flex: 1;
+  font-size: 0.8125rem;
+  color: var(--editor-foreground, #1a1a2e);
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.25));
+  background: var(--editor-code-highlight, rgba(0, 0, 0, 0.04));
+  padding: 6px 10px;
+  border-radius: 4px;
+  outline: none;
+  font-family: var(--editor-font-mono, ui-monospace, monospace);
+  transition: border-color 0.15s ease;
+}
+
+:root.dark .bn-video-url-input {
+  color: var(--editor-foreground, #f9fafb);
+  background: var(--editor-code-highlight, rgba(255, 255, 255, 0.06));
+}
+
+.bn-video-url-input:focus {
+  border-color: var(--editor-primary, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.bn-video-url-input::placeholder {
+  color: var(--editor-muted-foreground, #6b7280);
+}
+
+.bn-video-options-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 6px 12px 8px;
+  border-top: 1px solid var(--editor-border, rgba(128, 128, 128, 0.1));
+}
+
+.bn-video-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--editor-muted-foreground, #6b7280);
+  cursor: pointer;
+  user-select: none;
+}
+
+.bn-video-toggle input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--editor-primary, #3b82f6);
+}
+
+.bn-video-toggle span {
+  white-space: nowrap;
+}

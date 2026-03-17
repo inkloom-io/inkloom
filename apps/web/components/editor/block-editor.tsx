@@ -41,6 +41,8 @@ import {
   RiArrowDownSLine,
   RiLayoutColumnLine,
   RiCropLine,
+  RiVideoLine,
+  RiCodeBoxLine,
 } from "react-icons/ri";
 import { Button } from "@inkloom/ui/button";
 import {
@@ -523,6 +525,34 @@ export function BlockEditor({
         aliases: ["frame", "border", "container", "wrap"],
         group: t("slashMenu.componentsGroup"),
         icon: <RiCropLine size={18} />,
+      },
+      {
+        title: t("slashMenu.video"),
+        subtext: t("slashMenu.videoSubtext"),
+        onItemClick: () => {
+          editorInstance.insertBlocks(
+            [{ type: "video" as const }],
+            editorInstance.getTextCursorPosition().block,
+            "after"
+          );
+        },
+        aliases: ["video", "mp4"],
+        group: t("slashMenu.componentsGroup"),
+        icon: <RiVideoLine size={18} />,
+      },
+      {
+        title: t("slashMenu.embed"),
+        subtext: t("slashMenu.embedSubtext"),
+        onItemClick: () => {
+          editorInstance.insertBlocks(
+            [{ type: "iframe" as const }],
+            editorInstance.getTextCursorPosition().block,
+            "after"
+          );
+        },
+        aliases: ["embed", "iframe", "youtube", "vimeo"],
+        group: t("slashMenu.componentsGroup"),
+        icon: <RiCodeBoxLine size={18} />,
       },
     ];
   }, [t]);

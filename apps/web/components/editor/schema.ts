@@ -11,6 +11,8 @@ import { ResponseField } from "./custom-blocks/response-field";
 import { Expandable } from "./custom-blocks/expandable";
 import { Columns, Column } from "./custom-blocks/columns";
 import { Frame, FrameContent } from "./custom-blocks/frame";
+import { Video } from "./custom-blocks/video";
+import { IFrame } from "./custom-blocks/iframe";
 
 // Create a copy of default specs without the built-in codeBlock and image
 const { codeBlock: _defaultCodeBlock, image: _defaultImage, ...otherDefaultSpecs } = defaultBlockSpecs;
@@ -36,6 +38,8 @@ export const schema = BlockNoteSchema.create({
     column: Column(),
     frame: Frame(),
     frameContent: FrameContent(),
+    video: Video(),
+    iframe: IFrame(),
   },
 });
 

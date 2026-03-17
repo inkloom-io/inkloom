@@ -1147,7 +1147,11 @@
         "columns": "Columns",
         "columnsSubtext": "Add a responsive column layout",
         "frame": "Frame",
-        "frameSubtext": "Add a bordered frame with optional hint and caption"
+        "frameSubtext": "Add a bordered frame with optional hint and caption",
+        "video": "Video",
+        "videoSubtext": "Embed an HTML5 video with playback controls",
+        "embed": "Embed",
+        "embedSubtext": "Embed external content like YouTube or Vimeo"
       }
     },
     "blocks": {
@@ -1205,7 +1209,18 @@
       "addFrameContent": "+ Add Content",
       "frameHint": "Click \"+ Add Content\" to add content inside this frame.",
       "frameHintPlaceholder": "Add hint...",
-      "frameCaptionPlaceholder": "Add caption..."
+      "frameCaptionPlaceholder": "Add caption...",
+      "videoSrcPlaceholder": "Enter video URL...",
+      "videoAutoPlay": "Autoplay",
+      "videoMuted": "Muted",
+      "videoLoop": "Loop",
+      "videoPlaysInline": "Plays inline",
+      "videoControls": "Controls",
+      "iframeSrcPlaceholder": "Enter embed URL (e.g. YouTube, Vimeo)...",
+      "iframeTitlePlaceholder": "Title (optional)...",
+      "iframeWidthPlaceholder": "Width",
+      "iframeHeightPlaceholder": "Height",
+      "iframeAllowFullScreen": "Fullscreen"
     },
     "page": {
       "projectNotFound": "Project not found",
