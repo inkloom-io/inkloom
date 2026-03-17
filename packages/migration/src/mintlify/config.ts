@@ -326,7 +326,7 @@ function walkMintJsonGroup(
     position,
   });
 
-  for (const item of group.pages) {
+  for (const item of group.pages ?? []) {
     if (typeof item === "string") {
       collector.pageRefs.push(item);
     } else if (typeof item === "object" && "group" in item) {
@@ -365,7 +365,7 @@ function findTabForGroup(
 
 function collectMintPaths(group: MintJsonNavGroup): string[] {
   const paths: string[] = [];
-  for (const item of group.pages) {
+  for (const item of group.pages ?? []) {
     if (typeof item === "string") {
       paths.push(item);
     } else if (typeof item === "object" && "group" in item) {
