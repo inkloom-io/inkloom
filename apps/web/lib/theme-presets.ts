@@ -760,11 +760,11 @@ export const THEME_PRESETS: Record<ThemePreset, ThemePresetConfig> = {
 
 export function hslToHex(hsl: string): string {
   const match = hsl.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
-  if (!match) return "#111827";
+  if (!match || !match[1] || !match[2] || !match[3]) return "#111827";
 
-  const h = parseInt(match[1]!, 10) / 360;
-  const s = parseInt(match[2]!, 10) / 100;
-  const l = parseInt(match[3]!, 10) / 100;
+  const h = parseInt(match[1], 10) / 360;
+  const s = parseInt(match[2], 10) / 100;
+  const l = parseInt(match[3], 10) / 100;
 
   const hue2rgb = (p: number, q: number, t: number) => {
     if (t < 0) t += 1;
@@ -796,11 +796,12 @@ export function hslToHex(hsl: string): string {
 
 export function hexToHsl(hex: string): string {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return "hsl(222 47% 11%)";
+  if (!result || !result[1] || !result[2] || !result[3])
+    return "hsl(222 47% 11%)";
 
-  const r = parseInt(result[1]!, 16) / 255;
-  const g = parseInt(result[2]!, 16) / 255;
-  const b = parseInt(result[3]!, 16) / 255;
+  const r = parseInt(result[1], 16) / 255;
+  const g = parseInt(result[2], 16) / 255;
+  const b = parseInt(result[3], 16) / 255;
 
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
