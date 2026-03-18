@@ -8,6 +8,8 @@
  * {% %} syntax is not valid markdown/MDX and cannot be parsed by remark.
  */
 
+import { transformLatex } from "../latex.js";
+
 /**
  * Result of transforming Gitbook block syntax.
  */
@@ -77,7 +79,13 @@ export function transformGitbookBlocks(input: string): TransformResult {
     }
   }
 
-  return { content: content.trim() + "\n", hasJsx, hasOpenApi };
+  // Transform LaTeX delimiters to <Latex> components (after all other transforms)
+  const latexTransformed = transformLatex(content);
+  if (latexTransformed !== content) {
+    hasJsx = true;
+  }
+
+  return { content: latexTransformed.trim() + "\n", hasJsx, hasOpenApi };
 }
 
 /**

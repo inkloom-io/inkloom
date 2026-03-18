@@ -1,3 +1,5 @@
+import { transformLatex } from "../latex.js";
+
 /**
  * Component rename map: Mintlify component name → { name, type } for InkLoom Callout.
  */
@@ -284,8 +286,11 @@ export async function transformMintlifyMdx(
   // Rename Mintlify components in MDX body
   const transformedBody = renameComponents(bodyWithoutImports);
 
+  // Transform LaTeX delimiters to <Latex> components (after all other transforms)
+  const latexTransformed = transformLatex(transformedBody);
+
   return {
-    mdx: transformedBody.trim() + "\n",
+    mdx: latexTransformed.trim() + "\n",
     frontmatter: frontmatter || undefined,
     metadata,
     snippetImports,
