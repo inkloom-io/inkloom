@@ -202,6 +202,32 @@ function parseAttributes(
   return attrs;
 }
 
+// Find the balanced closing tag for a component, handling nested same-name tags
+function findBalancedCloseTag(content: string, tagName: string, searchFrom: number): number {
+  let depth = 1;
+  const openRegex = new RegExp(`<${tagName}(?![a-zA-Z])\\s*[^>]*(?<!/)>`, "g");
+  const closeTag = `</${tagName}>`;
+  let pos = searchFrom;
+
+  while (pos < content.length && depth > 0) {
+    const closeIdx = content.indexOf(closeTag, pos);
+    if (closeIdx === -1) return -1;
+
+    // Count any non-self-closing opening tags between pos and closeIdx
+    openRegex.lastIndex = pos;
+    let openMatch;
+    while ((openMatch = openRegex.exec(content)) !== null && openMatch.index < closeIdx) {
+      depth++;
+    }
+
+    depth--;
+    if (depth === 0) return closeIdx;
+    pos = closeIdx + closeTag.length;
+  }
+
+  return -1;
+}
+
 // Find all MDX components in the content
 function findMDXComponents(content: string): ParsedComponent[] {
   const components: ParsedComponent[] = [];
@@ -230,21 +256,24 @@ function findMDXComponents(content: string): ParsedComponent[] {
       });
     }
 
-    // Match components with children: <Card ...>...</Card>
-    // Use negative lookbehind (?<!/) to avoid matching self-closing tags like <Card ... />
-    const withChildrenRegex = new RegExp(
-      `${namePattern}\\s*([^>]*)(?<!/)>([\\s\\S]*?)</${name}>`,
-      "g"
-    );
-    while ((match = withChildrenRegex.exec(content)) !== null) {
+    // Match components with children using balanced tag matching
+    // This correctly handles nested same-name tags (e.g., Accordion inside Accordion)
+    const openTagRegex = new RegExp(`${namePattern}\\s*([^>]*)(?<!/)>`, "g");
+    while ((match = openTagRegex.exec(content)) !== null) {
       const attrStr = match[1] ?? "";
-      const childrenStr = match[2] ?? "";
+      const contentStart = match.index + match[0].length;
+      const closeIdx = findBalancedCloseTag(content, name, contentStart);
+      if (closeIdx === -1) continue;
+
+      const childrenStr = content.slice(contentStart, closeIdx);
+      const endIndex = closeIdx + `</${name}>`.length;
+
       components.push({
         type: name as ParsedComponent["type"],
         props: parseAttributes(attrStr),
         children: childrenStr.trim(),
         startIndex: match.index,
-        endIndex: match.index + match[0].length,
+        endIndex,
       });
     }
   }
@@ -286,7 +315,7 @@ function renderComponent(
           icon={props.icon as string}
           href={props.href as string}
         >
-          {children && <span>{children}</span>}
+          {children && <MDXPreviewRenderer content={children} />}
         </Card>
       );
 
@@ -306,7 +335,7 @@ function renderComponent(
           type={props.type as "info" | "warning" | "danger" | "success" | "tip"}
           title={props.title as string}
         >
-          {children || ""}
+          {children ? <MDXPreviewRenderer content={children} /> : ""}
         </Callout>
       );
 
@@ -334,7 +363,7 @@ function renderComponent(
           title={props.title as string}
           icon={props.icon as string}
         >
-          {children || ""}
+          {children ? <MDXPreviewRenderer content={children} /> : ""}
         </Tab>
       );
 
@@ -352,7 +381,7 @@ function renderComponent(
           title={props.title as string}
           icon={props.icon as string}
         >
-          {children || ""}
+          {children ? <MDXPreviewRenderer content={children} /> : ""}
         </Step>
       );
 
@@ -371,7 +400,7 @@ function renderComponent(
           icon={props.icon as string}
           defaultOpen={props.defaultOpen === true || props.defaultOpen === "true"}
         >
-          {children || ""}
+          {children ? <MDXPreviewRenderer content={children} /> : ""}
         </Accordion>
       );
 
@@ -390,15 +419,19 @@ function renderComponent(
 // Helper function to render Tab children within a Tabs component
 // Returns an array of Tab elements (not a component wrapper)
 function renderTabChildren(content: string): React.ReactNode[] {
-  // Parse Tab components from the content string
-  const tabRegex = /<Tab(?![a-zA-Z])\s*([^>]*)>([\s\S]*?)<\/Tab>/g;
+  // Parse Tab components from the content string using balanced tag matching
+  const openTagRegex = /<Tab(?![a-zA-Z])\s*([^>]*)(?<!\/)>/g;
   const tabs: React.ReactNode[] = [];
   let match;
   let idx = 0;
 
-  while ((match = tabRegex.exec(content)) !== null) {
+  while ((match = openTagRegex.exec(content)) !== null) {
     const attrStr = match[1] ?? "";
-    const childContent = (match[2] ?? "").trim();
+    const contentStart = match.index + match[0].length;
+    const closeIdx = findBalancedCloseTag(content, "Tab", contentStart);
+    if (closeIdx === -1) continue;
+
+    const childContent = content.slice(contentStart, closeIdx).trim();
     const props = parseAttributes(attrStr);
 
     tabs.push(
@@ -407,9 +440,12 @@ function renderTabChildren(content: string): React.ReactNode[] {
         title={props.title as string}
         icon={props.icon as string}
       >
-        {childContent || ""}
+        <MDXPreviewRenderer content={childContent} />
       </Tab>
     );
+
+    // Advance past this tag to avoid re-matching
+    openTagRegex.lastIndex = closeIdx + "</Tab>".length;
     idx++;
   }
 
@@ -419,15 +455,19 @@ function renderTabChildren(content: string): React.ReactNode[] {
 // Helper function to render Step children within a Steps component
 // Returns an array of Step elements
 function renderStepChildren(content: string): React.ReactNode[] {
-  // Parse Step components from the content string
-  const stepRegex = /<Step(?![a-zA-Z])\s*([^>]*)>([\s\S]*?)<\/Step>/g;
+  // Parse Step components from the content string using balanced tag matching
+  const openTagRegex = /<Step(?![a-zA-Z])\s*([^>]*)(?<!\/)>/g;
   const steps: React.ReactNode[] = [];
   let match;
   let idx = 0;
 
-  while ((match = stepRegex.exec(content)) !== null) {
+  while ((match = openTagRegex.exec(content)) !== null) {
     const attrStr = match[1] ?? "";
-    const childContent = (match[2] ?? "").trim();
+    const contentStart = match.index + match[0].length;
+    const closeIdx = findBalancedCloseTag(content, "Step", contentStart);
+    if (closeIdx === -1) continue;
+
+    const childContent = content.slice(contentStart, closeIdx).trim();
     const props = parseAttributes(attrStr);
 
     steps.push(
@@ -435,11 +475,13 @@ function renderStepChildren(content: string): React.ReactNode[] {
         key={idx}
         title={props.title as string}
         icon={props.icon as string}
-        stepNumber={idx + 1}
       >
-        {childContent || ""}
+        <MDXPreviewRenderer content={childContent} />
       </Step>
     );
+
+    // Advance past this tag to avoid re-matching
+    openTagRegex.lastIndex = closeIdx + "</Step>".length;
     idx++;
   }
 
@@ -449,15 +491,19 @@ function renderStepChildren(content: string): React.ReactNode[] {
 // Helper function to render Accordion children within an AccordionGroup component
 // Returns an array of Accordion elements
 function renderAccordionChildren(content: string): React.ReactNode[] {
-  // Parse Accordion components from the content string
-  const accordionRegex = /<Accordion(?![a-zA-Z])\s*([^>]*)>([\s\S]*?)<\/Accordion>/g;
+  // Parse Accordion components from the content string using balanced tag matching
+  const openTagRegex = /<Accordion(?![a-zA-Z])\s*([^>]*)(?<!\/)>/g;
   const accordions: React.ReactNode[] = [];
   let match;
   let idx = 0;
 
-  while ((match = accordionRegex.exec(content)) !== null) {
+  while ((match = openTagRegex.exec(content)) !== null) {
     const attrStr = match[1] ?? "";
-    const childContent = (match[2] ?? "").trim();
+    const contentStart = match.index + match[0].length;
+    const closeIdx = findBalancedCloseTag(content, "Accordion", contentStart);
+    if (closeIdx === -1) continue;
+
+    const childContent = content.slice(contentStart, closeIdx).trim();
     const props = parseAttributes(attrStr);
 
     accordions.push(
@@ -467,9 +513,12 @@ function renderAccordionChildren(content: string): React.ReactNode[] {
         icon={props.icon as string}
         defaultOpen={props.defaultOpen === true || props.defaultOpen === "true"}
       >
-        {childContent || ""}
+        <MDXPreviewRenderer content={childContent} />
       </Accordion>
     );
+
+    // Advance past this tag to avoid re-matching
+    openTagRegex.lastIndex = closeIdx + "</Accordion>".length;
     idx++;
   }
 
