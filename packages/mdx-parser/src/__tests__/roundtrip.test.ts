@@ -983,6 +983,39 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</Latex>");
   });
 
+  it("converts inline $$...$$ LaTeX delimiters to <Latex> tags", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "The function $$f(x) = x^2$$ is quadratic." }],
+      },
+    ]);
+    expect(mdx).toContain("<Latex>f(x) = x^2</Latex>");
+    expect(mdx).toContain("The function ");
+    expect(mdx).toContain(" is quadratic.");
+  });
+
+  it("converts inline $...$ LaTeX delimiters to <Latex> tags", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "Let $x$ be a variable." }],
+      },
+    ]);
+    expect(mdx).toContain("<Latex>x</Latex>");
+  });
+
+  it("does not convert $...$ inside code spans", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "paragraph",
+        content: [{ type: "text", text: "$x^2$", styles: { code: true } }],
+      },
+    ]);
+    expect(mdx).not.toContain("<Latex>");
+    expect(mdx).toContain("<code>$x^2$</code>");
+  });
+
   it("converts columns with column blocks", () => {
     const mdx = blockNoteToMDX([
       { type: "columns", props: { cols: "2" }, content: [] },

@@ -53,8 +53,42 @@ function isInlineContentArray(
   return Array.isArray(content);
 }
 
+/**
+ * Post-process inline content string to convert $..$ and $$...$$ LaTeX
+ * delimiters into <Latex> JSX tags.  Skips content inside <code>...</code>
+ * spans and escaped \$ characters.
+ */
+function wrapInlineLatex(text: string): string {
+  // Split on <code>...</code> to avoid replacing inside code spans
+  const parts = text.split(/(<code>[\s\S]*?<\/code>)/g);
+
+  for (let i = 0; i < parts.length; i++) {
+    // Odd-indexed parts are <code>...</code> segments — skip them
+    if (i % 2 === 1) continue;
+
+    let segment = parts[i] || "";
+
+    // Replace $$...$$ first (double-dollar), then $...$ (single-dollar).
+    // Negative lookbehind avoids matching escaped \$.
+    // The inner content must be non-empty and cannot start/end with a space
+    // (to avoid false positives like "costs $5 and $10").
+    segment = segment.replace(
+      /(?<!\\)\$\$(.+?)(?<!\\)\$\$/g,
+      (_m, expr: string) => `<Latex>${expr}</Latex>`,
+    );
+    segment = segment.replace(
+      /(?<!\\)\$(\S(?:[^$]*?\S)?)\$(?!\d)/g,
+      (_m, expr: string) => `<Latex>${expr}</Latex>`,
+    );
+
+    parts[i] = segment;
+  }
+
+  return parts.join("");
+}
+
 function convertInlineContent(content: BlockNoteInlineContent[]): string {
-  return content
+  const raw = content
     .map((item) => {
       if (item.type === "text") {
         let text = item.text || "";
@@ -122,6 +156,9 @@ function convertInlineContent(content: BlockNoteInlineContent[]): string {
       return "";
     })
     .join("");
+
+  // Post-process: detect $...$ and $$...$$ patterns and wrap with <Latex>
+  return wrapInlineLatex(raw);
 }
 
 // Get inline style string for block-level color props (returns empty string if no colors)

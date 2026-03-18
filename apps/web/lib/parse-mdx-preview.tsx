@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import katex from "katex";
 import {
   Card,
   CardGroup,
@@ -52,11 +53,11 @@ interface MarkdownSegment {
 
 type ContentSegment = CodeBlockSegment | MarkdownSegment;
 
-// Preprocess inline components (Icon, Badge) into HTML that react-markdown can handle via rehypeRaw.
+// Preprocess inline components (Icon, Badge, inline Latex) into HTML that react-markdown can handle via rehypeRaw.
 // This ensures they render truly inline within paragraphs rather than breaking text into block segments.
 function preprocessInlineComponents(source: string): string {
   // Convert <Icon icon="name" size={16} /> to <span data-icon="name" data-size="16"></span>
-  const result = source.replace(
+  let result = source.replace(
     /<Icon\s+([^>]*?)\/>/g,
     (_match, attrStr: string) => {
       const iconMatch = attrStr.match(/icon="([^"]*)"/);
@@ -66,6 +67,41 @@ function preprocessInlineComponents(source: string): string {
       return `<span data-icon="${icon}" data-size="${size}"></span>`;
     }
   );
+
+  // Convert inline <Latex>expr</Latex> to pre-rendered KaTeX HTML spans.
+  // Inline = <Latex> that has non-whitespace text on the same line before or after it.
+  // Block-level <Latex> (on its own line) is left for findMDXComponents to handle.
+  result = result.replace(
+    /<Latex>([\s\S]*?)<\/Latex>/g,
+    (fullMatch, expr: string, offset: number) => {
+      // Check if this <Latex> is block-level: preceded by line-start/whitespace-only
+      // and followed by line-end/whitespace-only on the same line.
+      const before = result.slice(0, offset);
+      const after = result.slice(offset + fullMatch.length);
+      const lineStart = before.lastIndexOf("\n");
+      const textBeforeOnLine = before.slice(lineStart + 1);
+      const lineEnd = after.indexOf("\n");
+      const textAfterOnLine = lineEnd === -1 ? after : after.slice(0, lineEnd);
+
+      const isBlockLevel = textBeforeOnLine.trim() === "" && textAfterOnLine.trim() === "";
+      if (isBlockLevel) {
+        // Leave block-level for findMDXComponents
+        return fullMatch;
+      }
+
+      // Inline: pre-render with KaTeX in inline mode
+      try {
+        const html = katex.renderToString(expr.trim(), {
+          throwOnError: false,
+          displayMode: false,
+        });
+        return `<span class="latex-inline">${html}</span>`;
+      } catch {
+        return fullMatch;
+      }
+    }
+  );
+
   return result;
 }
 
