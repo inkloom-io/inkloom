@@ -1,6 +1,7 @@
 import { extname, resolve, basename, posix } from "path";
 import { readFileSync, readdirSync, statSync } from "fs";
 import type { MigrationAsset } from "./types.js";
+import { splitByProtectedRegions } from "./sanitize-mdx.js";
 
 /**
  * MIME type map — follows the pattern from core/packages/cli/src/commands/assets.ts
@@ -56,28 +57,37 @@ const DATA_URI_RE = /^data:([^;]+);base64,(.+)$/;
 export function scanContentForImages(content: string): string[] {
   const urls = new Set<string>();
 
+  // Split content into protected (code blocks, inline code, math) and
+  // non-protected regions. Only scan non-protected regions so that image
+  // references inside fenced code blocks or inline code are ignored.
+  const segments = splitByProtectedRegions(content);
+  const scannable = segments
+    .filter((s) => !s.isProtected)
+    .map((s) => s.text)
+    .join("");
+
   let match: RegExpExecArray | null;
 
   // Markdown images
   MARKDOWN_IMAGE_RE.lastIndex = 0;
-  match = MARKDOWN_IMAGE_RE.exec(content);
+  match = MARKDOWN_IMAGE_RE.exec(scannable);
   while (match) {
     const url = match[1].trim();
     if (url) {
       urls.add(url);
     }
-    match = MARKDOWN_IMAGE_RE.exec(content);
+    match = MARKDOWN_IMAGE_RE.exec(scannable);
   }
 
   // JSX images
   JSX_IMAGE_RE.lastIndex = 0;
-  match = JSX_IMAGE_RE.exec(content);
+  match = JSX_IMAGE_RE.exec(scannable);
   while (match) {
     const url = match[1].trim();
     if (url) {
       urls.add(url);
     }
-    match = JSX_IMAGE_RE.exec(content);
+    match = JSX_IMAGE_RE.exec(scannable);
   }
 
   return Array.from(urls);

@@ -51,7 +51,7 @@ export function sanitizeForMdx(content: string): string {
   return result;
 }
 
-interface Segment {
+export interface Segment {
   text: string;
   isProtected: boolean;
 }
@@ -65,7 +65,7 @@ interface Segment {
  * - Display math blocks ($$...$$)
  * - Inline math ($...$)
  */
-function splitByProtectedRegions(content: string): Segment[] {
+export function splitByProtectedRegions(content: string): Segment[] {
   const segments: Segment[] = [];
 
   // Combined pattern matching protected regions in priority order:

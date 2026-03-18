@@ -92,6 +92,82 @@ More text
     const content = "# Just a heading\n\nSome paragraph text.";
     expect(scanContentForImages(content)).toEqual([]);
   });
+
+  it("ignores markdown images inside fenced code blocks", () => {
+    const content = `
+Some text
+
+\`\`\`md
+![title](/path/image.jpg)
+\`\`\`
+
+![real](./real-image.png)
+    `;
+    const urls = scanContentForImages(content);
+    expect(urls).toEqual(["./real-image.png"]);
+  });
+
+  it("ignores JSX images inside fenced code blocks", () => {
+    const content = `
+Some text
+
+\`\`\`html
+<img height="200" src="/path/image.jpg" />
+\`\`\`
+
+<img src="./real-image.png" />
+    `;
+    const urls = scanContentForImages(content);
+    expect(urls).toEqual(["./real-image.png"]);
+  });
+
+  it("ignores images inside inline code spans", () => {
+    const content = `
+Use \`![alt](/example.png)\` for markdown images.
+
+![real](./actual.png)
+    `;
+    const urls = scanContentForImages(content);
+    expect(urls).toEqual(["./actual.png"]);
+  });
+
+  it("ignores images inside tilde fenced code blocks", () => {
+    const content = `
+~~~md
+![example](/path/image.jpg)
+~~~
+
+![real](./real.png)
+    `;
+    const urls = scanContentForImages(content);
+    expect(urls).toEqual(["./real.png"]);
+  });
+
+  it("collects images from normal text while skipping code blocks with multiple examples", () => {
+    const content = `
+# Images and embeds
+
+Here's how to add images:
+
+\`\`\`md
+![title](/path/image.jpg)
+\`\`\`
+
+\`\`\`html
+<img height="200" src="/path/image.jpg" />
+\`\`\`
+
+And here is a real image:
+
+![banner](./images/banner.png)
+<Image src="https://cdn.example.com/logo.svg" alt="Logo" />
+    `;
+    const urls = scanContentForImages(content);
+    expect(urls).toHaveLength(2);
+    expect(urls).toContain("./images/banner.png");
+    expect(urls).toContain("https://cdn.example.com/logo.svg");
+    expect(urls).not.toContain("/path/image.jpg");
+  });
 });
 
 // ── scanGitbookAssetsDir ──
