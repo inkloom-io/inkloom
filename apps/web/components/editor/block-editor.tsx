@@ -62,6 +62,7 @@ import { schema, type CustomBlockNoteEditor, type CustomPartialBlock } from "./s
 import { CommentHoverTooltip } from "./comments/comment-hover-tooltip";
 import { BadgeToolbarButton } from "./toolbar/badge-toolbar-button";
 import { IconToolbarButton } from "./toolbar/icon-toolbar-button";
+import { isGroupChildType } from "./custom-blocks/group-utils";
 
 // Collaboration configuration for real-time editing
 export interface CollaborationConfig {
@@ -331,6 +332,69 @@ export function BlockEditor({
       editor.replaceBlocks(editor.document, parsedContent);
     }
   }, [editor]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Monkey-patch updateBlock to handle block type conversions within group children.
+  // When BlockNote's insertOrUpdateBlockForSlashMenu tries to change a group child
+  // (e.g., tab → image), the ProseMirror layer rejects it because the content models
+  // are incompatible. Instead, we intercept and insert the new block as a flat sibling.
+  useEffect(() => {
+    if (!editor) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bnEditor = editor as any;
+    // Only patch once
+    if (bnEditor.__groupAwareUpdateBlockPatched) return;
+    bnEditor.__groupAwareUpdateBlockPatched = true;
+
+    const originalUpdateBlock = bnEditor.updateBlock.bind(bnEditor);
+    bnEditor.updateBlock = (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      blockToUpdate: any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      update: any,
+    ) => {
+      // Get the actual block object
+      const block = typeof blockToUpdate === "string"
+        ? bnEditor.getBlock(blockToUpdate)
+        : blockToUpdate;
+
+      // If the update changes the type AND the current block is a group child,
+      // redirect to insert-after instead of type conversion
+      if (
+        block &&
+        update.type &&
+        update.type !== block.type &&
+        isGroupChildType(block.type)
+      ) {
+        // Clear the slash menu trigger text ("/") from the group child's content
+        try {
+          originalUpdateBlock(block, { content: [] });
+        } catch {
+          // Ignore errors from content clearing
+        }
+
+        // Insert the new block as a flat sibling after the group child
+        const insertedBlocks = bnEditor.insertBlocks(
+          [update],
+          block,
+          "after",
+        );
+
+        // Move cursor to the newly inserted block
+        const newBlock = insertedBlocks?.[0];
+        if (newBlock) {
+          try {
+            bnEditor.setTextCursorPosition(newBlock, "end");
+          } catch {
+            // Some blocks (content: "none") can't receive cursor
+          }
+        }
+
+        return newBlock || block;
+      }
+
+      return originalUpdateBlock(blockToUpdate, update);
+    };
+  }, [editor]);
 
   // Custom slash menu items for Card and CardGroup
   const getCustomSlashMenuItems = useMemo(() => {

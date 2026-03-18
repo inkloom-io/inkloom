@@ -14,12 +14,25 @@ export const GROUP_MAPPINGS = {
 export type GroupContainerType = keyof typeof GROUP_MAPPINGS;
 export type GroupChildType = (typeof GROUP_MAPPINGS)[GroupContainerType];
 
+// Set of all container types for quick lookup
+const CONTAINER_TYPES = new Set(Object.keys(GROUP_MAPPINGS));
+
+// Set of all group child types for quick lookup
+const GROUP_CHILD_TYPES = new Set(Object.values(GROUP_MAPPINGS));
+
 // Generic block type for our purposes
 interface GenericBlock {
   id: string;
   type: string;
   props?: Record<string, unknown>;
   content?: unknown;
+}
+
+/**
+ * Check if a block type is a group child type (tab, step, codeBlock, etc.)
+ */
+export function isGroupChildType(blockType: string): boolean {
+  return GROUP_CHILD_TYPES.has(blockType as GroupChildType);
 }
 
 /**
@@ -57,6 +70,23 @@ export function getGroupContainer(
 
     const prevType = prevBlock.type;
 
+    // Check if this is the group container we're looking for
+    if (prevType === expectedContainerType) {
+      containerIndex = i;
+      containerType = prevType as GroupContainerType;
+      break;
+    }
+
+    // Skip sibling blocks of the same type (other children in the group)
+    if (prevType === block.type) {
+      continue;
+    }
+
+    // Another container type breaks the group — this child belongs to a different group
+    if (CONTAINER_TYPES.has(prevType)) {
+      return null;
+    }
+
     // Skip empty paragraphs
     if (prevType === "paragraph") {
       const content = prevBlock.content as Array<{ type: string; text?: string }> | undefined;
@@ -65,24 +95,11 @@ export function getGroupContainer(
           (content.length === 1 && firstItem?.type === "text" && firstItem?.text === "")) {
         continue;
       }
-      // Non-empty paragraph breaks the group
-      return null;
     }
 
-    // Skip sibling blocks of the same type (other children in the group)
-    if (prevType === block.type) {
-      continue;
-    }
-
-    // Check if this is the group container we're looking for
-    if (prevType === expectedContainerType) {
-      containerIndex = i;
-      containerType = prevType as GroupContainerType;
-      break;
-    }
-
-    // Any other block type breaks the group
-    return null;
+    // Skip non-container blocks (content blocks interleaved within the group,
+    // e.g. a code block or image inserted inside a tab's content area)
+    continue;
   }
 
   if (containerIndex === -1 || !containerType) return null;
@@ -99,17 +116,12 @@ export function getGroupContainer(
 
     if (nextType === expectedChildType) {
       siblings.push(nextBlock);
-    } else if (nextType === "paragraph") {
-      const content = nextBlock.content as Array<{ type: string; text?: string }> | undefined;
-      const firstItem = content?.[0];
-      if (!content || content.length === 0 ||
-          (content.length === 1 && firstItem?.type === "text" && firstItem?.text === "")) {
-        continue; // Skip empty paragraphs
-      }
-      break; // Non-empty paragraph breaks the group
-    } else {
-      break; // Any other block type breaks the group
+    } else if (CONTAINER_TYPES.has(nextType)) {
+      // Another container type ends the group
+      break;
     }
+    // Skip all other block types (empty paragraphs, content blocks interleaved
+    // within the group like images or code blocks inserted into a tab)
   }
 
   const indexInGroup = siblings.findIndex(s => s.id === block.id);
@@ -154,17 +166,12 @@ export function getGroupChildren(
 
     if (nextType === expectedChildType) {
       children.push(nextBlock);
-    } else if (nextType === "paragraph") {
-      const content = nextBlock.content as Array<{ type: string; text?: string }> | undefined;
-      const firstItem = content?.[0];
-      if (!content || content.length === 0 ||
-          (content.length === 1 && firstItem?.type === "text" && firstItem?.text === "")) {
-        continue; // Skip empty paragraphs
-      }
-      break; // Non-empty paragraph breaks the group
-    } else {
-      break; // Any other block type breaks the group
+    } else if (CONTAINER_TYPES.has(nextType)) {
+      // Another container type ends the group
+      break;
     }
+    // Skip all other block types (empty paragraphs, content blocks interleaved
+    // within the group like images or code blocks inserted into a tab)
   }
 
   return children;
@@ -212,4 +219,56 @@ export function findContainerBefore(
   }
 
   return null;
+}
+
+/**
+ * Insert blocks from the slash menu with group-awareness.
+ *
+ * When the cursor is inside a group child block (tab, frameContent, step, etc.),
+ * this function inserts the new block(s) as flat siblings after the current child
+ * block instead of trying to replace the current block. It also cleans up any
+ * slash menu trigger text ("/") from the current block's inline content.
+ *
+ * Returns true if the insertion was handled (group context), false if the caller
+ * should proceed with default insertion behavior.
+ */
+export function insertBlocksInGroupContext(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  editor: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocksToInsert: any[],
+): boolean {
+  const cursorBlock = editor.getTextCursorPosition().block;
+  if (!cursorBlock) return false;
+
+  // Only intercept when cursor is in a group child block
+  if (!isGroupChildType(cursorBlock.type)) return false;
+
+  // Clean up slash menu trigger text ("/") from the current block's inline content
+  const content = cursorBlock.content;
+  if (Array.isArray(content)) {
+    const hasOnlySlash =
+      content.length === 0 ||
+      (content.length === 1 &&
+        content[0]?.type === "text" &&
+        (content[0]?.text === "/" || content[0]?.text === ""));
+    if (hasOnlySlash) {
+      editor.updateBlock(cursorBlock, { content: [] });
+    }
+  }
+
+  // Insert the new block(s) as flat siblings after the current group child
+  const insertedBlocks = editor.insertBlocks(blocksToInsert, cursorBlock, "after");
+
+  // Move cursor to the first inserted block that has content
+  if (insertedBlocks && insertedBlocks.length > 0) {
+    const firstInserted = insertedBlocks[0];
+    try {
+      editor.setTextCursorPosition(firstInserted, "end");
+    } catch {
+      // Some blocks (content: "none") can't receive cursor, that's fine
+    }
+  }
+
+  return true;
 }
