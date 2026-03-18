@@ -115,6 +115,9 @@ export interface ErrorReportingAdapter {
     context?: Record<string, unknown>,
   ): string | undefined;
 
+  /** Flush queued error events to the network. Call before serverless termination. */
+  flush?(timeout?: number): Promise<void>;
+
   /** Submit user feedback to the error tracking service. Rejects on failure. */
   submitFeedback?(feedback: {
     name?: string;

@@ -65,6 +65,10 @@ export async function POST(request: Request) {
     if (error instanceof Error) {
       errorReportingAdapter.captureError(error, { source: "build-route" });
     }
+    // Flush queued error events before serverless function terminates
+    if (errorReportingAdapter.flush) {
+      await errorReportingAdapter.flush(2000);
+    }
     return NextResponse.json(
       { error: { message: "Internal server error" } },
       { status: 500 }

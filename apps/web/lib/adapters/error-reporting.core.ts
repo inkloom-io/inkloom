@@ -13,6 +13,10 @@ export const errorReportingAdapter: ErrorReportingAdapter = {
     return undefined;
   },
 
+  async flush() {
+    // No-op in core mode — no events to flush.
+  },
+
   async submitFeedback() {
     // No-op in core mode.
   },
