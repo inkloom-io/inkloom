@@ -1100,6 +1100,51 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</Callout>");
   });
 
+  it("converts a card with block children", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "cardGroup",
+        props: { cols: "2" },
+        content: [],
+      },
+      {
+        type: "card",
+        props: { title: "Setup" },
+        content: [{ type: "text", text: "Follow these steps:" }],
+        children: [
+          { type: "codeBlock", props: { language: "bash", code: "npm init" } },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<Card title="Setup">');
+    expect(mdx).toContain("Follow these steps:");
+    expect(mdx).toContain("```bash");
+    expect(mdx).toContain("npm init");
+    expect(mdx).toContain("</Card>");
+  });
+
+  it("converts an accordion with block children", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "accordionGroup",
+        content: [],
+      },
+      {
+        type: "accordion",
+        props: { title: "Details" },
+        content: [{ type: "text", text: "More info:" }],
+        children: [
+          { type: "codeBlock", props: { language: "json", code: '{ "key": "value" }' } },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<Accordion title="Details">');
+    expect(mdx).toContain("More info:");
+    expect(mdx).toContain("```json");
+    expect(mdx).toContain('{ "key": "value" }');
+    expect(mdx).toContain("</Accordion>");
+  });
+
   it("converts empty responseField as self-closing", () => {
     const mdx = blockNoteToMDX([
       {
@@ -1157,6 +1202,22 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     {
       name: "responseField with expandable",
       mdx: `<ResponseField name="navigation" type="Navigation[]" required>\nDescription text here\n<Expandable title="Navigation">\n<ResponseField name="group" type="string">\nNested description\n</ResponseField>\n</Expandable>\n</ResponseField>`,
+    },
+    {
+      name: "tab with code block child",
+      mdx: `<Tabs>\n<Tab title="Example">\nSome text\n\n\`\`\`json\n{ "key": "value" }\n\`\`\`\n\n</Tab>\n</Tabs>`,
+    },
+    {
+      name: "step with code block child",
+      mdx: `<Steps>\n<Step title="Install">\nRun this:\n\n\`\`\`bash\nnpm install\n\`\`\`\n\n</Step>\n</Steps>`,
+    },
+    {
+      name: "callout with code block child",
+      mdx: `<Callout type="warning">\nImportant:\n\n\`\`\`javascript\nconst x = 1;\n\`\`\`\n\n</Callout>`,
+    },
+    {
+      name: "accordion with code block child",
+      mdx: `<AccordionGroup>\n<Accordion title="Show code">\nHere is the code:\n\n\`\`\`python\nprint("hello")\n\`\`\`\n\n</Accordion>\n</AccordionGroup>`,
     },
     {
       name: "columns with cards (backward-compatible cardGroup)",
