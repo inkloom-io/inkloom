@@ -504,6 +504,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       const { inlineContent, blockChildren } = node.children
         ? convertMixedChildren(node.children)
         : { inlineContent: [], blockChildren: [] };
+      // Flatten block children as siblings after the tab block
+      // (matching the sibling-based grouping pattern used by the editor)
       return [
         {
           type: "tab",
@@ -512,8 +514,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             ...(icon ? { icon } : {}),
           },
           content: inlineContent,
-          ...(blockChildren.length > 0 ? { children: blockChildren } : {}),
         },
+        ...blockChildren,
       ];
     }
 

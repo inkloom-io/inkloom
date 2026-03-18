@@ -246,6 +246,26 @@ describe("mdxToBlockNote", () => {
     expect(blocks[2].props?.title).toBe("Vue");
   });
 
+  it("parses Tabs with nested blocks as flat sibling array", () => {
+    const mdx = `<Tabs>\n<Tab title="Example">\nSome text\n\n\`\`\`javascript\nconst x = 1;\n\`\`\`\n</Tab>\n<Tab title="Other">\nOther content\n</Tab>\n</Tabs>`;
+    const blocks = mdxToBlockNote(mdx);
+    // Should be: [tabs, tab("Example"), codeBlock, tab("Other")]
+    expect(blocks[0].type).toBe("tabs");
+    expect(blocks[1].type).toBe("tab");
+    expect(blocks[1].props?.title).toBe("Example");
+    expect(blocks[1].children).toBeUndefined();
+    // Inline content stays in tab's content
+    const content = blocks[1].content as Array<{ type: string; text?: string }>;
+    expect(content.some((c) => c.text?.includes("Some text"))).toBe(true);
+    // Code block is a flat sibling, NOT nested in children
+    expect(blocks[2].type).toBe("codeBlock");
+    expect(blocks[2].props?.language).toBe("javascript");
+    expect(blocks[2].props?.code).toBe("const x = 1;");
+    // Second tab follows the code block
+    expect(blocks[3].type).toBe("tab");
+    expect(blocks[3].props?.title).toBe("Other");
+  });
+
   it("parses Steps with Step children", () => {
     const mdx = `<Steps>\n<Step title="Install">\nRun the install command.\n</Step>\n<Step title="Configure">\nEdit the config file.\n</Step>\n</Steps>`;
     const blocks = mdxToBlockNote(mdx);
@@ -589,7 +609,7 @@ describe("mdxToBlockNote", () => {
   });
 
   describe("block-level content inside JSX components", () => {
-    it("parses a code block inside a Tab into children", () => {
+    it("parses a code block inside a Tab as flat siblings", () => {
       const mdx = `<Tabs>\n<Tab title="Example">\nSome intro text:\n\n\`\`\`javascript\nconst x = 1;\n\`\`\`\n</Tab>\n</Tabs>`;
       const blocks = mdxToBlockNote(mdx);
       const tab = blocks.find((b) => b.type === "tab");
@@ -597,12 +617,12 @@ describe("mdxToBlockNote", () => {
       // Inline text should be in content
       const content = tab?.content as Array<{ type: string; text?: string }>;
       expect(content.some((c) => c.text?.includes("intro text"))).toBe(true);
-      // Code block should be in children, not flattened to text
-      expect(tab?.children).toBeDefined();
-      expect(tab?.children?.some((c) => c.type === "codeBlock")).toBe(true);
-      const codeChild = tab?.children?.find((c) => c.type === "codeBlock");
-      expect(codeChild?.props?.language).toBe("javascript");
-      expect(codeChild?.props?.code).toBe("const x = 1;");
+      // Code block should be a flat sibling after the tab, not nested in children
+      expect(tab?.children).toBeUndefined();
+      const codeBlock = blocks.find((b) => b.type === "codeBlock");
+      expect(codeBlock).toBeDefined();
+      expect(codeBlock?.props?.language).toBe("javascript");
+      expect(codeBlock?.props?.code).toBe("const x = 1;");
     });
 
     it("parses a code block inside a Step into children", () => {
@@ -660,13 +680,14 @@ describe("mdxToBlockNote", () => {
       expect(step?.children?.some((c) => c.type === "image")).toBe(true);
     });
 
-    it("handles table inside a Tab", () => {
+    it("handles table inside a Tab as flat sibling", () => {
       const mdx = `<Tabs>\n<Tab title="Data">\nThe data:\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n</Tab>\n</Tabs>`;
       const blocks = mdxToBlockNote(mdx);
       const tab = blocks.find((b) => b.type === "tab");
       expect(tab).toBeDefined();
-      expect(tab?.children).toBeDefined();
-      expect(tab?.children?.some((c) => c.type === "table")).toBe(true);
+      expect(tab?.children).toBeUndefined();
+      const table = blocks.find((b) => b.type === "table");
+      expect(table).toBeDefined();
     });
   });
 });
@@ -1106,7 +1127,7 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</Step>");
   });
 
-  it("converts a tab with block children", () => {
+  it("converts a tab with block children (backward compat)", () => {
     const mdx = blockNoteToMDX([
       { type: "tabs", content: [] },
       {
@@ -1123,6 +1144,24 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("```javascript");
     expect(mdx).toContain("const x = 1;");
     expect(mdx).toContain("</Tab>");
+  });
+
+  it("converts a tab with flat sibling block children", () => {
+    const mdx = blockNoteToMDX([
+      { type: "tabs", content: [] },
+      {
+        type: "tab",
+        props: { title: "Example" },
+        content: [{ type: "text", text: "Some text" }],
+      },
+      { type: "codeBlock", props: { language: "json", code: '{ "key": "value" }' } },
+    ]);
+    expect(mdx).toContain('<Tab title="Example">');
+    expect(mdx).toContain("Some text");
+    expect(mdx).toContain("```json");
+    expect(mdx).toContain('{ "key": "value" }');
+    expect(mdx).toContain("</Tab>");
+    expect(mdx).toContain("</Tabs>");
   });
 
   it("converts a callout with block children", () => {
