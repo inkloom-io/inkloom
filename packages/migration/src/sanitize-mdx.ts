@@ -62,8 +62,10 @@ export interface Segment {
  * Protected regions (content is preserved verbatim):
  * - Fenced code blocks (``` or ~~~, with optional language/meta)
  * - Inline code spans (single or multiple backticks)
- * - Display math blocks ($$...$$)
- * - Inline math ($...$)
+ *
+ * NOTE: $...$ and $$...$$ math expressions are NOT protected — their curly
+ * braces must be escaped because remark-mdx doesn't understand LaTeX math
+ * and will try to parse {content} as JSX expressions.
  */
 export function splitByProtectedRegions(content: string): Segment[] {
   const segments: Segment[] = [];
@@ -71,10 +73,8 @@ export function splitByProtectedRegions(content: string): Segment[] {
   // Combined pattern matching protected regions in priority order:
   // 1. Fenced code blocks: ```...``` or ~~~...~~~
   // 2. Inline code: `...` (single or multi-backtick)
-  // 3. Display math: $$...$$
-  // 4. Inline math: $...$ (not preceded by $ or followed by $, content is non-empty)
   const protectedPattern =
-    /(?:^|\n)((`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\2[ \t]*(?:\n|$))|(`+)(?!`)(.+?)\3(?!`)|\$\$[\s\S]+?\$\$|(?<!\$)\$(?!\$)([^$\n]+?)\$(?!\$)/g;
+    /(?:^|\n)((`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\2[ \t]*(?:\n|$))|(`+)(?!`)(.+?)\3(?!`)/g;
 
   let lastIndex = 0;
   let match: RegExpExecArray | null;

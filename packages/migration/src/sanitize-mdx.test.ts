@@ -172,36 +172,40 @@ describe("sanitizeForMdx", () => {
   // ── LaTeX math (must NOT be sanitized) ──────────────────────────────
 
   describe("LaTeX math", () => {
-    it("preserves curly braces inside inline math $...$", () => {
+    it("escapes curly braces inside inline math $...$", () => {
+      // remark-mdx doesn't understand LaTeX — braces must be escaped
       const input = "The function $f(x) = x * e^{2 pi i \\xi x}$ is important";
       const result = sanitizeForMdx(input);
-      expect(result).toContain("$f(x) = x * e^{2 pi i \\xi x}$");
+      expect(result).toContain("$f(x) = x * e^\\{2 pi i \\xi x\\}$");
     });
 
-    it("preserves curly braces inside display math $$...$$", () => {
+    it("escapes curly braces inside display math $$...$$", () => {
       const input = "The formula:\n$$\nf(x) = \\sum_{i=0}^{n} x_i\n$$\nend";
       const result = sanitizeForMdx(input);
-      expect(result).toContain("$$\nf(x) = \\sum_{i=0}^{n} x_i\n$$");
+      expect(result).toContain("\\{i=0\\}");
+      expect(result).toContain("\\{n\\}");
     });
 
-    it("preserves angle brackets inside inline math", () => {
+    it("escapes angle brackets inside inline math", () => {
       const input = "When $x < y$ we get";
       const result = sanitizeForMdx(input);
-      expect(result).toContain("$x < y$");
+      expect(result).toContain("$x \\< y$");
     });
 
-    it("sanitizes content outside math but not inside", () => {
+    it("sanitizes braces inside math expressions too", () => {
+      // remark-mdx doesn't understand LaTeX math, so braces inside $...$
+      // must be escaped to prevent acorn from parsing them as JSX expressions
       const input = "Text {var} and $e^{x}$ and more {var2}";
       const result = sanitizeForMdx(input);
       expect(result).toContain("\\{var\\}");
-      expect(result).toContain("$e^{x}$");
+      expect(result).toContain("$e^\\{x\\}$");
       expect(result).toContain("\\{var2\\}");
     });
 
-    it("handles display math with braces on same line", () => {
+    it("escapes braces inside display math", () => {
       const input = "$$\\frac{a}{b}$$";
       const result = sanitizeForMdx(input);
-      expect(result).toBe("$$\\frac{a}{b}$$");
+      expect(result).toBe("$$\\frac\\{a\\}\\{b\\}$$");
     });
 
     it("does not treat single $ as math when not paired", () => {
