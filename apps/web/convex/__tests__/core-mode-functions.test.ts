@@ -169,7 +169,8 @@ describe("core-mode: import boundary (no platform table references)", () => {
 
     expect(source).not.toContain("generationJobs");
     expect(source).not.toContain("billing");
-    expect(source).not.toContain("github");
+    expect(source).not.toContain("githubInstallations");
+    expect(source).not.toContain("githubConnections");
     expect(source).not.toContain("apiKeys");
     expect(source).not.toContain("webhooks");
     expect(source).not.toContain("organizations");

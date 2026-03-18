@@ -93,6 +93,7 @@ describe("core template Convex schema", () => {
       "mergeRequests",
       "mergeRequestComments",
       "branchSnapshots",
+      "pageFeedback",
     ];
 
     for (const table of requiredTables) {
