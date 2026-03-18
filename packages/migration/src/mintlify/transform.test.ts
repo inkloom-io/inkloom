@@ -189,7 +189,9 @@ Content.`;
     it("handles content with no frontmatter", async () => {
       const input = `# Hello World\n\nSome content.`;
       const { mdx, frontmatter, metadata } = await transformMintlifyMdx(input);
-      expect(mdx).toContain("# Hello World");
+      // Leading H1 is stripped (it would duplicate the page title)
+      expect(mdx).not.toContain("# Hello World");
+      expect(mdx).toContain("Some content.");
       expect(frontmatter).toBeUndefined();
       expect(Object.keys(metadata)).toHaveLength(0);
     });
@@ -249,8 +251,10 @@ icon: lock
       expect(mdx).toContain("<Step");
       expect(mdx).toContain("<Card");
 
-      // Content preserved
-      expect(mdx).toContain("# Authentication");
+      // Leading H1 is stripped (duplicates frontmatter title)
+      expect(mdx).not.toContain("# Authentication");
+      // Other content preserved
+      expect(mdx).toContain("## Getting Started");
       expect(mdx).toContain("You need an API key");
     });
   });

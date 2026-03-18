@@ -15,6 +15,7 @@ import {
 } from "./navigation.js";
 import { transformGitbookBlocks, type TransformResult } from "./transform.js";
 import { collectAssets } from "../assets.js";
+import { stripLeadingH1 } from "../strip-leading-h1.js";
 import type {
   MigrationResult,
   ParsedPage,
@@ -263,6 +264,10 @@ export async function parseGitbook(
       (typeof metadata.title === "string" && metadata.title) ||
       (ref ? ref.title : deriveTitleFromContent(body, pagePath));
 
+    // Strip leading H1 from body — the title is already captured above,
+    // so a leading H1 would be duplicated in the rendered page.
+    const strippedContent = stripLeadingH1(transformed.content);
+
     const slug = slugFromFilePath(pagePath);
     const folderPath = ref ? ref.folderPath : deriveFolderPath(pagePath);
     const position = ref ? ref.position : extraPosition++;
@@ -271,13 +276,13 @@ export async function parseGitbook(
       title,
       slug,
       path: pagePath,
-      mdxContent: transformed.content,
+      mdxContent: strippedContent,
       folderPath,
       position,
       metadata,
     });
 
-    allContents.push(transformed.content);
+    allContents.push(strippedContent);
   }
 
   // 6. Build ParsedFolder[] from navigation

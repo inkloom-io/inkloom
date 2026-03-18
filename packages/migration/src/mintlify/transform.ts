@@ -1,4 +1,5 @@
 import { transformLatex } from "../latex.js";
+import { stripLeadingH1 } from "../strip-leading-h1.js";
 
 /**
  * Component rename map: Mintlify component name → { name, type } for InkLoom Callout.
@@ -286,8 +287,12 @@ export async function transformMintlifyMdx(
   // Rename Mintlify components in MDX body
   const transformedBody = renameComponents(bodyWithoutImports);
 
+  // Strip leading H1 — the title is always set from frontmatter for Mintlify
+  // pages, so a leading H1 would be duplicated in the rendered page.
+  const h1Stripped = stripLeadingH1(transformedBody);
+
   // Transform LaTeX delimiters to <Latex> components (after all other transforms)
-  const latexTransformed = transformLatex(transformedBody);
+  const latexTransformed = transformLatex(h1Stripped);
 
   return {
     mdx: latexTransformed.trim() + "\n",
