@@ -1017,6 +1017,13 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
       if (caption) frameAttrs.push(`caption="${caption}"`);
       const attrStr = frameAttrs.length > 0 ? ` ${frameAttrs.join(" ")}` : "";
       mdx += `<Frame${attrStr}>\n`;
+      // Render nested children of the frame block (e.g. image blocks)
+      if (block.children && Array.isArray(block.children)) {
+        for (const child of block.children as BlockNoteBlock[]) {
+          mdx += convertBlock(child);
+        }
+      }
+      // Also collect following frameContent sibling blocks (legacy pattern)
       i++;
       while (i < blocks.length) {
         const nextBlock = blocks[i];
