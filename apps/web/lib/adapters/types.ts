@@ -115,7 +115,7 @@ export interface ErrorReportingAdapter {
     context?: Record<string, unknown>,
   ): string | undefined;
 
-  /** Submit user feedback to the error tracking service. Returns true if sent. */
+  /** Submit user feedback to the error tracking service. Rejects on failure. */
   submitFeedback?(feedback: {
     name?: string;
     email?: string;
@@ -138,5 +138,5 @@ export interface ErrorReportingAdapter {
       recentErrorEventIds?: string[];
       appVersion?: string;
     };
-  }): void;
+  }): Promise<void>;
 }

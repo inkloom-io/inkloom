@@ -2388,6 +2388,8 @@
     "submit": "Send feedback",
     "submitting": "Sending…",
     "successMessage": "Thanks for your feedback!",
+    "errorMessage": "Something went wrong. Your feedback wasn't sent.",
+    "tryAgain": "Try again",
     "submitHint": "{shortcut} to send"
   },
   "mintlifyAlternative": {

@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import {
   MessageSquareWarning,
   CheckCircle,
+  AlertCircle,
   Loader2,
   ImagePlus,
   X,
@@ -69,7 +70,7 @@ interface ReportProblemButtonProps {
   sessionContext?: SessionContext;
 }
 
-type DialogState = "form" | "submitting" | "success";
+type DialogState = "form" | "submitting" | "success" | "error";
 
 const MAX_SCREENSHOT_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif"];
@@ -212,33 +213,38 @@ export function ReportProblemButton({
     return questionWhatHelp.trim().length > 0;
   }, [category, bugWhatDoing, featureWhatWant, questionWhatHelp]);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!hasRequiredField()) return;
 
     setDialogState("submitting");
 
-    if (errorReportingAdapter.submitFeedback) {
-      const browserContext = collectBrowserContext();
-      errorReportingAdapter.submitFeedback({
-        message: buildMessage(),
-        name: name.trim() || undefined,
-        email: email.trim() || undefined,
-        category,
-        screenshot: screenshot ?? undefined,
-        associatedEventId,
-        context: {
-          ...browserContext,
-          ...sessionContext,
-        },
-      });
-    }
+    try {
+      if (errorReportingAdapter.submitFeedback) {
+        const browserContext = collectBrowserContext();
+        await errorReportingAdapter.submitFeedback({
+          message: buildMessage(),
+          name: name.trim() || undefined,
+          email: email.trim() || undefined,
+          category,
+          screenshot: screenshot ?? undefined,
+          associatedEventId,
+          context: {
+            ...browserContext,
+            ...sessionContext,
+          },
+        });
+      }
 
-    setDialogState("success");
-    autoCloseTimerRef.current = setTimeout(() => {
-      autoCloseTimerRef.current = null;
-      setOpen(false);
-      resetForm();
-    }, 2000);
+      setDialogState("success");
+      autoCloseTimerRef.current = setTimeout(() => {
+        autoCloseTimerRef.current = null;
+        setOpen(false);
+        resetForm();
+      }, 2000);
+    } catch (err) {
+      console.error("[report-problem] Failed to submit feedback:", err);
+      setDialogState("error");
+    }
   }, [
     hasRequiredField,
     buildMessage,
@@ -337,6 +343,20 @@ export function ReportProblemButton({
             <p className="text-sm text-muted-foreground">
               {t("successMessage")}
             </p>
+          </div>
+        ) : dialogState === "error" ? (
+          <div className="flex flex-col items-center gap-3 py-8">
+            <AlertCircle className="h-8 w-8 text-destructive" />
+            <p className="text-sm text-muted-foreground">
+              {t("errorMessage")}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDialogState("form")}
+            >
+              {t("tryAgain")}
+            </Button>
           </div>
         ) : (
           <>

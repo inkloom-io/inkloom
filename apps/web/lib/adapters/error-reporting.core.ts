@@ -13,7 +13,7 @@ export const errorReportingAdapter: ErrorReportingAdapter = {
     return undefined;
   },
 
-  submitFeedback() {
+  async submitFeedback() {
     // No-op in core mode.
   },
 };
