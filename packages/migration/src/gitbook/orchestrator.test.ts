@@ -352,7 +352,7 @@ describe("parseGitbook orchestrator", () => {
       }
     });
 
-    it("converts tabs blocks to Tabs/Tab components", async () => {
+    it("converts all-code tabs blocks to CodeGroup", async () => {
       const result = await parseGitbook(FIXTURE_DIR);
       const quickStart = result.pages.find(
         (p) => p.path === "getting-started/quick-start.md",
@@ -360,9 +360,12 @@ describe("parseGitbook orchestrator", () => {
 
       expect(quickStart).toBeDefined();
       if (quickStart) {
-        expect(quickStart.mdxContent).toContain("<Tabs>");
-        expect(quickStart.mdxContent).toContain('<Tab title="npm">');
-        expect(quickStart.mdxContent).toContain('<Tab title="yarn">');
+        expect(quickStart.mdxContent).toContain("<CodeGroup>");
+        expect(quickStart.mdxContent).toContain("</CodeGroup>");
+        expect(quickStart.mdxContent).toContain('```bash title="npm"');
+        expect(quickStart.mdxContent).toContain('```bash title="yarn"');
+        expect(quickStart.mdxContent).not.toContain("<Tabs>");
+        expect(quickStart.mdxContent).not.toContain("<Tab");
         expect(quickStart.mdxContent).not.toContain("{% tabs");
       }
     });

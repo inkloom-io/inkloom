@@ -75,7 +75,7 @@ describe("transformGitbookBlocks", () => {
   // ─── Tabs Blocks ────────────────────────────────────────────────
 
   describe("tabs blocks", () => {
-    it("converts simple tabs structure", () => {
+    it("converts simple all-code tabs structure to CodeGroup", () => {
       const input = [
         "{% tabs %}",
         '{% tab title="JavaScript" %}',
@@ -92,11 +92,12 @@ describe("transformGitbookBlocks", () => {
       ].join("\n");
 
       const result = transformGitbookBlocks(input);
-      expect(result.content).toContain("<Tabs>");
-      expect(result.content).toContain('<Tab title="JavaScript">');
-      expect(result.content).toContain('<Tab title="Python">');
-      expect(result.content).toContain("</Tab>");
-      expect(result.content).toContain("</Tabs>");
+      expect(result.content).toContain("<CodeGroup>");
+      expect(result.content).toContain("</CodeGroup>");
+      expect(result.content).toContain("```js");
+      expect(result.content).toContain("```python");
+      expect(result.content).not.toContain("<Tabs>");
+      expect(result.content).not.toContain("<Tab");
       expect(result.hasJsx).toBe(true);
     });
 
@@ -151,6 +152,196 @@ describe("transformGitbookBlocks", () => {
 
       const result = transformGitbookBlocks(input);
       expect(result.content).toContain('<Tab title="Tab One">');
+    });
+  });
+
+  // ─── All-Code Tabs → CodeGroup ─────────────────────────────────
+
+  describe("all-code tabs → CodeGroup", () => {
+    it("converts tabs with only code blocks to CodeGroup", () => {
+      const input = [
+        "{% tabs %}",
+        '{% tab title="JavaScript" %}',
+        "```javascript",
+        'console.log("hello");',
+        "```",
+        "{% endtab %}",
+        '{% tab title="Python" %}',
+        "```python",
+        'print("hello")',
+        "```",
+        "{% endtab %}",
+        "{% endtabs %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<CodeGroup>");
+      expect(result.content).toContain("</CodeGroup>");
+      expect(result.content).toContain("```javascript");
+      expect(result.content).toContain("```python");
+      expect(result.content).not.toContain("<Tabs>");
+      expect(result.content).not.toContain("<Tab");
+      expect(result.hasJsx).toBe(true);
+    });
+
+    it("converts tabs with {% code %} wrappers to CodeGroup", () => {
+      const input = [
+        "{% tabs %}",
+        '{% tab title="JavaScript" %}',
+        '{% code expandable="true" %}',
+        "```javascript",
+        'const message = "hello world";',
+        'console.log(message);',
+        "```",
+        "{% endcode %}",
+        "{% endtab %}",
+        '{% tab title="Python" %}',
+        '{% code expandable="true" %}',
+        "```python",
+        'message = "hello world"',
+        "print(message)",
+        "```",
+        "{% endcode %}",
+        "{% endtab %}",
+        "{% endtabs %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<CodeGroup>");
+      expect(result.content).toContain("</CodeGroup>");
+      expect(result.content).not.toContain("<Tabs>");
+      expect(result.content).not.toContain("<Tab");
+    });
+
+    it("keeps Tabs when tabs have mixed content (code and text)", () => {
+      const input = [
+        "{% tabs %}",
+        '{% tab title="JavaScript" %}',
+        "```javascript",
+        'console.log("hello");',
+        "```",
+        "{% endtab %}",
+        '{% tab title="Explanation" %}',
+        "This tab explains the concept.",
+        "",
+        "It has multiple paragraphs.",
+        "{% endtab %}",
+        "{% endtabs %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<Tabs>");
+      expect(result.content).toContain("<Tab");
+      expect(result.content).not.toContain("<CodeGroup>");
+    });
+
+    it("keeps Tabs when a tab has code plus additional text", () => {
+      const input = [
+        "{% tabs %}",
+        '{% tab title="JavaScript" %}',
+        "```javascript",
+        'console.log("hello");',
+        "```",
+        "",
+        "Note: requires Node.js 18+.",
+        "{% endtab %}",
+        '{% tab title="Python" %}',
+        "```python",
+        'print("hello")',
+        "```",
+        "{% endtab %}",
+        "{% endtabs %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<Tabs>");
+      expect(result.content).not.toContain("<CodeGroup>");
+    });
+
+    it("uses tab title as code block title when it differs from language", () => {
+      const input = [
+        "{% tabs %}",
+        '{% tab title="Node.js" %}',
+        "```javascript",
+        'console.log("hello");',
+        "```",
+        "{% endtab %}",
+        '{% tab title="Python 3" %}',
+        "```python",
+        'print("hello")',
+        "```",
+        "{% endtab %}",
+        "{% endtabs %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<CodeGroup>");
+      expect(result.content).toContain('```javascript title="Node.js"');
+      expect(result.content).toContain('```python title="Python 3"');
+    });
+
+    it("does not add title when tab title matches language name (case-insensitive)", () => {
+      const input = [
+        "{% tabs %}",
+        '{% tab title="JavaScript" %}',
+        "```javascript",
+        'console.log("hello");',
+        "```",
+        "{% endtab %}",
+        '{% tab title="Python" %}',
+        "```python",
+        'print("hello")',
+        "```",
+        "{% endtab %}",
+        "{% endtabs %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<CodeGroup>");
+      // Title should not be added since it matches the language
+      expect(result.content).toContain("```javascript\n");
+      expect(result.content).toContain("```python\n");
+      expect(result.content).not.toContain('title="JavaScript"');
+      expect(result.content).not.toContain('title="Python"');
+    });
+
+    it("handles single tab with only a code block as CodeGroup", () => {
+      const input = [
+        "{% tabs %}",
+        '{% tab title="Shell" %}',
+        "```bash",
+        "npm install",
+        "```",
+        "{% endtab %}",
+        "{% endtabs %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<CodeGroup>");
+      expect(result.content).toContain("```bash");
+    });
+
+    it("preserves existing code block meta attributes in CodeGroup", () => {
+      const input = [
+        "{% tabs %}",
+        '{% tab title="Config" %}',
+        '{% code title="config.js" %}',
+        "```javascript",
+        "module.exports = {};",
+        "```",
+        "{% endcode %}",
+        "{% endtab %}",
+        '{% tab title="Alt Config" %}',
+        "```typescript",
+        "export default {};",
+        "```",
+        "{% endtab %}",
+        "{% endtabs %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<CodeGroup>");
+      expect(result.content).toContain('title="config.js"');
     });
   });
 

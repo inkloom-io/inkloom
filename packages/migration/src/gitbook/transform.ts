@@ -59,6 +59,9 @@ export function transformGitbookBlocks(input: string): TransformResult {
     content = transformTabBlocks(content);
     content = transformTabsContainer(content);
 
+    // Convert all-code Tabs to CodeGroup
+    content = convertAllCodeTabsToCodeGroup(content);
+
     // Transform step blocks (individual steps first, then stepper container)
     content = transformStepBlocks(content);
     content = transformStepperContainer(content);
@@ -132,6 +135,93 @@ function transformTabsContainer(content: string): string {
   return content.replace(tabsRe, (_match, inner: string) => {
     const trimmed = inner.trim();
     return `<Tabs>\n${trimmed}\n</Tabs>`;
+  });
+}
+
+/**
+ * Convert <Tabs> blocks where every <Tab> contains only a fenced code block
+ * into <CodeGroup> with the code blocks as direct children.
+ *
+ * Tabs with mixed content (code + text) are left as <Tabs>.
+ * Tab titles are added as code block title attributes when they differ
+ * from the language name (case-insensitive).
+ */
+function convertAllCodeTabsToCodeGroup(content: string): string {
+  const tabsRe = /<Tabs>\n([\s\S]*?)\n<\/Tabs>/g;
+
+  return content.replace(tabsRe, (_match, inner: string) => {
+    // Parse individual <Tab> blocks
+    const tabRe = /<Tab title="([^"]*)">\n([\s\S]*?)\n<\/Tab>/g;
+    const tabs: Array<{ title: string; content: string }> = [];
+    let tabMatch;
+    let lastIndex = 0;
+    let onlyTabs = true;
+
+    while ((tabMatch = tabRe.exec(inner)) !== null) {
+      // Check if there's non-whitespace content between tabs
+      const between = inner.slice(lastIndex, tabMatch.index).trim();
+      if (between) {
+        onlyTabs = false;
+        break;
+      }
+      tabs.push({ title: tabMatch[1], content: tabMatch[2] });
+      lastIndex = tabRe.lastIndex;
+    }
+
+    // Check trailing content after last tab
+    if (onlyTabs && inner.slice(lastIndex).trim()) {
+      onlyTabs = false;
+    }
+
+    if (!onlyTabs || tabs.length === 0) {
+      return _match;
+    }
+
+    // Check that every tab contains ONLY a fenced code block (no other content)
+    const fencedCodeRe = /^(`{3,})(\w*)(.*)\n([\s\S]*?)\n\1$/;
+    const codeBlocks: string[] = [];
+
+    for (const tab of tabs) {
+      const trimmedContent = tab.content.trim();
+      const codeMatch = trimmedContent.match(fencedCodeRe);
+
+      if (!codeMatch) {
+        // This tab has non-code content — keep as Tabs
+        return _match;
+      }
+
+      // Check there's no extra content outside the code block
+      if (trimmedContent !== codeMatch[0]) {
+        return _match;
+      }
+
+      const fence = codeMatch[1];
+      const lang = codeMatch[2] || "";
+      const existingMeta = codeMatch[3] ? codeMatch[3].trim() : "";
+      const code = codeMatch[4];
+
+      // Determine if we need to add a title attribute from the tab title
+      let needsTitle = false;
+      if (tab.title) {
+        // Don't add title if it matches the language name (case-insensitive)
+        needsTitle = tab.title.toLowerCase() !== lang.toLowerCase();
+        // Also check if a title is already in the existing meta
+        if (existingMeta.includes('title="')) {
+          needsTitle = false;
+        }
+      }
+
+      let metaParts = existingMeta;
+      if (needsTitle) {
+        const titleAttr = `title="${tab.title}"`;
+        metaParts = metaParts ? `${titleAttr} ${metaParts}` : titleAttr;
+      }
+
+      const langAndMeta = lang + (metaParts ? " " + metaParts : "");
+      codeBlocks.push(`${fence}${langAndMeta}\n${code}\n${fence}`);
+    }
+
+    return `<CodeGroup>\n${codeBlocks.join("\n")}\n</CodeGroup>`;
   });
 }
 
