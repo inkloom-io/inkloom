@@ -1,11 +1,16 @@
 import katex from "katex";
 
 interface LatexProps {
-  expression: string;
+  expression?: string;
+  children?: React.ReactNode;
 }
 
-export function Latex({ expression }: LatexProps) {
-  const html = katex.renderToString(expression, {
+export function Latex({ expression, children }: LatexProps) {
+  const expr =
+    expression ||
+    (typeof children === "string" ? children : "") ||
+    "";
+  const html = katex.renderToString(expr.trim(), {
     throwOnError: false, // Render error message instead of throwing
     displayMode: true, // Block-level (centered) display
   });
