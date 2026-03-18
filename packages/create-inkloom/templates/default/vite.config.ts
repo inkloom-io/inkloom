@@ -7,16 +7,11 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),
+      "web-worker": path.resolve(__dirname, "src/stubs/web-worker.ts"),
     },
   },
   build: {
     outDir: "dist",
     assetsDir: "assets",
-    rollupOptions: {
-      external: ["web-worker"],
-    },
-  },
-  optimizeDeps: {
-    exclude: ["web-worker"],
   },
 });

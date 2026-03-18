@@ -700,8 +700,13 @@ function renderComponent(
         </Frame>
       );
 
-    case "Latex":
-      return <Latex key={key} expression={props.expression as string} />;
+    case "Latex": {
+      const expr =
+        (props.expression as string) ||
+        (typeof children === "string" ? children.trim() : "") ||
+        "";
+      return <Latex key={key} expression={expr} />;
+    }
 
     case "Video":
       return <Video key={key} {...(props as Record<string, string>)} />;
