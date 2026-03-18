@@ -517,6 +517,42 @@ describe("extractSnippetImports", () => {
     expect(snippetImports).toEqual({ Deep: "/snippets/nested/deep.mdx" });
   });
 
+  it("ignores npm scoped package imports", () => {
+    const body = `import MyComponent from '@mintlify/components';\n\n<MyComponent />`;
+    const { snippetImports, bodyWithoutImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({});
+    // npm import line should remain in the body (not stripped)
+    expect(bodyWithoutImports).toContain("import MyComponent from '@mintlify/components'");
+  });
+
+  it("ignores bare npm package imports", () => {
+    const body = `import React from 'react';\n\n<div />`;
+    const { snippetImports, bodyWithoutImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({});
+    expect(bodyWithoutImports).toContain("import React from 'react'");
+  });
+
+  it("ignores npm package imports but extracts local snippet imports", () => {
+    const body = `import MyComponent from '@mintlify/components';\nimport Foo from '/snippets/foo.mdx';\nimport React from 'react';\n\n<Foo />\n<MyComponent />`;
+    const { snippetImports, bodyWithoutImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({ Foo: "/snippets/foo.mdx" });
+    expect(bodyWithoutImports).not.toContain("import Foo");
+    expect(bodyWithoutImports).toContain("import MyComponent from '@mintlify/components'");
+    expect(bodyWithoutImports).toContain("import React from 'react'");
+  });
+
+  it("extracts relative snippet imports with ./", () => {
+    const body = `import Foo from './snippets/foo.mdx';\n\n<Foo />`;
+    const { snippetImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({ Foo: "./snippets/foo.mdx" });
+  });
+
+  it("extracts parent-relative snippet imports with ../", () => {
+    const body = `import Foo from '../snippets/foo.mdx';\n\n<Foo />`;
+    const { snippetImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({ Foo: "../snippets/foo.mdx" });
+  });
+
   it("returns empty map when no imports present", () => {
     const body = `# Hello\n\nSome content.`;
     const { snippetImports, bodyWithoutImports } = extractSnippetImports(body);

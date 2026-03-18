@@ -196,12 +196,15 @@ function renameComponents(body: string): string {
  * Regex to match Mintlify snippet import statements.
  * Captures: component name (group 1) and file path (group 2).
  *
+ * Only matches local file imports (paths starting with /, ./, or ../),
+ * NOT npm package imports like '@mintlify/components' or 'react'.
+ *
  * Matches patterns like:
  *   import ComponentName from '/snippets/file-name.mdx';
- *   import ComponentName from '/snippets/nested/file-name.mdx';
- *   import ComponentName from '/snippets/file-name';
+ *   import ComponentName from './snippets/nested/file-name.mdx';
+ *   import ComponentName from '../snippets/file-name';
  */
-const SNIPPET_IMPORT_RE = /import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g;
+const SNIPPET_IMPORT_RE = /import\s+(\w+)\s+from\s+['"](\.{0,2}\/[^'"]+)['"]/g;
 
 /**
  * Extract snippet import statements from MDX content.
