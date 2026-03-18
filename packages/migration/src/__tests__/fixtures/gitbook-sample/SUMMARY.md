@@ -5,6 +5,7 @@
 * [Welcome](getting-started/welcome.md)
 * [Installation](getting-started/installation.md)
 * [Configuration](getting-started/configuration.md)
+* [Showcase](getting-started/showcase.md)
 
 ## API Reference
 

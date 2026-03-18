@@ -658,10 +658,10 @@ describe("E2E: migrate() with Gitbook fixture", () => {
 
   describe("pages", () => {
     it("converts all fixture pages", () => {
-      // README, welcome, installation, configuration, overview,
+      // README, welcome, installation, configuration, showcase, overview,
       // authentication, api-keys, custom-plugins, performance, faq
-      // = 10 pages (README is also included)
-      expect(result.pages.length).toBeGreaterThanOrEqual(9);
+      // = 11 pages (README is also included)
+      expect(result.pages.length).toBeGreaterThanOrEqual(10);
     });
 
     it("every page matches createFromImport args shape", () => {
@@ -929,6 +929,178 @@ describe("E2E: migrate() with Gitbook fixture", () => {
 
       const callouts = findBlocks(blocks, "callout");
       expect(callouts.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  // ── Showcase page: all new GitBook patterns ──────────────────────────
+
+  describe("showcase page — all new patterns", () => {
+    it("includes the showcase page in output", () => {
+      const showcasePage = result.pages.find(
+        (p) => p.path === "getting-started/showcase.md",
+      );
+      expect(showcasePage).toBeDefined();
+      if (!showcasePage) return;
+
+      const blocks = parseBlocks(showcasePage.content);
+      expect(blocks.length).toBeGreaterThan(0);
+    });
+
+    it("showcase page has valid JSON-serialized BlockNote content", () => {
+      const showcasePage = result.pages.find(
+        (p) => p.path === "getting-started/showcase.md",
+      );
+      expect(showcasePage).toBeDefined();
+      if (!showcasePage) return;
+
+      let parsed: unknown;
+      expect(() => {
+        parsed = JSON.parse(showcasePage.content);
+      }).not.toThrow();
+      expect(Array.isArray(parsed)).toBe(true);
+    });
+
+    it("preserves Steps from {% stepper %}", () => {
+      const showcasePage = result.pages.find(
+        (p) => p.path === "getting-started/showcase.md",
+      );
+      expect(showcasePage).toBeDefined();
+      if (!showcasePage) return;
+
+      const blocks = parseBlocks(showcasePage.content);
+      const steps = findBlocks(blocks, "steps");
+      expect(steps.length).toBeGreaterThanOrEqual(1);
+
+      const stepItems = findBlocks(blocks, "step");
+      // 3 steps: "Install the CLI", "Configure your project", default "Step"
+      expect(stepItems.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it("extracts step titles from headings", () => {
+      const showcasePage = result.pages.find(
+        (p) => p.path === "getting-started/showcase.md",
+      );
+      expect(showcasePage).toBeDefined();
+      if (!showcasePage) return;
+
+      const blocks = parseBlocks(showcasePage.content);
+      const stepItems = findBlocks(blocks, "step");
+      const titles = stepItems.map((s) => s.props?.title);
+      expect(titles).toContain("Install the CLI");
+      expect(titles).toContain("Configure your project");
+    });
+
+    it("preserves Columns from {% columns %}", () => {
+      const showcasePage = result.pages.find(
+        (p) => p.path === "getting-started/showcase.md",
+      );
+      expect(showcasePage).toBeDefined();
+      if (!showcasePage) return;
+
+      const blocks = parseBlocks(showcasePage.content);
+      const columnsBlocks = findBlocks(blocks, "columns");
+      expect(columnsBlocks.length).toBeGreaterThanOrEqual(1);
+
+      const columnBlocks = findBlocks(blocks, "column");
+      expect(columnBlocks.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("preserves Card blocks from {% content-ref %}", () => {
+      const showcasePage = result.pages.find(
+        (p) => p.path === "getting-started/showcase.md",
+      );
+      expect(showcasePage).toBeDefined();
+      if (!showcasePage) return;
+
+      const blocks = parseBlocks(showcasePage.content);
+      const cards = findBlocks(blocks, "card");
+      // 2 content-refs + 2 card-view table rows = at least 4 cards
+      expect(cards.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("preserves Frame blocks from <figure>", () => {
+      const showcasePage = result.pages.find(
+        (p) => p.path === "getting-started/showcase.md",
+      );
+      expect(showcasePage).toBeDefined();
+      if (!showcasePage) return;
+
+      const blocks = parseBlocks(showcasePage.content);
+      const frames = findBlocks(blocks, "frame");
+      // 2 figures: one with figcaption, one without
+      expect(frames.length).toBeGreaterThanOrEqual(2);
+
+      // First figure has a caption
+      const captionedFrame = frames.find((f) => f.props?.caption);
+      expect(captionedFrame).toBeDefined();
+      if (captionedFrame) {
+        expect(captionedFrame.props?.caption).toBe("Welcome banner caption");
+      }
+    });
+
+    it("preserves Image blocks from <figure> img elements", () => {
+      const showcasePage = result.pages.find(
+        (p) => p.path === "getting-started/showcase.md",
+      );
+      expect(showcasePage).toBeDefined();
+      if (!showcasePage) return;
+
+      const blocks = parseBlocks(showcasePage.content);
+      const images = findBlocks(blocks, "image");
+      expect(images.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("preserves CardGroup from card-view table", () => {
+      const showcasePage = result.pages.find(
+        (p) => p.path === "getting-started/showcase.md",
+      );
+      expect(showcasePage).toBeDefined();
+      if (!showcasePage) return;
+
+      const blocks = parseBlocks(showcasePage.content);
+      const cardGroups = findBlocks(blocks, "cardGroup");
+      expect(cardGroups.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("preserves inline badges from <mark>", () => {
+      const showcasePage = result.pages.find(
+        (p) => p.path === "getting-started/showcase.md",
+      );
+      expect(showcasePage).toBeDefined();
+      if (!showcasePage) return;
+
+      const allContent = showcasePage.content;
+      // The badge content should appear in the serialized BlockNote JSON
+      expect(allContent).toContain("badge");
+      expect(allContent).toContain("POST");
+      expect(allContent).toContain("green");
+    });
+
+    it("preserves inline icons from <Icon>", () => {
+      const showcasePage = result.pages.find(
+        (p) => p.path === "getting-started/showcase.md",
+      );
+      expect(showcasePage).toBeDefined();
+      if (!showcasePage) return;
+
+      const allContent = showcasePage.content;
+      // The icon content should appear in the serialized BlockNote JSON
+      expect(allContent).toContain("icon");
+      expect(allContent).toContain("flag");
+    });
+
+    it("produces no errors — all patterns are handled cleanly", () => {
+      const showcasePage = result.pages.find(
+        (p) => p.path === "getting-started/showcase.md",
+      );
+      expect(showcasePage).toBeDefined();
+      if (!showcasePage) return;
+
+      const blocks = parseBlocks(showcasePage.content);
+      // No block should contain raw GitBook syntax
+      const serialized = JSON.stringify(blocks);
+      expect(serialized).not.toContain("{%");
+      expect(serialized).not.toContain("%}");
     });
   });
 });
