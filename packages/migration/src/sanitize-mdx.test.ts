@@ -24,6 +24,31 @@ describe("sanitizeForMdx", () => {
       const result = sanitizeForMdx('<Callout type={true}>');
       expect(result).toContain("type={true}");
     });
+
+    it("preserves nested curly braces in JSX attribute expressions", () => {
+      const result = sanitizeForMdx(
+        'style={{ borderRadius: "0.5rem" }}'
+      );
+      expect(result).toBe('style={{ borderRadius: "0.5rem" }}');
+    });
+
+    it("preserves deeply nested curly braces in JSX attribute expressions", () => {
+      const result = sanitizeForMdx("style={{ nested: { a: 1 } }}");
+      expect(result).toBe("style={{ nested: { a: 1 } }}");
+    });
+
+    it("preserves nested braces in img with style attribute", () => {
+      const input = `<img src="/images/example.png" style={{ borderRadius: '0.5rem' }} />`;
+      const result = sanitizeForMdx(input);
+      expect(result).toContain("style={{ borderRadius: '0.5rem' }}");
+    });
+
+    it("escapes non-attribute braces while preserving nested JSX attrs", () => {
+      const input = `{literal} and style={{ color: "red" }}`;
+      const result = sanitizeForMdx(input);
+      expect(result).toContain("\\{literal\\}");
+      expect(result).toContain('style={{ color: "red" }}');
+    });
   });
 
   // ── Void elements ─────────────────────────────────────────────────────

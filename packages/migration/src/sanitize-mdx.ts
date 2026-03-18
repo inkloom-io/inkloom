@@ -146,10 +146,33 @@ function escapeCurlyBraces(text: string): string {
   const protectedExprs: string[] = [];
 
   // Protect JSX attribute expressions: ={...} (handles nested braces)
-  let protected_ = text.replace(/=\{([^}]*)\}/g, (match) => {
-    protectedExprs.push(match);
-    return `${placeholder}${protectedExprs.length - 1}${placeholder}`;
-  });
+  // We use a brace-depth-aware scanner instead of a regex so that nested
+  // brace patterns like style={{ borderRadius: '0.5rem' }} are matched
+  // all the way to the balanced closing brace.
+  let protected_ = "";
+  let i = 0;
+  while (i < text.length) {
+    // Look for ={
+    if (text[i] === "=" && text[i + 1] === "{") {
+      // Walk forward from the opening { tracking brace depth
+      let depth = 0;
+      let j = i + 1; // points at the opening {
+      while (j < text.length) {
+        if (text[j] === "{") depth++;
+        else if (text[j] === "}") depth--;
+        if (depth === 0) break;
+        j++;
+      }
+      // j now points at the balanced closing } (or end of string if unbalanced)
+      const expr = text.slice(i, j + 1); // includes ={...}
+      protectedExprs.push(expr);
+      protected_ += `${placeholder}${protectedExprs.length - 1}${placeholder}`;
+      i = j + 1;
+    } else {
+      protected_ += text[i];
+      i++;
+    }
+  }
 
   // Escape remaining curly braces
   protected_ = protected_.replace(/\{/g, "\\{");
