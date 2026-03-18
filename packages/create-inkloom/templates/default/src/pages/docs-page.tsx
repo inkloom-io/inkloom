@@ -289,9 +289,11 @@ export function DocsPage() {
                 </p>
               )}
             </div>
-            <div className="mt-1 shrink-0">
-              <CopyPageDropdown mdxContent={pageData.content} />
-            </div>
+            {!pageData.content.trimStart().startsWith("<ApiEndpoint") && (
+              <div className="mt-1 shrink-0">
+                <CopyPageDropdown mdxContent={pageData.content} />
+              </div>
+            )}
           </div>
         </div>
       )}
