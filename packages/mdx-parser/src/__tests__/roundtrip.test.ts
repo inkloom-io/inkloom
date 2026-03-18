@@ -576,6 +576,88 @@ describe("mdxToBlockNote", () => {
     );
     expect(importBlock).toBeUndefined();
   });
+
+  describe("block-level content inside JSX components", () => {
+    it("parses a code block inside a Tab into children", () => {
+      const mdx = `<Tabs>\n<Tab title="Example">\nSome intro text:\n\n\`\`\`javascript\nconst x = 1;\n\`\`\`\n</Tab>\n</Tabs>`;
+      const blocks = mdxToBlockNote(mdx);
+      const tab = blocks.find((b) => b.type === "tab");
+      expect(tab).toBeDefined();
+      // Inline text should be in content
+      const content = tab?.content as Array<{ type: string; text?: string }>;
+      expect(content.some((c) => c.text?.includes("intro text"))).toBe(true);
+      // Code block should be in children, not flattened to text
+      expect(tab?.children).toBeDefined();
+      expect(tab?.children?.some((c) => c.type === "codeBlock")).toBe(true);
+      const codeChild = tab?.children?.find((c) => c.type === "codeBlock");
+      expect(codeChild?.props?.language).toBe("javascript");
+      expect(codeChild?.props?.code).toBe("const x = 1;");
+    });
+
+    it("parses a code block inside a Step into children", () => {
+      const mdx = `<Steps>\n<Step title="Initialize">\nCreate a client:\n\n\`\`\`typescript\nimport { Client } from "sdk";\n\`\`\`\n</Step>\n</Steps>`;
+      const blocks = mdxToBlockNote(mdx);
+      const step = blocks.find((b) => b.type === "step");
+      expect(step).toBeDefined();
+      expect(step?.children).toBeDefined();
+      expect(step?.children?.some((c) => c.type === "codeBlock")).toBe(true);
+      const content = step?.content as Array<{ type: string; text?: string }>;
+      expect(content.some((c) => c.text?.includes("Create a client"))).toBe(true);
+    });
+
+    it("parses a code block inside a Callout into children", () => {
+      const mdx = `<Callout type="info">\nSee example:\n\n\`\`\`python\nprint("hello")\n\`\`\`\n</Callout>`;
+      const blocks = mdxToBlockNote(mdx);
+      expect(blocks[0].type).toBe("callout");
+      expect(blocks[0].children).toBeDefined();
+      expect(blocks[0].children?.some((c) => c.type === "codeBlock")).toBe(true);
+    });
+
+    it("parses a code block inside an Accordion into children", () => {
+      const mdx = `<AccordionGroup>\n<Accordion title="Show code">\nHere is the code:\n\n\`\`\`ruby\nputs "hi"\n\`\`\`\n</Accordion>\n</AccordionGroup>`;
+      const blocks = mdxToBlockNote(mdx);
+      const accordion = blocks.find((b) => b.type === "accordion");
+      expect(accordion).toBeDefined();
+      expect(accordion?.children).toBeDefined();
+      expect(accordion?.children?.some((c) => c.type === "codeBlock")).toBe(true);
+    });
+
+    it("parses a code block inside a Card into children", () => {
+      const mdx = `<Card title="Example">\nSample usage:\n\n\`\`\`go\nfmt.Println("hi")\n\`\`\`\n</Card>`;
+      const blocks = mdxToBlockNote(mdx);
+      expect(blocks[0].type).toBe("card");
+      expect(blocks[0].children).toBeDefined();
+      expect(blocks[0].children?.some((c) => c.type === "codeBlock")).toBe(true);
+    });
+
+    it("handles components with only inline content (no children array)", () => {
+      const mdx = `<Callout type="warning">\nJust some text here.\n</Callout>`;
+      const blocks = mdxToBlockNote(mdx);
+      expect(blocks[0].type).toBe("callout");
+      const content = blocks[0].content as Array<{ type: string; text?: string }>;
+      expect(content.some((c) => c.text?.includes("Just some text"))).toBe(true);
+      // No children since there are no block-level nodes
+      expect(blocks[0].children).toBeUndefined();
+    });
+
+    it("handles image inside a Step", () => {
+      const mdx = `<Steps>\n<Step title="Result">\nYou should see:\n\n![Screenshot](https://example.com/img.png)\n</Step>\n</Steps>`;
+      const blocks = mdxToBlockNote(mdx);
+      const step = blocks.find((b) => b.type === "step");
+      expect(step).toBeDefined();
+      expect(step?.children).toBeDefined();
+      expect(step?.children?.some((c) => c.type === "image")).toBe(true);
+    });
+
+    it("handles table inside a Tab", () => {
+      const mdx = `<Tabs>\n<Tab title="Data">\nThe data:\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n</Tab>\n</Tabs>`;
+      const blocks = mdxToBlockNote(mdx);
+      const tab = blocks.find((b) => b.type === "tab");
+      expect(tab).toBeDefined();
+      expect(tab?.children).toBeDefined();
+      expect(tab?.children?.some((c) => c.type === "table")).toBe(true);
+    });
+  });
 });
 
 describe("blockNoteToMDX", () => {
@@ -961,6 +1043,61 @@ describe("blockNoteToMDX", () => {
     ]);
     expect(mdx).toContain('<Icon icon="star" />');
     expect(mdx).not.toContain("size");
+  });
+
+  it("converts a step with block children", () => {
+    const mdx = blockNoteToMDX([
+      { type: "steps", content: [] },
+      {
+        type: "step",
+        props: { title: "Install" },
+        content: [{ type: "text", text: "Run this:" }],
+        children: [
+          { type: "codeBlock", props: { language: "bash", code: "npm install" } },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<Step title="Install">');
+    expect(mdx).toContain("Run this:");
+    expect(mdx).toContain("```bash");
+    expect(mdx).toContain("npm install");
+    expect(mdx).toContain("</Step>");
+  });
+
+  it("converts a tab with block children", () => {
+    const mdx = blockNoteToMDX([
+      { type: "tabs", content: [] },
+      {
+        type: "tab",
+        props: { title: "JS" },
+        content: [{ type: "text", text: "Example:" }],
+        children: [
+          { type: "codeBlock", props: { language: "javascript", code: "const x = 1;" } },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<Tab title="JS">');
+    expect(mdx).toContain("Example:");
+    expect(mdx).toContain("```javascript");
+    expect(mdx).toContain("const x = 1;");
+    expect(mdx).toContain("</Tab>");
+  });
+
+  it("converts a callout with block children", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "callout",
+        props: { type: "info" },
+        content: [{ type: "text", text: "See below:" }],
+        children: [
+          { type: "codeBlock", props: { language: "python", code: "print('hi')" } },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<Callout type="info">');
+    expect(mdx).toContain("See below:");
+    expect(mdx).toContain("```python");
+    expect(mdx).toContain("</Callout>");
   });
 
   it("converts empty responseField as self-closing", () => {

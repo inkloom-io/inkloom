@@ -485,8 +485,16 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       ]
         .filter(Boolean)
         .join(" ");
-      result = `<Callout ${attrs}>\n${text}\n</Callout>\n\n`;
-      break;
+      let calloutBody = text;
+      if (block.children && block.children.length > 0) {
+        if (calloutBody) calloutBody += "\n\n";
+        for (const child of block.children) {
+          calloutBody += convertBlock(child, 0);
+        }
+      }
+      result = `<Callout ${attrs}>\n${calloutBody}\n</Callout>\n\n`;
+      // Return early to skip default child processing
+      return result;
     }
 
     case "card": {
@@ -503,12 +511,21 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
         .filter(Boolean)
         .join(" ");
 
-      if (text.trim()) {
-        result = `<Card ${attrs}>\n${text}\n</Card>\n\n`;
+      let cardBody = text;
+      if (block.children && block.children.length > 0) {
+        if (cardBody) cardBody += "\n\n";
+        for (const child of block.children) {
+          cardBody += convertBlock(child, 0);
+        }
+      }
+
+      if (cardBody.trim()) {
+        result = `<Card ${attrs}>\n${cardBody}\n</Card>\n\n`;
       } else {
         result = `<Card ${attrs} />\n\n`;
       }
-      break;
+      // Return early to skip default child processing
+      return result;
     }
 
     case "column": {
@@ -539,8 +556,16 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       ]
         .filter(Boolean)
         .join(" ");
-      result = `<Tab ${attrs}>\n${text}\n</Tab>\n`;
-      break;
+      let tabBody = text;
+      if (block.children && block.children.length > 0) {
+        if (tabBody) tabBody += "\n\n";
+        for (const child of block.children) {
+          tabBody += convertBlock(child, 0);
+        }
+      }
+      result = `<Tab ${attrs}>\n${tabBody}\n</Tab>\n`;
+      // Return early to skip default child processing
+      return result;
     }
 
     case "tabs": {
@@ -560,8 +585,16 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       ]
         .filter(Boolean)
         .join(" ");
-      result = `<Step ${attrs}>\n${text}\n</Step>\n`;
-      break;
+      let stepBody = text;
+      if (block.children && block.children.length > 0) {
+        if (stepBody) stepBody += "\n\n";
+        for (const child of block.children) {
+          stepBody += convertBlock(child, 0);
+        }
+      }
+      result = `<Step ${attrs}>\n${stepBody}\n</Step>\n`;
+      // Return early to skip default child processing
+      return result;
     }
 
     case "steps": {
@@ -619,8 +652,17 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
         defaultOpen === "true" && `defaultOpen`,
       ].filter(Boolean).join(" ");
 
-      result = `<Accordion ${attrs}>\n${text}\n</Accordion>\n`;
-      break;
+      let accordionBody = text;
+      if (block.children && block.children.length > 0) {
+        if (accordionBody) accordionBody += "\n\n";
+        for (const child of block.children) {
+          accordionBody += convertBlock(child, 0);
+        }
+      }
+
+      result = `<Accordion ${attrs}>\n${accordionBody}\n</Accordion>\n`;
+      // Return early to skip default child processing
+      return result;
     }
 
     case "accordionGroup": {

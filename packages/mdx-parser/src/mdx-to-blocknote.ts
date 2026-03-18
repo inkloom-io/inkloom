@@ -362,9 +362,9 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
     case "Callout": {
       const type = getAttrValue(attrs, "type") || "info";
       const title = getAttrValue(attrs, "title");
-      const content = node.children
-        ? flattenToInline(node.children)
-        : [];
+      const { inlineContent, blockChildren } = node.children
+        ? convertMixedChildren(node.children)
+        : { inlineContent: [], blockChildren: [] };
       return [
         {
           type: "callout",
@@ -372,7 +372,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             type,
             ...(title ? { title } : {}),
           },
-          content,
+          content: inlineContent,
+          ...(blockChildren.length > 0 ? { children: blockChildren } : {}),
         },
       ];
     }
@@ -381,9 +382,9 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       const title = getAttrValue(attrs, "title") || "";
       const icon = getAttrValue(attrs, "icon");
       const href = getAttrValue(attrs, "href");
-      const content = node.children
-        ? flattenToInline(node.children)
-        : [];
+      const { inlineContent, blockChildren } = node.children
+        ? convertMixedChildren(node.children)
+        : { inlineContent: [], blockChildren: [] };
       return [
         {
           type: "card",
@@ -392,7 +393,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             ...(icon ? { icon } : {}),
             ...(href ? { href } : {}),
           },
-          content,
+          content: inlineContent,
+          ...(blockChildren.length > 0 ? { children: blockChildren } : {}),
         },
       ];
     }
@@ -499,9 +501,9 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
     case "Tab": {
       const title = getAttrValue(attrs, "title") || "Tab";
       const icon = getAttrValue(attrs, "icon");
-      const content = node.children
-        ? flattenToInline(node.children)
-        : [];
+      const { inlineContent, blockChildren } = node.children
+        ? convertMixedChildren(node.children)
+        : { inlineContent: [], blockChildren: [] };
       return [
         {
           type: "tab",
@@ -509,7 +511,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             title,
             ...(icon ? { icon } : {}),
           },
-          content,
+          content: inlineContent,
+          ...(blockChildren.length > 0 ? { children: blockChildren } : {}),
         },
       ];
     }
@@ -559,9 +562,9 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
     case "Step": {
       const title = getAttrValue(attrs, "title") || "Step";
       const icon = getAttrValue(attrs, "icon");
-      const content = node.children
-        ? flattenToInline(node.children)
-        : [];
+      const { inlineContent, blockChildren } = node.children
+        ? convertMixedChildren(node.children)
+        : { inlineContent: [], blockChildren: [] };
       return [
         {
           type: "step",
@@ -569,7 +572,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             title,
             ...(icon ? { icon } : {}),
           },
-          content,
+          content: inlineContent,
+          ...(blockChildren.length > 0 ? { children: blockChildren } : {}),
         },
       ];
     }
@@ -596,9 +600,9 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       const title = getAttrValue(attrs, "title") || "Accordion";
       const icon = getAttrValue(attrs, "icon");
       const defaultOpen = getAttrValue(attrs, "defaultOpen");
-      const content = node.children
-        ? flattenToInline(node.children)
-        : [];
+      const { inlineContent, blockChildren } = node.children
+        ? convertMixedChildren(node.children)
+        : { inlineContent: [], blockChildren: [] };
       return [
         {
           type: "accordion",
@@ -607,7 +611,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             ...(icon ? { icon } : {}),
             ...(defaultOpen ? { defaultOpen } : {}),
           },
-          content,
+          content: inlineContent,
+          ...(blockChildren.length > 0 ? { children: blockChildren } : {}),
         },
       ];
     }
@@ -1094,6 +1099,54 @@ function serializeJsxToString(node: MdastNode): string {
     })
     .join("\n");
   return `<${name}${attrs ? " " + attrs : ""}>${childText}</${name}>`;
+}
+
+// Set of node types that should be treated as inline content
+const INLINE_NODE_TYPES = new Set([
+  "paragraph",
+  "text",
+  "strong",
+  "emphasis",
+  "inlineCode",
+  "delete",
+  "link",
+  "mdxJsxTextElement",
+]);
+
+/**
+ * Separates child nodes of a JSX element into inline content and block-level children.
+ * Inline nodes (paragraph, text, formatting) go into `inlineContent`.
+ * Block nodes (code, table, list, heading, image, etc.) go into `blockChildren`.
+ */
+function convertMixedChildren(
+  nodes: MdastNode[]
+): { inlineContent: BlockNoteInlineContent[]; blockChildren: BlockNoteBlock[] } {
+  const inlineContent: BlockNoteInlineContent[] = [];
+  const blockChildren: BlockNoteBlock[] = [];
+
+  for (const node of nodes) {
+    if (INLINE_NODE_TYPES.has(node.type)) {
+      // Check if this paragraph contains only a single image — treat as block content
+      if (
+        node.type === "paragraph" &&
+        node.children &&
+        node.children.length === 1 &&
+        node.children[0] &&
+        node.children[0].type === "image"
+      ) {
+        blockChildren.push(...convertBlockNode(node));
+      } else if (node.type === "paragraph" && node.children) {
+        inlineContent.push(...convertInlineNodes(node.children));
+      } else {
+        inlineContent.push(...convertInlineNodes([node]));
+      }
+    } else {
+      // Block-level node — convert to BlockNote block(s)
+      blockChildren.push(...convertBlockNode(node));
+    }
+  }
+
+  return { inlineContent, blockChildren };
 }
 
 function flattenToInline(
