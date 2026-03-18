@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -13,14 +13,22 @@ import {
   Step,
   Accordion,
   AccordionGroup,
+  Columns,
+  Column,
   CodeGroup,
   CodeBlock,
   Heading,
   CustomLink,
+  Frame,
+  Latex,
+  Video,
+  IFrame,
+  InlineIcon,
+  Badge,
 } from "@inkloom/docs-renderer";
 
 interface ParsedComponent {
-  type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "CodeGroup";
+  type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "Columns" | "Column" | "CodeGroup" | "ApiEndpoint" | "ParamField" | "ResponseField" | "Expandable" | "Frame" | "Latex" | "Video" | "IFrame";
   props: Record<string, string | number | boolean>;
   children: string;
   startIndex: number;
@@ -31,6 +39,7 @@ interface CodeBlockSegment {
   type: 'codeblock';
   language: string;
   height: number;
+  title: string;
   code: string;
   key: string;
 }
@@ -43,11 +52,29 @@ interface MarkdownSegment {
 
 type ContentSegment = CodeBlockSegment | MarkdownSegment;
 
-// Pre-process markdown to extract code blocks with height metadata
+// Preprocess inline components (Icon, Badge) into HTML that react-markdown can handle via rehypeRaw.
+// This ensures they render truly inline within paragraphs rather than breaking text into block segments.
+function preprocessInlineComponents(source: string): string {
+  // Convert <Icon icon="name" size={16} /> to <span data-icon="name" data-size="16"></span>
+  const result = source.replace(
+    /<Icon\s+([^>]*?)\/>/g,
+    (_match, attrStr: string) => {
+      const iconMatch = attrStr.match(/icon="([^"]*)"/);
+      const sizeMatch = attrStr.match(/size=\{(\d+)\}/) || attrStr.match(/size="(\d+)"/);
+      const icon = iconMatch ? iconMatch[1] : "";
+      const size = sizeMatch ? sizeMatch[1] : "16";
+      return `<span data-icon="${icon}" data-size="${size}"></span>`;
+    }
+  );
+  return result;
+}
+
+// Pre-process markdown to extract code blocks with extra metadata (title and/or height)
 function preprocessCodeBlocks(content: string): { segments: ContentSegment[], hasCodeBlocks: boolean } {
   const segments: ContentSegment[] = [];
-  // Match code blocks with height metadata: ```lang {height=N}\ncode\n```
-  const codeBlockRegex = /```(\w*)\s*\{height=(\d+)\}\n([\s\S]*?)```/g;
+  // Match code blocks with extra info after language (title and/or height metadata)
+  // Group 1: language, Group 2: extra info (title + optional {height=N}), Group 3: code
+  const codeBlockRegex = /```(\w+)[ \t]+(.*?)\n([\s\S]*?)```/g;
   let lastIndex = 0;
   let match;
   let idx = 0;
@@ -63,11 +90,18 @@ function preprocessCodeBlocks(content: string): { segments: ContentSegment[], ha
       }
     }
 
+    // Parse height and title from the extra info
+    const extra = match[2] || "";
+    const heightMatch = extra.match(/\{height=(\d+)\}/);
+    const height = heightMatch && heightMatch[1] ? parseInt(heightMatch[1], 10) : 150;
+    const title = extra.replace(/\{[^}]*\}/g, "").trim();
+
     // Add the code block component
     segments.push({
       type: 'codeblock',
       language: match[1] || 'plaintext',
-      height: parseInt(match[2] || '150', 10),
+      height,
+      title,
       code: match[3] || '',
       key: `code-${idx}`
     });
@@ -92,7 +126,14 @@ function getMarkdownComponents() {
   return {
     p: ({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) => <p style={style}>{children}</p>,
     div: ({ children, style, className }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string }) => <div style={style} className={className}>{children}</div>,
-    span: ({ children, style, className }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string }) => <span style={style} className={className}>{children}</span>,
+    span: ({ children, style, className, ...rest }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string; [key: string]: unknown }) => {
+      const dataIcon = rest["data-icon"];
+      if (typeof dataIcon === "string" && dataIcon) {
+        const dataSize = rest["data-size"];
+        return <InlineIcon icon={dataIcon} size={typeof dataSize === "string" ? dataSize : undefined} />;
+      }
+      return <span style={style} className={className}>{children}</span>;
+    },
     pre: ({ children }: { children?: React.ReactNode }) => {
       // Extract language from child <code className="language-xxx">
       const codeChild = React.Children.toArray(children).find(
@@ -112,6 +153,15 @@ function getMarkdownComponents() {
     h5: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => <Heading level={5} {...props}>{children}</Heading>,
     h6: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => <Heading level={6} {...props}>{children}</Heading>,
     a: ({ href, children, ...props }: { href?: string; children?: React.ReactNode; [key: string]: unknown }) => <CustomLink href={href} {...props}>{children}</CustomLink>,
+    mark: ({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) => {
+      // The MDX parser outputs badges as <mark style="color:green;">text</mark>
+      // Extract the color and render as a Badge component
+      let color = "gray";
+      if (style && typeof style.color === "string") {
+        color = style.color;
+      }
+      return <Badge color={color}>{children}</Badge>;
+    },
   } as Record<string, React.ComponentType<Record<string, unknown>>>;
 }
 
@@ -152,6 +202,7 @@ function MarkdownWithCodeBlocks({ content }: { content: string }): React.ReactNo
               key={segment.key}
               language={segment.language}
               height={segment.height}
+              title={segment.title || undefined}
             >
               {segment.code}
             </CodeBlock>
@@ -231,7 +282,7 @@ function findBalancedCloseTag(content: string, tagName: string, searchFrom: numb
 // Find all MDX components in the content
 function findMDXComponents(content: string): ParsedComponent[] {
   const components: ParsedComponent[] = [];
-  const componentNames = ["Card", "CardGroup", "Callout", "Image", "Tabs", "Tab", "Steps", "Step", "Accordion", "AccordionGroup", "CodeGroup"];
+  const componentNames = ["Card", "CardGroup", "Callout", "Image", "Tabs", "Tab", "Steps", "Step", "Accordion", "AccordionGroup", "Columns", "Column", "CodeGroup", "ApiEndpoint", "ParamField", "ResponseField", "Expandable", "Frame", "Latex", "Video", "IFrame"];
 
   for (const name of componentNames) {
     // Use negative lookahead to ensure we match exact component name
@@ -297,6 +348,99 @@ function findMDXComponents(content: string): ParsedComponent[] {
   }
 
   return filtered;
+}
+
+// Minimal preview-only ApiEndpoint component
+function PreviewApiEndpoint({ method, path, deprecated, children }: {
+  method: string;
+  path: string;
+  deprecated?: boolean;
+  children?: React.ReactNode;
+}) {
+  const methodUpper = method.toUpperCase();
+  const badgeColors: Record<string, string> = {
+    GET: "#22c55e",
+    POST: "#3b82f6",
+    PUT: "#f59e0b",
+    PATCH: "#f59e0b",
+    DELETE: "#ef4444",
+  };
+  const badgeColor = badgeColors[methodUpper] || "#6b7280";
+
+  return (
+    <div style={{ border: "1px solid var(--border, #e5e7eb)", borderRadius: "8px", padding: "16px", marginBottom: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+        <span style={{ background: badgeColor, color: "#fff", padding: "2px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: 700, textTransform: "uppercase" as const }}>{methodUpper}</span>
+        <code style={{ fontSize: "14px" }}>{path}</code>
+        {deprecated && <span style={{ color: "#f59e0b", fontSize: "12px", fontWeight: 600 }}>Deprecated</span>}
+      </div>
+      {children && <div>{children}</div>}
+    </div>
+  );
+}
+
+// Minimal preview-only ParamField component
+function PreviewParamField({ name, type, location, required, children }: {
+  name: string;
+  type?: string;
+  location?: string;
+  required?: boolean;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div style={{ borderBottom: "1px solid var(--border, #e5e7eb)", padding: "8px 0" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <code style={{ fontWeight: 600 }}>{name}</code>
+        {type && <span style={{ color: "#6b7280", fontSize: "13px" }}>{type}</span>}
+        {location && <span style={{ color: "#6b7280", fontSize: "12px", background: "var(--muted, #f3f4f6)", padding: "1px 6px", borderRadius: "4px" }}>{location}</span>}
+        {required && <span style={{ color: "#ef4444", fontSize: "12px", fontWeight: 600 }}>required</span>}
+      </div>
+      {children && <div style={{ marginTop: "4px", fontSize: "14px", color: "var(--muted-foreground, #6b7280)" }}>{children}</div>}
+    </div>
+  );
+}
+
+// Minimal preview-only ResponseField component
+function PreviewResponseField({ name, type, required, children }: {
+  name: string;
+  type?: string;
+  required?: boolean;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div style={{ borderBottom: "1px solid var(--border, #e5e7eb)", padding: "8px 0" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <code style={{ fontWeight: 600 }}>{name}</code>
+        {type && <span style={{ color: "#6b7280", fontSize: "13px" }}>{type}</span>}
+        {required && <span style={{ color: "#ef4444", fontSize: "12px", fontWeight: 600 }}>required</span>}
+      </div>
+      {children && <div style={{ marginTop: "4px", fontSize: "14px", color: "var(--muted-foreground, #6b7280)" }}>{children}</div>}
+    </div>
+  );
+}
+
+// Minimal preview-only Expandable component
+function PreviewExpandable({ title, type, children }: {
+  title: string;
+  type?: string;
+  children?: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div style={{ border: "1px solid var(--border, #e5e7eb)", borderRadius: "6px", marginBottom: "8px" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 12px", background: "none", border: "none", cursor: "pointer", textAlign: "left" as const, fontSize: "14px" }}
+      >
+        <span>{open ? "▼" : "▶"}</span>
+        <code style={{ fontWeight: 600 }}>{title}</code>
+        {type && <span style={{ color: "#6b7280", fontSize: "13px" }}>{type}</span>}
+      </button>
+      {open && <div style={{ padding: "8px 12px", borderTop: "1px solid var(--border, #e5e7eb)" }}>{children}</div>}
+    </div>
+  );
 }
 
 // Render a single parsed component
@@ -410,6 +554,88 @@ function renderComponent(
           {children ? renderAccordionChildren(children) : <></>}
         </AccordionGroup>
       );
+
+    case "Columns":
+      return (
+        <Columns key={key} cols={props.cols as 2 | 3 | 4}>
+          {children ? renderColumnChildren(children) : <></>}
+        </Columns>
+      );
+
+    case "Column":
+      return (
+        <Column key={key}>
+          {children && <MDXPreviewRenderer content={children} />}
+        </Column>
+      );
+
+    case "ApiEndpoint":
+      return (
+        <PreviewApiEndpoint
+          key={key}
+          method={(props.method as string) || "GET"}
+          path={(props.path as string) || "/"}
+          deprecated={props.deprecated === true || props.deprecated === "true"}
+        >
+          {children && <MDXPreviewRenderer content={children} />}
+        </PreviewApiEndpoint>
+      );
+
+    case "ParamField":
+      return (
+        <PreviewParamField
+          key={key}
+          name={(props.name as string) || ""}
+          type={props.type as string}
+          location={props.location as string}
+          required={props.required === true || props.required === "true"}
+        >
+          {children && <span>{children}</span>}
+        </PreviewParamField>
+      );
+
+    case "ResponseField":
+      return (
+        <PreviewResponseField
+          key={key}
+          name={(props.name as string) || ""}
+          type={props.type as string}
+          required={props.required === true || props.required === "true"}
+        >
+          {children && <MDXPreviewRenderer content={children} />}
+        </PreviewResponseField>
+      );
+
+    case "Expandable":
+      return (
+        <PreviewExpandable
+          key={key}
+          title={(props.title as string) || ""}
+          type={props.type as string}
+        >
+          {children && <MDXPreviewRenderer content={children} />}
+        </PreviewExpandable>
+      );
+
+    case "Frame":
+      return (
+        <Frame
+          key={key}
+          hint={props.hint as string}
+          caption={props.caption as string}
+        >
+          {children && <MDXPreviewRenderer content={children} />}
+        </Frame>
+      );
+
+    case "Latex":
+      return <Latex key={key} expression={props.expression as string} />;
+
+    case "Video":
+      return <Video key={key} src={(props.src as string) || ""} {...(props as Record<string, string>)} />;
+
+    case "IFrame":
+      return <IFrame key={key} src={(props.src as string) || ""} {...(props as Record<string, string>)} />;
 
     default:
       return null;
@@ -525,13 +751,45 @@ function renderAccordionChildren(content: string): React.ReactNode[] {
   return accordions;
 }
 
+// Helper function to render Column children within a Columns component
+// Returns an array of Column elements
+function renderColumnChildren(content: string): React.ReactNode[] {
+  // Parse Column components from the content string using balanced tag matching
+  const openTagRegex = /<Column(?![a-zA-Z])\s*([^>]*)(?<!\/)>/g;
+  const columns: React.ReactNode[] = [];
+  let match;
+  let idx = 0;
+
+  while ((match = openTagRegex.exec(content)) !== null) {
+    const contentStart = match.index + match[0].length;
+    const closeIdx = findBalancedCloseTag(content, "Column", contentStart);
+    if (closeIdx === -1) continue;
+
+    const childContent = content.slice(contentStart, closeIdx).trim();
+
+    columns.push(
+      <Column key={idx}>
+        <MDXPreviewRenderer content={childContent} />
+      </Column>
+    );
+
+    // Advance past this tag to avoid re-matching
+    openTagRegex.lastIndex = closeIdx + "</Column>".length;
+    idx++;
+  }
+
+  return columns;
+}
+
 // Main component that renders MDX content with component support
 export function MDXPreviewRenderer({ content }: { content: string }) {
-  const components = findMDXComponents(content);
+  // Preprocess inline components (Icon) into HTML spans so they render truly inline
+  const preprocessedContent = preprocessInlineComponents(content);
+  const components = findMDXComponents(preprocessedContent);
 
   if (components.length === 0) {
     // No MDX components, just render as markdown with code block support
-    return <MarkdownWithCodeBlocks content={content} />;
+    return <MarkdownWithCodeBlocks content={preprocessedContent} />;
   }
 
   // Build segments alternating between markdown and components
@@ -541,7 +799,7 @@ export function MDXPreviewRenderer({ content }: { content: string }) {
   components.forEach((comp, idx) => {
     // Add markdown before this component
     if (comp.startIndex > lastIndex) {
-      const markdownContent = content.slice(lastIndex, comp.startIndex).trim();
+      const markdownContent = preprocessedContent.slice(lastIndex, comp.startIndex).trim();
       if (markdownContent) {
         segments.push(
           <MarkdownWithCodeBlocks key={`md-${idx}`} content={markdownContent} />
@@ -555,8 +813,8 @@ export function MDXPreviewRenderer({ content }: { content: string }) {
   });
 
   // Add any remaining markdown after the last component
-  if (lastIndex < content.length) {
-    const remainingContent = content.slice(lastIndex).trim();
+  if (lastIndex < preprocessedContent.length) {
+    const remainingContent = preprocessedContent.slice(lastIndex).trim();
     if (remainingContent) {
       segments.push(
         <MarkdownWithCodeBlocks key="md-final" content={remainingContent} />
