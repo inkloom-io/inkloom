@@ -1138,6 +1138,140 @@ describe("transformGitbookBlocks", () => {
     });
   });
 
+  // ─── Mermaid Blocks ─────────────────────────────────────────────
+
+  describe("mermaid blocks", () => {
+    it("preserves bare mermaid fenced code block unchanged", () => {
+      const input = [
+        "# Architecture",
+        "",
+        "```mermaid",
+        "graph TD",
+        "  A --> B",
+        "  B --> C",
+        "```",
+        "",
+        "Some text after.",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("```mermaid");
+      expect(result.content).toContain("graph TD");
+      expect(result.content).toContain("  A --> B");
+      expect(result.content).toContain("```");
+    });
+
+    it("preserves mermaid block alongside Gitbook blocks", () => {
+      const input = [
+        '{% hint style="info" %}',
+        "Check the diagram below.",
+        "{% endhint %}",
+        "",
+        "```mermaid",
+        "sequenceDiagram",
+        "  Alice->>Bob: Hello",
+        "```",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain('<Callout type="info">');
+      expect(result.content).toContain("```mermaid");
+      expect(result.content).toContain("sequenceDiagram");
+      expect(result.content).toContain("  Alice->>Bob: Hello");
+    });
+
+    it("preserves mermaid block inside {% code %} wrapper", () => {
+      const input = [
+        '{% code title="architecture.mmd" %}',
+        "```mermaid",
+        "graph LR",
+        "  X --> Y",
+        "```",
+        "{% endcode %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("```mermaid");
+      expect(result.content).toContain("graph LR");
+      expect(result.content).toContain('title="architecture.mmd"');
+    });
+
+    it("applies language from {% code %} to inner fence with no language", () => {
+      const input = [
+        '{% code language="mermaid" %}',
+        "```",
+        "graph TD",
+        "  A --> B",
+        "```",
+        "{% endcode %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("```mermaid");
+      expect(result.content).toContain("graph TD");
+    });
+
+    it("applies language from {% code %} when wrapping unwrapped content", () => {
+      const input = [
+        '{% code language="mermaid" %}',
+        "graph TD",
+        "  A --> B",
+        "{% endcode %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("```mermaid");
+      expect(result.content).toContain("graph TD");
+    });
+
+    it("applies language and title from {% code %} when wrapping content", () => {
+      const input = [
+        '{% code language="mermaid" title="flow.mmd" %}',
+        "graph TD",
+        "  A --> B",
+        "{% endcode %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("```mermaid");
+      expect(result.content).toContain('title="flow.mmd"');
+      expect(result.content).toContain("graph TD");
+    });
+
+    it("inner fence language takes precedence over {% code %} language", () => {
+      const input = [
+        '{% code language="text" %}',
+        "```mermaid",
+        "graph TD",
+        "  A --> B",
+        "```",
+        "{% endcode %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("```mermaid");
+    });
+
+    it("handles mermaid block inside tabs", () => {
+      const input = [
+        "{% tabs %}",
+        '{% tab title="Diagram" %}',
+        "```mermaid",
+        "pie",
+        '  "A" : 50',
+        '  "B" : 50',
+        "```",
+        "{% endtab %}",
+        "{% endtabs %}",
+      ].join("\n");
+
+      const result = transformGitbookBlocks(input);
+      expect(result.content).toContain("<CodeGroup>");
+      expect(result.content).toContain("```mermaid");
+      expect(result.content).toContain("pie");
+    });
+  });
+
   // ─── Valid MDX Output ──────────────────────────────────────────
 
   describe("valid MDX output", () => {

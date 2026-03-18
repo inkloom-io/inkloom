@@ -47,3 +47,13 @@ With caching enabled, most read operations see a 10x performance improvement.
 | Search | 500ms | 50ms |
 
 </details>
+
+## Architecture
+
+```mermaid
+graph TD
+  Client -->|request| Cache
+  Cache -->|miss| API
+  API -->|response| Cache
+  Cache -->|hit| Client
+```

@@ -416,6 +416,7 @@ function transformCodeBlocks(content: string): string {
     const title = extractAttr(attrsStr, "title");
     const overflow = extractAttr(attrsStr, "overflow");
     const lineNumbers = extractAttr(attrsStr, "lineNumbers");
+    const codeLanguage = extractAttr(attrsStr, "language");
 
     const trimmed = inner.trim();
 
@@ -432,7 +433,8 @@ function transformCodeBlocks(content: string): string {
 
     if (fencedMatch) {
       const fence = fencedMatch[1];
-      const lang = fencedMatch[2] || "";
+      // Use inner fence language if present, otherwise fall back to {% code %} language attribute
+      const lang = fencedMatch[2] || codeLanguage || "";
       // Existing meta on the fence line (after language)
       const existingMeta = fencedMatch[3] ? fencedMatch[3].trim() : "";
       const code = fencedMatch[4];
@@ -447,8 +449,9 @@ function transformCodeBlocks(content: string): string {
       return `${fence}${langAndMeta}\n${code}\n${fence}`;
     }
 
-    // No fenced code block inside — wrap content
-    return `\`\`\`${metaStr.trimStart()}\n${trimmed}\n\`\`\``;
+    // No fenced code block inside — wrap content with language from {% code %} if available
+    const langPrefix = codeLanguage || "";
+    return `\`\`\`${langPrefix}${metaStr.trimStart() ? (langPrefix ? " " : "") + metaStr.trimStart() : ""}\n${trimmed}\n\`\`\``;
   });
 }
 

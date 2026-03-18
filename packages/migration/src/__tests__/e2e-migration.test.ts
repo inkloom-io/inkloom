@@ -1103,6 +1103,28 @@ describe("E2E: migrate() with Gitbook fixture", () => {
       expect(serialized).not.toContain("%}");
     });
   });
+
+  // ── Mermaid diagrams ──────────────────────────────────────────────────
+
+  describe("mermaid diagrams", () => {
+    it("preserves bare mermaid fenced code block as codeBlock with language mermaid", () => {
+      const perfPage = result.pages.find(
+        (p) => p.path === "advanced/performance.md",
+      );
+      expect(perfPage).toBeDefined();
+      if (!perfPage) return;
+
+      const blocks = parseBlocks(perfPage.content);
+      const codeBlocks = findBlocks(blocks, "codeBlock");
+      const mermaidBlock = codeBlocks.find(
+        (b) => b.props?.language === "mermaid",
+      );
+      expect(mermaidBlock).toBeDefined();
+      expect(mermaidBlock?.props?.code).toContain("graph TD");
+      expect(mermaidBlock?.props?.code).toContain("Client");
+      expect(mermaidBlock?.props?.code).toContain("Cache");
+    });
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
