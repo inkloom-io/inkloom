@@ -1,0 +1,4 @@
+{
+  "title": "Uploads an image.",
+  "content": "<ApiEndpoint method=\"POST\" path=\"/pet/{petId}/uploadImage\">\n\nUpload image of the pet.\n\n</ApiEndpoint>"
+}

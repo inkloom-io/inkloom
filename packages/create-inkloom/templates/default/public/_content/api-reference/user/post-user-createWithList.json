@@ -1,0 +1,4 @@
+{
+  "title": "Creates list of users with given input array.",
+  "content": "<ApiEndpoint method=\"POST\" path=\"/user/createWithList\">\n\nCreates list of users with given input array.\n\n</ApiEndpoint>"
+}

@@ -1,0 +1,4 @@
+{
+  "title": "Add a new pet to the store.",
+  "content": "<ApiEndpoint method=\"POST\" path=\"/pet\">\n\nAdd a new pet to the store.\n\n</ApiEndpoint>"
+}

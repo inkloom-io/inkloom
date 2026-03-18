@@ -1,0 +1,4 @@
+{
+  "title": "Create user.",
+  "content": "<ApiEndpoint method=\"POST\" path=\"/user\">\n\nThis can only be done by the logged in user.\n\n</ApiEndpoint>"
+}

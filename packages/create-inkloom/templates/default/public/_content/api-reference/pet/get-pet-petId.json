@@ -1,0 +1,4 @@
+{
+  "title": "Find pet by ID.",
+  "content": "<ApiEndpoint method=\"GET\" path=\"/pet/{petId}\">\n\nReturns a single pet.\n\n</ApiEndpoint>"
+}

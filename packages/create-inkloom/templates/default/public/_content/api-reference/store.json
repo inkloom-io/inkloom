@@ -1,0 +1,4 @@
+{
+  "title": "store",
+  "content": "# store\n\nThis section contains 4 endpoints.\n\n<CardGroup cols={2}>\n<Card title=\"Returns pet inventories by status.\" href=\"/api-reference/store/get-store-inventory\">\n`GET` /store/inventory\n</Card>\n<Card title=\"Place an order for a pet.\" href=\"/api-reference/store/post-store-order\">\n`POST` /store/order\n</Card>\n<Card title=\"Find purchase order by ID.\" href=\"/api-reference/store/get-store-order-orderId\">\n`GET` /store/order/{orderId}\n</Card>\n<Card title=\"Delete purchase order by identifier.\" href=\"/api-reference/store/delete-store-order-orderId\">\n`DELETE` /store/order/{orderId}\n</Card>\n</CardGroup>"
+}

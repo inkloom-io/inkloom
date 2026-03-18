@@ -3,13 +3,27 @@
   "config": {
     "title": "Acme Docs",
     "description": "Documentation for the Acme platform",
-    "search": { "enabled": true },
+    "search": {
+      "enabled": true
+    },
     "socialLinks": [
-      { "platform": "github", "url": "https://github.com/acme" },
-      { "platform": "x", "url": "https://x.com/acme" },
-      { "platform": "discord", "url": "https://discord.gg/acme" }
+      {
+        "platform": "github",
+        "url": "https://github.com/acme"
+      },
+      {
+        "platform": "x",
+        "url": "https://x.com/acme"
+      },
+      {
+        "platform": "discord",
+        "url": "https://discord.gg/acme"
+      }
     ],
-    "ctaButton": { "label": "Get Started", "url": "https://acme.dev" },
+    "ctaButton": {
+      "label": "Get Started",
+      "url": "https://acme.dev"
+    },
     "showBranding": true
   },
   "navigation": [
@@ -17,29 +31,65 @@
       "title": "Getting Started",
       "href": "/getting-started",
       "children": [
-        { "title": "Introduction", "href": "/getting-started/introduction" },
-        { "title": "Quick Start", "href": "/getting-started/quickstart" },
-        { "title": "Installation & Setup", "href": "/getting-started/installation" }
+        {
+          "title": "Introduction",
+          "href": "/getting-started/introduction"
+        },
+        {
+          "title": "Quick Start",
+          "href": "/getting-started/quickstart"
+        },
+        {
+          "title": "Installation & Setup",
+          "href": "/getting-started/installation"
+        }
       ]
     },
     {
       "title": "Guides",
       "href": "/guides",
       "children": [
-        { "title": "Authentication", "href": "/guides/authentication" },
-        { "title": "Deployment & Custom Domains", "href": "/guides/deployment" },
-        { "title": "Webhooks", "href": "/guides/webhooks" },
-        { "title": "CLI Usage", "href": "/guides/cli" },
-        { "title": "Configuration", "href": "/guides/configuration" }
+        {
+          "title": "Authentication",
+          "href": "/guides/authentication"
+        },
+        {
+          "title": "Deployment & Custom Domains",
+          "href": "/guides/deployment"
+        },
+        {
+          "title": "Webhooks",
+          "href": "/guides/webhooks"
+        },
+        {
+          "title": "CLI Usage",
+          "href": "/guides/cli"
+        },
+        {
+          "title": "Configuration",
+          "href": "/guides/configuration"
+        }
       ]
     },
     {
       "title": "Reference",
       "href": "/reference",
       "children": [
-        { "title": "API Overview", "href": "/reference/api-overview", "icon": "code" },
-        { "title": "REST Endpoints", "href": "/reference/rest-endpoints", "icon": "code" },
-        { "title": "CLI Commands", "href": "/reference/cli-commands", "icon": "terminal" }
+        {
+          "title": "API Overview",
+          "href": "/reference/api-overview",
+          "icon": "code"
+        },
+        {
+          "title": "REST Endpoints",
+          "href": "/reference/rest-endpoints",
+          "icon": "code"
+        },
+        {
+          "title": "CLI Commands",
+          "href": "/reference/cli-commands",
+          "icon": "terminal"
+        }
       ]
     }
   ],
@@ -53,20 +103,44 @@
           "title": "Getting Started",
           "href": "/getting-started",
           "children": [
-            { "title": "Introduction", "href": "/getting-started/introduction" },
-            { "title": "Quick Start", "href": "/getting-started/quickstart" },
-            { "title": "Installation & Setup", "href": "/getting-started/installation" }
+            {
+              "title": "Introduction",
+              "href": "/getting-started/introduction"
+            },
+            {
+              "title": "Quick Start",
+              "href": "/getting-started/quickstart"
+            },
+            {
+              "title": "Installation & Setup",
+              "href": "/getting-started/installation"
+            }
           ]
         },
         {
           "title": "Guides",
           "href": "/guides",
           "children": [
-            { "title": "Authentication", "href": "/guides/authentication" },
-            { "title": "Deployment & Custom Domains", "href": "/guides/deployment" },
-            { "title": "Webhooks", "href": "/guides/webhooks" },
-            { "title": "CLI Usage", "href": "/guides/cli" },
-            { "title": "Configuration", "href": "/guides/configuration" }
+            {
+              "title": "Authentication",
+              "href": "/guides/authentication"
+            },
+            {
+              "title": "Deployment & Custom Domains",
+              "href": "/guides/deployment"
+            },
+            {
+              "title": "Webhooks",
+              "href": "/guides/webhooks"
+            },
+            {
+              "title": "CLI Usage",
+              "href": "/guides/cli"
+            },
+            {
+              "title": "Configuration",
+              "href": "/guides/configuration"
+            }
           ]
         }
       ]
@@ -74,15 +148,119 @@
     {
       "id": "api",
       "name": "API Reference",
-      "slug": "reference",
+      "slug": "api-reference",
       "navigation": [
         {
-          "title": "Reference",
-          "href": "/reference",
+          "title": "pet",
+          "href": "/api-reference/pet",
           "children": [
-            { "title": "API Overview", "href": "/reference/api-overview", "icon": "code" },
-            { "title": "REST Endpoints", "href": "/reference/rest-endpoints", "icon": "code" },
-            { "title": "CLI Commands", "href": "/reference/cli-commands", "icon": "terminal" }
+            {
+              "title": "Add a new pet to the store.",
+              "href": "/api-reference/pet/post-pet",
+              "method": "POST"
+            },
+            {
+              "title": "Update an existing pet.",
+              "href": "/api-reference/pet/put-pet",
+              "method": "PUT"
+            },
+            {
+              "title": "Finds Pets by status.",
+              "href": "/api-reference/pet/get-pet-findByStatus",
+              "method": "GET"
+            },
+            {
+              "title": "Finds Pets by tags.",
+              "href": "/api-reference/pet/get-pet-findByTags",
+              "method": "GET"
+            },
+            {
+              "title": "Find pet by ID.",
+              "href": "/api-reference/pet/get-pet-petId",
+              "method": "GET"
+            },
+            {
+              "title": "Updates a pet in the store with form data.",
+              "href": "/api-reference/pet/post-pet-petId",
+              "method": "POST"
+            },
+            {
+              "title": "Deletes a pet.",
+              "href": "/api-reference/pet/delete-pet-petId",
+              "method": "DELETE"
+            },
+            {
+              "title": "Uploads an image.",
+              "href": "/api-reference/pet/post-pet-petId-uploadImage",
+              "method": "POST"
+            }
+          ]
+        },
+        {
+          "title": "store",
+          "href": "/api-reference/store",
+          "children": [
+            {
+              "title": "Returns pet inventories by status.",
+              "href": "/api-reference/store/get-store-inventory",
+              "method": "GET"
+            },
+            {
+              "title": "Place an order for a pet.",
+              "href": "/api-reference/store/post-store-order",
+              "method": "POST"
+            },
+            {
+              "title": "Find purchase order by ID.",
+              "href": "/api-reference/store/get-store-order-orderId",
+              "method": "GET"
+            },
+            {
+              "title": "Delete purchase order by identifier.",
+              "href": "/api-reference/store/delete-store-order-orderId",
+              "method": "DELETE"
+            }
+          ]
+        },
+        {
+          "title": "user",
+          "href": "/api-reference/user",
+          "children": [
+            {
+              "title": "Create user.",
+              "href": "/api-reference/user/post-user",
+              "method": "POST"
+            },
+            {
+              "title": "Creates list of users with given input array.",
+              "href": "/api-reference/user/post-user-createWithList",
+              "method": "POST"
+            },
+            {
+              "title": "Logs user into the system.",
+              "href": "/api-reference/user/get-user-login",
+              "method": "GET"
+            },
+            {
+              "title": "Logs out current logged in user session.",
+              "href": "/api-reference/user/get-user-logout",
+              "method": "GET"
+            },
+            {
+              "title": "Get user by user name.",
+              "href": "/api-reference/user/get-user-username",
+              "method": "GET"
+            },
+            {
+              "title": "Update user resource.",
+              "href": "/api-reference/user/put-user-username",
+              "method": "PUT"
+            },
+            {
+              "title": "Delete user resource.",
+              "href": "/api-reference/user/delete-user-username",
+              "method": "DELETE"
+            }
           ]
         }
       ]

@@ -1,0 +1,4 @@
+{
+  "title": "Deletes a pet.",
+  "content": "<ApiEndpoint method=\"DELETE\" path=\"/pet/{petId}\">\n\nDelete a pet.\n\n</ApiEndpoint>"
+}

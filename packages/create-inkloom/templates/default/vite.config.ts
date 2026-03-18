@@ -12,5 +12,11 @@ export default defineConfig({
   build: {
     outDir: "dist",
     assetsDir: "assets",
+    rollupOptions: {
+      external: ["web-worker"],
+    },
+  },
+  optimizeDeps: {
+    exclude: ["web-worker"],
   },
 });
