@@ -1166,6 +1166,11 @@
   display: none !important;
 }
 
+/* Note: Visibility/styling of content blocks interleaved between tab siblings
+   is managed via dynamically injected <style> elements by the Tabs component
+   in tabs.tsx, because ProseMirror's DOM management strips manually-set data
+   attributes during reconciliation. */
+
 /* ============================================================================
    CODE GROUP - Tabbed Interface
    Hides non-active code blocks when they're part of a CodeGroup container

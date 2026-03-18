@@ -17,6 +17,13 @@ export type GroupChildType = (typeof GROUP_MAPPINGS)[GroupContainerType];
 // Set of all container types for quick lookup
 const CONTAINER_TYPES = new Set(Object.keys(GROUP_MAPPINGS));
 
+/**
+ * Check if a block type is a group container type (tabs, codeGroup, etc.)
+ */
+export function isContainerType(blockType: string): boolean {
+  return CONTAINER_TYPES.has(blockType);
+}
+
 // Set of all group child types for quick lookup
 const GROUP_CHILD_TYPES = new Set(Object.values(GROUP_MAPPINGS));
 
