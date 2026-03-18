@@ -540,7 +540,7 @@ function renderComponent(
           icon={props.icon as string}
           href={props.href as string}
         >
-          {children && <span>{children}</span>}
+          {children && <MDXContent source={children} />}
         </Card>
       );
 
@@ -558,7 +558,7 @@ function renderComponent(
           type={props.type as "info" | "warning" | "danger" | "success" | "tip"}
           title={props.title as string}
         >
-          {children}
+          {children && <MDXContent source={children} />}
         </Callout>
       );
 
