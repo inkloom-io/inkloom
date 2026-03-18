@@ -1187,6 +1187,41 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</Accordion>");
   });
 
+  it("converts responseField with string 'true' required prop (editor format)", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "responseField",
+        props: { name: "id", type: "string", required: "true" },
+        content: [{ type: "text", text: "The unique identifier" }],
+      },
+    ]);
+    expect(mdx).toContain('<ResponseField name="id" type="string" required>');
+  });
+
+  it("converts responseField with string 'false' required prop without required attr", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "responseField",
+        props: { name: "id", type: "string", required: "false" },
+        content: [{ type: "text", text: "The unique identifier" }],
+      },
+    ]);
+    expect(mdx).toContain('<ResponseField name="id" type="string">');
+    expect(mdx).not.toContain("required");
+  });
+
+  it("converts responseField with boolean false required prop without required attr", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "responseField",
+        props: { name: "id", type: "string", required: false },
+        content: [{ type: "text", text: "The unique identifier" }],
+      },
+    ]);
+    expect(mdx).toContain('<ResponseField name="id" type="string">');
+    expect(mdx).not.toContain("required");
+  });
+
   it("converts empty responseField as self-closing", () => {
     const mdx = blockNoteToMDX([
       {

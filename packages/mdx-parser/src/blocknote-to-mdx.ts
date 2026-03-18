@@ -613,7 +613,7 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
     case "responseField": {
       const rfName = (block.props?.name as string) || "";
       const rfType = block.props?.type as string;
-      const rfRequired = block.props?.required as boolean;
+      const rfRequired = block.props?.required === true || block.props?.required === "true";
       const text = block.content && isInlineContentArray(block.content)
         ? convertInlineContent(block.content)
         : "";
@@ -815,7 +815,9 @@ function collectResponseFieldSlice(
 
   const rfName = (block.props?.name as string) || "";
   const rfType = block.props?.type as string;
-  const rfRequired = block.props?.required as boolean;
+  // The editor stores `required` as a string ("true"/"false"), not a boolean.
+  // Coerce to boolean to avoid the truthy-string "false" being treated as true.
+  const rfRequired = block.props?.required === true || block.props?.required === "true";
   const text = block.content && isInlineContentArray(block.content)
     ? convertInlineContent(block.content)
     : "";
