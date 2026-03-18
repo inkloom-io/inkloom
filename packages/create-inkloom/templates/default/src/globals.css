@@ -407,11 +407,16 @@ body {
 
 /* Remove max-width constraints when API two-column layout is present */
 article:has(.api-endpoint-2col) {
-  max-width: none;
+  max-width: none !important;
 }
 
 article:has(.api-endpoint-2col).prose {
-  max-width: none;
+  max-width: none !important;
+}
+
+/* Hide ToC on API pages — the right code-example column uses that space */
+:has(article .api-endpoint-2col) > .toc {
+  display: none !important;
 }
 
 .api-endpoint-2col {
