@@ -762,12 +762,32 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
     case "quote": {
       const text = block.content && isInlineContentArray(block.content) ? convertInlineContent(block.content) : "";
       // Convert to markdown blockquote by prefixing with >
-      const quotedLines = text
-        .split("\n")
-        .map((line) => `> ${line}`)
-        .join("\n");
-      result = `${quotedLines}\n\n`;
-      break;
+      let quoteContent = "";
+      if (text) {
+        const quotedLines = text
+          .split("\n")
+          .map((line) => `> ${line}`)
+          .join("\n");
+        quoteContent += quotedLines;
+      }
+      // Handle children as additional blockquoted content
+      if (block.children && block.children.length > 0) {
+        for (const child of block.children) {
+          const childMdx = convertBlock(child, 0).trimEnd();
+          // Prefix every line of the child output with >
+          const quotedChild = childMdx
+            .split("\n")
+            .map((line) => `> ${line}`)
+            .join("\n");
+          if (quoteContent) {
+            quoteContent += "\n";
+          }
+          quoteContent += quotedChild;
+        }
+      }
+      result = `${quoteContent}\n\n`;
+      // Return early to skip generic children handler (already handled above)
+      return result;
     }
 
     default: {

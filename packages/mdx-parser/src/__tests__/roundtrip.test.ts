@@ -1458,4 +1458,60 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     const output = blockNoteToMDX(blocks);
     expect(output.trim()).toBe(input);
   });
+
+  it("parses simple blockquote to quote block", () => {
+    const blocks = mdxToBlockNote("> hello world");
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("quote");
+    expect(blocks[0].content).toEqual([
+      { type: "text", text: "hello world" },
+    ]);
+  });
+
+  it("round-trips simple blockquote", () => {
+    const input = "> hello world";
+    const blocks = mdxToBlockNote(input);
+    const output = blockNoteToMDX(blocks);
+    expect(output.trim()).toBe(input);
+  });
+
+  it("round-trips multi-line blockquote", () => {
+    const input = "> first paragraph\n> \n> second paragraph";
+    const blocks = mdxToBlockNote(input);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("quote");
+    // First paragraph is the quote content, second is a child
+    expect(blocks[0].children).toBeDefined();
+    expect(blocks[0].children!.length).toBeGreaterThan(0);
+  });
+
+  it("parses nested blockquote", () => {
+    const blocks = mdxToBlockNote("> > deeply nested");
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("quote");
+    // The nested blockquote should be a child quote block
+    expect(blocks[0].children).toBeDefined();
+    const nestedQuote = blocks[0].children!.find(
+      (c) => c.type === "quote"
+    );
+    expect(nestedQuote).toBeDefined();
+  });
+
+  it("round-trips blockquote with inline formatting", () => {
+    const input = "> **bold** and *italic*";
+    const blocks = mdxToBlockNote(input);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("quote");
+    const content = blocks[0].content as Array<{
+      type: string;
+      text?: string;
+      styles?: Record<string, boolean>;
+    }>;
+    expect(content.some((c) => c.styles?.bold)).toBe(true);
+    expect(content.some((c) => c.styles?.italic)).toBe(true);
+    // Verify roundtrip
+    const output = blockNoteToMDX(blocks);
+    const blocks2 = mdxToBlockNote(output);
+    expect(blocks2[0].type).toBe("quote");
+  });
 });

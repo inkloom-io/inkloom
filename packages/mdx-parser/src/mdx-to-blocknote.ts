@@ -1317,16 +1317,38 @@ function convertBlockNode(node: MdastNode): BlockNoteBlock[] {
     }
 
     case "blockquote": {
-      // Flatten children to inline content
-      const content = node.children
-        ? flattenToInline(node.children)
+      // Recursively convert blockquote children into blocks
+      const childBlocks = node.children
+        ? node.children.flatMap((child) => convertBlockNode(child))
         : [];
-      return [
-        {
-          type: "paragraph",
-          content,
-        },
-      ];
+
+      if (childBlocks.length === 0) {
+        return [{ type: "quote", content: [] }];
+      }
+
+      const firstChild = childBlocks[0];
+      const restChildren = childBlocks.slice(1);
+
+      // If the first child is a simple paragraph, promote its inline content
+      // to the quote block's content, and put remaining blocks as children
+      if (firstChild.type === "paragraph" && !firstChild.children?.length) {
+        const quoteBlock: BlockNoteBlock = {
+          type: "quote",
+          content: firstChild.content || [],
+        };
+        if (restChildren.length > 0) {
+          quoteBlock.children = restChildren;
+        }
+        return [quoteBlock];
+      }
+
+      // Otherwise (e.g. nested blockquotes, headings, etc.), keep content empty
+      // and put all child blocks as children
+      return [{
+        type: "quote",
+        content: [],
+        children: childBlocks,
+      }];
     }
 
     case "html": {
