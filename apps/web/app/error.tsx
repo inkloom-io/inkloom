@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { errorReportingAdapter } from "@/lib/adapters/error-reporting";
 import { ErrorLayout } from "@/components/error-layout";
 import { ReportProblemButton } from "@/components/report-problem-button";
@@ -12,15 +12,14 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const [eventId, setEventId] = useState<string>();
-
-  useEffect(() => {
-    const id = errorReportingAdapter.captureError(error, {
+  // Report synchronously during first render via useState initializer.
+  // useEffect would be skipped if the component fails to mount.
+  const [eventId] = useState(() => {
+    return errorReportingAdapter.captureError(error, {
       source: "root-error-boundary",
       digest: error.digest,
     });
-    if (id) setEventId(id);
-  }, [error]);
+  });
 
   return (
     <ErrorLayout

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { errorReportingAdapter } from "@/lib/adapters/error-reporting";
@@ -16,16 +16,16 @@ export default function Error({
 }) {
   const t = useTranslations("errors");
   const pathname = usePathname();
-  const [eventId, setEventId] = useState<string>();
 
-  useEffect(() => {
-    const id = errorReportingAdapter.captureError(error, {
+  // Report synchronously during first render via useState initializer.
+  // useEffect would be skipped if the component fails to mount.
+  const [eventId] = useState(() => {
+    return errorReportingAdapter.captureError(error, {
       source: "locale-error-boundary",
       digest: error.digest,
       route: pathname,
     });
-    if (id) setEventId(id);
-  }, [error, pathname]);
+  });
 
   return (
     <ErrorLayout

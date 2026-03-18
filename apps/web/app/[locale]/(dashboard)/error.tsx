@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname, useParams } from "next/navigation";
 import { RefreshCw, Home } from "lucide-react";
@@ -31,7 +31,16 @@ export default function DashboardError({
   const params = useParams<{ projectId?: string }>();
   const { user: authUser } = useAuth();
   const { tenantId, orgName } = useAppContext();
-  const [eventId, setEventId] = useState<string>();
+
+  // Report synchronously during first render via useState initializer.
+  // useEffect would be skipped if the component fails to mount.
+  const [eventId] = useState(() => {
+    return errorReportingAdapter.captureError(error, {
+      source: "dashboard-error-boundary",
+      digest: error.digest,
+      route: pathname,
+    });
+  });
 
   const sessionContext = useMemo((): SessionContext => {
     const ctx: SessionContext = {};
@@ -48,15 +57,6 @@ export default function DashboardError({
     }
     return ctx;
   }, [authUser, tenantId, orgName, params?.projectId]);
-
-  useEffect(() => {
-    const id = errorReportingAdapter.captureError(error, {
-      source: "dashboard-error-boundary",
-      digest: error.digest,
-      route: pathname,
-    });
-    if (id) setEventId(id);
-  }, [error, pathname]);
 
   const referenceId = eventId ?? error.digest;
 
