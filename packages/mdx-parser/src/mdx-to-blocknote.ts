@@ -166,6 +166,33 @@ function convertInlineNodes(
             }
             result.push(child);
           }
+        } else if (tagName === "mark") {
+          // Inline badge: <mark style="color:green;">POST</mark>
+          const styleStr = getAttrValue(node.attributes, "style") || "";
+          const colorMatch = styleStr.match(/(?:^|;)\s*color:\s*([^;]+)/);
+          const color = colorMatch ? colorMatch[1].trim() : "";
+          const children = node.children ? convertInlineNodes(node.children) : [];
+          // Extract text from children
+          const badgeText = children
+            .filter((c) => c.type === "text")
+            .map((c) => c.text || "")
+            .join("");
+          result.push({
+            type: "badge",
+            props: { color },
+            content: [{ type: "text", text: badgeText }],
+          });
+        } else if (tagName === "Icon") {
+          // Inline icon: <Icon icon="flag" size={32} />
+          const iconName = getAttrValue(node.attributes, "icon") || "";
+          const size = getAttrValue(node.attributes, "size") || "";
+          result.push({
+            type: "icon",
+            props: {
+              icon: iconName,
+              ...(size ? { size } : {}),
+            },
+          });
         } else if (tagName === "Latex") {
           // Inline LaTeX — extract text content as expression
           const expression = node.children
@@ -606,6 +633,50 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             playsInline,
             controls,
           },
+        },
+      ];
+    }
+
+    case "Icon": {
+      // Block-level icon: <Icon icon="flag" size={32} />
+      const iconName = getAttrValue(attrs, "icon") || "";
+      const size = getAttrValue(attrs, "size") || "";
+      return [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "icon",
+              props: {
+                icon: iconName,
+                ...(size ? { size } : {}),
+              },
+            },
+          ],
+        },
+      ];
+    }
+
+    case "mark": {
+      // Block-level mark: <mark style="color:green;">POST</mark>
+      const styleStr = getAttrValue(attrs, "style") || "";
+      const colorMatch = styleStr.match(/(?:^|;)\s*color:\s*([^;]+)/);
+      const color = colorMatch ? colorMatch[1].trim() : "";
+      const children = node.children ? flattenToInline(node.children) : [];
+      const badgeText = children
+        .filter((c) => c.type === "text")
+        .map((c) => c.text || "")
+        .join("");
+      return [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "badge",
+              props: { color },
+              content: [{ type: "text", text: badgeText }],
+            },
+          ],
         },
       ];
     }

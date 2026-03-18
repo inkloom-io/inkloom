@@ -1,6 +1,0 @@
-<<<<<<<< HEAD:core/packages/create-inkloom/templates/default/dist/assets/infoDiagram-LFFYTUFH-EI7JbHLV.js
-import{_ as a,l as o,L as n,e as i}from"./mermaid.core-D_bxiumn.js";import{p}from"./treemap-KZPCXAKY-BHJ4vw_c.js";import"./index-cMfIWT4-.js";import"./_baseUniq-BAwPmHrp.js";import"./_basePickBy-DSuPAurA.js";import"./clone-BXOjM2s9.js";var g={parse:a(async r=>{const e=await p("info",r);o.debug(e)},"parse")},v={version:"11.13.0"},d=a(()=>v.version,"getVersion"),m={getVersion:d},c=a((r,e,s)=>{o.debug(`rendering info diagram
-========
-import{_ as a,l as o,L as n,e as i}from"./mermaid.core-BR5iQfO0.js";import{p}from"./treemap-KZPCXAKY-4ORtJ4ax.js";import"./index-CGQCOi-z.js";import"./_baseUniq-iJyGPrUr.js";import"./_basePickBy-BM2pcsqo.js";import"./clone-VAU0FPHY.js";var g={parse:a(async r=>{const e=await p("info",r);o.debug(e)},"parse")},v={version:"11.13.0"},d=a(()=>v.version,"getVersion"),m={getVersion:d},c=a((r,e,s)=>{o.debug(`rendering info diagram
->>>>>>>> origin/main:core/packages/create-inkloom/templates/default/dist/assets/infoDiagram-LFFYTUFH-BkDZLm1X.js
-`+r);const t=n(e);i(t,100,400,!0),t.append("g").append("text").attr("x",100).attr("y",40).attr("class","version").attr("font-size",32).style("text-anchor","middle").text(`v${s}`)},"draw"),l={draw:c},S={parser:g,db:m,renderer:l};export{S as diagram};

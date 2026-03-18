@@ -383,6 +383,68 @@ describe("mdxToBlockNote", () => {
     expect(blocks[0].props?.expression).toBe("");
   });
 
+  it("parses inline mark as badge", () => {
+    const blocks = mdxToBlockNote('This is <mark style="color:green;">POST</mark> method');
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("paragraph");
+    const content = blocks[0].content as Array<{ type: string; props?: Record<string, string>; content?: Array<{ type: string; text?: string }> }>;
+    const badge = content.find((c) => c.type === "badge");
+    expect(badge).toBeDefined();
+    if (badge) {
+      expect(badge.props?.color).toBe("green");
+      expect(badge.content?.[0]?.text).toBe("POST");
+    }
+  });
+
+  it("parses inline mark without style", () => {
+    const blocks = mdxToBlockNote("Use <mark>IMPORTANT</mark> here");
+    expect(blocks).toHaveLength(1);
+    const content = blocks[0].content as Array<{ type: string; props?: Record<string, string>; content?: Array<{ type: string; text?: string }> }>;
+    const badge = content.find((c) => c.type === "badge");
+    expect(badge).toBeDefined();
+    if (badge) {
+      expect(badge.props?.color).toBe("");
+      expect(badge.content?.[0]?.text).toBe("IMPORTANT");
+    }
+  });
+
+  it("parses inline Icon element", () => {
+    const blocks = mdxToBlockNote('Text with <Icon icon="flag" size={32} /> icon');
+    expect(blocks).toHaveLength(1);
+    const content = blocks[0].content as Array<{ type: string; props?: Record<string, string> }>;
+    const icon = content.find((c) => c.type === "icon");
+    expect(icon).toBeDefined();
+    if (icon) {
+      expect(icon.props?.icon).toBe("flag");
+      expect(icon.props?.size).toBe("32");
+    }
+  });
+
+  it("parses inline Icon element without size", () => {
+    const blocks = mdxToBlockNote('Check <Icon icon="star" /> this');
+    expect(blocks).toHaveLength(1);
+    const content = blocks[0].content as Array<{ type: string; props?: Record<string, string> }>;
+    const icon = content.find((c) => c.type === "icon");
+    expect(icon).toBeDefined();
+    if (icon) {
+      expect(icon.props?.icon).toBe("star");
+      expect(icon.props?.size).toBeUndefined();
+    }
+  });
+
+  it("parses block-level Icon element", () => {
+    const blocks = mdxToBlockNote('<Icon icon="rocket" size={48} />');
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("paragraph");
+    const content = blocks[0].content as Array<{ type: string; props?: Record<string, string> }>;
+    const icon = content.find((c) => c.type === "icon");
+    expect(icon).toBeDefined();
+    if (icon) {
+      expect(icon.props?.icon).toBe("rocket");
+      expect(icon.props?.size).toBe("48");
+    }
+  });
+
   it("parses iframe basic", () => {
     const blocks = mdxToBlockNote('<iframe src="https://youtube.com/embed/abc"></iframe>');
     expect(blocks).toHaveLength(1);
@@ -776,6 +838,73 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</video>");
   });
 
+  it("converts inline badge to mark element", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "Method: " },
+          {
+            type: "badge",
+            props: { color: "green" },
+            content: [{ type: "text", text: "POST" }],
+          },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<mark style="color:green;">POST</mark>');
+    expect(mdx).toContain("Method:");
+  });
+
+  it("converts inline badge without color", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "badge",
+            props: { color: "" },
+            content: [{ type: "text", text: "INFO" }],
+          },
+        ],
+      },
+    ]);
+    expect(mdx).toContain("<mark>INFO</mark>");
+    expect(mdx).not.toContain("style");
+  });
+
+  it("converts inline icon to Icon element", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "paragraph",
+        content: [
+          { type: "text", text: "Flag: " },
+          {
+            type: "icon",
+            props: { icon: "flag", size: "32" },
+          },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<Icon icon="flag" size={32} />');
+  });
+
+  it("converts inline icon without size", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "icon",
+            props: { icon: "star" },
+          },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<Icon icon="star" />');
+    expect(mdx).not.toContain("size");
+  });
+
   it("converts empty responseField as self-closing", () => {
     const mdx = blockNoteToMDX([
       {
@@ -841,6 +970,14 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     {
       name: "latex block",
       mdx: `<Latex>\nE = mc^2\n</Latex>`,
+    },
+    {
+      name: "inline badge",
+      mdx: `This is <mark style="color:green;">POST</mark> method`,
+    },
+    {
+      name: "inline icon",
+      mdx: `Text with <Icon icon="flag" size={32} /> here`,
     },
   ];
 

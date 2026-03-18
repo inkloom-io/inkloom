@@ -26,6 +26,7 @@ import {
   Video,
   IFrame,
   DocsRendererProvider,
+  IconDisplay,
 } from "@inkloom/docs-renderer";
 import { Link } from "react-router";
 import { highlightCode as shikiHighlightCode } from "@/lib/syntax-highlighter";
@@ -75,7 +76,7 @@ interface MDXContentProps {
 }
 
 interface ParsedComponent {
-  type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "Columns" | "Column" | "CodeGroup" | "ApiEndpoint" | "ParamField" | "ResponseField" | "Expandable" | "Frame" | "Latex" | "Video" | "IFrame";
+  type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "Columns" | "Column" | "CodeGroup" | "ApiEndpoint" | "ParamField" | "ResponseField" | "Expandable" | "Frame" | "Latex" | "Video" | "IFrame" | "Icon";
   props: Record<string, string | number | boolean>;
   children: string;
   startIndex: number;
@@ -146,7 +147,7 @@ function findBalancedCloseTag(content: string, tagName: string, searchFrom: numb
 // Find all MDX components in the content
 function findMDXComponents(content: string): ParsedComponent[] {
   const components: ParsedComponent[] = [];
-  const componentNames = ["Card", "CardGroup", "Callout", "Image", "Tabs", "Tab", "Steps", "Step", "Accordion", "AccordionGroup", "Columns", "Column", "CodeGroup", "ApiEndpoint", "ParamField", "ResponseField", "Expandable", "Frame", "Latex", "Video", "IFrame"];
+  const componentNames = ["Card", "CardGroup", "Callout", "Image", "Tabs", "Tab", "Steps", "Step", "Accordion", "AccordionGroup", "Columns", "Column", "CodeGroup", "ApiEndpoint", "ParamField", "ResponseField", "Expandable", "Frame", "Latex", "Video", "IFrame", "Icon"];
 
   for (const name of componentNames) {
     // Use negative lookahead to ensure exact component name matching
@@ -342,6 +343,7 @@ function MarkdownRenderer({ content }: { content: string }) {
         table: ({ children }) => <table>{children}</table>,
         th: ({ children, style }) => <th style={style}>{children}</th>,
         td: ({ children, style }) => <td style={style}>{children}</td>,
+        mark: ({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) => <mark style={style}>{children}</mark>,
         hr: () => <hr />,
       }}
     >
@@ -672,6 +674,16 @@ function renderComponent(
 
     case "IFrame":
       return <IFrame key={key} {...(props as Record<string, string>)} />;
+
+    case "Icon": {
+      const iconName = (props.icon as string) || "";
+      const size = typeof props.size === "number" ? props.size : (props.size ? parseInt(String(props.size), 10) : 16);
+      return (
+        <span key={key} className="inline-icon" style={{ width: `${size}px`, height: `${size}px` }}>
+          <IconDisplay icon={iconName} />
+        </span>
+      );
+    }
 
     default:
       return null;

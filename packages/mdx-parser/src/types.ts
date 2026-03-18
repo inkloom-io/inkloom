@@ -29,6 +29,7 @@ export interface BlockNoteInlineContent {
   styles?: Record<string, boolean | string>;
   href?: string;
   content?: BlockNoteInlineContent[];
+  props?: Record<string, string>;
 }
 
 export interface BlockNoteBlock {

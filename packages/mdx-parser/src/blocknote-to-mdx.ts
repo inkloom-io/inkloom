@@ -93,6 +93,25 @@ function convertInlineContent(content: BlockNoteInlineContent[]): string {
         return text;
       }
 
+      if (item.type === "badge") {
+        const color = item.props?.color || "";
+        const badgeText = item.content
+          ? convertInlineContent(item.content)
+          : "";
+        const styleAttr = color ? ` style="color:${color};"` : "";
+        return `<mark${styleAttr}>${badgeText}</mark>`;
+      }
+
+      if (item.type === "icon") {
+        const iconName = item.props?.icon || "";
+        const size = item.props?.size;
+        const attrs = [
+          `icon="${iconName}"`,
+          size ? `size={${size}}` : null,
+        ].filter(Boolean).join(" ");
+        return `<Icon ${attrs} />`;
+      }
+
       if (item.type === "link") {
         const linkText = item.content
           ? convertInlineContent(item.content)
