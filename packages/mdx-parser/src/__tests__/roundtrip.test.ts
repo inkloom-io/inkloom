@@ -356,6 +356,64 @@ describe("mdxToBlockNote", () => {
     expect(blocks[0].children?.some((c) => c.type === "codeBlock")).toBe(true);
   });
 
+  it("parses HTML figure with img and figcaption into frame + image (inline)", () => {
+    const mdx = `<figure><img src=".gitbook/assets/screenshot.png" alt="image alt" /><figcaption><p>image caption</p></figcaption></figure>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks.length).toBeGreaterThanOrEqual(2);
+    expect(blocks[0].type).toBe("frame");
+    expect(blocks[0].props?.caption).toBe("image caption");
+    expect(blocks[1].type).toBe("image");
+    expect(blocks[1].props?.url).toBe(".gitbook/assets/screenshot.png");
+    expect(blocks[1].props?.alt).toBe("image alt");
+  });
+
+  it("parses HTML figure with img and figcaption into frame + image (flow)", () => {
+    const mdx = `<figure>\n<img src=".gitbook/assets/screenshot.png" alt="image alt" />\n<figcaption>\n<p>image caption</p>\n</figcaption>\n</figure>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks.length).toBeGreaterThanOrEqual(2);
+    expect(blocks[0].type).toBe("frame");
+    expect(blocks[0].props?.caption).toBe("image caption");
+    expect(blocks[1].type).toBe("image");
+    expect(blocks[1].props?.url).toBe(".gitbook/assets/screenshot.png");
+    expect(blocks[1].props?.alt).toBe("image alt");
+  });
+
+  it("parses figure without figcaption", () => {
+    const mdx = `<figure><img src="photo.png" alt="A photo" /></figure>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks.length).toBeGreaterThanOrEqual(2);
+    expect(blocks[0].type).toBe("frame");
+    expect(blocks[0].props?.caption).toBeUndefined();
+    expect(blocks[1].type).toBe("image");
+    expect(blocks[1].props?.url).toBe("photo.png");
+  });
+
+  it("parses GitBook card-view table into cardGroup + cards (inline)", () => {
+    const mdx = `<table data-view="cards"><thead><tr><th></th><th></th><th data-hidden data-card-cover data-type="image">Cover image</th></tr></thead><tbody><tr><td>card</td><td></td><td><a href=".gitbook/assets/screenshot.png">screenshot.png</a></td></tr><tr><td>card 2 column 2</td><td>no image</td><td></td></tr></tbody></table>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks.length).toBeGreaterThanOrEqual(3);
+    expect(blocks[0].type).toBe("cardGroup");
+    expect(blocks[0].props?.cols).toBe("2");
+    expect(blocks[1].type).toBe("card");
+    expect(blocks[1].props?.title).toBe("card");
+    expect(blocks[2].type).toBe("card");
+    expect(blocks[2].props?.title).toBe("card 2 column 2");
+    // Second card has "no image" as content
+    expect(blocks[2].content).toBeDefined();
+    if (Array.isArray(blocks[2].content)) {
+      expect(blocks[2].content.some((c: { type: string; text?: string }) => c.text === "no image")).toBe(true);
+    }
+  });
+
+  it("parses GitBook card-view table into cardGroup + cards (flow)", () => {
+    const mdx = `<table data-view="cards">\n<thead>\n<tr><th></th><th></th><th data-hidden data-card-cover data-type="image">Cover image</th></tr>\n</thead>\n<tbody>\n<tr><td>card title</td><td>description</td><td></td></tr>\n</tbody>\n</table>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks.length).toBeGreaterThanOrEqual(2);
+    expect(blocks[0].type).toBe("cardGroup");
+    expect(blocks[1].type).toBe("card");
+    expect(blocks[1].props?.title).toBe("card title");
+  });
+
   it("returns at least one block for empty input", () => {
     const blocks = mdxToBlockNote("");
     expect(blocks).toHaveLength(1);

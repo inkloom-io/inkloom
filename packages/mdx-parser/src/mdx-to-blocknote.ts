@@ -25,6 +25,73 @@ function getAttrValue(
   return undefined;
 }
 
+/** Recursively extract plain text content from an mdast node tree. */
+function extractTextContent(node: MdastNode): string {
+  if (node.value) return node.value;
+  if (node.children) {
+    return node.children.map((c) => extractTextContent(c)).join("").trim();
+  }
+  return "";
+}
+
+/**
+ * Find a named JSX child element within a node's children.
+ * In flow mode, remark-mdx may wrap inner JSX elements in paragraph nodes,
+ * so this also checks paragraph children for JSX elements.
+ */
+function findJsxChild(parent: MdastNode, tagName: string): MdastNode | undefined {
+  if (!parent.children) return undefined;
+  for (const child of parent.children) {
+    if (
+      (child.type === "mdxJsxFlowElement" || child.type === "mdxJsxTextElement") &&
+      child.name === tagName
+    ) {
+      return child;
+    }
+    // Check inside paragraph wrappers
+    if (child.type === "paragraph" && child.children) {
+      for (const grandchild of child.children) {
+        if (
+          (grandchild.type === "mdxJsxFlowElement" || grandchild.type === "mdxJsxTextElement") &&
+          grandchild.name === tagName
+        ) {
+          return grandchild;
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Find all named JSX child elements within a node's children.
+ * In flow mode, remark-mdx may wrap inner JSX elements in paragraph nodes.
+ */
+function findAllJsxChildren(parent: MdastNode, tagName: string): MdastNode[] {
+  const results: MdastNode[] = [];
+  if (!parent.children) return results;
+  for (const child of parent.children) {
+    if (
+      (child.type === "mdxJsxFlowElement" || child.type === "mdxJsxTextElement") &&
+      child.name === tagName
+    ) {
+      results.push(child);
+    }
+    // Check inside paragraph wrappers
+    if (child.type === "paragraph" && child.children) {
+      for (const grandchild of child.children) {
+        if (
+          (grandchild.type === "mdxJsxFlowElement" || grandchild.type === "mdxJsxTextElement") &&
+          grandchild.name === tagName
+        ) {
+          results.push(grandchild);
+        }
+      }
+    }
+  }
+  return results;
+}
+
 function convertInlineNodes(
   nodes: MdastNode[]
 ): BlockNoteInlineContent[] {
@@ -617,6 +684,57 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       ];
     }
 
+    case "figure": {
+      // GitBook HTML figure: <figure><img src="..." alt="..."><figcaption><p>caption</p></figcaption></figure>
+      // Produces a frame block (sibling pattern) followed by an image block.
+      let figSrc = "";
+      let figAlt = "";
+      let figCaption = "";
+
+      if (node.children) {
+        for (const child of node.children) {
+          // Find the <img> child — may be mdxJsxFlowElement or mdxJsxTextElement
+          if (
+            (child.type === "mdxJsxFlowElement" || child.type === "mdxJsxTextElement") &&
+            child.name === "img"
+          ) {
+            figSrc = getAttrValue(child.attributes, "src") || "";
+            figAlt = getAttrValue(child.attributes, "alt") || "";
+          }
+          // Find the <figcaption> child and extract text content
+          if (
+            (child.type === "mdxJsxFlowElement" || child.type === "mdxJsxTextElement") &&
+            child.name === "figcaption"
+          ) {
+            figCaption = extractTextContent(child);
+          }
+        }
+      }
+
+      const result: BlockNoteBlock[] = [
+        {
+          type: "frame",
+          props: {
+            ...(figCaption ? { caption: figCaption } : {}),
+          },
+          content: [],
+          children: [],
+        },
+      ];
+
+      if (figSrc) {
+        result.push({
+          type: "image",
+          props: {
+            url: figSrc,
+            ...(figAlt ? { alt: figAlt } : {}),
+          },
+        });
+      }
+
+      return result;
+    }
+
     case "Icon": {
       // Block-level icon: <Icon icon="flag" size={32} />
       const iconName = getAttrValue(attrs, "icon") || "";
@@ -841,6 +959,93 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       return childBlocks;
     }
 
+    case "table": {
+      // GitBook card-view table: <table data-view="cards"><thead>...</thead><tbody>...</tbody></table>
+      const dataView = getAttrValue(attrs, "data-view");
+      if (dataView === "cards") {
+        // Determine hidden columns from <thead>
+        const hiddenCols = new Set<number>();
+        const thead = findJsxChild(node, "thead");
+        if (thead) {
+          const headerRow = findJsxChild(thead, "tr");
+          if (headerRow && headerRow.children) {
+            headerRow.children.forEach((th, idx) => {
+              if (
+                th.attributes &&
+                th.attributes.some((a) => a.name === "data-hidden")
+              ) {
+                hiddenCols.add(idx);
+              }
+            });
+          }
+        }
+
+        // Extract card data from <tbody> rows
+        const tbody = findJsxChild(node, "tbody");
+
+        const cardBlocks: BlockNoteBlock[] = [];
+        if (tbody) {
+          const rows = findAllJsxChildren(tbody, "tr");
+          for (const row of rows) {
+            if (row.children) {
+              // Collect visible cell texts
+              const visibleCells: string[] = [];
+              row.children.forEach((td, idx) => {
+                if (!hiddenCols.has(idx)) {
+                  visibleCells.push(extractTextContent(td));
+                }
+              });
+
+              const cardTitle = visibleCells[0] || "";
+              const cardDescription = visibleCells.slice(1).filter(Boolean).join(" ");
+
+              const cardContent: BlockNoteInlineContent[] = [];
+              if (cardDescription) {
+                cardContent.push({ type: "text", text: cardDescription });
+              }
+
+              cardBlocks.push({
+                type: "card",
+                props: { title: cardTitle },
+                content: cardContent,
+              });
+            }
+          }
+        }
+
+        // Count visible columns for cols prop
+        let totalCols = 0;
+        if (thead) {
+          const headerRow = findJsxChild(thead, "tr");
+          if (headerRow && headerRow.children) {
+            totalCols = headerRow.children.length - hiddenCols.size;
+          }
+        }
+        const colsStr = totalCols > 0 ? String(totalCols) : "2";
+
+        return [
+          {
+            type: "cardGroup",
+            props: { cols: colsStr },
+            content: [],
+          },
+          ...cardBlocks,
+        ];
+      }
+
+      // Non-card table JSX element: fall through to default
+      const rawText = serializeJsxToString(node);
+      if (rawText) {
+        return [
+          {
+            type: "paragraph",
+            content: [{ type: "text", text: rawText }],
+          },
+        ];
+      }
+      return [];
+    }
+
     default: {
       // Unknown JSX element -> convert to paragraph with raw text
       const rawText = serializeJsxToString(node);
@@ -939,6 +1144,19 @@ function convertBlockNode(node: MdastNode): BlockNoteBlock[] {
     }
 
     case "paragraph": {
+      // Check if the paragraph contains a single block-level JSX element
+      // that remark-mdx wrapped inline (e.g. <figure>, <table data-view="cards">)
+      if (node.children?.length === 1) {
+        const only = node.children[0];
+        if (only.type === "mdxJsxTextElement" || only.type === "mdxJsxFlowElement") {
+          const jsxName = only.name || "";
+          if (jsxName === "figure" || jsxName === "table") {
+            // Promote to block-level and process through convertMdxJsxElement
+            return convertMdxJsxElement(only);
+          }
+        }
+      }
+
       const content = node.children
         ? convertInlineNodes(node.children)
         : [];
