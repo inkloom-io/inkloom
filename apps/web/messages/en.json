@@ -1159,7 +1159,20 @@
         "video": "Video",
         "videoSubtext": "Embed an HTML5 video with playback controls",
         "embed": "Embed",
-        "embedSubtext": "Embed external content like YouTube or Vimeo"
+        "embedSubtext": "Embed external content like YouTube or Vimeo",
+        "inlineGroup": "Inline",
+        "badge": "Badge",
+        "badgeSubtext": "Insert a colored badge or label",
+        "badgeDefaultText": "badge",
+        "icon": "Icon",
+        "iconSubtext": "Insert an inline icon or emoji"
+      },
+      "inlineToolbar": {
+        "badge": "Insert badge",
+        "badgeColor": "Badge color",
+        "icon": "Insert icon",
+        "iconTabIcons": "Icons",
+        "iconTabEmoji": "Emoji"
       }
     },
     "blocks": {

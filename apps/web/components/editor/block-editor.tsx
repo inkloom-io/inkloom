@@ -27,7 +27,7 @@ import {
 } from "@blocknote/react";
 import { useMutation } from "convex/react";
 import * as Y from "yjs";
-import { MessageSquarePlus } from "lucide-react";
+import { MessageSquarePlus, Tag, Smile } from "lucide-react";
 import {
   RiInfoCardLine,
   RiLayoutGridLine,
@@ -60,6 +60,8 @@ import {
 } from "@/lib/generate-editor-theme";
 import { schema, type CustomBlockNoteEditor, type CustomPartialBlock } from "./schema";
 import { CommentHoverTooltip } from "./comments/comment-hover-tooltip";
+import { BadgeToolbarButton } from "./toolbar/badge-toolbar-button";
+import { IconToolbarButton } from "./toolbar/icon-toolbar-button";
 
 // Collaboration configuration for real-time editing
 export interface CollaborationConfig {
@@ -568,6 +570,40 @@ export function BlockEditor({
         aliases: ["embed", "iframe", "youtube", "vimeo"],
         group: t("slashMenu.componentsGroup"),
         icon: <RiCodeBoxLine size={18} />,
+      },
+      {
+        title: t("slashMenu.badge"),
+        subtext: t("slashMenu.badgeSubtext"),
+        onItemClick: () => {
+          // Insert a badge inline content at the cursor
+          (editorInstance as any).insertInlineContent([
+            {
+              type: "badge",
+              props: { color: "#6b7280" },
+              content: t("slashMenu.badgeDefaultText"),
+            },
+          ]);
+        },
+        aliases: ["badge", "tag", "label", "chip", "pill"],
+        group: t("slashMenu.inlineGroup"),
+        icon: <Tag size={18} />,
+      },
+      {
+        title: t("slashMenu.icon"),
+        subtext: t("slashMenu.iconSubtext"),
+        onItemClick: () => {
+          // Insert a star icon inline content at the cursor
+          (editorInstance as any).insertInlineContent([
+            {
+              type: "icon",
+              props: { icon: "lucide:star", size: "16" },
+            },
+            " ",
+          ]);
+        },
+        aliases: ["icon", "emoji", "symbol"],
+        group: t("slashMenu.inlineGroup"),
+        icon: <Smile size={18} />,
       },
     ];
   }, [t]);
@@ -1363,6 +1399,8 @@ export function BlockEditor({
                 <NestBlockButton key="nestBlockButton" />
                 <UnnestBlockButton key="unnestBlockButton" />
                 <CreateLinkButton key="createLinkButton" />
+                <BadgeToolbarButton key="badgeButton" />
+                <IconToolbarButton key="iconButton" />
                 {/* Add Comment button */}
                 {onAddComment && pageId && currentUserId && (
                   <Tooltip>
