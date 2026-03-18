@@ -854,9 +854,26 @@ a:has(.card) {
 }
 
 /* ============================================================================
-   INLINE BADGE (mark)
+   INLINE BADGE
    ============================================================================ */
 
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.badge-green { background: var(--color-green-100, #dcfce7); color: var(--color-green-800, #166534); }
+.badge-red { background: var(--color-red-100, #fee2e2); color: var(--color-red-800, #991b1b); }
+.badge-blue { background: var(--color-blue-100, #dbeafe); color: var(--color-blue-800, #1e40af); }
+.badge-yellow { background: var(--color-yellow-100, #fef9c3); color: var(--color-yellow-800, #854d0e); }
+.badge-gray { background: var(--color-gray-100, #f3f4f6); color: var(--color-gray-800, #1f2937); }
+
+/* Legacy mark-based badges (backward compat) */
 mark {
   display: inline-flex;
   align-items: center;

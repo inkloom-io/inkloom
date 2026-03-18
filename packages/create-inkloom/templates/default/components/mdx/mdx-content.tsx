@@ -27,6 +27,8 @@ import {
   IFrame,
   DocsRendererProvider,
   IconDisplay,
+  Badge,
+  InlineIcon,
 } from "@inkloom/docs-renderer";
 import { Link } from "react-router";
 import { highlightCode as shikiHighlightCode } from "@/lib/syntax-highlighter";
@@ -76,11 +78,28 @@ interface MDXContentProps {
 }
 
 interface ParsedComponent {
-  type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "Columns" | "Column" | "CodeGroup" | "ApiEndpoint" | "ParamField" | "ResponseField" | "Expandable" | "Frame" | "Latex" | "Video" | "IFrame" | "Icon";
+  type: "Card" | "CardGroup" | "Callout" | "Image" | "Tabs" | "Tab" | "Steps" | "Step" | "Accordion" | "AccordionGroup" | "Columns" | "Column" | "CodeGroup" | "ApiEndpoint" | "ParamField" | "ResponseField" | "Expandable" | "Frame" | "Latex" | "Video" | "IFrame";
   props: Record<string, string | number | boolean>;
   children: string;
   startIndex: number;
   endIndex: number;
+}
+
+// Preprocess inline components (Icon, Badge) into HTML that react-markdown can handle via rehypeRaw.
+// This ensures they render truly inline within paragraphs rather than breaking text into block segments.
+function preprocessInlineComponents(source: string): string {
+  // Convert <Icon icon="name" size={16} /> to <span data-icon="name" data-size="16"></span>
+  let result = source.replace(
+    /<Icon\s+([^>]*?)\/>/g,
+    (_match, attrStr: string) => {
+      const iconMatch = attrStr.match(/icon="([^"]*)"/);
+      const sizeMatch = attrStr.match(/size=\{(\d+)\}/) || attrStr.match(/size="(\d+)"/);
+      const icon = iconMatch ? iconMatch[1] : "";
+      const size = sizeMatch ? sizeMatch[1] : "16";
+      return `<span data-icon="${icon}" data-size="${size}"></span>`;
+    }
+  );
+  return result;
 }
 
 // Parse attributes from a JSX-like tag string
@@ -147,7 +166,7 @@ function findBalancedCloseTag(content: string, tagName: string, searchFrom: numb
 // Find all MDX components in the content
 function findMDXComponents(content: string): ParsedComponent[] {
   const components: ParsedComponent[] = [];
-  const componentNames = ["Card", "CardGroup", "Callout", "Image", "Tabs", "Tab", "Steps", "Step", "Accordion", "AccordionGroup", "Columns", "Column", "CodeGroup", "ApiEndpoint", "ParamField", "ResponseField", "Expandable", "Frame", "Latex", "Video", "IFrame", "Icon"];
+  const componentNames = ["Card", "CardGroup", "Callout", "Image", "Tabs", "Tab", "Steps", "Step", "Accordion", "AccordionGroup", "Columns", "Column", "CodeGroup", "ApiEndpoint", "ParamField", "ResponseField", "Expandable", "Frame", "Latex", "Video", "IFrame"];
 
   for (const name of componentNames) {
     // Use negative lookahead to ensure exact component name matching
@@ -296,7 +315,14 @@ function MarkdownRenderer({ content }: { content: string }) {
         h6: ({ children }) => <Heading level={6}>{children}</Heading>,
         p: ({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) => <p style={style}>{children}</p>,
         div: ({ children, style, className }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string }) => <div style={style} className={className}>{children}</div>,
-        span: ({ children, style, className }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string }) => <span style={style} className={className}>{children}</span>,
+        span: ({ children, style, className, ...rest }: { children?: React.ReactNode; style?: React.CSSProperties; className?: string; [key: string]: unknown }) => {
+          const dataIcon = rest["data-icon"];
+          if (typeof dataIcon === "string" && dataIcon) {
+            const dataSize = rest["data-size"];
+            return <InlineIcon icon={dataIcon} size={typeof dataSize === "string" ? dataSize : undefined} />;
+          }
+          return <span style={style} className={className}>{children}</span>;
+        },
         ul: ({ children }) => <ul>{children}</ul>,
         ol: ({ children }) => <ol>{children}</ol>,
         li: ({ children, style }) => <li style={style}>{children}</li>,
@@ -343,7 +369,15 @@ function MarkdownRenderer({ content }: { content: string }) {
         table: ({ children }) => <table>{children}</table>,
         th: ({ children, style }) => <th style={style}>{children}</th>,
         td: ({ children, style }) => <td style={style}>{children}</td>,
-        mark: ({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) => <mark style={style}>{children}</mark>,
+        mark: ({ children, style }: { children?: React.ReactNode; style?: React.CSSProperties }) => {
+          // The MDX parser outputs badges as <mark style="color:green;">text</mark>
+          // Extract the color and render as a Badge component
+          let color = "gray";
+          if (style && typeof style.color === "string") {
+            color = style.color;
+          }
+          return <Badge color={color}>{children}</Badge>;
+        },
         hr: () => <hr />,
       }}
     >
@@ -675,28 +709,20 @@ function renderComponent(
     case "IFrame":
       return <IFrame key={key} {...(props as Record<string, string>)} />;
 
-    case "Icon": {
-      const iconName = (props.icon as string) || "";
-      const size = typeof props.size === "number" ? props.size : (props.size ? parseInt(String(props.size), 10) : 16);
-      return (
-        <span key={key} className="inline-icon" style={{ width: `${size}px`, height: `${size}px` }}>
-          <IconDisplay icon={iconName} />
-        </span>
-      );
-    }
-
     default:
       return null;
   }
 }
 
 export function MDXContent({ source }: MDXContentProps) {
-  const components = findMDXComponents(source);
+  // Preprocess inline components (Icon) into HTML spans so they render truly inline
+  const preprocessedSource = preprocessInlineComponents(source);
+  const components = findMDXComponents(preprocessedSource);
 
   if (components.length === 0) {
     return (
       <DocsRendererProvider LinkComponent={RouterLink} highlightCode={highlightCode}>
-        <MarkdownWithCodeBlocks content={source} />
+        <MarkdownWithCodeBlocks content={preprocessedSource} />
       </DocsRendererProvider>
     );
   }
@@ -708,7 +734,7 @@ export function MDXContent({ source }: MDXContentProps) {
   components.forEach((comp, idx) => {
     // Add markdown before this component
     if (comp.startIndex > lastIndex) {
-      const markdownContent = source.slice(lastIndex, comp.startIndex).trim();
+      const markdownContent = preprocessedSource.slice(lastIndex, comp.startIndex).trim();
       if (markdownContent) {
         segments.push(
           <MarkdownWithCodeBlocks key={`md-${idx}`} content={markdownContent} />
@@ -722,8 +748,8 @@ export function MDXContent({ source }: MDXContentProps) {
   });
 
   // Add any remaining markdown after the last component
-  if (lastIndex < source.length) {
-    const remainingContent = source.slice(lastIndex).trim();
+  if (lastIndex < preprocessedSource.length) {
+    const remainingContent = preprocessedSource.slice(lastIndex).trim();
     if (remainingContent) {
       segments.push(
         <MarkdownWithCodeBlocks key="md-final" content={remainingContent} />

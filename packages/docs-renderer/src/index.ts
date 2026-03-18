@@ -19,3 +19,5 @@ export { Frame } from "./components/frame";
 export { Latex } from "./components/latex";
 export { Video } from "./components/video";
 export { IFrame } from "./components/iframe";
+export { Badge } from "./components/badge";
+export { InlineIcon } from "./components/inline-icon";
