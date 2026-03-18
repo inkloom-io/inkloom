@@ -1,0 +1,4 @@
+{
+  "title": "Returns pet inventories by status.",
+  "content": "<ApiEndpoint method=\"GET\" path=\"/store/inventory\">\n\nReturns a map of status codes to quantities.\n\n</ApiEndpoint>"
+}

@@ -400,6 +400,21 @@ body {
 }
 
 /* ============================================================================
+   ARTICLE WIDTH
+   ============================================================================ */
+
+/* Default article max-width (replaces Tailwind utilities to avoid !important conflicts) */
+.docs-article {
+  max-width: 100ch;
+}
+
+@media (min-width: 1024px) {
+  .docs-article {
+    max-width: 72ch;
+  }
+}
+
+/* ============================================================================
    API REFERENCE
    ============================================================================ */
 
@@ -407,11 +422,11 @@ body {
 
 /* Remove max-width constraints when API two-column layout is present */
 article:has(.api-endpoint-2col) {
-  max-width: none !important;
+  max-width: none;
 }
 
 article:has(.api-endpoint-2col).prose {
-  max-width: none !important;
+  max-width: none;
 }
 
 /* Hide ToC on API pages — the right code-example column uses that space */

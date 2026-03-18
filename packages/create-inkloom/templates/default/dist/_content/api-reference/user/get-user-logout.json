@@ -1,0 +1,4 @@
+{
+  "title": "Logs out current logged in user session.",
+  "content": "<ApiEndpoint method=\"GET\" path=\"/user/logout\">\n\nLog user out of the system.\n\n</ApiEndpoint>"
+}

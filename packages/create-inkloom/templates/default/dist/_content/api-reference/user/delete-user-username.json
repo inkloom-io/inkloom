@@ -1,0 +1,4 @@
+{
+  "title": "Delete user resource.",
+  "content": "<ApiEndpoint method=\"DELETE\" path=\"/user/{username}\">\n\nThis can only be done by the logged in user.\n\n</ApiEndpoint>"
+}

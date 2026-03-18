@@ -1,0 +1,4 @@
+{
+  "title": "Finds Pets by status.",
+  "content": "<ApiEndpoint method=\"GET\" path=\"/pet/findByStatus\">\n\nMultiple status values can be provided with comma separated strings.\n\n</ApiEndpoint>"
+}

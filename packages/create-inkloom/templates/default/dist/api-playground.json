@@ -1,0 +1,1922 @@
+{
+  "servers": [
+    {
+      "url": "/api/v3",
+      "description": ""
+    }
+  ],
+  "auth": {
+    "petstore_auth": {
+      "type": "oauth2"
+    },
+    "api_key": {
+      "type": "apiKey",
+      "name": "api_key",
+      "in": "header"
+    }
+  },
+  "endpoints": {
+    "POST /pet": {
+      "operationId": "addPet",
+      "method": "POST",
+      "path": "/pet",
+      "summary": "Add a new pet to the store.",
+      "description": "Add a new pet to the store.",
+      "deprecated": false,
+      "parameters": [],
+      "responses": {
+        "200": {
+          "description": "Successful operation",
+          "fields": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "category",
+              "type": "object",
+              "required": false,
+              "description": "",
+              "children": [
+                {
+                  "name": "id",
+                  "type": "integer",
+                  "required": false,
+                  "description": ""
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "required": false,
+                  "description": ""
+                }
+              ]
+            },
+            {
+              "name": "photoUrls",
+              "type": "string[]",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "tags",
+              "type": "object[]",
+              "required": false,
+              "description": "",
+              "children": [
+                {
+                  "name": "id",
+                  "type": "integer",
+                  "required": false,
+                  "description": ""
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "required": false,
+                  "description": ""
+                }
+              ]
+            },
+            {
+              "name": "status",
+              "type": "\"available\" | \"pending\" | \"sold\"",
+              "required": false,
+              "description": "pet status in the store"
+            }
+          ],
+          "example": {
+            "id": 10,
+            "name": "doggie",
+            "category": {
+              "id": 1,
+              "name": "Dogs"
+            }
+          }
+        },
+        "400": {
+          "description": "Invalid input",
+          "fields": []
+        },
+        "422": {
+          "description": "Validation exception",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "security": [
+        "petstore_auth"
+      ],
+      "requestBody": {
+        "contentType": "application/json",
+        "fields": [
+          {
+            "name": "id",
+            "type": "integer",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "required": true,
+            "description": ""
+          },
+          {
+            "name": "category",
+            "type": "object",
+            "required": false,
+            "description": "",
+            "children": [
+              {
+                "name": "id",
+                "type": "integer",
+                "required": false,
+                "description": ""
+              },
+              {
+                "name": "name",
+                "type": "string",
+                "required": false,
+                "description": ""
+              }
+            ]
+          },
+          {
+            "name": "photoUrls",
+            "type": "string[]",
+            "required": true,
+            "description": ""
+          },
+          {
+            "name": "tags",
+            "type": "object[]",
+            "required": false,
+            "description": "",
+            "children": [
+              {
+                "name": "id",
+                "type": "integer",
+                "required": false,
+                "description": ""
+              },
+              {
+                "name": "name",
+                "type": "string",
+                "required": false,
+                "description": ""
+              }
+            ]
+          },
+          {
+            "name": "status",
+            "type": "\"available\" | \"pending\" | \"sold\"",
+            "required": false,
+            "description": "pet status in the store"
+          }
+        ],
+        "schema": {
+          "required": [
+            "name",
+            "photoUrls"
+          ],
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "example": 10
+            },
+            "name": {
+              "type": "string",
+              "example": "doggie"
+            },
+            "category": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 1
+                },
+                "name": {
+                  "type": "string",
+                  "example": "Dogs"
+                }
+              },
+              "xml": {
+                "name": "category"
+              }
+            },
+            "photoUrls": {
+              "type": "array",
+              "xml": {
+                "wrapped": true
+              },
+              "items": {
+                "type": "string",
+                "xml": {
+                  "name": "photoUrl"
+                }
+              }
+            },
+            "tags": {
+              "type": "array",
+              "xml": {
+                "wrapped": true
+              },
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "xml": {
+                  "name": "tag"
+                }
+              }
+            },
+            "status": {
+              "type": "string",
+              "description": "pet status in the store",
+              "enum": [
+                "available",
+                "pending",
+                "sold"
+              ]
+            }
+          },
+          "xml": {
+            "name": "pet"
+          }
+        },
+        "example": {
+          "id": 10,
+          "name": "doggie",
+          "category": {
+            "id": 1,
+            "name": "Dogs"
+          }
+        }
+      }
+    },
+    "PUT /pet": {
+      "operationId": "updatePet",
+      "method": "PUT",
+      "path": "/pet",
+      "summary": "Update an existing pet.",
+      "description": "Update an existing pet by Id.",
+      "deprecated": false,
+      "parameters": [],
+      "responses": {
+        "200": {
+          "description": "Successful operation",
+          "fields": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "category",
+              "type": "object",
+              "required": false,
+              "description": "",
+              "children": [
+                {
+                  "name": "id",
+                  "type": "integer",
+                  "required": false,
+                  "description": ""
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "required": false,
+                  "description": ""
+                }
+              ]
+            },
+            {
+              "name": "photoUrls",
+              "type": "string[]",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "tags",
+              "type": "object[]",
+              "required": false,
+              "description": "",
+              "children": [
+                {
+                  "name": "id",
+                  "type": "integer",
+                  "required": false,
+                  "description": ""
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "required": false,
+                  "description": ""
+                }
+              ]
+            },
+            {
+              "name": "status",
+              "type": "\"available\" | \"pending\" | \"sold\"",
+              "required": false,
+              "description": "pet status in the store"
+            }
+          ],
+          "example": {
+            "id": 10,
+            "name": "doggie",
+            "category": {
+              "id": 1,
+              "name": "Dogs"
+            }
+          }
+        },
+        "400": {
+          "description": "Invalid ID supplied",
+          "fields": []
+        },
+        "404": {
+          "description": "Pet not found",
+          "fields": []
+        },
+        "422": {
+          "description": "Validation exception",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "security": [
+        "petstore_auth"
+      ],
+      "requestBody": {
+        "contentType": "application/json",
+        "fields": [
+          {
+            "name": "id",
+            "type": "integer",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "required": true,
+            "description": ""
+          },
+          {
+            "name": "category",
+            "type": "object",
+            "required": false,
+            "description": "",
+            "children": [
+              {
+                "name": "id",
+                "type": "integer",
+                "required": false,
+                "description": ""
+              },
+              {
+                "name": "name",
+                "type": "string",
+                "required": false,
+                "description": ""
+              }
+            ]
+          },
+          {
+            "name": "photoUrls",
+            "type": "string[]",
+            "required": true,
+            "description": ""
+          },
+          {
+            "name": "tags",
+            "type": "object[]",
+            "required": false,
+            "description": "",
+            "children": [
+              {
+                "name": "id",
+                "type": "integer",
+                "required": false,
+                "description": ""
+              },
+              {
+                "name": "name",
+                "type": "string",
+                "required": false,
+                "description": ""
+              }
+            ]
+          },
+          {
+            "name": "status",
+            "type": "\"available\" | \"pending\" | \"sold\"",
+            "required": false,
+            "description": "pet status in the store"
+          }
+        ],
+        "schema": {
+          "required": [
+            "name",
+            "photoUrls"
+          ],
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "example": 10
+            },
+            "name": {
+              "type": "string",
+              "example": "doggie"
+            },
+            "category": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 1
+                },
+                "name": {
+                  "type": "string",
+                  "example": "Dogs"
+                }
+              },
+              "xml": {
+                "name": "category"
+              }
+            },
+            "photoUrls": {
+              "type": "array",
+              "xml": {
+                "wrapped": true
+              },
+              "items": {
+                "type": "string",
+                "xml": {
+                  "name": "photoUrl"
+                }
+              }
+            },
+            "tags": {
+              "type": "array",
+              "xml": {
+                "wrapped": true
+              },
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "xml": {
+                  "name": "tag"
+                }
+              }
+            },
+            "status": {
+              "type": "string",
+              "description": "pet status in the store",
+              "enum": [
+                "available",
+                "pending",
+                "sold"
+              ]
+            }
+          },
+          "xml": {
+            "name": "pet"
+          }
+        },
+        "example": {
+          "id": 10,
+          "name": "doggie",
+          "category": {
+            "id": 1,
+            "name": "Dogs"
+          }
+        }
+      }
+    },
+    "GET /pet/findByStatus": {
+      "operationId": "findPetsByStatus",
+      "method": "GET",
+      "path": "/pet/findByStatus",
+      "summary": "Finds Pets by status.",
+      "description": "Multiple status values can be provided with comma separated strings.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "status",
+          "in": "query",
+          "type": "\"available\" | \"pending\" | \"sold\"",
+          "required": true,
+          "description": "Status values that need to be considered for filter",
+          "default": "available"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": [],
+          "example": [
+            {
+              "id": 10,
+              "name": "doggie",
+              "category": {
+                "id": 1,
+                "name": "Dogs"
+              }
+            }
+          ]
+        },
+        "400": {
+          "description": "Invalid status value",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "security": [
+        "petstore_auth"
+      ]
+    },
+    "GET /pet/findByTags": {
+      "operationId": "findPetsByTags",
+      "method": "GET",
+      "path": "/pet/findByTags",
+      "summary": "Finds Pets by tags.",
+      "description": "Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "tags",
+          "in": "query",
+          "type": "string[]",
+          "required": true,
+          "description": "Tags to filter by"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": [],
+          "example": [
+            {
+              "id": 10,
+              "name": "doggie",
+              "category": {
+                "id": 1,
+                "name": "Dogs"
+              }
+            }
+          ]
+        },
+        "400": {
+          "description": "Invalid tag value",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "security": [
+        "petstore_auth"
+      ]
+    },
+    "GET /pet/{petId}": {
+      "operationId": "getPetById",
+      "method": "GET",
+      "path": "/pet/{petId}",
+      "summary": "Find pet by ID.",
+      "description": "Returns a single pet.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "petId",
+          "in": "path",
+          "type": "integer",
+          "required": true,
+          "description": "ID of pet to return"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "category",
+              "type": "object",
+              "required": false,
+              "description": "",
+              "children": [
+                {
+                  "name": "id",
+                  "type": "integer",
+                  "required": false,
+                  "description": ""
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "required": false,
+                  "description": ""
+                }
+              ]
+            },
+            {
+              "name": "photoUrls",
+              "type": "string[]",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "tags",
+              "type": "object[]",
+              "required": false,
+              "description": "",
+              "children": [
+                {
+                  "name": "id",
+                  "type": "integer",
+                  "required": false,
+                  "description": ""
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "required": false,
+                  "description": ""
+                }
+              ]
+            },
+            {
+              "name": "status",
+              "type": "\"available\" | \"pending\" | \"sold\"",
+              "required": false,
+              "description": "pet status in the store"
+            }
+          ],
+          "example": {
+            "id": 10,
+            "name": "doggie",
+            "category": {
+              "id": 1,
+              "name": "Dogs"
+            }
+          }
+        },
+        "400": {
+          "description": "Invalid ID supplied",
+          "fields": []
+        },
+        "404": {
+          "description": "Pet not found",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "security": [
+        "api_key",
+        "petstore_auth"
+      ]
+    },
+    "POST /pet/{petId}": {
+      "operationId": "updatePetWithForm",
+      "method": "POST",
+      "path": "/pet/{petId}",
+      "summary": "Updates a pet in the store with form data.",
+      "description": "Updates a pet resource based on the form data.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "petId",
+          "in": "path",
+          "type": "integer",
+          "required": true,
+          "description": "ID of pet that needs to be updated"
+        },
+        {
+          "name": "name",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Name of pet that needs to be updated"
+        },
+        {
+          "name": "status",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Status of pet that needs to be updated"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "category",
+              "type": "object",
+              "required": false,
+              "description": "",
+              "children": [
+                {
+                  "name": "id",
+                  "type": "integer",
+                  "required": false,
+                  "description": ""
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "required": false,
+                  "description": ""
+                }
+              ]
+            },
+            {
+              "name": "photoUrls",
+              "type": "string[]",
+              "required": true,
+              "description": ""
+            },
+            {
+              "name": "tags",
+              "type": "object[]",
+              "required": false,
+              "description": "",
+              "children": [
+                {
+                  "name": "id",
+                  "type": "integer",
+                  "required": false,
+                  "description": ""
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "required": false,
+                  "description": ""
+                }
+              ]
+            },
+            {
+              "name": "status",
+              "type": "\"available\" | \"pending\" | \"sold\"",
+              "required": false,
+              "description": "pet status in the store"
+            }
+          ],
+          "example": {
+            "id": 10,
+            "name": "doggie",
+            "category": {
+              "id": 1,
+              "name": "Dogs"
+            }
+          }
+        },
+        "400": {
+          "description": "Invalid input",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "security": [
+        "petstore_auth"
+      ]
+    },
+    "DELETE /pet/{petId}": {
+      "operationId": "deletePet",
+      "method": "DELETE",
+      "path": "/pet/{petId}",
+      "summary": "Deletes a pet.",
+      "description": "Delete a pet.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "api_key",
+          "in": "header",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
+        {
+          "name": "petId",
+          "in": "path",
+          "type": "integer",
+          "required": true,
+          "description": "Pet id to delete"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Pet deleted",
+          "fields": []
+        },
+        "400": {
+          "description": "Invalid pet value",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "security": [
+        "petstore_auth"
+      ]
+    },
+    "POST /pet/{petId}/uploadImage": {
+      "operationId": "uploadFile",
+      "method": "POST",
+      "path": "/pet/{petId}/uploadImage",
+      "summary": "Uploads an image.",
+      "description": "Upload image of the pet.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "petId",
+          "in": "path",
+          "type": "integer",
+          "required": true,
+          "description": "ID of pet to update"
+        },
+        {
+          "name": "additionalMetadata",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "Additional Metadata"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": [
+            {
+              "name": "code",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "type",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "required": false,
+              "description": ""
+            }
+          ]
+        },
+        "400": {
+          "description": "No file uploaded",
+          "fields": []
+        },
+        "404": {
+          "description": "Pet not found",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "security": [
+        "petstore_auth"
+      ],
+      "requestBody": {
+        "contentType": "application/octet-stream",
+        "fields": [],
+        "schema": {
+          "type": "string",
+          "format": "binary"
+        }
+      }
+    },
+    "GET /store/inventory": {
+      "operationId": "getInventory",
+      "method": "GET",
+      "path": "/store/inventory",
+      "summary": "Returns pet inventories by status.",
+      "description": "Returns a map of status codes to quantities.",
+      "deprecated": false,
+      "parameters": [],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "security": [
+        "api_key"
+      ]
+    },
+    "POST /store/order": {
+      "operationId": "placeOrder",
+      "method": "POST",
+      "path": "/store/order",
+      "summary": "Place an order for a pet.",
+      "description": "Place a new order in the store.",
+      "deprecated": false,
+      "parameters": [],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "petId",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "quantity",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "shipDate",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "status",
+              "type": "\"placed\" | \"approved\" | \"delivered\"",
+              "required": false,
+              "description": "Order Status"
+            },
+            {
+              "name": "complete",
+              "type": "boolean",
+              "required": false,
+              "description": ""
+            }
+          ],
+          "example": {
+            "id": 10,
+            "petId": 198772,
+            "quantity": 7,
+            "status": "approved"
+          }
+        },
+        "400": {
+          "description": "Invalid input",
+          "fields": []
+        },
+        "422": {
+          "description": "Validation exception",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "requestBody": {
+        "contentType": "application/json",
+        "fields": [
+          {
+            "name": "id",
+            "type": "integer",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "petId",
+            "type": "integer",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "quantity",
+            "type": "integer",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "shipDate",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "status",
+            "type": "\"placed\" | \"approved\" | \"delivered\"",
+            "required": false,
+            "description": "Order Status"
+          },
+          {
+            "name": "complete",
+            "type": "boolean",
+            "required": false,
+            "description": ""
+          }
+        ],
+        "schema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "example": 10
+            },
+            "petId": {
+              "type": "integer",
+              "format": "int64",
+              "example": 198772
+            },
+            "quantity": {
+              "type": "integer",
+              "format": "int32",
+              "example": 7
+            },
+            "shipDate": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "status": {
+              "type": "string",
+              "description": "Order Status",
+              "example": "approved",
+              "enum": [
+                "placed",
+                "approved",
+                "delivered"
+              ]
+            },
+            "complete": {
+              "type": "boolean"
+            }
+          },
+          "xml": {
+            "name": "order"
+          }
+        },
+        "example": {
+          "id": 10,
+          "petId": 198772,
+          "quantity": 7,
+          "status": "approved"
+        }
+      }
+    },
+    "GET /store/order/{orderId}": {
+      "operationId": "getOrderById",
+      "method": "GET",
+      "path": "/store/order/{orderId}",
+      "summary": "Find purchase order by ID.",
+      "description": "For valid response try integer IDs with value <= 5 or > 10. Other values will generate exceptions.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "orderId",
+          "in": "path",
+          "type": "integer",
+          "required": true,
+          "description": "ID of order that needs to be fetched"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "petId",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "quantity",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "shipDate",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "status",
+              "type": "\"placed\" | \"approved\" | \"delivered\"",
+              "required": false,
+              "description": "Order Status"
+            },
+            {
+              "name": "complete",
+              "type": "boolean",
+              "required": false,
+              "description": ""
+            }
+          ],
+          "example": {
+            "id": 10,
+            "petId": 198772,
+            "quantity": 7,
+            "status": "approved"
+          }
+        },
+        "400": {
+          "description": "Invalid ID supplied",
+          "fields": []
+        },
+        "404": {
+          "description": "Order not found",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      }
+    },
+    "DELETE /store/order/{orderId}": {
+      "operationId": "deleteOrder",
+      "method": "DELETE",
+      "path": "/store/order/{orderId}",
+      "summary": "Delete purchase order by identifier.",
+      "description": "For valid response try integer IDs with value < 1000. Anything above 1000 or non-integers will generate API errors.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "orderId",
+          "in": "path",
+          "type": "integer",
+          "required": true,
+          "description": "ID of the order that needs to be deleted"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "order deleted",
+          "fields": []
+        },
+        "400": {
+          "description": "Invalid ID supplied",
+          "fields": []
+        },
+        "404": {
+          "description": "Order not found",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      }
+    },
+    "POST /user": {
+      "operationId": "createUser",
+      "method": "POST",
+      "path": "/user",
+      "summary": "Create user.",
+      "description": "This can only be done by the logged in user.",
+      "deprecated": false,
+      "parameters": [],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "username",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "firstName",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "lastName",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "phone",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "userStatus",
+              "type": "integer",
+              "required": false,
+              "description": "User Status"
+            }
+          ],
+          "example": {
+            "id": 10,
+            "username": "theUser",
+            "firstName": "John",
+            "lastName": "James",
+            "email": "john@email.com",
+            "password": "12345",
+            "phone": "12345",
+            "userStatus": 1
+          }
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "requestBody": {
+        "contentType": "application/json",
+        "fields": [
+          {
+            "name": "id",
+            "type": "integer",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "username",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "firstName",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "lastName",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "email",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "password",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "phone",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "userStatus",
+            "type": "integer",
+            "required": false,
+            "description": "User Status"
+          }
+        ],
+        "schema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "example": 10
+            },
+            "username": {
+              "type": "string",
+              "example": "theUser"
+            },
+            "firstName": {
+              "type": "string",
+              "example": "John"
+            },
+            "lastName": {
+              "type": "string",
+              "example": "James"
+            },
+            "email": {
+              "type": "string",
+              "example": "john@email.com"
+            },
+            "password": {
+              "type": "string",
+              "example": "12345"
+            },
+            "phone": {
+              "type": "string",
+              "example": "12345"
+            },
+            "userStatus": {
+              "type": "integer",
+              "description": "User Status",
+              "format": "int32",
+              "example": 1
+            }
+          },
+          "xml": {
+            "name": "user"
+          }
+        },
+        "example": {
+          "id": 10,
+          "username": "theUser",
+          "firstName": "John",
+          "lastName": "James",
+          "email": "john@email.com",
+          "password": "12345",
+          "phone": "12345",
+          "userStatus": 1
+        }
+      }
+    },
+    "POST /user/createWithList": {
+      "operationId": "createUsersWithListInput",
+      "method": "POST",
+      "path": "/user/createWithList",
+      "summary": "Creates list of users with given input array.",
+      "description": "Creates list of users with given input array.",
+      "deprecated": false,
+      "parameters": [],
+      "responses": {
+        "200": {
+          "description": "Successful operation",
+          "fields": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "username",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "firstName",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "lastName",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "phone",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "userStatus",
+              "type": "integer",
+              "required": false,
+              "description": "User Status"
+            }
+          ],
+          "example": {
+            "id": 10,
+            "username": "theUser",
+            "firstName": "John",
+            "lastName": "James",
+            "email": "john@email.com",
+            "password": "12345",
+            "phone": "12345",
+            "userStatus": 1
+          }
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "requestBody": {
+        "contentType": "application/json",
+        "fields": [],
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "int64",
+                "example": 10
+              },
+              "username": {
+                "type": "string",
+                "example": "theUser"
+              },
+              "firstName": {
+                "type": "string",
+                "example": "John"
+              },
+              "lastName": {
+                "type": "string",
+                "example": "James"
+              },
+              "email": {
+                "type": "string",
+                "example": "john@email.com"
+              },
+              "password": {
+                "type": "string",
+                "example": "12345"
+              },
+              "phone": {
+                "type": "string",
+                "example": "12345"
+              },
+              "userStatus": {
+                "type": "integer",
+                "description": "User Status",
+                "format": "int32",
+                "example": 1
+              }
+            },
+            "xml": {
+              "name": "user"
+            }
+          }
+        },
+        "example": [
+          {
+            "id": 10,
+            "username": "theUser",
+            "firstName": "John",
+            "lastName": "James",
+            "email": "john@email.com",
+            "password": "12345",
+            "phone": "12345",
+            "userStatus": 1
+          }
+        ]
+      }
+    },
+    "GET /user/login": {
+      "operationId": "loginUser",
+      "method": "GET",
+      "path": "/user/login",
+      "summary": "Logs user into the system.",
+      "description": "Log into the system.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "username",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "The user name for login"
+        },
+        {
+          "name": "password",
+          "in": "query",
+          "type": "string",
+          "required": false,
+          "description": "The password for login in clear text"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": []
+        },
+        "400": {
+          "description": "Invalid username/password supplied",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      }
+    },
+    "GET /user/logout": {
+      "operationId": "logoutUser",
+      "method": "GET",
+      "path": "/user/logout",
+      "summary": "Logs out current logged in user session.",
+      "description": "Log user out of the system.",
+      "deprecated": false,
+      "parameters": [],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      }
+    },
+    "GET /user/{username}": {
+      "operationId": "getUserByName",
+      "method": "GET",
+      "path": "/user/{username}",
+      "summary": "Get user by user name.",
+      "description": "Get user detail based on username.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "username",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "The name that needs to be fetched. Use user1 for testing"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": [
+            {
+              "name": "id",
+              "type": "integer",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "username",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "firstName",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "lastName",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "email",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "password",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "phone",
+              "type": "string",
+              "required": false,
+              "description": ""
+            },
+            {
+              "name": "userStatus",
+              "type": "integer",
+              "required": false,
+              "description": "User Status"
+            }
+          ],
+          "example": {
+            "id": 10,
+            "username": "theUser",
+            "firstName": "John",
+            "lastName": "James",
+            "email": "john@email.com",
+            "password": "12345",
+            "phone": "12345",
+            "userStatus": 1
+          }
+        },
+        "400": {
+          "description": "Invalid username supplied",
+          "fields": []
+        },
+        "404": {
+          "description": "User not found",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      }
+    },
+    "PUT /user/{username}": {
+      "operationId": "updateUser",
+      "method": "PUT",
+      "path": "/user/{username}",
+      "summary": "Update user resource.",
+      "description": "This can only be done by the logged in user.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "username",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "name that need to be deleted"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "successful operation",
+          "fields": []
+        },
+        "400": {
+          "description": "bad request",
+          "fields": []
+        },
+        "404": {
+          "description": "user not found",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      },
+      "requestBody": {
+        "contentType": "application/json",
+        "fields": [
+          {
+            "name": "id",
+            "type": "integer",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "username",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "firstName",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "lastName",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "email",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "password",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "phone",
+            "type": "string",
+            "required": false,
+            "description": ""
+          },
+          {
+            "name": "userStatus",
+            "type": "integer",
+            "required": false,
+            "description": "User Status"
+          }
+        ],
+        "schema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "int64",
+              "example": 10
+            },
+            "username": {
+              "type": "string",
+              "example": "theUser"
+            },
+            "firstName": {
+              "type": "string",
+              "example": "John"
+            },
+            "lastName": {
+              "type": "string",
+              "example": "James"
+            },
+            "email": {
+              "type": "string",
+              "example": "john@email.com"
+            },
+            "password": {
+              "type": "string",
+              "example": "12345"
+            },
+            "phone": {
+              "type": "string",
+              "example": "12345"
+            },
+            "userStatus": {
+              "type": "integer",
+              "description": "User Status",
+              "format": "int32",
+              "example": 1
+            }
+          },
+          "xml": {
+            "name": "user"
+          }
+        },
+        "example": {
+          "id": 10,
+          "username": "theUser",
+          "firstName": "John",
+          "lastName": "James",
+          "email": "john@email.com",
+          "password": "12345",
+          "phone": "12345",
+          "userStatus": 1
+        }
+      }
+    },
+    "DELETE /user/{username}": {
+      "operationId": "deleteUser",
+      "method": "DELETE",
+      "path": "/user/{username}",
+      "summary": "Delete user resource.",
+      "description": "This can only be done by the logged in user.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "username",
+          "in": "path",
+          "type": "string",
+          "required": true,
+          "description": "The name that needs to be deleted"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "User deleted",
+          "fields": []
+        },
+        "400": {
+          "description": "Invalid username supplied",
+          "fields": []
+        },
+        "404": {
+          "description": "User not found",
+          "fields": []
+        },
+        "default": {
+          "description": "Unexpected error",
+          "fields": []
+        }
+      }
+    }
+  }
+}

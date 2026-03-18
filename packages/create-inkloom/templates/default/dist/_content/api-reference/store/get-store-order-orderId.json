@@ -1,0 +1,4 @@
+{
+  "title": "Find purchase order by ID.",
+  "content": "<ApiEndpoint method=\"GET\" path=\"/store/order/{orderId}\">\n\nFor valid response try integer IDs with value <= 5 or > 10. Other values will generate exceptions.\n\n</ApiEndpoint>"
+}

@@ -1,0 +1,4 @@
+{
+  "title": "Delete purchase order by identifier.",
+  "content": "<ApiEndpoint method=\"DELETE\" path=\"/store/order/{orderId}\">\n\nFor valid response try integer IDs with value < 1000. Anything above 1000 or non-integers will generate API errors.\n\n</ApiEndpoint>"
+}

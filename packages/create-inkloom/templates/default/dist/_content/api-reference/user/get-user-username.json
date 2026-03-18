@@ -1,0 +1,4 @@
+{
+  "title": "Get user by user name.",
+  "content": "<ApiEndpoint method=\"GET\" path=\"/user/{username}\">\n\nGet user detail based on username.\n\n</ApiEndpoint>"
+}

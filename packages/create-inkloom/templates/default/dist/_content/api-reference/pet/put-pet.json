@@ -1,0 +1,4 @@
+{
+  "title": "Update an existing pet.",
+  "content": "<ApiEndpoint method=\"PUT\" path=\"/pet\">\n\nUpdate an existing pet by Id.\n\n</ApiEndpoint>"
+}

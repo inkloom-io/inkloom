@@ -1,0 +1,4 @@
+{
+  "title": "Updates a pet in the store with form data.",
+  "content": "<ApiEndpoint method=\"POST\" path=\"/pet/{petId}\">\n\nUpdates a pet resource based on the form data.\n\n</ApiEndpoint>"
+}

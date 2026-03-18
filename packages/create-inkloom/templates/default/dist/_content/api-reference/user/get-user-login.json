@@ -1,0 +1,4 @@
+{
+  "title": "Logs user into the system.",
+  "content": "<ApiEndpoint method=\"GET\" path=\"/user/login\">\n\nLog into the system.\n\n</ApiEndpoint>"
+}

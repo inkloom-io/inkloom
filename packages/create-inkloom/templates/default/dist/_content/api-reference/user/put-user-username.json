@@ -1,0 +1,4 @@
+{
+  "title": "Update user resource.",
+  "content": "<ApiEndpoint method=\"PUT\" path=\"/user/{username}\">\n\nThis can only be done by the logged in user.\n\n</ApiEndpoint>"
+}
