@@ -624,6 +624,20 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
         rfRequired && "required",
       ].filter(Boolean).join(" ");
 
+      // Handle children-based nesting (expandable/responseField children)
+      const rfChildren = block.children as BlockNoteBlock[] | undefined;
+      if (rfChildren && rfChildren.length > 0) {
+        result = `<ResponseField ${attrs}>\n`;
+        if (text.trim()) {
+          result += `${text}\n`;
+        }
+        for (const child of rfChildren) {
+          result += convertBlock(child, 0);
+        }
+        result += "</ResponseField>\n";
+        return result;
+      }
+
       if (text.trim()) {
         result = `<ResponseField ${attrs}>\n${text}\n</ResponseField>\n`;
       } else {
@@ -633,7 +647,23 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
     }
 
     case "expandable": {
-      // expandable is handled in blockNoteToMDX for proper grouping
+      // Handle children-based nesting (responseField/expandable children)
+      const expChildren = block.children as BlockNoteBlock[] | undefined;
+      if (expChildren && expChildren.length > 0) {
+        const expTitle = (block.props?.title as string) || "Details";
+        const expType = block.props?.type as string;
+        const expAttrs = [
+          `title="${expTitle}"`,
+          expType && `type="${expType}"`,
+        ].filter(Boolean).join(" ");
+        result = `<Expandable ${expAttrs}>\n`;
+        for (const child of expChildren) {
+          result += convertBlock(child, 0);
+        }
+        result += "</Expandable>\n";
+        return result;
+      }
+      // Fallback: expandable without children is handled in blockNoteToMDX for sibling grouping
       result = "";
       break;
     }
@@ -992,39 +1022,55 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
       continue;
     }
 
-    // Handle expandable - collect following responseField blocks (skipping empty paragraphs)
+    // Handle expandable - children-based or sibling-based
     if (block.type === "expandable") {
-      const expTitle = (block.props?.title as string) || "Details";
-      const expType = block.props?.type as string;
-      const expAttrs = [
-        `title="${expTitle}"`,
-        expType && `type="${expType}"`,
-      ].filter(Boolean).join(" ");
-      mdx += `<Expandable ${expAttrs}>\n`;
-      i++;
-      while (i < blocks.length) {
-        const nextBlock = blocks[i];
-        if (!nextBlock) break;
-        if (isEmptyParagraph(nextBlock)) {
-          i++;
-          continue;
+      const expChildBlocks = block.children as BlockNoteBlock[] | undefined;
+      if (expChildBlocks && expChildBlocks.length > 0) {
+        // Children-based: convertBlock handles everything
+        mdx += convertBlock(block);
+        i++;
+      } else {
+        // Legacy sibling-based: collect following responseField blocks
+        const expTitle = (block.props?.title as string) || "Details";
+        const expType = block.props?.type as string;
+        const expAttrs = [
+          `title="${expTitle}"`,
+          expType && `type="${expType}"`,
+        ].filter(Boolean).join(" ");
+        mdx += `<Expandable ${expAttrs}>\n`;
+        i++;
+        while (i < blocks.length) {
+          const nextBlock = blocks[i];
+          if (!nextBlock) break;
+          if (isEmptyParagraph(nextBlock)) {
+            i++;
+            continue;
+          }
+          if (nextBlock.type !== "responseField") break;
+          // Recursively handle responseField which may have its own expandable children
+          const rfSlice = collectResponseFieldSlice(blocks, i);
+          mdx += rfSlice.mdx;
+          i = rfSlice.nextIndex;
         }
-        if (nextBlock.type !== "responseField") break;
-        // Recursively handle responseField which may have its own expandable children
-        const rfSlice = collectResponseFieldSlice(blocks, i);
-        mdx += rfSlice.mdx;
-        i = rfSlice.nextIndex;
+        mdx += "</Expandable>\n";
       }
-      mdx += "</Expandable>\n";
       prevBlockType = "expandable";
       continue;
     }
 
-    // Handle responseField - may be followed by expandable children
+    // Handle responseField - children-based or sibling-based
     if (block.type === "responseField") {
-      const rfSlice = collectResponseFieldSlice(blocks, i);
-      mdx += rfSlice.mdx;
-      i = rfSlice.nextIndex;
+      const rfChildBlocks = block.children as BlockNoteBlock[] | undefined;
+      if (rfChildBlocks && rfChildBlocks.length > 0) {
+        // Children-based: convertBlock handles everything
+        mdx += convertBlock(block);
+        i++;
+      } else {
+        // Legacy sibling-based: may be followed by expandable children
+        const rfSlice = collectResponseFieldSlice(blocks, i);
+        mdx += rfSlice.mdx;
+        i = rfSlice.nextIndex;
+      }
       prevBlockType = "responseField";
       continue;
     }

@@ -836,7 +836,17 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
         }
       }
       const rfContent = flattenToInline(inlineNodes);
-      const blocks: BlockNoteBlock[] = [
+      // Convert nested children into block children (not siblings)
+      const rfChildren: BlockNoteBlock[] = [];
+      for (const child of nestedChildren) {
+        if (
+          child.type === "mdxJsxFlowElement" &&
+          (child.name === "Expandable" || child.name === "ResponseField")
+        ) {
+          rfChildren.push(...convertMdxJsxElement(child));
+        }
+      }
+      return [
         {
           type: "responseField",
           props: {
@@ -845,23 +855,27 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             ...(rfRequired ? { required: true } : {}),
           },
           content: rfContent,
+          ...(rfChildren.length > 0 ? { children: rfChildren } : {}),
         },
       ];
-      for (const child of nestedChildren) {
-        if (
-          child.type === "mdxJsxFlowElement" &&
-          (child.name === "Expandable" || child.name === "ResponseField")
-        ) {
-          blocks.push(...convertMdxJsxElement(child));
-        }
-      }
-      return blocks;
     }
 
     case "Expandable": {
       const expTitle = getAttrValue(attrs, "title") || "Details";
       const expType = getAttrValue(attrs, "type");
-      const blocks: BlockNoteBlock[] = [
+      // Convert nested children into block children (not siblings)
+      const expChildren: BlockNoteBlock[] = [];
+      if (node.children) {
+        for (const child of node.children) {
+          if (
+            child.type === "mdxJsxFlowElement" &&
+            (child.name === "ResponseField" || child.name === "Expandable")
+          ) {
+            expChildren.push(...convertMdxJsxElement(child));
+          }
+        }
+      }
+      return [
         {
           type: "expandable",
           props: {
@@ -869,19 +883,9 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             ...(expType ? { type: expType } : {}),
           },
           content: [],
+          ...(expChildren.length > 0 ? { children: expChildren } : {}),
         },
       ];
-      if (node.children) {
-        for (const child of node.children) {
-          if (
-            child.type === "mdxJsxFlowElement" &&
-            (child.name === "ResponseField" || child.name === "Expandable")
-          ) {
-            blocks.push(...convertMdxJsxElement(child));
-          }
-        }
-      }
-      return blocks;
     }
 
     case "Latex": {

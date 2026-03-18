@@ -301,24 +301,35 @@ describe("mdxToBlockNote", () => {
   it("parses ResponseField with nested Expandable and child ResponseFields", () => {
     const mdx = `<ResponseField name="navigation" type="Navigation[]" required>\nDescription text here\n<Expandable title="Navigation">\n<ResponseField name="group" type="string">\nNested description\n</ResponseField>\n</Expandable>\n</ResponseField>`;
     const blocks = mdxToBlockNote(mdx);
+    expect(blocks).toHaveLength(1);
     expect(blocks[0].type).toBe("responseField");
     expect(blocks[0].props?.name).toBe("navigation");
     expect(blocks[0].props?.type).toBe("Navigation[]");
     expect(blocks[0].props?.required).toBe(true);
-    expect(blocks[1].type).toBe("expandable");
-    expect(blocks[1].props?.title).toBe("Navigation");
-    expect(blocks[2].type).toBe("responseField");
-    expect(blocks[2].props?.name).toBe("group");
-    expect(blocks[2].props?.type).toBe("string");
+    // Expandable is a child of the ResponseField, not a sibling
+    const rfChildren = blocks[0].children as Array<{ type: string; props?: Record<string, unknown>; children?: unknown[] }>;
+    expect(rfChildren).toHaveLength(1);
+    expect(rfChildren[0].type).toBe("expandable");
+    expect(rfChildren[0].props?.title).toBe("Navigation");
+    // ResponseField is a child of the Expandable
+    const expChildren = rfChildren[0].children as Array<{ type: string; props?: Record<string, unknown> }>;
+    expect(expChildren).toHaveLength(1);
+    expect(expChildren[0].type).toBe("responseField");
+    expect(expChildren[0].props?.name).toBe("group");
+    expect(expChildren[0].props?.type).toBe("string");
   });
 
   it("parses Expandable with ResponseField children", () => {
     const mdx = `<Expandable title="Properties">\n<ResponseField name="key" type="string">\nA key value.\n</ResponseField>\n</Expandable>`;
     const blocks = mdxToBlockNote(mdx);
+    expect(blocks).toHaveLength(1);
     expect(blocks[0].type).toBe("expandable");
     expect(blocks[0].props?.title).toBe("Properties");
-    expect(blocks[1].type).toBe("responseField");
-    expect(blocks[1].props?.name).toBe("key");
+    // ResponseField is a child of the Expandable, not a sibling
+    const expChildren = blocks[0].children as Array<{ type: string; props?: Record<string, unknown> }>;
+    expect(expChildren).toHaveLength(1);
+    expect(expChildren[0].type).toBe("responseField");
+    expect(expChildren[0].props?.name).toBe("key");
   });
 
   it("parses Frame with image child", () => {
@@ -823,7 +834,38 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</ResponseField>");
   });
 
-  it("converts responseField with expandable children", () => {
+  it("converts responseField with expandable children (children-based)", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "responseField",
+        props: { name: "navigation", type: "Navigation[]", required: true },
+        content: [{ type: "text", text: "Description text" }],
+        children: [
+          {
+            type: "expandable",
+            props: { title: "Navigation" },
+            content: [],
+            children: [
+              {
+                type: "responseField",
+                props: { name: "group", type: "string" },
+                content: [{ type: "text", text: "Nested description" }],
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<ResponseField name="navigation" type="Navigation[]" required>');
+    expect(mdx).toContain("Description text");
+    expect(mdx).toContain('<Expandable title="Navigation">');
+    expect(mdx).toContain('<ResponseField name="group" type="string">');
+    expect(mdx).toContain("Nested description");
+    expect(mdx).toContain("</Expandable>");
+    expect(mdx).toContain("</ResponseField>");
+  });
+
+  it("converts responseField with expandable children (legacy sibling-based)", () => {
     const mdx = blockNoteToMDX([
       {
         type: "responseField",
