@@ -180,7 +180,19 @@ function convertPageToBlockNote(page: ParsedPage): ImportReadyPage {
   const contentWithoutFrontmatter = stripFrontmatter(page.mdxContent);
   // Sanitize MDX-incompatible patterns (curly braces, void elements, angle brackets)
   const sanitizedContent = sanitizeForMdx(contentWithoutFrontmatter);
-  const blocks = mdxToBlockNote(sanitizedContent);
+
+  let blocks;
+  try {
+    blocks = mdxToBlockNote(sanitizedContent);
+  } catch (err) {
+    console.error(
+      `[migration] MDX parse failed for "${page.title}" (${page.path})`,
+      `\n--- Sanitized content (${sanitizedContent.length} chars) ---\n`,
+      sanitizedContent,
+      "\n--- End ---",
+    );
+    throw err;
+  }
 
   return {
     title: page.title,
