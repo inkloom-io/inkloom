@@ -387,36 +387,52 @@ describe("mdxToBlockNote", () => {
     expect(blocks[0].children?.some((c) => c.type === "codeBlock")).toBe(true);
   });
 
-  it("parses HTML figure with img and figcaption into frame + image (inline)", () => {
+  it("parses HTML figure with img and figcaption into frame with nested image (inline)", () => {
     const mdx = `<figure><img src=".gitbook/assets/screenshot.png" alt="image alt" /><figcaption><p>image caption</p></figcaption></figure>`;
     const blocks = mdxToBlockNote(mdx);
-    expect(blocks.length).toBeGreaterThanOrEqual(2);
+    expect(blocks.length).toBe(1);
     expect(blocks[0].type).toBe("frame");
     expect(blocks[0].props?.caption).toBe("image caption");
-    expect(blocks[1].type).toBe("image");
-    expect(blocks[1].props?.url).toBe(".gitbook/assets/screenshot.png");
-    expect(blocks[1].props?.alt).toBe("image alt");
+    expect(blocks[0].children).toBeDefined();
+    expect(blocks[0].children!.length).toBe(1);
+    expect(blocks[0].children![0].type).toBe("image");
+    expect(blocks[0].children![0].props?.url).toBe(".gitbook/assets/screenshot.png");
+    expect(blocks[0].children![0].props?.alt).toBe("image alt");
   });
 
-  it("parses HTML figure with img and figcaption into frame + image (flow)", () => {
+  it("parses HTML figure with img and figcaption into frame with nested image (flow)", () => {
     const mdx = `<figure>\n<img src=".gitbook/assets/screenshot.png" alt="image alt" />\n<figcaption>\n<p>image caption</p>\n</figcaption>\n</figure>`;
     const blocks = mdxToBlockNote(mdx);
-    expect(blocks.length).toBeGreaterThanOrEqual(2);
+    expect(blocks.length).toBe(1);
     expect(blocks[0].type).toBe("frame");
     expect(blocks[0].props?.caption).toBe("image caption");
-    expect(blocks[1].type).toBe("image");
-    expect(blocks[1].props?.url).toBe(".gitbook/assets/screenshot.png");
-    expect(blocks[1].props?.alt).toBe("image alt");
+    expect(blocks[0].children).toBeDefined();
+    expect(blocks[0].children!.length).toBe(1);
+    expect(blocks[0].children![0].type).toBe("image");
+    expect(blocks[0].children![0].props?.url).toBe(".gitbook/assets/screenshot.png");
+    expect(blocks[0].children![0].props?.alt).toBe("image alt");
   });
 
   it("parses figure without figcaption", () => {
     const mdx = `<figure><img src="photo.png" alt="A photo" /></figure>`;
     const blocks = mdxToBlockNote(mdx);
-    expect(blocks.length).toBeGreaterThanOrEqual(2);
+    expect(blocks.length).toBe(1);
     expect(blocks[0].type).toBe("frame");
     expect(blocks[0].props?.caption).toBeUndefined();
-    expect(blocks[1].type).toBe("image");
-    expect(blocks[1].props?.url).toBe("photo.png");
+    expect(blocks[0].children).toBeDefined();
+    expect(blocks[0].children!.length).toBe(1);
+    expect(blocks[0].children![0].type).toBe("image");
+    expect(blocks[0].children![0].props?.url).toBe("photo.png");
+  });
+
+  it("parses figure without img", () => {
+    const mdx = `<figure><figcaption><p>caption only</p></figcaption></figure>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks.length).toBe(1);
+    expect(blocks[0].type).toBe("frame");
+    expect(blocks[0].props?.caption).toBe("caption only");
+    expect(blocks[0].children).toBeDefined();
+    expect(blocks[0].children!.length).toBe(0);
   });
 
   it("parses GitBook card-view table into cardGroup + cards (inline)", () => {

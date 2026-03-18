@@ -693,10 +693,11 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
 
     case "figure": {
       // GitBook HTML figure: <figure><img src="..." alt="..."><figcaption><p>caption</p></figcaption></figure>
-      // Produces a frame block (sibling pattern) followed by an image block.
+      // Produces a frame block with the image nested inside frame.children.
       let figSrc = "";
       let figAlt = "";
       let figCaption = "";
+      const figureChildren: BlockNoteBlock[] = [];
 
       if (node.children) {
         for (const child of node.children) {
@@ -718,19 +719,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
         }
       }
 
-      const result: BlockNoteBlock[] = [
-        {
-          type: "frame",
-          props: {
-            ...(figCaption ? { caption: figCaption } : {}),
-          },
-          content: [],
-          children: [],
-        },
-      ];
-
       if (figSrc) {
-        result.push({
+        figureChildren.push({
           type: "image",
           props: {
             url: figSrc,
@@ -739,7 +729,16 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
         });
       }
 
-      return result;
+      return [
+        {
+          type: "frame",
+          props: {
+            ...(figCaption ? { caption: figCaption } : {}),
+          },
+          content: [],
+          children: figureChildren,
+        },
+      ];
     }
 
     case "Icon": {
