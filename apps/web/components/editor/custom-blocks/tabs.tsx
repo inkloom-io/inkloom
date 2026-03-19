@@ -177,6 +177,17 @@ export const Tabs = createReactBlockSpec(
               css += "  margin-bottom: 0 !important;\n";
               css += "  padding-bottom: 0 !important;\n";
               css += "}\n";
+              // Also zero out padding on inner .bn-block-content wrapper —
+              // BlockNote's default padding (3px 0) on .bn-block-content creates
+              // a visible gap below the .bn-tab element that shows the page
+              // background as a horizontal divider line.
+              const tabBlockContentSelectors = tabsWithContentBelow.map(
+                (id) =>
+                  `.bn-block-outer[data-id="${id}"] .bn-block-content[data-content-type="tab"]`
+              );
+              css += `${tabBlockContentSelectors.join(",\n")} {\n`;
+              css += "  padding-bottom: 0 !important;\n";
+              css += "}\n";
             }
 
             styleEl.textContent = css;
