@@ -219,6 +219,89 @@ export function renderColumnChildren(
 }
 
 // ---------------------------------------------------------------------------
+// Interactive check list item
+// ---------------------------------------------------------------------------
+
+/**
+ * A list item component that detects checkbox inputs and makes them
+ * interactive. Uses local state to track checked/unchecked and applies
+ * strikethrough text decoration when checked. This is purely visual —
+ * state is not persisted.
+ */
+function CheckListItem({
+  children,
+  style,
+}: {
+  children?: React.ReactNode;
+  style?: React.CSSProperties;
+}) {
+  // Walk children to find a checkbox input
+  const childArray = React.Children.toArray(children);
+  let hasCheckbox = false;
+  let defaultChecked = false;
+
+  for (const child of childArray) {
+    if (
+      React.isValidElement(child) &&
+      (child as React.ReactElement<{ type?: string; checked?: boolean }>).props
+        .type === "checkbox"
+    ) {
+      hasCheckbox = true;
+      defaultChecked =
+        !!(child as React.ReactElement<{ checked?: boolean }>).props.checked;
+      break;
+    }
+  }
+
+  const [checked, setChecked] = React.useState(defaultChecked);
+
+  if (!hasCheckbox) {
+    return <li style={style}>{children}</li>;
+  }
+
+  // Rebuild children: replace the disabled checkbox with an interactive one
+  // and wrap remaining content so we can apply strikethrough
+  const newChildren: React.ReactNode[] = [];
+  let checkboxFound = false;
+  const remainingChildren: React.ReactNode[] = [];
+
+  for (const child of childArray) {
+    if (
+      !checkboxFound &&
+      React.isValidElement(child) &&
+      (child as React.ReactElement<{ type?: string }>).props.type ===
+        "checkbox"
+    ) {
+      checkboxFound = true;
+      newChildren.push(
+        <input
+          key="checkbox"
+          type="checkbox"
+          checked={checked}
+          onChange={() => setChecked((prev) => !prev)}
+          style={{ cursor: "pointer" }}
+        />
+      );
+    } else {
+      remainingChildren.push(child);
+    }
+  }
+
+  newChildren.push(
+    <span
+      key="label"
+      style={{
+        textDecoration: checked ? "line-through" : "none",
+      }}
+    >
+      {remainingChildren}
+    </span>
+  );
+
+  return <li style={style}>{newChildren}</li>;
+}
+
+// ---------------------------------------------------------------------------
 // Markdown component overrides
 // ---------------------------------------------------------------------------
 
@@ -305,7 +388,7 @@ export function getMarkdownComponents(options?: {
     }: {
       children?: React.ReactNode;
       style?: React.CSSProperties;
-    }) => <li style={style}>{children}</li>,
+    }) => <CheckListItem style={style}>{children}</CheckListItem>,
     a: ({
       href,
       children,

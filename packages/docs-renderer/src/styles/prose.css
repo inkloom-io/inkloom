@@ -278,3 +278,7 @@
   list-style: none;
   margin-left: -1.5rem;
 }
+
+.prose li > input[type="checkbox"] {
+  cursor: pointer;
+}
