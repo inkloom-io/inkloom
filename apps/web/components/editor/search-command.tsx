@@ -93,7 +93,7 @@ export function SearchCommand({
   }, [open]);
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
+    <CommandDialog open={open} onOpenChange={onOpenChange} shouldFilter={false}>
       <CommandInput
         placeholder={t("placeholder")}
         value={query}
