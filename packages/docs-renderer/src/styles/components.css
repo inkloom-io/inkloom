@@ -776,6 +776,7 @@ a:has(.card) {
 
 .frame-container {
   margin: 0 0 1.5rem 0;
+  padding: 0;
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
   overflow: hidden;
@@ -785,13 +786,16 @@ a:has(.card) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.75rem;
+  padding: 0.375rem;
 }
 
 .frame-content img {
   display: block;
   max-width: 100%;
   height: auto;
+  border: none;
+  outline: none;
+  margin: 0;
 }
 
 .frame-content video {
