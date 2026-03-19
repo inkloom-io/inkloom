@@ -528,9 +528,13 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       if (node.children) {
         for (const child of node.children) {
           if (child.type === "code") {
+            // Unescape \{ and \} that may have been erroneously added by
+            // sanitizeForMdx when adjacent code blocks inside a JSX element
+            // weren't recognised as protected regions.
+            const code = (child.value || "").replace(/\\([{}])/g, "$1");
             const childProps: Record<string, unknown> = {
               language: child.lang || "",
-              code: child.value || "",
+              code,
             };
 
             if (child.meta) {

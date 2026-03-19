@@ -216,6 +216,52 @@ describe("sanitizeForMdx", () => {
     });
   });
 
+  // ── Code blocks inside JSX elements ──────────────────────────────────
+
+  describe("code blocks inside JSX elements", () => {
+    it("preserves curly braces in code blocks inside CodeGroup (with blank line)", () => {
+      const input = `<CodeGroup>
+\`\`\`json title="200"
+{
+  "id": 1,
+  "name": "John"
+}
+\`\`\`
+
+\`\`\`json title="400"
+{
+  "error": "Invalid request"
+}
+\`\`\`
+</CodeGroup>`;
+      const result = sanitizeForMdx(input);
+      // Code blocks should NOT have escaped braces
+      expect(result).not.toContain("\\{");
+      expect(result).not.toContain("\\}");
+    });
+
+    it("preserves curly braces in adjacent code blocks inside CodeGroup (no blank line)", () => {
+      // This is the format produced by convertAllCodeTabsToCodeGroup (single newline separator)
+      const input = `<CodeGroup>
+\`\`\`json title="200"
+{
+  "id": 1,
+  "name": "John"
+}
+\`\`\`
+\`\`\`json title="400"
+{
+  "error": "Invalid request"
+}
+\`\`\`
+</CodeGroup>`;
+      const result = sanitizeForMdx(input);
+      // Code blocks should NOT have escaped braces
+      expect(result).not.toContain("\\{");
+      expect(result).not.toContain("\\}");
+    });
+  });
+
   // ── Edge cases ────────────────────────────────────────────────────────
 
   describe("edge cases", () => {

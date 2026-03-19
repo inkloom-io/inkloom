@@ -73,8 +73,11 @@ export function splitByProtectedRegions(content: string): Segment[] {
   // Combined pattern matching protected regions in priority order:
   // 1. Fenced code blocks: ```...``` or ~~~...~~~
   // 2. Inline code: `...` (single or multi-backtick)
+  // NOTE: The trailing (?=\n|$) is a lookahead (not consuming) so that adjacent
+  // code blocks (e.g. inside <CodeGroup>) each have a \n available for the
+  // leading (?:^|\n) anchor of the next match.
   const protectedPattern =
-    /(?:^|\n)((`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\2[ \t]*(?:\n|$))|(`+)(?!`)(.+?)\3(?!`)/g;
+    /(?:^|\n)((`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\2[ \t]*(?=\n|$))|(`+)(?!`)(.+?)\3(?!`)/g;
 
   let lastIndex = 0;
   let match: RegExpExecArray | null;

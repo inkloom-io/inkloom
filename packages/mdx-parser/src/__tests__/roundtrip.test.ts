@@ -307,6 +307,62 @@ describe("mdxToBlockNote", () => {
     expect(blocks[2].props?.language).toBe("python");
   });
 
+  it("parses CodeGroup with JSON braces without backslash-escaping (round-trip)", () => {
+    const mdx = `<CodeGroup>
+\`\`\`json title="200"
+{
+  "id": 1,
+  "name": "John",
+  "age": 30
+}
+\`\`\`
+
+\`\`\`json title="400"
+{
+  "error": "Invalid request"
+}
+\`\`\`
+</CodeGroup>`;
+    // Parse MDX → BlockNote
+    const blocks = mdxToBlockNote(mdx);
+    // Serialize BlockNote → MDX
+    const serialized = blockNoteToMDX(blocks);
+    // Re-parse MDX → BlockNote
+    const blocks2 = mdxToBlockNote(serialized);
+    // Check that code content is preserved without backslash-escaping
+    const codeBlocks2 = blocks2.filter((b) => b.type === "codeBlock");
+    expect(codeBlocks2).toHaveLength(2);
+    expect(codeBlocks2[0].props?.code).not.toContain("\\{");
+    expect(codeBlocks2[0].props?.code).not.toContain("\\}");
+    expect(codeBlocks2[0].props?.code).toContain('"id": 1');
+    expect(codeBlocks2[1].props?.code).not.toContain("\\{");
+    expect(codeBlocks2[1].props?.code).not.toContain("\\}");
+    expect(codeBlocks2[1].props?.code).toContain('"error": "Invalid request"');
+  });
+
+  it("unescapes backslash-escaped braces in CodeGroup code blocks", () => {
+    // Content that was previously stored with escaped braces
+    // due to the sanitize-mdx bug should be unescaped during parsing
+    const mdx = `<CodeGroup>
+\`\`\`json title="200"
+\\{
+  "id": 1
+\\}
+\`\`\`
+
+\`\`\`json title="400"
+\\{
+  "error": "Invalid request"
+\\}
+\`\`\`
+</CodeGroup>`;
+    const blocks = mdxToBlockNote(mdx);
+    const codeBlocks = blocks.filter((b) => b.type === "codeBlock");
+    expect(codeBlocks).toHaveLength(2);
+    expect(codeBlocks[0].props?.code).toBe('{\n  "id": 1\n}');
+    expect(codeBlocks[1].props?.code).toBe('{\n  "error": "Invalid request"\n}');
+  });
+
   it("parses CodeGroup with titled code blocks from meta", () => {
     const mdx = `<CodeGroup>\n\`\`\`json title="200"\n{ "ok": true }\n\`\`\`\n\`\`\`json title="400"\n{ "error": "bad" }\n\`\`\`\n</CodeGroup>`;
     const blocks = mdxToBlockNote(mdx);
