@@ -1,7 +1,7 @@
 "use client";
 
 import { createReactBlockSpec, useBlockNoteEditor } from "@blocknote/react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { getGroupChildren, getGroupPosition, findContainerBefore } from "./group-utils";
 import "./frame.css";
@@ -182,6 +182,21 @@ export const FrameContent = createReactBlockSpec(
       const isLast = groupInfo?.isLast ?? false;
       const caption = groupInfo?.containerCaption ?? "";
 
+      const captionRef = useRef<HTMLDivElement>(null);
+
+      // Move caption DOM element after the block-group so it appears below children
+      useEffect(() => {
+        if (!isLast || !captionRef.current) return;
+
+        const blockOuter = captionRef.current.closest('.bn-block-outer');
+        const bnBlock = blockOuter?.querySelector(':scope > .bn-block');
+        const blockGroup = bnBlock?.querySelector(':scope > .bn-block-group');
+
+        if (blockGroup) {
+          blockGroup.after(captionRef.current);
+        }
+      }, [isLast, caption, groupInfo]);
+
       const updateCaption = useCallback(
         (newCaption: string) => {
           if (!groupInfo) return;
@@ -209,7 +224,7 @@ export const FrameContent = createReactBlockSpec(
         >
           <div className="bn-frame-content" ref={props.contentRef} />
           {isLast && (
-            <div className="bn-frame-caption-area">
+            <div className="bn-frame-caption-area" ref={captionRef}>
               <input
                 className="bn-frame-caption-input"
                 value={caption}
