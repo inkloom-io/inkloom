@@ -651,7 +651,7 @@ export default function EditorPage({ params }: EditorPageProps) {
                   folders={folders ?? []}
                   navTabs={project.settings?.navTabs ?? []}
                   themePreset={
-                    (project.settings?.theme as ThemePreset) || "fossil"
+                    (project.settings?.theme as ThemePreset) || "default"
                   }
                   customPrimaryColor={project.settings?.primaryColor}
                   customBackgroundColorLight={
@@ -678,7 +678,7 @@ export default function EditorPage({ params }: EditorPageProps) {
                       titleSectionHidden={selectedPage.titleSectionHidden}
                       titleIconHidden={selectedPage.titleIconHidden}
                       themePreset={
-                        (project.settings?.theme as ThemePreset) || "fossil"
+                        (project.settings?.theme as ThemePreset) || "default"
                       }
                       customFonts={project.settings?.fonts}
                     />
@@ -698,7 +698,7 @@ export default function EditorPage({ params }: EditorPageProps) {
                     onEditorReady={handleEditorReady}
                     editable={isCollaborationReady && !isEditLocked}
                     themePreset={
-                      (project.settings?.theme as ThemePreset) || "fossil"
+                      (project.settings?.theme as ThemePreset) || "default"
                     }
                     customPrimaryColor={project.settings?.primaryColor}
                     customBackgroundColorLight={
@@ -842,7 +842,7 @@ export default function EditorPage({ params }: EditorPageProps) {
               folderId={selectedPage.folderId ?? undefined}
               folders={folders ?? []}
               navTabs={project.settings?.navTabs ?? []}
-              themePreset={(project.settings?.theme as ThemePreset) || "fossil"}
+              themePreset={(project.settings?.theme as ThemePreset) || "default"}
               customPrimaryColor={project.settings?.primaryColor}
               customBackgroundColorLight={
                 project.settings?.backgroundColorLight

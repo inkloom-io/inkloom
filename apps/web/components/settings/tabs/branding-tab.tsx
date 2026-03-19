@@ -187,7 +187,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   const { resolvedTheme: platformTheme } = useTheme();
   const [previewModeOverride, setPreviewModeOverride] = useState<"light" | "dark" | null>(null);
   const previewMode: "light" | "dark" = previewModeOverride ?? (platformTheme === "light" ? "light" : "dark");
-  const [theme, setTheme] = useState<ThemePreset>("fossil");
+  const [theme, setTheme] = useState<ThemePreset>("default");
   const [primaryColor, setPrimaryColor] = useState(THEME_PRESETS.fossil.primaryColor);
   const [logoAssetId, setLogoAssetId] = useState<Id<"assets"> | undefined>();
   const [brandingInitialized, setBrandingInitialized] = useState(false);
@@ -251,7 +251,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
       if (project.settings?.theme) setTheme(project.settings.theme);
       if (project.settings?.primaryColor) setPrimaryColor(project.settings.primaryColor);
       if (project.settings?.logoAssetId) setLogoAssetId(project.settings.logoAssetId);
-      const activeTheme = (project.settings?.theme || "fossil") as ThemePreset;
+      const activeTheme = (project.settings?.theme || "default") as ThemePreset;
       const themePreset = THEME_PRESETS[activeTheme];
       setBackgroundColorLight(project.settings?.backgroundColorLight || themePreset.colors.light.background);
       setBackgroundColorDark(project.settings?.backgroundColorDark || themePreset.colors.dark.background);
