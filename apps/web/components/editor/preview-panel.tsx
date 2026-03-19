@@ -299,6 +299,7 @@ export function PreviewPanel({
     <DocsRendererProvider
       LinkComponent={PreviewLink}
       highlightCode={highlightCodeForRenderer}
+      resolvedTheme={previewTheme}
     >
       <div
         className="preview-container flex h-full flex-col"
