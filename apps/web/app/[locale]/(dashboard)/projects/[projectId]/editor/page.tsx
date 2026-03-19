@@ -172,6 +172,21 @@ export default function EditorPage({ params }: EditorPageProps) {
   const [selectedPageId, setSelectedPageId] = useState<Id<"pages"> | null>(
     null
   );
+
+  // Persist selected page per project+branch in localStorage
+  const selectPage = useCallback(
+    (pageId: Id<"pages"> | null) => {
+      setSelectedPageId(pageId);
+      if (pageId && currentBranchId) {
+        localStorage.setItem(
+          `inkloom:page:${projectId}:${currentBranchId}`,
+          pageId
+        );
+      }
+    },
+    [currentBranchId, projectId]
+  );
+
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -513,7 +528,8 @@ export default function EditorPage({ params }: EditorPageProps) {
     ]
   );
 
-  // Select first page by default when pages load for the current branch.
+  // Select page when pages load for the current branch: restore from
+  // localStorage if available, otherwise fall back to the first page.
   // Guard: only auto-select when the pages actually belong to currentBranchId
   // to avoid picking a stale page from a previously-cached branch query.
   useEffect(() => {
@@ -525,13 +541,18 @@ export default function EditorPage({ params }: EditorPageProps) {
       return;
     }
 
-    // Auto-select first page if none selected and pages belong to current branch
-    if (!selectedPageId && pages.length > 0 && pages[0]) {
-      if (pages[0].branchId === currentBranchId) {
-        setSelectedPageId(pages[0]._id);
+    // Auto-select: try localStorage first, then fall back to first page
+    if (!selectedPageId && pages.length > 0) {
+      const savedPageId = localStorage.getItem(
+        `inkloom:page:${projectId}:${currentBranchId}`
+      );
+      if (savedPageId && pages.some((p: any) => p._id === savedPageId)) {
+        setSelectedPageId(savedPageId as Id<"pages">);
+      } else if (pages[0] && pages[0].branchId === currentBranchId) {
+        selectPage(pages[0]._id);
       }
     }
-  }, [pages, selectedPageId, currentBranchId]);
+  }, [pages, selectedPageId, currentBranchId, projectId, selectPage]);
 
   if (project === undefined) {
     return (
@@ -575,7 +596,7 @@ export default function EditorPage({ params }: EditorPageProps) {
           pages={pages || []}
           folders={folders || []}
           selectedPageId={selectedPageId}
-          onSelectPage={setSelectedPageId}
+          onSelectPage={selectPage}
           currentBranchId={currentBranchId!}
           onSwitchBranch={handleBranchSwitch}
           onFlushContent={flushContentSave}
@@ -867,7 +888,7 @@ export default function EditorPage({ params }: EditorPageProps) {
         projectId={projectId as Id<"projects">}
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
-        onSelectPage={setSelectedPageId}
+        onSelectPage={selectPage}
       />
       <AlertDialog
         open={showDisableCollabWarning}

@@ -628,6 +628,23 @@ export function EditorSidebar({
     [pages, folders, reorderPage, reorderFolder]
   );
 
+  // Tree ref for programmatic folder expansion
+  const treeRef = useRef<any>(null);
+
+  // Auto-expand folders containing the selected page
+  useEffect(() => {
+    if (selectedPageId && treeRef.current) {
+      const node = treeRef.current.get(`page-${selectedPageId}`);
+      if (node) {
+        let parent = node.parent;
+        while (parent && !parent.isRoot) {
+          parent.open();
+          parent = parent.parent;
+        }
+      }
+    }
+  }, [selectedPageId]);
+
   // State to track when sidebar is mounted for dndRootElement
   const [dndRoot, setDndRoot] = useState<HTMLElement | null>(null);
 
@@ -716,6 +733,7 @@ export function EditorSidebar({
         {(treeHeight) =>
           dndRoot && (
             <Tree
+              ref={treeRef}
               data={treeData}
               openByDefault={false}
               width="100%"
