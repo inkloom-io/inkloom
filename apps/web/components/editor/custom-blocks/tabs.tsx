@@ -168,6 +168,15 @@ export const Tabs = createReactBlockSpec(
               css += "  border-radius: 0 !important;\n";
               css += "  border-bottom: none !important;\n";
               css += "}\n";
+              // Zero out bottom margin on the tab's block-outer to eliminate
+              // the gap/divider between the tab and its first content block
+              const tabOuterSelectors = tabsWithContentBelow.map(
+                (id) => `.bn-block-outer[data-id="${id}"]`
+              );
+              css += `${tabOuterSelectors.join(",\n")} {\n`;
+              css += "  margin-bottom: 0 !important;\n";
+              css += "  padding-bottom: 0 !important;\n";
+              css += "}\n";
             }
 
             styleEl.textContent = css;

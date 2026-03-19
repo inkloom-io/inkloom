@@ -1147,6 +1147,54 @@
 }
 
 /* ============================================================================
+   GROUP CHILD BLOCK-OUTER MARGINS
+   Remove default BlockNote margins between consecutive group child blocks
+   so they flow seamlessly within their container.
+   ============================================================================ */
+
+/* Group containers with children — remove bottom margin so container
+   connects seamlessly to its first child block */
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-tabs-container[data-has-children="true"]),
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-steps-container[data-has-children="true"]),
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-frame-container[data-has-children="true"]) {
+  margin-bottom: 0 !important;
+}
+.bn-block-outer:has(.bn-tabs-container[data-has-children="true"]),
+.bn-block-outer:has(.bn-steps-container[data-has-children="true"]),
+.bn-block-outer:has(.bn-frame-container[data-has-children="true"]) {
+  margin-bottom: 0 !important;
+}
+
+/* Active tabs in a group — remove margins so tab connects to content below */
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-tab[data-in-group="true"][data-is-active="true"]) {
+  margin: 0 !important;
+}
+.bn-block-outer:has(.bn-tab[data-in-group="true"][data-is-active="true"]) {
+  margin: 0 !important;
+}
+
+/* Steps in a group — remove margins between consecutive steps */
+.editor-theme-wrapper .bn-block-outer:has(.bn-step[data-in-group="true"]) {
+  margin: 0 !important;
+}
+.bn-block-outer:has(.bn-step[data-in-group="true"]) {
+  margin: 0 !important;
+}
+
+/* Frame content blocks in a group — remove margins between them */
+.editor-theme-wrapper
+  .bn-block-outer:has(.bn-frame-content-block[data-in-group="true"]) {
+  margin: 0 !important;
+}
+.bn-block-outer:has(.bn-frame-content-block[data-in-group="true"]) {
+  margin: 0 !important;
+}
+
+/* ============================================================================
    TABS GROUP - Tabbed Interface
    Hides non-active tabs when they're part of a Tabs container
    ============================================================================ */
