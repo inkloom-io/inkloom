@@ -7,7 +7,6 @@
  */
 @import "./theme.css";
 @import "@inkloom/docs-renderer/styles";
-@import "katex/dist/katex.min.css";
 
 /* ============================================================================
    HTML & BODY

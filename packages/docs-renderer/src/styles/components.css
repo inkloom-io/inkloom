@@ -825,6 +825,7 @@ a:has(.card) {
    ============================================================================ */
 
 .latex-block {
+  position: relative;
   margin: 1.5rem 0;
   text-align: center;
   overflow-x: auto;
@@ -832,6 +833,20 @@ a:has(.card) {
 
 .latex-inline {
   display: inline;
+}
+
+/* Ensure KaTeX MathML accessibility layer is always visually hidden.
+   KaTeX's own CSS handles this, but we reinforce it here as a safeguard
+   against cascade/specificity issues (e.g. Tailwind resets, overflow contexts). */
+.latex-block .katex-mathml,
+.latex-inline .katex-mathml {
+  position: absolute;
+  clip: rect(1px, 1px, 1px, 1px);
+  padding: 0;
+  border: 0;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
 }
 
 /* ============================================================================
