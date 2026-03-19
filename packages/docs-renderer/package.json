@@ -11,18 +11,24 @@
     "./styles": "./src/styles/index.css"
   },
   "scripts": {
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts"
   },
   "dependencies": {
     "clsx": "^2.1.0",
     "katex": "^0.16.38",
-    "lucide-react": "^0.563.0"
+    "lucide-react": "^0.563.0",
+    "react-markdown": "^10.1.0",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@inkloom/typescript-config": "workspace:*",
     "@types/katex": "^0.16.8",
     "@types/react": "^18.2.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^4.0.18"
   },
   "peerDependencies": {
     "react": ">=18"

@@ -21,3 +21,31 @@ export { Video } from "./components/video";
 export { IFrame } from "./components/iframe";
 export { Badge } from "./components/badge";
 export { InlineIcon } from "./components/inline-icon";
+
+// MDX parsing utilities
+export {
+  parseAttributes,
+  findBalancedCloseTag,
+  findMDXComponents,
+  preprocessCodeBlocks,
+  preprocessInlineComponents,
+} from "./mdx-parser";
+export type {
+  ParsedComponent,
+  CodeBlockSegment,
+  MarkdownSegment,
+  ContentSegment,
+} from "./mdx-parser";
+
+// MDX rendering
+export {
+  MDXRenderer,
+  MarkdownWithCodeBlocks,
+  getMarkdownComponents,
+  renderComponent,
+  renderTabChildren,
+  renderStepChildren,
+  renderAccordionChildren,
+  renderColumnChildren,
+} from "./mdx-renderer";
+export type { ComponentOverrides, MDXRendererProps } from "./mdx-renderer";
