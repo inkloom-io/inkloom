@@ -4,6 +4,7 @@ import React from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import katex from "katex";
 import {
   Callout,
   Card,
@@ -85,7 +86,7 @@ interface ParsedComponent {
   endIndex: number;
 }
 
-// Preprocess inline components (Icon, Badge) into HTML that react-markdown can handle via rehypeRaw.
+// Preprocess inline components (Icon, Badge, inline Latex) into HTML that react-markdown can handle via rehypeRaw.
 // This ensures they render truly inline within paragraphs rather than breaking text into block segments.
 function preprocessInlineComponents(source: string): string {
   // Convert <Icon icon="name" size={16} /> to <span data-icon="name" data-size="16"></span>
@@ -99,6 +100,30 @@ function preprocessInlineComponents(source: string): string {
       return `<span data-icon="${icon}" data-size="${size}"></span>`;
     }
   );
+
+  // Convert inline <Latex inline>expr</Latex> to pre-rendered KaTeX HTML spans.
+  // Block-level <Latex> (without `inline` attr) is left for findMDXComponents to handle.
+  result = result.replace(
+    /<Latex(\s+inline)?>([\s\S]*?)<\/Latex>/g,
+    (fullMatch, inlineAttr: string | undefined, expr: string) => {
+      if (!inlineAttr) {
+        // Block-level: leave for findMDXComponents
+        return fullMatch;
+      }
+
+      // Inline: pre-render with KaTeX in inline mode
+      try {
+        const html = katex.renderToString(expr.trim(), {
+          throwOnError: false,
+          displayMode: false,
+        });
+        return `<span class="latex-inline">${html}</span>`;
+      } catch {
+        return fullMatch;
+      }
+    }
+  );
+
   return result;
 }
 
@@ -705,7 +730,7 @@ function renderComponent(
         (props.expression as string) ||
         (typeof children === "string" ? children.trim() : "") ||
         "";
-      return <Latex key={key} expression={expr} />;
+      return <Latex key={key} expression={expr} inline={props.inline === true} />;
     }
 
     case "Video":

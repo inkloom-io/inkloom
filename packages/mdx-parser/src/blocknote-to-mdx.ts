@@ -74,11 +74,11 @@ function wrapInlineLatex(text: string): string {
     // (to avoid false positives like "costs $5 and $10").
     segment = segment.replace(
       /(?<!\\)\$\$(.+?)(?<!\\)\$\$/g,
-      (_m, expr: string) => `<Latex>${expr}</Latex>`,
+      (_m, expr: string) => `<Latex inline>${expr}</Latex>`,
     );
     segment = segment.replace(
       /(?<!\\)\$(\S(?:[^$]*?\S)?)\$(?!\d)/g,
-      (_m, expr: string) => `<Latex>${expr}</Latex>`,
+      (_m, expr: string) => `<Latex inline>${expr}</Latex>`,
     );
 
     parts[i] = segment;

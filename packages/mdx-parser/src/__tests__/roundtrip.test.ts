@@ -983,26 +983,26 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</Latex>");
   });
 
-  it("converts inline $$...$$ LaTeX delimiters to <Latex> tags", () => {
+  it("converts inline $$...$$ LaTeX delimiters to <Latex inline> tags", () => {
     const mdx = blockNoteToMDX([
       {
         type: "paragraph",
         content: [{ type: "text", text: "The function $$f(x) = x^2$$ is quadratic." }],
       },
     ]);
-    expect(mdx).toContain("<Latex>f(x) = x^2</Latex>");
+    expect(mdx).toContain("<Latex inline>f(x) = x^2</Latex>");
     expect(mdx).toContain("The function ");
     expect(mdx).toContain(" is quadratic.");
   });
 
-  it("converts inline $...$ LaTeX delimiters to <Latex> tags", () => {
+  it("converts inline $...$ LaTeX delimiters to <Latex inline> tags", () => {
     const mdx = blockNoteToMDX([
       {
         type: "paragraph",
         content: [{ type: "text", text: "Let $x$ be a variable." }],
       },
     ]);
-    expect(mdx).toContain("<Latex>x</Latex>");
+    expect(mdx).toContain("<Latex inline>x</Latex>");
   });
 
   it("does not convert $...$ inside code spans", () => {

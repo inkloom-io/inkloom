@@ -68,24 +68,14 @@ function preprocessInlineComponents(source: string): string {
     }
   );
 
-  // Convert inline <Latex>expr</Latex> to pre-rendered KaTeX HTML spans.
-  // Inline = <Latex> that has non-whitespace text on the same line before or after it.
-  // Block-level <Latex> (on its own line) is left for findMDXComponents to handle.
+  // Convert inline <Latex inline>expr</Latex> to pre-rendered KaTeX HTML spans.
+  // The `inline` attribute is added by wrapInlineLatex in blocknote-to-mdx.
+  // Block-level <Latex> (without `inline` attr) is left for findMDXComponents to handle.
   result = result.replace(
-    /<Latex>([\s\S]*?)<\/Latex>/g,
-    (fullMatch, expr: string, offset: number) => {
-      // Check if this <Latex> is block-level: preceded by line-start/whitespace-only
-      // and followed by line-end/whitespace-only on the same line.
-      const before = result.slice(0, offset);
-      const after = result.slice(offset + fullMatch.length);
-      const lineStart = before.lastIndexOf("\n");
-      const textBeforeOnLine = before.slice(lineStart + 1);
-      const lineEnd = after.indexOf("\n");
-      const textAfterOnLine = lineEnd === -1 ? after : after.slice(0, lineEnd);
-
-      const isBlockLevel = textBeforeOnLine.trim() === "" && textAfterOnLine.trim() === "";
-      if (isBlockLevel) {
-        // Leave block-level for findMDXComponents
+    /<Latex(\s+inline)?>([\s\S]*?)<\/Latex>/g,
+    (fullMatch, inlineAttr: string | undefined, expr: string) => {
+      if (!inlineAttr) {
+        // Block-level: leave for findMDXComponents
         return fullMatch;
       }
 
@@ -669,7 +659,7 @@ function renderComponent(
         (props.expression as string) ||
         (typeof children === "string" ? children.trim() : "") ||
         "";
-      return <Latex key={key} expression={expr} />;
+      return <Latex key={key} expression={expr} inline={props.inline === true} />;
     }
 
     case "Video":
