@@ -62,7 +62,7 @@ import { schema, type CustomBlockNoteEditor, type CustomPartialBlock } from "./s
 import { CommentHoverTooltip } from "./comments/comment-hover-tooltip";
 import { BadgeToolbarButton } from "./toolbar/badge-toolbar-button";
 import { IconToolbarButton } from "./toolbar/icon-toolbar-button";
-import { isGroupChildType } from "./custom-blocks/group-utils";
+import { isGroupChildType, GROUP_MAPPINGS } from "./custom-blocks/group-utils";
 
 // Collaboration configuration for real-time editing
 export interface CollaborationConfig {
@@ -333,10 +333,11 @@ export function BlockEditor({
     }
   }, [editor]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Monkey-patch updateBlock to handle block type conversions within group children.
-  // When BlockNote's insertOrUpdateBlockForSlashMenu tries to change a group child
-  // (e.g., tab → image), the ProseMirror layer rejects it because the content models
-  // are incompatible. Instead, we intercept and insert the new block as a flat sibling.
+  // Monkey-patch updateBlock and insertBlocks to handle block creation within group
+  // children (tab, frameContent, step, etc.). When the slash menu is used inside a
+  // group child's content area, new blocks must be inserted as CHILDREN of the group
+  // child so they render inside the container's visual panel — not as flat siblings
+  // that would appear outside the container.
   useEffect(() => {
     if (!editor) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -346,6 +347,12 @@ export function BlockEditor({
     bnEditor.__groupAwareUpdateBlockPatched = true;
 
     const originalUpdateBlock = bnEditor.updateBlock.bind(bnEditor);
+    const originalInsertBlocks = bnEditor.insertBlocks.bind(bnEditor);
+
+    // Patch updateBlock: intercept type conversions on group children.
+    // When BlockNote's insertOrUpdateBlockForSlashMenu tries to change a group child
+    // (e.g., tab → image), ProseMirror rejects it because the content models differ.
+    // Instead, we clear the group child's content and add the new block as a child.
     bnEditor.updateBlock = (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       blockToUpdate: any,
@@ -358,41 +365,126 @@ export function BlockEditor({
         : blockToUpdate;
 
       // If the update changes the type AND the current block is a group child,
-      // redirect to insert-after instead of type conversion
+      // insert the new block as a child instead of converting the type
       if (
         block &&
         update.type &&
         update.type !== block.type &&
         isGroupChildType(block.type)
       ) {
-        // Clear the slash menu trigger text ("/") from the group child's content
+        const existingChildren = block.children || [];
         try {
-          originalUpdateBlock(block, { content: [] });
-        } catch {
-          // Ignore errors from content clearing
-        }
+          // Clear "/" trigger text and add new block as a nested child
+          const updatedBlock = originalUpdateBlock(block, {
+            content: [],
+            children: [...existingChildren, update],
+          });
 
-        // Insert the new block as a flat sibling after the group child
-        const insertedBlocks = bnEditor.insertBlocks(
-          [update],
-          block,
-          "after",
-        );
-
-        // Move cursor to the newly inserted block
-        const newBlock = insertedBlocks?.[0];
-        if (newBlock) {
-          try {
-            bnEditor.setTextCursorPosition(newBlock, "end");
-          } catch {
-            // Some blocks (content: "none") can't receive cursor
+          // Get the freshly created child block and set cursor to it
+          const refreshed = bnEditor.getBlock(block.id);
+          if (refreshed && refreshed.children && refreshed.children.length > 0) {
+            const lastChild = refreshed.children[refreshed.children.length - 1];
+            if (lastChild) {
+              try {
+                bnEditor.setTextCursorPosition(lastChild, "end");
+              } catch {
+                // Some blocks (content: "none") can't receive cursor
+              }
+              return lastChild;
+            }
           }
+          return updatedBlock;
+        } catch {
+          // Fallback: insert as a flat sibling if children approach fails
+          try {
+            originalUpdateBlock(block, { content: [] });
+          } catch {
+            // Ignore errors from content clearing
+          }
+          const insertedBlocks = originalInsertBlocks(
+            [update],
+            block,
+            "after",
+          );
+          const newBlock = insertedBlocks?.[0];
+          if (newBlock) {
+            try {
+              bnEditor.setTextCursorPosition(newBlock, "end");
+            } catch {
+              // Some blocks (content: "none") can't receive cursor
+            }
+          }
+          return newBlock || block;
         }
-
-        return newBlock || block;
       }
 
       return originalUpdateBlock(blockToUpdate, update);
+    };
+
+    // Patch insertBlocks: when inserting "after" a group child (e.g., from custom
+    // slash menu items like Card, Callout, etc.), redirect to insert as children
+    // of the group child so they appear inside the container's content area.
+    // Build sets of group-related types to exclude from the insertBlocks
+    // redirect. When adding new tabs, frameContent, steps, etc. as flat siblings
+    // of an existing group child, these should NOT be redirected to children.
+    const groupRelatedTypes = new Set([
+      ...Object.keys(GROUP_MAPPINGS),
+      ...Object.values(GROUP_MAPPINGS),
+    ]);
+
+    bnEditor.insertBlocks = (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      blocksToInsert: any[],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      referenceBlock: any,
+      placement: "before" | "after",
+    ) => {
+      const ref = typeof referenceBlock === "string"
+        ? bnEditor.getBlock(referenceBlock)
+        : referenceBlock;
+
+      // Only redirect to children when inserting "content" blocks (headings,
+      // images, paragraphs, etc.) after a group child. Do NOT intercept
+      // insertions of group-related blocks (adding new tabs, steps, etc.)
+      // as those must remain flat siblings for the group structure to work.
+      const isGroupRelatedInsertion = blocksToInsert.some(
+        (b: { type?: string }) => b.type && groupRelatedTypes.has(b.type)
+      );
+
+      if (
+        ref &&
+        placement === "after" &&
+        isGroupChildType(ref.type) &&
+        !isGroupRelatedInsertion
+      ) {
+        const existingChildren = ref.children || [];
+        try {
+          originalUpdateBlock(ref, {
+            children: [...existingChildren, ...blocksToInsert],
+          });
+
+          const refreshed = bnEditor.getBlock(ref.id);
+          const newChildren = refreshed?.children?.slice(-blocksToInsert.length) || [];
+
+          // Set cursor to the first inserted child that has content
+          if (newChildren.length > 0) {
+            const firstChild = newChildren[0];
+            if (firstChild) {
+              try {
+                bnEditor.setTextCursorPosition(firstChild, "end");
+              } catch {
+                // Some blocks (content: "none") can't receive cursor
+              }
+            }
+          }
+
+          return newChildren;
+        } catch {
+          // Fallback to normal insertion
+        }
+      }
+
+      return originalInsertBlocks(blocksToInsert, referenceBlock, placement);
     };
   }, [editor]);
 

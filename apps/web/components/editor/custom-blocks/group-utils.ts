@@ -232,9 +232,9 @@ export function findContainerBefore(
  * Insert blocks from the slash menu with group-awareness.
  *
  * When the cursor is inside a group child block (tab, frameContent, step, etc.),
- * this function inserts the new block(s) as flat siblings after the current child
- * block instead of trying to replace the current block. It also cleans up any
- * slash menu trigger text ("/") from the current block's inline content.
+ * this function inserts the new block(s) as children of the current group child
+ * block. This ensures they render inside the container's visual panel area
+ * rather than as flat siblings outside the container.
  *
  * Returns true if the insertion was handled (group context), false if the caller
  * should proceed with default insertion behavior.
@@ -264,16 +264,41 @@ export function insertBlocksInGroupContext(
     }
   }
 
-  // Insert the new block(s) as flat siblings after the current group child
-  const insertedBlocks = editor.insertBlocks(blocksToInsert, cursorBlock, "after");
+  // Insert the new block(s) as children of the current group child so they
+  // render inside the container's content area
+  const existingChildren = cursorBlock.children || [];
+  try {
+    editor.updateBlock(cursorBlock, {
+      children: [...existingChildren, ...blocksToInsert],
+    });
 
-  // Move cursor to the first inserted block that has content
-  if (insertedBlocks && insertedBlocks.length > 0) {
-    const firstInserted = insertedBlocks[0];
-    try {
-      editor.setTextCursorPosition(firstInserted, "end");
-    } catch {
-      // Some blocks (content: "none") can't receive cursor, that's fine
+    // Get the refreshed block to find the new child IDs
+    const refreshed = editor.getBlock(cursorBlock.id);
+    const newChildren = refreshed?.children?.slice(-blocksToInsert.length) || [];
+
+    // Move cursor to the first inserted child that has content
+    if (newChildren.length > 0) {
+      const firstChild = newChildren[0];
+      if (firstChild) {
+        try {
+          editor.setTextCursorPosition(firstChild, "end");
+        } catch {
+          // Some blocks (content: "none") can't receive cursor, that's fine
+        }
+      }
+    }
+  } catch {
+    // Fallback: insert as flat siblings if children approach fails
+    const insertedBlocks = editor.insertBlocks(blocksToInsert, cursorBlock, "after");
+    if (insertedBlocks && insertedBlocks.length > 0) {
+      const firstInserted = insertedBlocks[0];
+      if (firstInserted) {
+        try {
+          editor.setTextCursorPosition(firstInserted, "end");
+        } catch {
+          // Some blocks (content: "none") can't receive cursor, that's fine
+        }
+      }
     }
   }
 

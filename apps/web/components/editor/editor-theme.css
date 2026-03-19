@@ -1172,6 +1172,102 @@
    attributes during reconciliation. */
 
 /* ============================================================================
+   GROUP CHILD NESTED CONTENT
+   When blocks are inserted via the slash menu inside a group child's content
+   area (e.g., inside a tab or frameContent), they become nested children of
+   the group child block. These styles ensure they render properly within the
+   container's visual panel area.
+
+   DOM structure:
+     .bn-block-outer
+       .bn-block (blockContainer)
+         .react-renderer .bn-block-content[data-content-type="tab"]
+           .bn-tab ...
+         .bn-block-group (children go here)
+           .bn-block-outer (child block)
+   ============================================================================ */
+
+/* When a tab block has children, move the visual container styling to the
+   .bn-block-outer level so the border wraps both the tab content and children.
+   The .bn-tab element's own border is removed to prevent double borders. */
+.editor-theme-wrapper .bn-block-outer:has([data-content-type="tab"]) > .bn-block:has(> .bn-block-group),
+.bn-block-outer:has([data-content-type="tab"]) > .bn-block:has(> .bn-block-group) {
+  border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
+  overflow: hidden;
+}
+
+/* Remove the border from .bn-tab itself when its parent has a block-group (children) */
+.bn-block:has(> .bn-block-group) .bn-tab[data-in-group="true"] {
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+/* Children block-group within tab — no indentation, seamless appearance */
+.editor-theme-wrapper .bn-block-outer:has([data-content-type="tab"]) .bn-block-group,
+.bn-block-outer:has([data-content-type="tab"]) .bn-block-group {
+  margin-left: 0 !important;
+  padding: 4px 16px 16px !important;
+  border: none !important;
+  border-left: none !important;
+  background: transparent !important;
+}
+
+/* When a frameContent block has children — same pattern */
+.editor-theme-wrapper .bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group),
+.bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group) {
+  border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
+  overflow: hidden;
+}
+
+.bn-block:has(> .bn-block-group) .bn-frame-content-block[data-in-group="true"] {
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.editor-theme-wrapper .bn-block-outer:has([data-content-type="frameContent"]) .bn-block-group,
+.bn-block-outer:has([data-content-type="frameContent"]) .bn-block-group {
+  margin-left: 0 !important;
+  padding: 4px 16px 16px !important;
+  border: none !important;
+  border-left: none !important;
+  background: transparent !important;
+}
+
+/* Children of step blocks — render inside the step panel */
+.editor-theme-wrapper .bn-block-outer:has([data-content-type="step"]) .bn-block-group,
+.bn-block-outer:has([data-content-type="step"]) .bn-block-group {
+  margin-left: 0 !important;
+  padding: 4px 16px 16px !important;
+  border: none !important;
+  border-left: none !important;
+  background: transparent !important;
+}
+
+/* Children of column blocks — render inside the column */
+.editor-theme-wrapper .bn-block-outer:has([data-content-type="column"]) .bn-block-group,
+.bn-block-outer:has([data-content-type="column"]) .bn-block-group {
+  margin-left: 0 !important;
+  padding: 4px 16px 16px !important;
+  border: none !important;
+  border-left: none !important;
+  background: transparent !important;
+}
+
+/* Ensure children blocks within group children have proper width */
+.bn-block-outer:has([data-content-type="tab"]) .bn-block-group .bn-block-outer,
+.bn-block-outer:has([data-content-type="frameContent"]) .bn-block-group .bn-block-outer,
+.bn-block-outer:has([data-content-type="step"]) .bn-block-group .bn-block-outer,
+.bn-block-outer:has([data-content-type="column"]) .bn-block-group .bn-block-outer {
+  width: 100% !important;
+}
+
+/* ============================================================================
    CODE GROUP - Tabbed Interface
    Hides non-active code blocks when they're part of a CodeGroup container
    ============================================================================ */
