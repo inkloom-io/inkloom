@@ -146,6 +146,21 @@ export const CodeGroup = createReactBlockSpec(
         [editor]
       );
 
+      const changeTitle = useCallback(
+        (childId: string, newTitle: string) => {
+          const document = editor.document;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const childBlock = document.find((b: any) => b.id === childId);
+          if (childBlock) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (editor as any).updateBlock(childBlock, {
+              props: { title: newTitle },
+            });
+          }
+        },
+        [editor]
+      );
+
       const hasChildren = children.length > 0;
 
       return (
@@ -159,17 +174,26 @@ export const CodeGroup = createReactBlockSpec(
             {hasChildren && children.length === 1 ? (
               /* Single code block: show label-style header matching published site */
               <div className="bn-code-group-label-bar">
-                <select
-                  className="bn-code-group-language-badge"
-                  value={children[0]!.language}
-                  onChange={(e) => changeLanguage(children[0]!.id, e.target.value)}
-                >
-                  {LANGUAGES.map((lang: any) => (
-                    <option key={lang.value} value={lang.value}>
-                      {lang.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="bn-code-group-label-controls">
+                  <select
+                    className="bn-code-group-language-badge"
+                    value={children[0]!.language}
+                    onChange={(e) => changeLanguage(children[0]!.id, e.target.value)}
+                  >
+                    {LANGUAGES.map((lang: any) => (
+                      <option key={lang.value} value={lang.value}>
+                        {lang.label}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    className="bn-code-group-title-input"
+                    value={children[0]!.title || ""}
+                    onChange={(e) => changeTitle(children[0]!.id, e.target.value)}
+                    placeholder={t("tabTitlePlaceholder")}
+                  />
+                </div>
                 <button
                   type="button"
                   className="bn-code-group-add-button"
@@ -183,18 +207,26 @@ export const CodeGroup = createReactBlockSpec(
               <div className="bn-code-group-tab-list">
                 {children.map((child: any, index: number) => (
                   index === activeIndex ? (
-                    <select
-                      key={child.id}
-                      className="bn-code-group-tab-select"
-                      value={child.language}
-                      onChange={(e) => changeLanguage(child.id, e.target.value)}
-                    >
-                      {LANGUAGES.map((lang: any) => (
-                        <option key={lang.value} value={lang.value}>
-                          {lang.label}
-                        </option>
-                      ))}
-                    </select>
+                    <div key={child.id} className="bn-code-group-active-tab">
+                      <select
+                        className="bn-code-group-tab-select"
+                        value={child.language}
+                        onChange={(e) => changeLanguage(child.id, e.target.value)}
+                      >
+                        {LANGUAGES.map((lang: any) => (
+                          <option key={lang.value} value={lang.value}>
+                            {lang.label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="text"
+                        className="bn-code-group-title-input"
+                        value={child.title || ""}
+                        onChange={(e) => changeTitle(child.id, e.target.value)}
+                        placeholder={t("tabTitlePlaceholder")}
+                      />
+                    </div>
                   ) : (
                     <button
                       key={child.id}

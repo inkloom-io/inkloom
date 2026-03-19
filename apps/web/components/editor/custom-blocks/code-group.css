@@ -205,6 +205,54 @@
   background: color-mix(in srgb, var(--editor-primary) 10%, transparent);
 }
 
+/* Label controls row (language badge + title input) */
+.bn-code-group-label-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Active tab wrapper (language select + title input) */
+.bn-code-group-active-tab {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-bottom: 2px solid var(--editor-primary, #6366f1);
+}
+
+.bn-code-group-active-tab .bn-code-group-tab-select {
+  border-bottom: none;
+}
+
+/* Title input for custom tab labels */
+.bn-code-group-title-input {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.25));
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+  font-family: var(--editor-font-mono, ui-monospace, monospace);
+  background: transparent;
+  color: var(--editor-foreground, #1a1a2e);
+  outline: none;
+  transition: all 0.15s ease;
+  width: 100px;
+  min-width: 80px;
+}
+
+.bn-code-group-title-input::placeholder {
+  color: var(--editor-muted-foreground, #9ca3af);
+  font-style: italic;
+}
+
+.bn-code-group-title-input:hover {
+  border-color: var(--editor-primary, #3b82f6);
+}
+
+.bn-code-group-title-input:focus {
+  border-color: var(--editor-primary, #6366f1);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
 .bn-code-group-label {
   font-size: 0.75rem;
   font-weight: 600;

@@ -1214,6 +1214,7 @@
       "codeGroupContainer": "Code Group",
       "addCodeBlock": "+ Add Code Block",
       "codeGroupHint": "Click \"+ Add Code Block\" to add code examples in different languages.",
+      "tabTitlePlaceholder": "Tab title",
       "cardTitlePlaceholder": "Card title",
       "cardIconLabel": "Icon:",
       "cardLinkLabel": "Link:",
