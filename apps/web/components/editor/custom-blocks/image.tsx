@@ -4,6 +4,7 @@ import { defaultProps } from "@blocknote/core";
 import { createReactBlockSpec } from "@blocknote/react";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { ImagePlus } from "lucide-react";
 import "./image.css";
 
 export const CustomImage = createReactBlockSpec(
@@ -71,10 +72,98 @@ export const CustomImage = createReactBlockSpec(
         [],
       );
 
+      const [isDragOver, setIsDragOver] = useState(false);
+      const fileInputRef = useRef<HTMLInputElement>(null);
+
+      const handleFile = useCallback(
+        async (file: File) => {
+          if (!file.type.startsWith("image/")) return;
+          const editor = props.editor as any;
+          if (editor.uploadFile) {
+            try {
+              const url = await editor.uploadFile(file);
+              props.editor.updateBlock(props.block, {
+                props: { url, name: file.name },
+              });
+            } catch {
+              // Upload failed — no-op, user can retry
+            }
+          }
+        },
+        [props.editor, props.block],
+      );
+
+      const handleDrop = useCallback(
+        (e: React.DragEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragOver(false);
+          const file = e.dataTransfer.files[0];
+          if (file) handleFile(file);
+        },
+        [handleFile],
+      );
+
+      const handleDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }, []);
+
+      const handleDragEnter = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(true);
+      }, []);
+
+      const handleDragLeave = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+      }, []);
+
+      const handleFileInputChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+          const file = e.target.files?.[0];
+          if (file) handleFile(file);
+        },
+        [handleFile],
+      );
+
       if (!url) {
         return (
-          <div className="bn-image-block bn-image-block-empty">
-            <p>{t("addImage")}</p>
+          <div className="bn-image-block">
+            <div
+              className={`bn-image-drop-target${isDragOver ? " bn-image-drop-target--active" : ""}`}
+              onClick={() => fileInputRef.current?.click()}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
+            >
+              <ImagePlus className="bn-image-drop-target-icon" size={32} />
+              <span className="bn-image-drop-target-text">
+                {t("dropImageHere")}
+              </span>
+              <span className="bn-image-drop-target-hint">
+                PNG, JPG, GIF, WebP, SVG
+              </span>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileInputChange}
+                className="bn-image-drop-target-input"
+                tabIndex={-1}
+              />
+            </div>
           </div>
         );
       }

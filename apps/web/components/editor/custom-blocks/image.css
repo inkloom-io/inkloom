@@ -2,14 +2,63 @@
   width: 100%;
 }
 
-.bn-image-block-empty {
+/* Drop target empty state */
+.bn-image-drop-target {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-  color: var(--bn-colors-side-menu);
+  min-height: 140px;
+  padding: 32px;
+  border: 2px dashed var(--editor-border);
+  border-radius: var(--editor-radius-lg);
+  background: color-mix(in srgb, var(--editor-muted) 50%, transparent);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  gap: 8px;
+  user-select: none;
 }
 
+.bn-image-drop-target:hover {
+  border-color: color-mix(in srgb, var(--editor-primary) 40%, transparent);
+  background: color-mix(in srgb, var(--editor-muted) 70%, transparent);
+}
+
+.bn-image-drop-target--active {
+  border-style: solid;
+  border-color: var(--editor-primary);
+  background: color-mix(in srgb, var(--editor-primary) 8%, transparent);
+  transform: scale(1.01);
+}
+
+.bn-image-drop-target--active .bn-image-drop-target-icon {
+  color: var(--editor-primary);
+}
+
+.bn-image-drop-target-icon {
+  color: var(--editor-muted-foreground);
+  transition: color 0.15s ease;
+}
+
+.bn-image-drop-target-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--editor-muted-foreground);
+  text-align: center;
+}
+
+.bn-image-drop-target-hint {
+  font-size: 12px;
+  color: var(--editor-muted-foreground);
+  opacity: 0.6;
+  text-align: center;
+}
+
+.bn-image-drop-target-input {
+  display: none;
+}
+
+/* Image display */
 .bn-image-wrapper {
   display: flex;
   justify-content: center;
