@@ -789,6 +789,10 @@ a:has(.card) {
   padding: 0.375rem;
 }
 
+.frame-content p {
+  margin: 0;
+}
+
 .frame-content img {
   display: block;
   max-width: 100%;

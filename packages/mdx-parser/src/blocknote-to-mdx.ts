@@ -747,7 +747,14 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
     case "frameContent": {
       const text = block.content && isInlineContentArray(block.content) ? convertInlineContent(block.content) : "";
       result = text ? `${text}\n\n` : "";
-      break;
+      // Handle children without the border-left wrapper
+      if (block.children && block.children.length > 0) {
+        for (const child of block.children) {
+          result += convertBlock(child, 0);
+        }
+      }
+      // Return early to skip default child processing
+      return result;
     }
 
     case "latex": {
