@@ -69,19 +69,19 @@ export interface ThemePresetConfig {
 }
 
 // ============================================================================
-// SLATE THEME (Default) - Professional Technical Documentation
+// INK THEME (Default) - Professional Technical Documentation
 // Inspired by: Stripe, Linear, Tailwind docs
 // ============================================================================
-const slateTheme: ThemePresetConfig = {
-  name: "Slate",
+const inkTheme: ThemePresetConfig = {
+  name: "Ink",
   description: "Premium technical documentation",
   tagline: "Refined, precise, distinguished",
-  primaryColor: "hsl(222 55% 12%)",
-  primaryColorHex: "#0e1726",
+  primaryColor: "hsl(174 79% 40%)",
+  primaryColorHex: "#14b8a5",
   colors: {
     light: {
-      primary: "hsl(222 55% 12%)",
-      primaryForeground: "hsl(210 40% 98%)",
+      primary: "hsl(174 79% 40%)",
+      primaryForeground: "hsl(0 0% 100%)",
       background: "hsl(220 20% 99%)",
       foreground: "hsl(222 50% 10%)",
       backgroundSubtle: "hsl(220 16% 94%)",
@@ -90,7 +90,7 @@ const slateTheme: ThemePresetConfig = {
       border: "hsl(220 14% 86%)",
       borderSubtle: "hsl(220 14% 92%)",
       accent: "hsl(220 16% 94%)",
-      accentForeground: "hsl(222 55% 12%)",
+      accentForeground: "hsl(174 79% 40%)",
       codeBackground: "hsl(220 14% 96%)",
       codeForeground: "hsl(222 47% 11%)",
       codeHighlight: "hsl(220 14% 92%)",
@@ -101,7 +101,7 @@ const slateTheme: ThemePresetConfig = {
       headerBorder: "hsl(220 14% 87%)",
     },
     dark: {
-      primary: "hsl(210 40% 98%)",
+      primary: "hsl(174 60% 70%)",
       primaryForeground: "hsl(222 55% 10%)",
       background: "hsl(228 10% 4%)",
       foreground: "hsl(210 22% 95%)",
@@ -733,16 +733,16 @@ const aubergineTheme: ThemePresetConfig = {
   },
 };
 
-// Custom theme (uses default/slate as base)
+// Custom theme (uses default/ink as base)
 const customTheme: ThemePresetConfig = {
-  ...slateTheme,
+  ...inkTheme,
   name: "Custom",
   description: "Use your own brand color",
   tagline: "Your brand, your style",
 };
 
 export const THEME_PRESETS: Record<ThemePreset, ThemePresetConfig> = {
-  default: slateTheme,
+  default: inkTheme,
   ocean: auroraTheme,
   forest: verdantTheme,
   ember: emberTheme,

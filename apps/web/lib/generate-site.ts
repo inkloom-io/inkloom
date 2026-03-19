@@ -590,7 +590,7 @@ ${generateThemeSpecificCss(themeKey)}
 export function generateThemeSpecificCss(themeKey: ThemePreset): string {
   switch (themeKey) {
     case "default":
-      return generateSlateCss();
+      return generateInkCss();
     case "ocean":
       return generateAuroraCss();
     case "forest":
@@ -608,20 +608,20 @@ export function generateThemeSpecificCss(themeKey: ThemePreset): string {
     case "aubergine":
       return generateAubergineCss();
     default:
-      return generateSlateCss();
+      return generateInkCss();
   }
 }
 
 /**
- * Slate theme: Premium technical documentation
+ * Ink theme: Premium technical documentation
  * Inspired by Stripe, Linear, Vercel — minimal but meticulously refined
  * Subtle mesh gradients, micro-shadows, crisp typography, elegant depth
  */
-function generateSlateCss(): string {
+function generateInkCss(): string {
   return `
-/* Slate: Premium refinement */
+/* Ink: Premium refinement */
 html {
-  --theme-name: "slate";
+  --theme-name: "ink";
 }
 
 /* Gradient splash — refined mesh with primary accent radiating from top */
