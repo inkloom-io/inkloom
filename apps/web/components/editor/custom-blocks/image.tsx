@@ -2,9 +2,9 @@
 
 import { defaultProps } from "@blocknote/core";
 import { createReactBlockSpec } from "@blocknote/react";
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { ImagePlus } from "lucide-react";
+import { ImagePlus, AlertCircle } from "lucide-react";
 import "./image.css";
 
 export const CustomImage = createReactBlockSpec(
@@ -45,6 +45,29 @@ export const CustomImage = createReactBlockSpec(
       const [isEditingAlt, setIsEditingAlt] = useState(false);
       const altInputRef = useRef<HTMLInputElement>(null);
 
+      // Upload state
+      const [isUploading, setIsUploading] = useState(false);
+      const [uploadingFile, setUploadingFile] = useState<File | null>(null);
+      const [uploadError, setUploadError] = useState<string | null>(null);
+      const uploadCancelledRef = useRef(false);
+
+      // Create a preview URL for the uploading file
+      const previewUrl = useMemo(() => {
+        if (uploadingFile) {
+          return URL.createObjectURL(uploadingFile);
+        }
+        return null;
+      }, [uploadingFile]);
+
+      // Clean up the object URL when the file changes or upload completes
+      useEffect(() => {
+        return () => {
+          if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+          }
+        };
+      }, [previewUrl]);
+
       // Focus the alt input when entering edit mode
       useEffect(() => {
         if (isEditingAlt && altInputRef.current) {
@@ -80,18 +103,48 @@ export const CustomImage = createReactBlockSpec(
           if (!file.type.startsWith("image/")) return;
           const editor = props.editor as any;
           if (editor.uploadFile) {
+            setIsUploading(true);
+            setUploadingFile(file);
+            setUploadError(null);
+            uploadCancelledRef.current = false;
             try {
-              const url = await editor.uploadFile(file);
+              const uploadedUrl = await editor.uploadFile(file);
+              if (uploadCancelledRef.current) return;
               props.editor.updateBlock(props.block, {
-                props: { url, name: file.name },
+                props: { url: uploadedUrl, name: file.name },
               });
             } catch {
-              // Upload failed — no-op, user can retry
+              if (!uploadCancelledRef.current) {
+                setUploadError("Failed to upload image");
+              }
+            } finally {
+              if (!uploadCancelledRef.current) {
+                setIsUploading(false);
+              }
             }
           }
         },
         [props.editor, props.block],
       );
+
+      const handleCancel = useCallback(() => {
+        uploadCancelledRef.current = true;
+        setIsUploading(false);
+        setUploadingFile(null);
+        setUploadError(null);
+      }, []);
+
+      const handleRetry = useCallback(() => {
+        if (uploadingFile) {
+          handleFile(uploadingFile);
+        }
+      }, [uploadingFile, handleFile]);
+
+      const handleChooseDifferent = useCallback(() => {
+        setUploadError(null);
+        setUploadingFile(null);
+        fileInputRef.current?.click();
+      }, []);
 
       const handleDrop = useCallback(
         (e: React.DragEvent) => {
@@ -129,6 +182,88 @@ export const CustomImage = createReactBlockSpec(
         [handleFile],
       );
 
+      // Error state
+      if (uploadError && !isUploading) {
+        return (
+          <div className="bn-image-block">
+            <div className="bn-image-error-container">
+              {previewUrl && (
+                <div
+                  className="bn-image-uploading-preview"
+                  style={{ backgroundImage: `url(${previewUrl})` }}
+                />
+              )}
+              <div className="bn-image-error-content">
+                <AlertCircle className="bn-image-error-icon" size={28} />
+                <span className="bn-image-error-message">{uploadError}</span>
+                <div className="bn-image-error-actions">
+                  <button
+                    type="button"
+                    className="bn-image-error-retry"
+                    onClick={handleRetry}
+                  >
+                    Try again
+                  </button>
+                  <button
+                    type="button"
+                    className="bn-image-error-choose"
+                    onClick={handleChooseDifferent}
+                  >
+                    Choose different file
+                  </button>
+                </div>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileInputChange}
+                className="bn-image-drop-target-input"
+                tabIndex={-1}
+              />
+            </div>
+          </div>
+        );
+      }
+
+      // Uploading state
+      if (isUploading && uploadingFile) {
+        const displayName =
+          uploadingFile.name.length > 40
+            ? `${uploadingFile.name.slice(0, 37)}...`
+            : uploadingFile.name;
+        return (
+          <div className="bn-image-block">
+            <div className="bn-image-uploading-container">
+              {previewUrl && (
+                <div
+                  className="bn-image-uploading-preview"
+                  style={{ backgroundImage: `url(${previewUrl})` }}
+                />
+              )}
+              <div className="bn-image-uploading-overlay">
+                <div className="bn-image-uploading-progress-track">
+                  <div className="bn-image-uploading-progress-fill" />
+                </div>
+                <div className="bn-image-uploading-footer">
+                  <span className="bn-image-uploading-status">
+                    Uploading image... {displayName}
+                  </span>
+                  <button
+                    type="button"
+                    className="bn-image-uploading-cancel"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Empty state (no URL, not uploading)
       if (!url) {
         return (
           <div className="bn-image-block">
