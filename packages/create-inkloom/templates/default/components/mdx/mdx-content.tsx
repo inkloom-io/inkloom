@@ -9,9 +9,6 @@ import type { ComponentOverrides } from "@inkloom/docs-renderer";
 import { Link } from "react-router";
 import { highlightCode as shikiHighlightCode } from "@/lib/syntax-highlighter";
 import { ApiEndpoint } from "./api-endpoint";
-import { ParamField } from "./param-field";
-import { ResponseField } from "./response-field";
-import { Expandable } from "./expandable";
 import { MermaidDiagram } from "./mermaid-diagram";
 
 // Wrapper to adapt react-router's Link (uses `to`) to docs-renderer's LinkComponent (uses `href`)
@@ -52,9 +49,6 @@ async function highlightCode(code: string, language: string): Promise<string> {
 // Published-site-specific component overrides with full implementations
 const publishedOverrides: ComponentOverrides = {
   ApiEndpoint,
-  ParamField,
-  ResponseField,
-  Expandable,
   MermaidDiagram,
 };
 

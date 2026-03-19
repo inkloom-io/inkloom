@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   MDXRenderer,
   type ComponentOverrides,
@@ -37,79 +37,12 @@ function PreviewApiEndpoint({ method, path, deprecated, children }: {
   );
 }
 
-// Minimal preview-only ParamField component
-function PreviewParamField({ name, type, location, required, children }: {
-  name: string;
-  type?: string;
-  location?: string;
-  required?: boolean;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div style={{ borderBottom: "1px solid var(--border, #e5e7eb)", padding: "8px 0" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <code style={{ fontWeight: 600 }}>{name}</code>
-        {type && <span style={{ color: "#6b7280", fontSize: "13px" }}>{type}</span>}
-        {location && <span style={{ color: "#6b7280", fontSize: "12px", background: "var(--muted, #f3f4f6)", padding: "1px 6px", borderRadius: "4px" }}>{location}</span>}
-        {required && <span style={{ color: "#ef4444", fontSize: "12px", fontWeight: 600 }}>required</span>}
-      </div>
-      {children && <div style={{ marginTop: "4px", fontSize: "14px", color: "var(--muted-foreground, #6b7280)" }}>{children}</div>}
-    </div>
-  );
-}
-
-// Minimal preview-only ResponseField component
-function PreviewResponseField({ name, type, required, children }: {
-  name: string;
-  type?: string;
-  required?: boolean;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div style={{ borderBottom: "1px solid var(--border, #e5e7eb)", padding: "8px 0" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <code style={{ fontWeight: 600 }}>{name}</code>
-        {type && <span style={{ color: "#6b7280", fontSize: "13px" }}>{type}</span>}
-        {required && <span style={{ color: "#ef4444", fontSize: "12px", fontWeight: 600 }}>required</span>}
-      </div>
-      {children && <div style={{ marginTop: "4px", fontSize: "14px", color: "var(--muted-foreground, #6b7280)" }}>{children}</div>}
-    </div>
-  );
-}
-
-// Minimal preview-only Expandable component
-function PreviewExpandable({ title, type, children }: {
-  title: string;
-  type?: string;
-  children?: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div style={{ border: "1px solid var(--border, #e5e7eb)", borderRadius: "6px", marginBottom: "8px" }}>
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 12px", background: "none", border: "none", cursor: "pointer", textAlign: "left" as const, fontSize: "14px" }}
-      >
-        <span>{open ? "\u25BC" : "\u25B6"}</span>
-        <code style={{ fontWeight: 600 }}>{title}</code>
-        {type && <span style={{ color: "#6b7280", fontSize: "13px" }}>{type}</span>}
-      </button>
-      {open && <div style={{ padding: "8px 12px", borderTop: "1px solid var(--border, #e5e7eb)" }}>{children}</div>}
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Component overrides wiring
 // ---------------------------------------------------------------------------
 
 const previewOverrides: ComponentOverrides = {
   ApiEndpoint: PreviewApiEndpoint as ComponentOverrides["ApiEndpoint"],
-  ParamField: PreviewParamField as ComponentOverrides["ParamField"],
-  ResponseField: PreviewResponseField as ComponentOverrides["ResponseField"],
-  Expandable: PreviewExpandable as ComponentOverrides["Expandable"],
 };
 
 // ---------------------------------------------------------------------------

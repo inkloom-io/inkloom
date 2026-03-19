@@ -21,6 +21,9 @@ export { Video } from "./components/video";
 export { IFrame } from "./components/iframe";
 export { Badge } from "./components/badge";
 export { InlineIcon } from "./components/inline-icon";
+export { ParamField } from "./components/param-field";
+export { ResponseField } from "./components/response-field";
+export { Expandable } from "./components/expandable";
 
 // MDX parsing utilities
 export {

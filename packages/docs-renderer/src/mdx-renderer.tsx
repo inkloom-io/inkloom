@@ -25,6 +25,9 @@ import {
   IFrame,
   InlineIcon,
   Badge,
+  ParamField,
+  ResponseField,
+  Expandable,
 } from "./index";
 import type { ParsedComponent } from "./mdx-parser";
 import {
@@ -46,9 +49,6 @@ import {
  */
 export interface ComponentOverrides {
   ApiEndpoint?: React.ComponentType<Record<string, unknown>>;
-  ParamField?: React.ComponentType<Record<string, unknown>>;
-  ResponseField?: React.ComponentType<Record<string, unknown>>;
-  Expandable?: React.ComponentType<Record<string, unknown>>;
   /** Optional mermaid diagram component for code blocks with language "mermaid" */
   MermaidDiagram?: React.ComponentType<{ code: string }>;
 }
@@ -744,177 +744,45 @@ export function renderComponent(
       );
     }
 
-    case "ParamField": {
-      const ParamComp = componentOverrides?.ParamField;
-      if (ParamComp) {
-        return (
-          <ParamComp
-            key={key}
-            name={(props.name as string) || ""}
-            type={props.type as string}
-            location={props.location as string}
-            required={
-              props.required === true || props.required === "true"
-            }
-          >
-            {children && <span>{children}</span>}
-          </ParamComp>
-        );
-      }
-      // Fallback
+    case "ParamField":
       return (
-        <div
+        <ParamField
           key={key}
-          style={{
-            borderBottom: "1px solid var(--border, #e5e7eb)",
-            padding: "8px 0",
-          }}
+          name={(props.name as string) || ""}
+          type={props.type as string}
+          location={props.location as string}
+          required={
+            props.required === true || props.required === "true"
+          }
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <code style={{ fontWeight: 600 }}>
-              {(props.name as string) || ""}
-            </code>
-            {props.type && (
-              <span style={{ color: "#6b7280", fontSize: "13px" }}>
-                {props.type as string}
-              </span>
-            )}
-          </div>
-          {children && (
-            <div
-              style={{
-                marginTop: "4px",
-                fontSize: "14px",
-                color: "var(--muted-foreground, #6b7280)",
-              }}
-            >
-              {children}
-            </div>
-          )}
-        </div>
+          {children && renderContent(children)}
+        </ParamField>
       );
-    }
 
-    case "ResponseField": {
-      const ResponseComp = componentOverrides?.ResponseField;
-      if (ResponseComp) {
-        return (
-          <ResponseComp
-            key={key}
-            name={(props.name as string) || ""}
-            type={props.type as string}
-            required={
-              props.required === true || props.required === "true"
-            }
-          >
-            {children && renderContent(children)}
-          </ResponseComp>
-        );
-      }
-      // Fallback
+    case "ResponseField":
       return (
-        <div
+        <ResponseField
           key={key}
-          style={{
-            borderBottom: "1px solid var(--border, #e5e7eb)",
-            padding: "8px 0",
-          }}
+          name={(props.name as string) || ""}
+          type={props.type as string}
+          required={
+            props.required === true || props.required === "true"
+          }
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <code style={{ fontWeight: 600 }}>
-              {(props.name as string) || ""}
-            </code>
-            {props.type && (
-              <span style={{ color: "#6b7280", fontSize: "13px" }}>
-                {props.type as string}
-              </span>
-            )}
-          </div>
-          {children && (
-            <div
-              style={{
-                marginTop: "4px",
-                fontSize: "14px",
-                color: "var(--muted-foreground, #6b7280)",
-              }}
-            >
-              {renderContent(children)}
-            </div>
-          )}
-        </div>
+          {children && renderContent(children)}
+        </ResponseField>
       );
-    }
 
-    case "Expandable": {
-      const ExpandableComp = componentOverrides?.Expandable;
-      if (ExpandableComp) {
-        return (
-          <ExpandableComp
-            key={key}
-            title={(props.title as string) || ""}
-            type={props.type as string}
-          >
-            {children && renderContent(children)}
-          </ExpandableComp>
-        );
-      }
-      // Fallback: render as a details/summary element
+    case "Expandable":
       return (
-        <details
+        <Expandable
           key={key}
-          style={{
-            border: "1px solid var(--border, #e5e7eb)",
-            borderRadius: "6px",
-            marginBottom: "8px",
-          }}
+          title={(props.title as string) || ""}
+          type={props.type as string}
         >
-          <summary
-            style={{
-              padding: "8px 12px",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
-          >
-            <code style={{ fontWeight: 600 }}>
-              {(props.title as string) || ""}
-            </code>
-            {props.type && (
-              <span
-                style={{
-                  color: "#6b7280",
-                  fontSize: "13px",
-                  marginLeft: "8px",
-                }}
-              >
-                {props.type as string}
-              </span>
-            )}
-          </summary>
-          {children && (
-            <div
-              style={{
-                padding: "8px 12px",
-                borderTop: "1px solid var(--border, #e5e7eb)",
-              }}
-            >
-              {renderContent(children)}
-            </div>
-          )}
-        </details>
+          {children && renderContent(children)}
+        </Expandable>
       );
-    }
 
     case "Frame":
       return (
