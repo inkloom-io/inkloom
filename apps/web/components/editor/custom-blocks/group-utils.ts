@@ -89,11 +89,6 @@ export function getGroupContainer(
       continue;
     }
 
-    // Another container type breaks the group — this child belongs to a different group
-    if (CONTAINER_TYPES.has(prevType)) {
-      return null;
-    }
-
     // Skip empty paragraphs
     if (prevType === "paragraph") {
       const content = prevBlock.content as Array<{ type: string; text?: string }> | undefined;
@@ -102,11 +97,12 @@ export function getGroupContainer(
           (content.length === 1 && firstItem?.type === "text" && firstItem?.text === "")) {
         continue;
       }
+      // Non-empty paragraph breaks the group
+      return null;
     }
 
-    // Skip non-container blocks (content blocks interleaved within the group,
-    // e.g. a code block or image inserted inside a tab's content area)
-    continue;
+    // Any other block type breaks the group
+    return null;
   }
 
   if (containerIndex === -1 || !containerType) return null;
@@ -123,12 +119,17 @@ export function getGroupContainer(
 
     if (nextType === expectedChildType) {
       siblings.push(nextBlock);
-    } else if (CONTAINER_TYPES.has(nextType)) {
-      // Another container type ends the group
-      break;
+    } else if (nextType === "paragraph") {
+      const content = nextBlock.content as Array<{ type: string; text?: string }> | undefined;
+      const firstItem = content?.[0];
+      if (!content || content.length === 0 ||
+          (content.length === 1 && firstItem?.type === "text" && firstItem?.text === "")) {
+        continue; // Skip empty paragraphs
+      }
+      break; // Non-empty paragraph breaks the group
+    } else {
+      break; // Any other block type breaks the group
     }
-    // Skip all other block types (empty paragraphs, content blocks interleaved
-    // within the group like images or code blocks inserted into a tab)
   }
 
   const indexInGroup = siblings.findIndex(s => s.id === block.id);
@@ -173,12 +174,17 @@ export function getGroupChildren(
 
     if (nextType === expectedChildType) {
       children.push(nextBlock);
-    } else if (CONTAINER_TYPES.has(nextType)) {
-      // Another container type ends the group
-      break;
+    } else if (nextType === "paragraph") {
+      const content = nextBlock.content as Array<{ type: string; text?: string }> | undefined;
+      const firstItem = content?.[0];
+      if (!content || content.length === 0 ||
+          (content.length === 1 && firstItem?.type === "text" && firstItem?.text === "")) {
+        continue; // Skip empty paragraphs
+      }
+      break; // Non-empty paragraph breaks the group
+    } else {
+      break; // Any other block type breaks the group
     }
-    // Skip all other block types (empty paragraphs, content blocks interleaved
-    // within the group like images or code blocks inserted into a tab)
   }
 
   return children;

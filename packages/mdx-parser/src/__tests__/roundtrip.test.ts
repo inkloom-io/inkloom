@@ -246,24 +246,25 @@ describe("mdxToBlockNote", () => {
     expect(blocks[2].props?.title).toBe("Vue");
   });
 
-  it("parses Tabs with nested blocks as flat sibling array", () => {
+  it("parses Tabs with nested blocks in tab children", () => {
     const mdx = `<Tabs>\n<Tab title="Example">\nSome text\n\n\`\`\`javascript\nconst x = 1;\n\`\`\`\n</Tab>\n<Tab title="Other">\nOther content\n</Tab>\n</Tabs>`;
     const blocks = mdxToBlockNote(mdx);
-    // Should be: [tabs, tab("Example"), codeBlock, tab("Other")]
+    // Should be: [tabs, tab("Example" with codeBlock child), tab("Other")]
     expect(blocks[0].type).toBe("tabs");
     expect(blocks[1].type).toBe("tab");
     expect(blocks[1].props?.title).toBe("Example");
-    expect(blocks[1].children).toBeUndefined();
     // Inline content stays in tab's content
     const content = blocks[1].content as Array<{ type: string; text?: string }>;
     expect(content.some((c) => c.text?.includes("Some text"))).toBe(true);
-    // Code block is a flat sibling, NOT nested in children
-    expect(blocks[2].type).toBe("codeBlock");
-    expect(blocks[2].props?.language).toBe("javascript");
-    expect(blocks[2].props?.code).toBe("const x = 1;");
-    // Second tab follows the code block
-    expect(blocks[3].type).toBe("tab");
-    expect(blocks[3].props?.title).toBe("Other");
+    // Code block is nested in children, NOT a flat sibling
+    expect(blocks[1].children).toBeDefined();
+    expect(blocks[1].children?.some((c) => c.type === "codeBlock")).toBe(true);
+    const codeChild = blocks[1].children?.find((c) => c.type === "codeBlock");
+    expect(codeChild?.props?.language).toBe("javascript");
+    expect(codeChild?.props?.code).toBe("const x = 1;");
+    // Second tab follows directly (no interleaved siblings)
+    expect(blocks[2].type).toBe("tab");
+    expect(blocks[2].props?.title).toBe("Other");
   });
 
   it("parses Steps with Step children", () => {
@@ -625,7 +626,7 @@ describe("mdxToBlockNote", () => {
   });
 
   describe("block-level content inside JSX components", () => {
-    it("parses a code block inside a Tab as flat siblings", () => {
+    it("parses a code block inside a Tab into children", () => {
       const mdx = `<Tabs>\n<Tab title="Example">\nSome intro text:\n\n\`\`\`javascript\nconst x = 1;\n\`\`\`\n</Tab>\n</Tabs>`;
       const blocks = mdxToBlockNote(mdx);
       const tab = blocks.find((b) => b.type === "tab");
@@ -633,12 +634,12 @@ describe("mdxToBlockNote", () => {
       // Inline text should be in content
       const content = tab?.content as Array<{ type: string; text?: string }>;
       expect(content.some((c) => c.text?.includes("intro text"))).toBe(true);
-      // Code block should be a flat sibling after the tab, not nested in children
-      expect(tab?.children).toBeUndefined();
-      const codeBlock = blocks.find((b) => b.type === "codeBlock");
-      expect(codeBlock).toBeDefined();
-      expect(codeBlock?.props?.language).toBe("javascript");
-      expect(codeBlock?.props?.code).toBe("const x = 1;");
+      // Code block should be nested in children
+      expect(tab?.children).toBeDefined();
+      expect(tab?.children?.some((c) => c.type === "codeBlock")).toBe(true);
+      const codeChild = tab?.children?.find((c) => c.type === "codeBlock");
+      expect(codeChild?.props?.language).toBe("javascript");
+      expect(codeChild?.props?.code).toBe("const x = 1;");
     });
 
     it("parses a code block inside a Step into children", () => {
@@ -696,14 +697,62 @@ describe("mdxToBlockNote", () => {
       expect(step?.children?.some((c) => c.type === "image")).toBe(true);
     });
 
-    it("handles table inside a Tab as flat sibling", () => {
+    it("handles table inside a Tab in children", () => {
       const mdx = `<Tabs>\n<Tab title="Data">\nThe data:\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n</Tab>\n</Tabs>`;
       const blocks = mdxToBlockNote(mdx);
       const tab = blocks.find((b) => b.type === "tab");
       expect(tab).toBeDefined();
-      expect(tab?.children).toBeUndefined();
-      const table = blocks.find((b) => b.type === "table");
-      expect(table).toBeDefined();
+      // Table should be nested in children
+      expect(tab?.children).toBeDefined();
+      expect(tab?.children?.some((c) => c.type === "table")).toBe(true);
+    });
+  });
+
+  describe("content after tabs is not absorbed (regression)", () => {
+    it("content after Tabs block remains independent", () => {
+      const mdx = `<Tabs>\n<Tab title="Tab 1">\nFirst tab content\n</Tab>\n<Tab title="Tab 2">\nSecond tab content\n</Tab>\n</Tabs>\n\n## Next Section\n\nSome paragraph after tabs.`;
+      const blocks = mdxToBlockNote(mdx);
+      // Tabs and tab blocks come first
+      expect(blocks[0].type).toBe("tabs");
+      expect(blocks[1].type).toBe("tab");
+      expect(blocks[1].props?.title).toBe("Tab 1");
+      expect(blocks[2].type).toBe("tab");
+      expect(blocks[2].props?.title).toBe("Tab 2");
+      // Content after tabs should NOT be inside the last tab
+      const heading = blocks.find((b) => b.type === "heading");
+      expect(heading).toBeDefined();
+      // Heading should be a top-level block, not inside a tab's children
+      const lastTab = blocks[2];
+      const headingInChildren = lastTab.children?.some((c) => c.type === "heading");
+      expect(headingInChildren).toBeFalsy();
+    });
+
+    it("multiple container blocks in sequence remain independent", () => {
+      const mdx = `<Tabs>\n<Tab title="A">\nTab A\n</Tab>\n</Tabs>\n\n<AccordionGroup>\n<Accordion title="FAQ">\nAnswer\n</Accordion>\n</AccordionGroup>\n\n<Columns cols={2}>\n<Column>\nCol 1\n</Column>\n<Column>\nCol 2\n</Column>\n</Columns>`;
+      const blocks = mdxToBlockNote(mdx);
+      const types = blocks.map((b) => b.type);
+      // All three container types should appear as independent top-level blocks
+      expect(types).toContain("tabs");
+      expect(types).toContain("accordionGroup");
+      expect(types).toContain("columns");
+      // Accordion and columns should NOT be inside a tab's children
+      const tabIndex = types.indexOf("tab");
+      const tab = blocks[tabIndex];
+      expect(tab?.children?.some((c) => c.type === "accordionGroup" || c.type === "columns")).toBeFalsy();
+    });
+
+    it("content inside a tab via children still renders inside the tab", () => {
+      const mdx = `<Tabs>\n<Tab title="Code">\nHere is code:\n\n\`\`\`python\nprint("hi")\n\`\`\`\n</Tab>\n</Tabs>\n\n## After Tabs`;
+      const blocks = mdxToBlockNote(mdx);
+      const tab = blocks.find((b) => b.type === "tab");
+      expect(tab).toBeDefined();
+      // Code block should be inside the tab's children
+      expect(tab?.children).toBeDefined();
+      expect(tab?.children?.some((c) => c.type === "codeBlock")).toBe(true);
+      // Heading after tabs should be independent
+      const heading = blocks.find((b) => b.type === "heading");
+      expect(heading).toBeDefined();
+      expect(tab?.children?.some((c) => c.type === "heading")).toBeFalsy();
     });
   });
 });
@@ -1546,5 +1595,65 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     const output = blockNoteToMDX(blocks);
     const blocks2 = mdxToBlockNote(output);
     expect(blocks2[0].type).toBe("quote");
+  });
+
+  describe("tabs serialization does not absorb following content (regression)", () => {
+    it("content after last tab is serialized outside Tabs", () => {
+      const blocks = [
+        { type: "tabs", content: [] },
+        { type: "tab", props: { title: "Tab 1" }, content: [{ type: "text", text: "First" }] },
+        { type: "tab", props: { title: "Tab 2" }, content: [{ type: "text", text: "Second" }] },
+        { type: "heading", props: { level: 2 }, content: [{ type: "text", text: "After Tabs" }] },
+        { type: "paragraph", content: [{ type: "text", text: "Independent content" }] },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      // Heading should come AFTER </Tabs>, not inside a <Tab>
+      const tabsCloseIndex = mdx.indexOf("</Tabs>");
+      const headingIndex = mdx.indexOf("## After Tabs");
+      expect(tabsCloseIndex).toBeGreaterThan(-1);
+      expect(headingIndex).toBeGreaterThan(-1);
+      expect(headingIndex).toBeGreaterThan(tabsCloseIndex);
+      // Independent content should also be outside
+      const paragraphIndex = mdx.indexOf("Independent content");
+      expect(paragraphIndex).toBeGreaterThan(tabsCloseIndex);
+    });
+
+    it("tab with children serializes children inside the tab", () => {
+      const blocks = [
+        { type: "tabs", content: [] },
+        {
+          type: "tab",
+          props: { title: "Code Tab" },
+          content: [{ type: "text", text: "Example:" }],
+          children: [
+            { type: "codeBlock", props: { language: "js", code: "const x = 1;" } },
+          ],
+        },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      expect(mdx).toContain("<Tabs>");
+      expect(mdx).toContain('<Tab title="Code Tab">');
+      expect(mdx).toContain("const x = 1;");
+      expect(mdx).toContain("</Tab>");
+      expect(mdx).toContain("</Tabs>");
+    });
+
+    it("sequential container blocks remain independent in output", () => {
+      const blocks = [
+        { type: "tabs", content: [] },
+        { type: "tab", props: { title: "A" }, content: [{ type: "text", text: "Tab A" }] },
+        { type: "accordionGroup", content: [] },
+        { type: "accordion", props: { title: "FAQ" }, content: [{ type: "text", text: "Answer" }] },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      expect(mdx).toContain("<Tabs>");
+      expect(mdx).toContain("</Tabs>");
+      expect(mdx).toContain("<AccordionGroup>");
+      expect(mdx).toContain("</AccordionGroup>");
+      // Accordion should be outside Tabs
+      const tabsCloseIndex = mdx.indexOf("</Tabs>");
+      const accordionIndex = mdx.indexOf("<AccordionGroup>");
+      expect(accordionIndex).toBeGreaterThan(tabsCloseIndex);
+    });
   });
 });

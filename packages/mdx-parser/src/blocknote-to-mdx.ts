@@ -970,11 +970,11 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
       continue;
     }
 
-    // Handle tabs container - collect following tab blocks and their sibling content
+    // Handle tabs container - collect following tab blocks (skipping empty paragraphs)
     if (block.type === "tabs") {
       mdx += "<Tabs>\n";
       i++;
-      // Skip empty paragraphs and collect all following tab blocks with their content siblings
+      // Skip empty paragraphs and collect all following tab blocks
       while (i < blocks.length) {
         const nextBlock = blocks[i];
         if (!nextBlock) break;
@@ -985,34 +985,8 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
         }
         // Stop if we hit a non-tab block that isn't an empty paragraph
         if (nextBlock.type !== "tab") break;
-
-        // Convert the tab block itself
-        const tabBlock = nextBlock;
+        mdx += convertBlock(nextBlock);
         i++;
-
-        // Collect non-tab sibling blocks that follow this tab (they belong to the tab's content)
-        const contentSiblings: BlockNoteBlock[] = [];
-        while (i < blocks.length) {
-          const sibling = blocks[i];
-          if (!sibling) break;
-          if (sibling.type === "tab" || sibling.type === "tabs") break;
-          if (isEmptyParagraph(sibling)) {
-            i++;
-            continue;
-          }
-          contentSiblings.push(sibling);
-          i++;
-        }
-
-        // Build the tab with both its own children and content siblings
-        const mergedTab: BlockNoteBlock = {
-          ...tabBlock,
-          children: [
-            ...(tabBlock.children || []),
-            ...contentSiblings,
-          ],
-        };
-        mdx += convertBlock(mergedTab);
       }
       mdx += "</Tabs>\n\n";
       prevBlockType = "tabs";
