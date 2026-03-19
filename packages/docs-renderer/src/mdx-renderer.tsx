@@ -25,6 +25,7 @@ import {
   IFrame,
   InlineIcon,
   Badge,
+  MermaidDiagram,
   ParamField,
   ResponseField,
   Expandable,
@@ -49,8 +50,9 @@ import {
  */
 export interface ComponentOverrides {
   ApiEndpoint?: React.ComponentType<Record<string, unknown>>;
-  /** Optional mermaid diagram component for code blocks with language "mermaid" */
-  MermaidDiagram?: React.ComponentType<{ code: string }>;
+  ParamField?: React.ComponentType<Record<string, unknown>>;
+  ResponseField?: React.ComponentType<Record<string, unknown>>;
+  Expandable?: React.ComponentType<Record<string, unknown>>;
 }
 
 interface RenderOptions {
@@ -855,9 +857,9 @@ export function MDXRenderer({
   content,
   componentOverrides,
 }: MDXRendererProps) {
-  // Build markdown components once, passing mermaid override if provided
+  // Build markdown components once, always passing the built-in MermaidDiagram
   const markdownComponents = getMarkdownComponents({
-    MermaidDiagram: componentOverrides?.MermaidDiagram,
+    MermaidDiagram,
   });
 
   // The recursive renderContent function used by child renderers

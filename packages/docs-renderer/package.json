@@ -31,6 +31,16 @@
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "react": ">=18"
+    "react": ">=18",
+    "mermaid": ">=11",
+    "elkjs": ">=0.9"
+  },
+  "peerDependenciesMeta": {
+    "mermaid": {
+      "optional": true
+    },
+    "elkjs": {
+      "optional": true
+    }
   }
 }

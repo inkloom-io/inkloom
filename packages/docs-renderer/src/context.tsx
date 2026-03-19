@@ -11,6 +11,7 @@ interface LinkComponentProps {
 export interface DocsRendererConfig {
   LinkComponent: ComponentType<LinkComponentProps>;
   highlightCode: (code: string, language: string) => Promise<string>;
+  resolvedTheme?: "light" | "dark";
 }
 
 const DefaultLink = ({
@@ -43,9 +44,10 @@ export function DocsRendererProvider({
   children,
   LinkComponent = DefaultLink,
   highlightCode = defaultHighlightCode,
+  resolvedTheme,
 }: DocsRendererProviderProps) {
   return (
-    <DocsRendererContext.Provider value={{ LinkComponent, highlightCode }}>
+    <DocsRendererContext.Provider value={{ LinkComponent, highlightCode, resolvedTheme }}>
       {children}
     </DocsRendererContext.Provider>
   );

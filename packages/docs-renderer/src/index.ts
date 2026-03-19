@@ -21,6 +21,7 @@ export { Video } from "./components/video";
 export { IFrame } from "./components/iframe";
 export { Badge } from "./components/badge";
 export { InlineIcon } from "./components/inline-icon";
+export { MermaidDiagram } from "./components/mermaid-diagram";
 export { ParamField } from "./components/param-field";
 export { ResponseField } from "./components/response-field";
 export { Expandable } from "./components/expandable";
