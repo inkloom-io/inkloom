@@ -528,12 +528,33 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       if (node.children) {
         for (const child of node.children) {
           if (child.type === "code") {
+            const childProps: Record<string, unknown> = {
+              language: child.lang || "",
+              code: child.value || "",
+            };
+
+            if (child.meta) {
+              // Parse height from meta if present (e.g., {height=300})
+              const heightMatch = child.meta.match(/\{height=(\d+)\}/);
+              if (heightMatch) {
+                childProps.height = heightMatch[1];
+              }
+              // Parse title from meta — supports title="value" or bare text
+              const titleMatch = child.meta.match(/title="([^"]*)"/);
+              if (titleMatch) {
+                childProps.title = titleMatch[1];
+              } else {
+                // Title is everything in meta except {key=value} metadata blocks
+                const title = child.meta.replace(/\{[^}]*\}/g, "").trim();
+                if (title) {
+                  childProps.title = title;
+                }
+              }
+            }
+
             blocks.push({
               type: "codeBlock",
-              props: {
-                language: child.lang || "",
-                code: child.value || "",
-              },
+              props: childProps,
             });
           }
         }
@@ -1262,10 +1283,16 @@ function convertBlockNode(node: MdastNode): BlockNoteBlock[] {
         if (heightMatch) {
           props.height = heightMatch[1];
         }
-        // Title is everything in meta except {key=value} metadata blocks
-        const title = node.meta.replace(/\{[^}]*\}/g, "").trim();
-        if (title) {
-          props.title = title;
+        // Parse title from meta — supports title="value" or bare text
+        const titleMatch = node.meta.match(/title="([^"]*)"/);
+        if (titleMatch) {
+          props.title = titleMatch[1];
+        } else {
+          // Title is everything in meta except {key=value} metadata blocks
+          const title = node.meta.replace(/\{[^}]*\}/g, "").trim();
+          if (title) {
+            props.title = title;
+          }
         }
       }
 

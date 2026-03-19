@@ -69,7 +69,7 @@ export const CodeGroup = createReactBlockSpec(
       const editor = useBlockNoteEditor();
       const t = useTranslations("editor.blocks");
       const [children, setChildren] = useState<
-        Array<{ id: string; language: string }>
+        Array<{ id: string; language: string; title?: string }>
       >([]);
       const activeIndex = parseInt(props.block.props.activeIndex || "0", 10);
 
@@ -80,7 +80,8 @@ export const CodeGroup = createReactBlockSpec(
           setChildren(
             childBlocks.map((childBlock) => {
               const lang = (childBlock.props?.language as string) || "javascript";
-              return { id: childBlock.id, language: lang === "text" ? "plaintext" : lang };
+              const title = (childBlock.props?.title as string) || undefined;
+              return { id: childBlock.id, language: lang === "text" ? "plaintext" : lang, title };
             })
           );
         };
@@ -202,7 +203,7 @@ export const CodeGroup = createReactBlockSpec(
                       data-active="false"
                       onClick={() => setActiveIndex(index)}
                     >
-                      {LANGUAGE_LABELS[child.language] || child.language}
+                      {child.title || LANGUAGE_LABELS[child.language] || child.language}
                     </button>
                   )
                 ))}

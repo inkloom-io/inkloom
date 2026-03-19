@@ -307,6 +307,26 @@ describe("mdxToBlockNote", () => {
     expect(blocks[2].props?.language).toBe("python");
   });
 
+  it("parses CodeGroup with titled code blocks from meta", () => {
+    const mdx = `<CodeGroup>\n\`\`\`json title="200"\n{ "ok": true }\n\`\`\`\n\`\`\`json title="400"\n{ "error": "bad" }\n\`\`\`\n</CodeGroup>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[0].type).toBe("codeGroup");
+    expect(blocks[1].type).toBe("codeBlock");
+    expect(blocks[1].props?.language).toBe("json");
+    expect(blocks[1].props?.title).toBe("200");
+    expect(blocks[2].type).toBe("codeBlock");
+    expect(blocks[2].props?.language).toBe("json");
+    expect(blocks[2].props?.title).toBe("400");
+  });
+
+  it("parses CodeGroup with height in code block meta", () => {
+    const mdx = `<CodeGroup>\n\`\`\`python title="Example" {height=500}\nprint("hi")\n\`\`\`\n</CodeGroup>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[1].type).toBe("codeBlock");
+    expect(blocks[1].props?.title).toBe("Example");
+    expect(blocks[1].props?.height).toBe("500");
+  });
+
   it("parses a simple ResponseField", () => {
     const mdx = `<ResponseField name="id" type="string" required>\nThe unique identifier.\n</ResponseField>`;
     const blocks = mdxToBlockNote(mdx);
