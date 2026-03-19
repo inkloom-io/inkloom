@@ -240,7 +240,7 @@
 
 .bn-card-group-add-button:hover {
   background: var(--editor-primary, #6366f1);
-  color: white;
+  color: var(--editor-primary-foreground, #ffffff);
 }
 
 .bn-card-group-hint {
