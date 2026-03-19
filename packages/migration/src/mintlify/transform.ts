@@ -220,10 +220,18 @@ export function extractSnippetImports(body: string): {
   const snippetImports: Record<string, string> = {};
   const importLines = new Set<string>();
 
+  // Strip fenced code blocks before matching to avoid false positives
+  // on example imports inside ```...``` blocks.
+  // Preserve newlines so line-based import removal still works on the original body.
+  const bodyWithoutCodeBlocks = body.replace(
+    /^```[\s\S]*?^```/gm,
+    (match) => match.replace(/[^\n]/g, " "),
+  );
+
   let match: RegExpExecArray | null;
   // Reset lastIndex to ensure clean matching
   SNIPPET_IMPORT_RE.lastIndex = 0;
-  while ((match = SNIPPET_IMPORT_RE.exec(body)) !== null) {
+  while ((match = SNIPPET_IMPORT_RE.exec(bodyWithoutCodeBlocks)) !== null) {
     const componentName = match[1];
     const filePath = match[2];
     if (componentName && filePath) {

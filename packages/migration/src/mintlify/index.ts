@@ -80,6 +80,7 @@ async function inlineSnippets(
   dirPath: string,
   warnings: string[],
   depth: number = 0,
+  pageRef?: string,
 ): Promise<string> {
   if (Object.keys(snippetImports).length === 0) {
     return body;
@@ -98,7 +99,7 @@ async function inlineSnippets(
     const snippetFilePath = resolveSnippetFile(dirPath, importPath);
     if (!snippetFilePath) {
       warnings.push(
-        `Snippet file not found for import: ${componentName} from '${importPath}'`,
+        `Snippet file not found for import: ${componentName} from '${importPath}'${pageRef ? ` (in ${pageRef})` : ""}`,
       );
       continue;
     }
@@ -495,6 +496,8 @@ export async function parseMintlify(
       transformed.snippetImports,
       resolvedDir,
       warnings,
+      0,
+      pageRef,
     );
 
     // Build full MDX content (frontmatter + body)
@@ -585,6 +588,8 @@ export async function parseMintlify(
       transformed.snippetImports,
       resolvedDir,
       warnings,
+      0,
+      diskFile,
     );
 
     const mdxContent = transformed.frontmatter

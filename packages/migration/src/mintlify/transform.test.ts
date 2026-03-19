@@ -575,6 +575,37 @@ describe("extractSnippetImports", () => {
     const { snippetImports } = extractSnippetImports(body);
     expect(snippetImports).toEqual({ Foo: "/snippets/foo.mdx" });
   });
+
+  it("ignores imports inside fenced code blocks", () => {
+    const body = `Some text\n\n\`\`\`jsx\nimport Foo from '/snippets/foo.mdx';\n\n<Foo />\n\`\`\`\n\nMore text`;
+    const { snippetImports, bodyWithoutImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({});
+    // Code block content should be preserved intact
+    expect(bodyWithoutImports).toContain("import Foo from '/snippets/foo.mdx'");
+    expect(bodyWithoutImports).toContain("```jsx");
+  });
+
+  it("extracts real import but ignores same component name inside code block", () => {
+    const body = `import MySnippet from '/snippets/real-path.mdx';\n\nSome content\n\n\`\`\`jsx\nimport MySnippet from '/snippets/example-path.mdx';\n\`\`\`\n\n<MySnippet />`;
+    const { snippetImports, bodyWithoutImports } = extractSnippetImports(body);
+    // Should only extract the real import, not the one inside the code block
+    expect(snippetImports).toEqual({ MySnippet: "/snippets/real-path.mdx" });
+    // The real import line should be removed
+    expect(bodyWithoutImports).not.toMatch(/^import MySnippet from '\/snippets\/real-path\.mdx'/m);
+    // The code block import should be preserved
+    expect(bodyWithoutImports).toContain("import MySnippet from '/snippets/example-path.mdx'");
+    expect(bodyWithoutImports).toContain("<MySnippet />");
+  });
+
+  it("preserves code block content when stripping real imports", () => {
+    const body = `import Foo from '/snippets/foo.mdx';\n\n\`\`\`tsx\nimport Bar from '/snippets/bar.mdx';\nconsole.log('hello');\n\`\`\`\n\n<Foo />`;
+    const { snippetImports, bodyWithoutImports } = extractSnippetImports(body);
+    expect(snippetImports).toEqual({ Foo: "/snippets/foo.mdx" });
+    // Code block should be completely intact
+    expect(bodyWithoutImports).toContain("import Bar from '/snippets/bar.mdx'");
+    expect(bodyWithoutImports).toContain("console.log('hello')");
+    expect(bodyWithoutImports).toContain("```tsx");
+  });
 });
 
 describe("transformMintlifyMdx snippet imports", () => {
