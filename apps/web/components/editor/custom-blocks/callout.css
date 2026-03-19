@@ -76,10 +76,15 @@
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 0.75rem;
-  background: rgba(0, 0, 0, 0.2);
-  color: var(--editor-foreground, #f9fafb);
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--editor-foreground, #1a1a2e);
   cursor: pointer;
   outline: none;
+}
+
+.dark .bn-callout-type-select {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--editor-foreground, #f9fafb);
 }
 
 .bn-callout-type-select:focus {
