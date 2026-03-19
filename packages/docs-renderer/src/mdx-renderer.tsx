@@ -411,26 +411,23 @@ export function getMarkdownComponents(options?: {
       );
     },
     pre: ({ children }: { children?: React.ReactNode }) => {
+      // Get the first React element child (the <code> element, possibly wrapped by custom component)
+      const codeChild = React.Children.toArray(children).find(
+        (child): child is React.ReactElement => React.isValidElement(child)
+      ) as React.ReactElement | undefined;
+
       // Check if the child <code> has className="language-mermaid"
-      if (
-        options?.MermaidDiagram &&
-        children &&
-        typeof children === "object" &&
-        "props" in (children as React.ReactElement)
-      ) {
-        const codeElement = children as React.ReactElement<{
-          className?: string;
-          children?: React.ReactNode;
-        }>;
+      if (options?.MermaidDiagram && codeChild) {
+        const codeClassName = codeChild.props?.className || "";
         if (
-          codeElement.props.className &&
-          codeElement.props.className.includes("language-mermaid")
+          typeof codeClassName === "string" &&
+          codeClassName.includes("language-mermaid")
         ) {
           const codeText =
-            typeof codeElement.props.children === "string"
-              ? codeElement.props.children
-              : Array.isArray(codeElement.props.children)
-                ? codeElement.props.children
+            typeof codeChild.props.children === "string"
+              ? codeChild.props.children
+              : Array.isArray(codeChild.props.children)
+                ? codeChild.props.children
                     .map((c: unknown) => (typeof c === "string" ? c : ""))
                     .join("")
                 : "";
@@ -440,11 +437,6 @@ export function getMarkdownComponents(options?: {
       }
 
       // Extract language from child <code className="language-xxx">
-      const codeChild = React.Children.toArray(children).find(
-        (child): child is React.ReactElement =>
-          React.isValidElement(child) &&
-          (child as React.ReactElement).type === "code"
-      ) as React.ReactElement | undefined;
       const className = codeChild?.props?.className || "";
       const langMatch = className.match(/language-(\w+)/);
       const lang = langMatch ? langMatch[1] : undefined;
