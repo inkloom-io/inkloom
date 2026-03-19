@@ -5,6 +5,7 @@ import { createReactBlockSpec, useBlockNoteEditor } from "@blocknote/react";
 import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { getGroupChildren, getGroupPosition, findContainerBefore } from "./group-utils";
+import { IconPicker, IconDisplay } from "../icon-picker";
 import "./accordion.css";
 
 export const AccordionGroup = createReactBlockSpec(
@@ -184,15 +185,14 @@ export const Accordion = createReactBlockSpec(
             >
               <span className="bn-accordion-chevron">▶</span>
             </button>
-            <input
-              className="bn-accordion-icon-input"
-              value={icon}
-              onChange={(e) => {
+            {icon && <IconDisplay icon={icon} className="bn-accordion-icon" />}
+            <IconPicker
+              value={icon || undefined}
+              onChange={(newIcon) => {
                 props.editor.updateBlock(props.block, {
-                  props: { icon: e.target.value },
+                  props: { icon: newIcon || "" },
                 });
               }}
-              placeholder={t("iconPlaceholder")}
             />
             <input
               className="bn-accordion-title-input"

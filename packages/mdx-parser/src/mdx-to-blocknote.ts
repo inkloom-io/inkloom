@@ -25,6 +25,23 @@ function getAttrValue(
   return undefined;
 }
 
+/**
+ * Normalize an icon attribute value from MDX import.
+ * Bare icon names like "copy" or "book-open" get prefixed with "lucide:".
+ * Already-prefixed values ("lucide:copy") and emojis are returned as-is.
+ */
+export function normalizeIconAttr(value: string | undefined): string | undefined {
+  if (!value) return value;
+  // Already has a prefix (e.g. "lucide:copy")
+  if (value.includes(":")) return value;
+  // Looks like a lucide icon name: lowercase, alphanumeric with hyphens
+  if (/^[a-z][a-z0-9-]*$/.test(value)) {
+    return `lucide:${value}`;
+  }
+  // Emoji or other value — return as-is
+  return value;
+}
+
 /** Recursively extract plain text content from an mdast node tree. */
 function extractTextContent(node: MdastNode): string {
   if (node.value) return node.value;
@@ -380,7 +397,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
 
     case "Card": {
       const title = getAttrValue(attrs, "title") || "";
-      const icon = getAttrValue(attrs, "icon");
+      const icon = normalizeIconAttr(getAttrValue(attrs, "icon"));
       const href = getAttrValue(attrs, "href");
       const { inlineContent, blockChildren } = node.children
         ? convertMixedChildren(node.children)
@@ -500,7 +517,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
 
     case "Tab": {
       const title = getAttrValue(attrs, "title") || "Tab";
-      const icon = getAttrValue(attrs, "icon");
+      const icon = normalizeIconAttr(getAttrValue(attrs, "icon"));
       const { inlineContent, blockChildren } = node.children
         ? convertMixedChildren(node.children)
         : { inlineContent: [], blockChildren: [] };
@@ -586,7 +603,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
 
     case "Step": {
       const title = getAttrValue(attrs, "title") || "Step";
-      const icon = getAttrValue(attrs, "icon");
+      const icon = normalizeIconAttr(getAttrValue(attrs, "icon"));
       const { inlineContent, blockChildren } = node.children
         ? convertMixedChildren(node.children)
         : { inlineContent: [], blockChildren: [] };
@@ -623,7 +640,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
 
     case "Accordion": {
       const title = getAttrValue(attrs, "title") || "Accordion";
-      const icon = getAttrValue(attrs, "icon");
+      const icon = normalizeIconAttr(getAttrValue(attrs, "icon"));
       const defaultOpen = getAttrValue(attrs, "defaultOpen");
       const { inlineContent, blockChildren } = node.children
         ? convertMixedChildren(node.children)

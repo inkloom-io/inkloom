@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Children, isValidElement, type ReactNode } from "react";
+import { IconDisplay } from "./icon-display";
 
 interface AccordionProps {
   title: string;
@@ -24,7 +25,7 @@ export function Accordion({ title, icon, defaultOpen = false, children }: Accord
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
       >
-        {icon && <span className="accordion-icon">{icon}</span>}
+        {icon && <IconDisplay icon={icon} className="accordion-icon" />}
         <span className="accordion-title">{title}</span>
         <span className="accordion-chevron">&#9656;</span>
       </button>
