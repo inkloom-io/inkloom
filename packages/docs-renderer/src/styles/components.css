@@ -563,7 +563,7 @@ a:has(.card) {
 }
 
 .step:last-child .step-line {
-  display: none;
+  background: linear-gradient(to bottom, var(--color-border), transparent);
 }
 
 .step-content {

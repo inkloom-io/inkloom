@@ -167,7 +167,7 @@ export const Step = createReactBlockSpec(
             ) : (
               <span className="bn-step-number">{stepNumber}</span>
             )}
-            {!groupInfo?.isLast && <div className="bn-step-line" />}
+            <div className="bn-step-line" />
           </div>
           <div className="bn-step-content-wrapper">
             <div className="bn-step-header">

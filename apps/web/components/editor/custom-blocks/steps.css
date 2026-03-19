@@ -134,6 +134,11 @@
   opacity: 0.4;
 }
 
+.bn-step[data-is-last="true"] .bn-step-line {
+  background: linear-gradient(to bottom, var(--editor-primary, #6366f1), transparent);
+  opacity: 0.4;
+}
+
 /* Step content wrapper */
 .bn-step-content-wrapper {
   flex: 1;
