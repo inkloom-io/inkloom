@@ -127,6 +127,26 @@ export const CustomImage = createReactBlockSpec(
         [props.editor, props.block],
       );
 
+      // Listen for custom event dispatched by the custom file panel.
+      // When the user picks a file via the Upload tab the panel closes
+      // and this event triggers the in-block uploading animation.
+      useEffect(() => {
+        const editorEl = (props.editor as any).domElement as HTMLElement | null;
+        if (!editorEl) return;
+
+        const onImageUpload = (e: Event) => {
+          const ce = e as CustomEvent<{ blockId: string; file: File }>;
+          if (ce.detail.blockId === props.block.id) {
+            handleFile(ce.detail.file);
+          }
+        };
+
+        editorEl.addEventListener("bn-image-upload", onImageUpload);
+        return () => {
+          editorEl.removeEventListener("bn-image-upload", onImageUpload);
+        };
+      }, [props.editor, props.block.id, handleFile]);
+
       const handleCancel = useCallback(() => {
         uploadCancelledRef.current = true;
         setIsUploading(false);

@@ -24,7 +24,9 @@ import {
   NestBlockButton,
   UnnestBlockButton,
   CreateLinkButton,
+  FilePanelController,
 } from "@blocknote/react";
+import { CustomFilePanel } from "./custom-file-panel";
 import { useMutation } from "convex/react";
 import * as Y from "yjs";
 import { MessageSquarePlus, Tag, Smile } from "lucide-react";
@@ -1520,7 +1522,10 @@ export function BlockEditor({
           className="min-h-[500px]"
           slashMenu={false}
           formattingToolbar={false}
+          filePanel={false}
         >
+          {/* Custom file panel: closes immediately on image upload, shows in-block loading */}
+          <FilePanelController filePanel={CustomFilePanel} />
           <SuggestionMenuController
             triggerCharacter="/"
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
