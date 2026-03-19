@@ -4,7 +4,7 @@ import { defaultProps } from "@blocknote/core";
 import { createReactBlockSpec, useBlockNoteEditor } from "@blocknote/react";
 import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { getGroupChildren, getGroupPosition, findContainerBefore, isContainerType } from "./group-utils";
+import { getGroupChildren, getGroupPosition, findContainerBefore, isContainerType, isGroupChildType } from "./group-utils";
 import "./tabs.css";
 
 export const Tabs = createReactBlockSpec(
@@ -71,6 +71,8 @@ export const Tabs = createReactBlockSpec(
             const docBlock = editorDoc[i];
             if (!docBlock) continue;
             if (isContainerType(docBlock.type)) break;
+            // Break when we hit a group child that belongs to a different group type
+            if (docBlock.type !== "tab" && isGroupChildType(docBlock.type)) break;
 
             if (docBlock.type === "tab") {
               // Mark the last content block from the previous tab
