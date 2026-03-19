@@ -9,7 +9,6 @@ import {
   CommandDialog,
   CommandInput,
   CommandList,
-  CommandEmpty,
   CommandGroup,
   CommandItem,
 } from "@inkloom/ui/command";
@@ -107,17 +106,21 @@ export function SearchCommand({
             {t("buildingIndex")}
           </div>
         )}
-        {!isRebuilding && debouncedQuery && !searchResults?.length && (
-          <CommandEmpty>
-            <div className="flex flex-col items-center py-4">
-              <img
-                src="/mascot-search.svg"
-                alt=""
-                className="mb-3 h-20 w-20 opacity-80"
-              />
-              <span className="text-sm text-muted-foreground">{t("noResults")}</span>
-            </div>
-          </CommandEmpty>
+        {!isRebuilding && query && (!debouncedQuery || searchResults === undefined) && (
+          <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {t("searching")}
+          </div>
+        )}
+        {!isRebuilding && debouncedQuery && searchResults !== undefined && searchResults.length === 0 && (
+          <div className="flex flex-col items-center py-4">
+            <img
+              src="/mascot-search.svg"
+              alt=""
+              className="mb-3 h-20 w-20 opacity-80"
+            />
+            <span className="text-sm text-muted-foreground">{t("noResults")}</span>
+          </div>
         )}
         {!isRebuilding && searchResults && searchResults.length > 0 && (
           <CommandGroup heading={t("pagesGroup")}>
@@ -139,7 +142,7 @@ export function SearchCommand({
             ))}
           </CommandGroup>
         )}
-        {!isRebuilding && !debouncedQuery && (
+        {!isRebuilding && !query && (
           <div className="py-6 text-center text-sm text-muted-foreground">
             {t("startTyping")}
           </div>

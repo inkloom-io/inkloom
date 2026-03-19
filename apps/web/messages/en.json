@@ -1052,6 +1052,7 @@
       "placeholder": "Search pages...",
       "buildingIndex": "Building search index...",
       "noResults": "No results found.",
+      "searching": "Searching...",
       "pagesGroup": "Pages",
       "startTyping": "Start typing to search..."
     },
