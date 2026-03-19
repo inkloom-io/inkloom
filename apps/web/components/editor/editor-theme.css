@@ -1215,14 +1215,45 @@
   background: transparent !important;
 }
 
-/* When a frameContent block has children — same pattern */
+/* When a frameContent block has children — same pattern.
+   Uses display:flex + display:contents to reorder DOM so that
+   child blocks (images) appear ABOVE the caption:
+   inline content (order 1) → block-group/children (order 2) → caption (order 3) */
 .editor-theme-wrapper .bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group),
 .bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group) {
+  display: flex !important;
+  flex-direction: column !important;
   border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
   border-top: none;
   border-radius: 0 0 12px 12px;
   background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
   overflow: hidden;
+}
+
+/* Flatten wrappers between .bn-block and the actual content elements so flex ordering works */
+.bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group) > .bn-block-content {
+  display: contents !important;
+}
+
+.bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group) > .bn-block-content > * {
+  display: contents !important;
+}
+
+.bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group) .bn-frame-content-block {
+  display: contents !important;
+}
+
+/* Order: inline content first, then child blocks (images), then caption last */
+.bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group) .bn-frame-content {
+  order: 1;
+}
+
+.bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group) > .bn-block-group {
+  order: 2;
+}
+
+.bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group) .bn-frame-caption-area {
+  order: 3;
 }
 
 .bn-block:has(> .bn-block-group) .bn-frame-content-block[data-in-group="true"] {
