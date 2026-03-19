@@ -66,35 +66,70 @@
   text-align: center;
 }
 
-/* Accordion Block Styles */
+/* ============================================================================
+   VISUAL CONTAINMENT FIX
+   BlockNote renders child blocks (lists, callouts, code) in .bn-block-group,
+   which is a sibling of the block-content wrapper — outside .bn-accordion.
+   We move visual container styling to the .bn-block parent element so both
+   the block-content (containing .bn-accordion) and .bn-block-group (children)
+   are visually contained within the same styled area.
 
-.bn-accordion {
-  width: 100%;
-  border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
-  border-top: none;
-  margin: 0;
-  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
-  transition: all 0.15s ease;
-}
+   Actual DOM structure (verified via Playwright):
+     .bn-block[data-node-type="blockContainer"]       ← styled container (NEW)
+       .react-renderer.node-accordion
+         .bn-block-content[data-content-type="accordion"]
+           .bn-accordion                              ← header + inline content (stripped of border/bg)
+       .bn-block-group                                ← child blocks — now visually inside
 
-.bn-accordion[data-in-group="true"] {
-  border-radius: 0;
-}
+   We use :has() to target .bn-block based on its accordion descendant.
+   This pattern should be replicated for callout and steps blocks.
+   ============================================================================ */
 
-.bn-accordion[data-is-last="true"],
-.bn-accordion[data-in-group="false"] {
-  border-radius: 0 0 12px 12px;
-}
-
-.bn-accordion[data-in-group="false"] {
+/* Standalone accordion (not in a group) — container styling on .bn-block */
+.bn-block:has(> .node-accordion) {
   border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
   border-left: 3px solid var(--editor-primary, #6366f1);
   border-radius: 8px;
   margin: 8px 0;
+  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
+  overflow: hidden;
+  transition: all 0.15s ease;
 }
 
-.bn-accordion:hover {
+.bn-block:has(> .node-accordion):hover {
   background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+}
+
+/* Grouped accordion — override standalone styles when inside a group */
+.bn-block:has(> .node-accordion .bn-accordion[data-in-group="true"]) {
+  border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-top: none;
+  border-left: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-radius: 0;
+  margin: 0;
+}
+
+/* Last accordion in a group gets bottom border-radius */
+.bn-block:has(> .node-accordion .bn-accordion[data-is-last="true"]) {
+  border-radius: 0 0 12px 12px;
+}
+
+/* Inner .bn-accordion — stripped of container styling (now on .bn-block parent) */
+.bn-accordion {
+  width: 100%;
+  margin: 0;
+  transition: all 0.15s ease;
+}
+
+/* Hide child blocks (.bn-block-group) when accordion is collapsed */
+.bn-block:has(> .node-accordion .bn-accordion[data-expanded="false"]) > .bn-block-group {
+  display: none;
+}
+
+/* Style child blocks to appear as accordion content area */
+.bn-block:has(> .node-accordion) > .bn-block-group {
+  padding: 0 16px 8px;
+  margin-left: 0;
 }
 
 /* Accordion Header Row */
