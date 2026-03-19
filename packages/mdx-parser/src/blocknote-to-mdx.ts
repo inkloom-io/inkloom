@@ -689,9 +689,11 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       if (expChildren && expChildren.length > 0) {
         const expTitle = (block.props?.title as string) || "Details";
         const expType = block.props?.type as string;
+        const expDefaultOpen = block.props?.defaultOpen as string;
         const expAttrs = [
           `title="${expTitle}"`,
           expType && `type="${expType}"`,
+          expDefaultOpen === "true" && `defaultOpen`,
         ].filter(Boolean).join(" ");
         result = `<Expandable ${expAttrs}>\n`;
         for (const child of expChildren) {
@@ -906,9 +908,11 @@ function collectResponseFieldSlice(
     // Serialize this expandable with its children
     const expTitle = (nextBlock.props?.title as string) || "Details";
     const expType = nextBlock.props?.type as string;
+    const expDefaultOpen = nextBlock.props?.defaultOpen as string;
     const expAttrs = [
       `title="${expTitle}"`,
       expType && `type="${expType}"`,
+      expDefaultOpen === "true" && `defaultOpen`,
     ].filter(Boolean).join(" ");
     let expContent = `<Expandable ${expAttrs}>\n`;
     j++;
@@ -1149,9 +1153,11 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
         // Legacy sibling-based: collect following responseField blocks
         const expTitle = (block.props?.title as string) || "Details";
         const expType = block.props?.type as string;
+        const expDefaultOpen = block.props?.defaultOpen as string;
         const expAttrs = [
           `title="${expTitle}"`,
           expType && `type="${expType}"`,
+          expDefaultOpen === "true" && `defaultOpen`,
         ].filter(Boolean).join(" ");
         mdx += `<Expandable ${expAttrs}>\n`;
         i++;

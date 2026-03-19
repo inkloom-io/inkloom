@@ -4,6 +4,7 @@ import { defaultProps } from "@blocknote/core";
 import { createReactBlockSpec, useBlockNoteEditor } from "@blocknote/react";
 import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { FolderOpen, Folder } from "lucide-react";
 import { getGroupChildren, getGroupPosition, findContainerBefore } from "./group-utils";
 import { IconPicker } from "../icon-picker";
 import "./accordion.css";
@@ -209,7 +210,7 @@ export const Accordion = createReactBlockSpec(
               onClick={toggleDefaultOpen}
               title={defaultOpen === "true" ? t("defaultOpenToggle") : t("defaultClosedToggle")}
             >
-              {defaultOpen === "true" ? "📂" : "📁"}
+              {defaultOpen === "true" ? <FolderOpen className="bn-accordion-default-open-icon" size={14} /> : <Folder className="bn-accordion-default-open-icon" size={14} />}
             </button>
           </div>
           <div className="bn-accordion-content-wrapper">

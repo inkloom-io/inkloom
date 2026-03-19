@@ -2,6 +2,7 @@
 
 import { createReactBlockSpec } from "@blocknote/react";
 import { useState, useCallback } from "react";
+import { FolderOpen, Folder } from "lucide-react";
 import "./expandable.css";
 
 export const Expandable = createReactBlockSpec(
@@ -10,17 +11,25 @@ export const Expandable = createReactBlockSpec(
     propSchema: {
       title: { default: "Details" },
       type: { default: "" },
+      defaultOpen: { default: "false" },
     },
     content: "inline",
   },
   {
     render: (props) => {
-      const { title, type } = props.block.props;
-      const [isExpanded, setIsExpanded] = useState(false);
+      const { title, type, defaultOpen } = props.block.props;
+      const [isExpanded, setIsExpanded] = useState(defaultOpen === "true");
 
       const toggleExpanded = useCallback(() => {
         setIsExpanded((prev) => !prev);
       }, []);
+
+      const toggleDefaultOpen = useCallback(() => {
+        const newValue = defaultOpen === "true" ? "false" : "true";
+        props.editor.updateBlock(props.block, {
+          props: { defaultOpen: newValue },
+        });
+      }, [props.editor, props.block, defaultOpen]);
 
       return (
         <div
@@ -58,6 +67,14 @@ export const Expandable = createReactBlockSpec(
               }}
               placeholder="type"
             />
+            <button
+              type="button"
+              className="bn-expandable-default-open-toggle"
+              onClick={toggleDefaultOpen}
+              title={defaultOpen === "true" ? "Defaults to open" : "Defaults to closed"}
+            >
+              {defaultOpen === "true" ? <FolderOpen size={14} /> : <Folder size={14} />}
+            </button>
           </div>
           <div className="bn-expandable-content-wrapper">
             <div className="bn-expandable-content" ref={props.contentRef} />

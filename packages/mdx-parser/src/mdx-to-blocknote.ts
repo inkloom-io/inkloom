@@ -21,7 +21,7 @@ function getAttrValue(
   if (attr.value && typeof attr.value === "object" && "value" in attr.value) {
     return attr.value.value;
   }
-  if (attr.value === true) return "true";
+  if (attr.value === true || attr.value === null) return "true";
   return undefined;
 }
 
@@ -904,6 +904,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
     case "Expandable": {
       const expTitle = getAttrValue(attrs, "title") || "Details";
       const expType = getAttrValue(attrs, "type");
+      const expDefaultOpen = getAttrValue(attrs, "defaultOpen");
       // Convert nested children into block children (not siblings)
       const expChildren: BlockNoteBlock[] = [];
       if (node.children) {
@@ -922,6 +923,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
           props: {
             title: expTitle,
             ...(expType ? { type: expType } : {}),
+            ...(expDefaultOpen ? { defaultOpen: expDefaultOpen } : {}),
           },
           content: [],
           ...(expChildren.length > 0 ? { children: expChildren } : {}),
