@@ -45,7 +45,7 @@
   border-radius: 4px;
   padding: 4px 10px;
   font-size: 0.75rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--editor-background-subtle, rgba(0, 0, 0, 0.06));
   color: var(--editor-foreground, #f9fafb);
   cursor: pointer;
   outline: none;
@@ -141,7 +141,7 @@
   border-radius: 4px;
   padding: 4px 6px;
   font-size: 0.875rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--editor-background-subtle, rgba(0, 0, 0, 0.06));
   color: var(--editor-foreground, #f9fafb);
   outline: none;
   text-align: center;
@@ -190,7 +190,7 @@
   height: 28px;
   border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--editor-background-subtle, rgba(0, 0, 0, 0.06));
   color: var(--editor-foreground, #f9fafb);
   cursor: pointer;
   outline: none;
@@ -225,6 +225,20 @@
 
 .bn-accordion[data-expanded="true"] .bn-accordion-content {
   padding: 16px;
+}
+
+/* Override shadcn Button styles inside accordion header for IconPicker.
+   The Button variant="outline" inherits dashboard theme colors which
+   don't match the editor theme. Excludes the chevron toggle button. */
+.bn-accordion-header-row button:not(.bn-accordion-toggle) {
+  background: var(--editor-background-subtle, rgba(0, 0, 0, 0.06)) !important;
+  border-color: var(--editor-border, rgba(128, 128, 128, 0.2)) !important;
+  color: var(--editor-foreground, #1a1a2e) !important;
+}
+
+.bn-accordion-header-row button:not(.bn-accordion-toggle):hover {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08)) !important;
+  border-color: var(--editor-primary, #6366f1) !important;
 }
 
 .bn-accordion-content:empty::before {

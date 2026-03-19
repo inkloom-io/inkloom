@@ -30,7 +30,7 @@
   border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
   border-radius: 4px;
   padding: 4px 8px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--editor-background-subtle, rgba(0, 0, 0, 0.06));
   outline: none;
   min-width: 100px;
 }
@@ -51,7 +51,7 @@
   border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
   border-radius: 4px;
   padding: 4px 8px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--editor-background-subtle, rgba(0, 0, 0, 0.06));
   outline: none;
   min-width: 60px;
 }
@@ -74,7 +74,7 @@
   border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
   border-radius: 4px;
   padding: 4px 8px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--editor-background-subtle, rgba(0, 0, 0, 0.06));
   cursor: pointer;
   outline: none;
   transition: all 0.15s ease;

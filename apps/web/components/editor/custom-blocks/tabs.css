@@ -129,7 +129,7 @@
   border-radius: 4px;
   padding: 4px 10px;
   font-size: 0.75rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--editor-background-subtle, rgba(0, 0, 0, 0.06));
   color: var(--editor-foreground, #f9fafb);
   cursor: pointer;
   outline: none;
@@ -231,6 +231,20 @@
   content: "Tab content...";
   color: var(--editor-muted-foreground, #6b7280);
   opacity: 0.6;
+}
+
+/* Override shadcn Button styles inside tab header for IconPicker.
+   The Button variant="outline" inherits dashboard theme colors which
+   don't match the editor theme. */
+.bn-tab-header button {
+  background: var(--editor-background-subtle, rgba(0, 0, 0, 0.06)) !important;
+  border-color: var(--editor-border, rgba(128, 128, 128, 0.2)) !important;
+  color: var(--editor-foreground, #1a1a2e) !important;
+}
+
+.bn-tab-header button:hover {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08)) !important;
+  border-color: var(--editor-primary, #6366f1) !important;
 }
 
 /* Hide non-active tabs in a group - the wrapper block needs to be hidden */
