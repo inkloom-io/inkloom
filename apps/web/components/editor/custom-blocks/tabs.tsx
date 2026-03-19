@@ -5,6 +5,7 @@ import { createReactBlockSpec, useBlockNoteEditor } from "@blocknote/react";
 import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { getGroupChildren, getGroupPosition, findContainerBefore, isContainerType, isGroupChildType } from "./group-utils";
+import { IconPicker, IconDisplay } from "../icon-picker";
 import "./tabs.css";
 
 export const Tabs = createReactBlockSpec(
@@ -247,7 +248,7 @@ export const Tabs = createReactBlockSpec(
                     onClick={() => setActiveIndex(index)}
                   >
                     {child.icon && (
-                      <span className="bn-tabs-tab-icon">{child.icon}</span>
+                      <IconDisplay icon={child.icon} className="bn-tabs-tab-icon" />
                     )}
                     <span className="bn-tabs-tab-title">{child.title}</span>
                   </button>
@@ -354,15 +355,13 @@ export const Tab = createReactBlockSpec(
           data-tab-index={groupInfo?.index ?? 0}
         >
           <div className="bn-tab-header">
-            <input
-              className="bn-tab-icon-input"
-              value={icon}
-              onChange={(e) => {
+            <IconPicker
+              value={icon || undefined}
+              onChange={(newIcon) => {
                 props.editor.updateBlock(props.block, {
-                  props: { icon: e.target.value },
+                  props: { icon: newIcon || "" },
                 });
               }}
-              placeholder={t("iconPlaceholder")}
             />
             <input
               className="bn-tab-title-input"

@@ -5,6 +5,7 @@ import { createReactBlockSpec, useBlockNoteEditor } from "@blocknote/react";
 import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { getGroupChildren, getGroupPosition, findContainerBefore } from "./group-utils";
+import { IconPicker, IconDisplay } from "../icon-picker";
 import "./steps.css";
 
 export const Steps = createReactBlockSpec(
@@ -163,7 +164,7 @@ export const Step = createReactBlockSpec(
         >
           <div className="bn-step-indicator">
             {icon ? (
-              <span className="bn-step-icon">{icon}</span>
+              <IconDisplay icon={icon} className="bn-step-icon" />
             ) : (
               <span className="bn-step-number">{stepNumber}</span>
             )}
@@ -171,15 +172,13 @@ export const Step = createReactBlockSpec(
           </div>
           <div className="bn-step-content-wrapper">
             <div className="bn-step-header">
-              <input
-                className="bn-step-icon-input"
-                value={icon}
-                onChange={(e) => {
+              <IconPicker
+                value={icon || undefined}
+                onChange={(newIcon) => {
                   props.editor.updateBlock(props.block, {
-                    props: { icon: e.target.value },
+                    props: { icon: newIcon || "" },
                   });
                 }}
-                placeholder={t("iconPlaceholder")}
               />
               <input
                 className="bn-step-title-input"

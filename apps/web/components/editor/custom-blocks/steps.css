@@ -153,27 +153,6 @@
   margin-bottom: 8px;
 }
 
-.bn-step-icon-input {
-  width: 40px;
-  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
-  border-radius: 4px;
-  padding: 4px 6px;
-  font-size: 0.875rem;
-  background: rgba(0, 0, 0, 0.2);
-  color: var(--editor-foreground, #f9fafb);
-  outline: none;
-  text-align: center;
-}
-
-.bn-step-icon-input:focus {
-  border-color: var(--editor-primary, #6366f1);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--editor-primary) 20%, transparent);
-}
-
-.bn-step-icon-input::placeholder {
-  color: var(--editor-muted-foreground, #6b7280);
-  font-size: 0.7rem;
-}
 
 .bn-step-title-input {
   flex: 1;
