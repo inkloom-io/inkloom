@@ -1263,14 +1263,58 @@
   background: transparent !important;
 }
 
+/* When a frame block has children — move containment border to .bn-block so
+   both .bn-block-content (frame header) and .bn-block-group (frame children)
+   are visually enclosed within the frame border. */
+.editor-theme-wrapper .bn-block-outer:has([data-content-type="frame"]) > .bn-block:has(> .bn-block-group),
+.bn-block-outer:has([data-content-type="frame"]) > .bn-block:has(> .bn-block-group) {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* Remove border from .bn-frame-container when the frame's .bn-block handles it */
+.bn-block:has(> .bn-block-group) .bn-frame-container {
+  border: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+}
+
+/* Frame's block-group — no indentation, seamless appearance */
+.editor-theme-wrapper .bn-block-outer:has([data-content-type="frame"]) > .bn-block > .bn-block-group,
+.bn-block-outer:has([data-content-type="frame"]) > .bn-block > .bn-block-group {
+  margin-left: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-left: none !important;
+  background: transparent !important;
+}
+
+/* FrameContent blocks inside a frame — remove own borders since frame wraps them */
+.bn-block-outer:has([data-content-type="frame"]) .bn-frame-content-block[data-in-group="true"] {
+  border: none !important;
+  border-radius: 0 !important;
+}
+
 /* When a frameContent block has children — style the container */
 .editor-theme-wrapper .bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group),
 .bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group) {
-  border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
-  border-top: none;
-  border-radius: 0 0 12px 12px;
-  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
   overflow: hidden;
+}
+
+/* When frameContent is in a frame group with children, don't add extra border
+   since the frame's .bn-block already provides containment */
+.bn-block-outer:has([data-content-type="frame"]) .bn-block-outer:has([data-content-type="frameContent"]) > .bn-block:has(> .bn-block-group) {
+  border: none !important;
+  background: transparent !important;
+}
+
+/* When frameContent is standalone (not in frame), keep its own containment border */
+.bn-block-outer:has([data-content-type="frameContent"]):not(.bn-block-outer:has([data-content-type="frame"]) .bn-block-outer) > .bn-block:has(> .bn-block-group) {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-top: none;
+  border-radius: 0 0 0.5rem 0.5rem;
+  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
 }
 
 .bn-block:has(> .bn-block-group) .bn-frame-content-block[data-in-group="true"] {
@@ -1313,6 +1357,7 @@
 }
 
 /* Ensure children blocks within group children have proper width */
+.bn-block-outer:has([data-content-type="frame"]) .bn-block-group .bn-block-outer,
 .bn-block-outer:has([data-content-type="tab"]) .bn-block-group .bn-block-outer,
 .bn-block-outer:has([data-content-type="frameContent"]) .bn-block-group .bn-block-outer,
 .bn-block-outer:has([data-content-type="step"]) .bn-block-group .bn-block-outer,

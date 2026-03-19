@@ -9,10 +9,10 @@
   transition: border-color 0.15s ease;
 }
 
+/* When frame has children, containment border moves to the .bn-block wrapper
+   (handled in editor-theme.css). Keep only the header separator border here. */
 .bn-frame-container[data-has-children="true"] {
-  border-radius: 0.5rem 0.5rem 0 0;
-  margin-bottom: 0;
-  border-bottom: none;
+  border-bottom: 1px solid var(--editor-border, rgba(128, 128, 128, 0.15));
 }
 
 .bn-frame-container[data-has-children="false"] {
