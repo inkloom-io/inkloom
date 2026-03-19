@@ -8,8 +8,8 @@ import {
 import type { ComponentOverrides } from "@inkloom/docs-renderer";
 import { Link } from "react-router";
 import { highlightCode as shikiHighlightCode } from "@/lib/syntax-highlighter";
+import { useTheme } from "@/src/theme-provider";
 import { ApiEndpoint } from "./api-endpoint";
-import { MermaidDiagram } from "./mermaid-diagram";
 
 // Wrapper to adapt react-router's Link (uses `to`) to docs-renderer's LinkComponent (uses `href`)
 function RouterLink({
@@ -49,7 +49,6 @@ async function highlightCode(code: string, language: string): Promise<string> {
 // Published-site-specific component overrides with full implementations
 const publishedOverrides: ComponentOverrides = {
   ApiEndpoint,
-  MermaidDiagram,
 };
 
 interface MDXContentProps {
@@ -57,8 +56,10 @@ interface MDXContentProps {
 }
 
 export function MDXContent({ source }: MDXContentProps) {
+  const { resolvedTheme } = useTheme();
+
   return (
-    <DocsRendererProvider LinkComponent={RouterLink} highlightCode={highlightCode}>
+    <DocsRendererProvider LinkComponent={RouterLink} highlightCode={highlightCode} resolvedTheme={resolvedTheme}>
       <MDXRenderer content={source} componentOverrides={publishedOverrides} />
     </DocsRendererProvider>
   );

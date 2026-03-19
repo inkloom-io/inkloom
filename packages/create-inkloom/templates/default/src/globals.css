@@ -752,53 +752,6 @@ article:has(.api-endpoint-2col).prose {
   margin-bottom: 0.375rem;
 }
 
-.api-param-name {
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--color-foreground);
-  background: none;
-  padding: 0;
-}
-
-.api-param-type {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  color: var(--color-muted-foreground);
-  padding: 0.125rem 0.375rem;
-  background: var(--color-muted);
-  border-radius: var(--radius-sm);
-}
-
-.api-param-location {
-  font-size: 0.625rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-muted-foreground);
-  padding: 0.125rem 0.375rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-}
-
-.api-param-required {
-  font-size: 0.625rem;
-  font-weight: 600;
-  color: hsl(0 84% 50%);
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.api-param-description {
-  font-size: 0.8125rem;
-  color: var(--color-muted-foreground);
-  line-height: 1.5;
-}
-
-.api-param-description p {
-  margin: 0;
-}
-
 /* Expandable nested fields */
 .api-field-expand-btn {
   display: inline-flex;
@@ -827,64 +780,6 @@ article:has(.api-endpoint-2col).prose {
   margin-top: 0.25rem;
   padding-left: 1rem;
   border-left: 2px solid var(--color-border-subtle);
-}
-
-/* Keep existing param/response field styles for manually authored MDX */
-.api-param-field,
-.api-response-field {
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--color-border-subtle);
-}
-
-.api-param-field:last-child,
-.api-response-field:last-child {
-  border-bottom: none;
-}
-
-.api-param-field-header,
-.api-response-field-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.375rem;
-}
-
-/* Expandable nested schema (for manually authored MDX) */
-.api-expandable {
-  margin: 0.5rem 0;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-}
-
-.api-expandable-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  background: var(--color-background-subtle);
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  font-size: 0.8125rem;
-  border-radius: var(--radius-md);
-  transition: background 0.15s ease;
-}
-
-.api-expandable-header:hover {
-  background: var(--color-muted);
-}
-
-.api-expandable-chevron {
-  font-size: 0.5rem;
-  color: var(--color-muted-foreground);
-  flex-shrink: 0;
-}
-
-.api-expandable-content {
-  padding: 0.25rem 0.75rem 0.5rem 1.5rem;
-  border-top: 1px solid var(--color-border-subtle);
 }
 
 /* --- Try It section --- */
