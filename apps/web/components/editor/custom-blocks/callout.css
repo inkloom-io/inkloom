@@ -45,8 +45,30 @@
 }
 
 .bn-callout-icon {
-  font-size: 1.25rem;
+  width: 1.125rem;
+  height: 1.125rem;
   flex-shrink: 0;
+}
+
+/* Per-type icon colors */
+.bn-callout-info .bn-callout-icon {
+  color: #3b82f6;
+}
+
+.bn-callout-warning .bn-callout-icon {
+  color: hsl(38 92% 40%);
+}
+
+.bn-callout-danger .bn-callout-icon {
+  color: hsl(0 84% 50%);
+}
+
+.bn-callout-success .bn-callout-icon {
+  color: hsl(142 76% 32%);
+}
+
+.bn-callout-tip .bn-callout-icon {
+  color: hsl(280 84% 50%);
 }
 
 .bn-callout-type-select {
