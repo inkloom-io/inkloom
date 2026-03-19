@@ -49,7 +49,7 @@ interface CodeElementProps {
 function parseCodeBlocksFromString(content: string): CodeBlockInfo[] {
   const blocks: CodeBlockInfo[] = [];
   // Match code blocks with optional title and height metadata
-  const codeBlockRegex = /```(\w*)\s*(.*?)(?:\{height=(\d+)\})?\n([\s\S]*?)```/g;
+  const codeBlockRegex = /```(\w*)[ \t]*(.*?)(?:\{height=(\d+)\})?\n([\s\S]*?)```/g;
   let match;
 
   while ((match = codeBlockRegex.exec(content)) !== null) {
