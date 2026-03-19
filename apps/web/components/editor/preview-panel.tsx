@@ -49,6 +49,7 @@ interface PreviewPanelProps {
   pageSubtitle?: string;
   titleSectionHidden?: boolean;
   titleIconHidden?: boolean;
+  onOpenSearch?: () => void;
 }
 
 /** Build the breadcrumb trail: [tab?, ...folders] (page title rendered separately) */
@@ -206,6 +207,7 @@ export function PreviewPanel({
   pageSubtitle,
   titleSectionHidden,
   titleIconHidden,
+  onOpenSearch,
 }: PreviewPanelProps) {
   const t = useTranslations("editor.previewPanel");
   const { resolvedTheme } = useTheme();
@@ -324,9 +326,12 @@ export function PreviewPanel({
               {t("docs")}
             </span>
             <div className="flex items-center gap-2">
-              <div
-                className="preview-search-trigger flex h-8 items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-2.5 text-xs"
+              <button
+                type="button"
+                className="preview-search-trigger flex h-8 cursor-pointer items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-background)] px-2.5 text-xs transition-colors hover:bg-[var(--color-muted)]"
                 style={{ color: "var(--color-muted-foreground)" }}
+                onClick={onOpenSearch}
+                aria-label={t("searchPlaceholder")}
               >
                 <Search className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("searchPlaceholder")}</span>
@@ -336,7 +341,7 @@ export function PreviewPanel({
                 >
                   ⌘K
                 </kbd>
-              </div>
+              </button>
               {/* Preview theme toggle */}
               <button
                 onClick={() =>

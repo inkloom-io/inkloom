@@ -858,6 +858,7 @@ export default function EditorPage({ params }: EditorPageProps) {
               pageSubtitle={selectedPage.subtitle}
               titleSectionHidden={selectedPage.titleSectionHidden}
               titleIconHidden={selectedPage.titleIconHidden}
+              onOpenSearch={() => setIsSearchOpen(true)}
             />
           )}
         </SheetContent>
