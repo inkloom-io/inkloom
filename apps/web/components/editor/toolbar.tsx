@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -459,6 +459,9 @@ export function EditorToolbar({
 
   const showSaving = isSaving || (recentlySaved && hasChanges !== true);
 
+  const displayTarget = target === "production" ? "Production" : "Preview";
+  const boldTag = (chunks: ReactNode) => <strong>{chunks}</strong>;
+
   const renderDialogContent = () => {
     switch (deployment.status) {
       case "publishing":
@@ -469,7 +472,10 @@ export function EditorToolbar({
             <DialogHeader>
               <DialogTitle>{t("publishingTitle")}</DialogTitle>
               <DialogDescription>
-                {t("publishingDescription")}
+                {t.rich("publishingDescription", {
+                  target: displayTarget,
+                  bold: boldTag,
+                })}
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-center pt-2">
@@ -502,7 +508,10 @@ export function EditorToolbar({
                 {t("publishedTitle")}
               </DialogTitle>
               <DialogDescription className="text-center">
-                {t("publishedDescription")}
+                {t.rich("publishedDescription", {
+                  target: displayTarget,
+                  bold: boldTag,
+                })}
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-4">
@@ -547,7 +556,10 @@ export function EditorToolbar({
                 {t("publishFailedTitle")}
               </DialogTitle>
               <DialogDescription>
-                {t("publishFailedDescription")}
+                {t.rich("publishFailedDescription", {
+                  target: displayTarget,
+                  bold: boldTag,
+                })}
               </DialogDescription>
             </DialogHeader>
             <div className="rounded-md border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
@@ -572,7 +584,10 @@ export function EditorToolbar({
             <DialogHeader>
               <DialogTitle>{t("publishDialogTitle")}</DialogTitle>
               <DialogDescription>
-                {t("publishDialogDescription", { target })}
+                {t.rich("publishDialogDescription", {
+                  target: displayTarget,
+                  bold: boldTag,
+                })}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
