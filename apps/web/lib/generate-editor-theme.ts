@@ -3,6 +3,7 @@ import {
   type ThemePresetConfig,
   THEME_PRESETS,
 } from "./theme-presets";
+import { computeContrastForeground } from "./color-utils";
 
 /**
  * @deprecated Use generateEditorThemeCSS instead for full dark mode support
@@ -28,7 +29,7 @@ export function generateEditorThemeStyles(
     --editor-border: ${colors.border};
     --editor-border-subtle: ${colors.borderSubtle};
     --editor-primary: ${primaryColor};
-    --editor-primary-foreground: ${colors.primaryForeground};
+    --editor-primary-foreground: ${customPrimaryColor ? computeContrastForeground(customPrimaryColor) : colors.primaryForeground};
     --editor-accent: ${colors.accent};
     --editor-accent-foreground: ${colors.accentForeground};
     --editor-code-background: ${colors.codeBackground};
@@ -148,7 +149,7 @@ export function generateEditorThemeCSS(
       --editor-border: ${lightColors.border};
       --editor-border-subtle: ${lightColors.borderSubtle};
       --editor-primary: ${lightPrimaryColor};
-      --editor-primary-foreground: ${lightColors.primaryForeground};
+      --editor-primary-foreground: ${customPrimaryColor ? computeContrastForeground(lightPrimaryColor) : lightColors.primaryForeground};
       --editor-accent: ${lightColors.accent};
       --editor-accent-foreground: ${lightColors.accentForeground};
       --editor-code-background: ${lightColors.codeBackground};
@@ -175,7 +176,7 @@ export function generateEditorThemeCSS(
       --editor-border: ${darkColors.border};
       --editor-border-subtle: ${darkColors.borderSubtle};
       --editor-primary: ${darkPrimaryColor};
-      --editor-primary-foreground: ${darkColors.primaryForeground};
+      --editor-primary-foreground: ${customPrimaryColor ? computeContrastForeground(darkPrimaryColor) : darkColors.primaryForeground};
       --editor-accent: ${darkColors.accent};
       --editor-accent-foreground: ${darkColors.accentForeground};
       --editor-code-background: ${darkColors.codeBackground};

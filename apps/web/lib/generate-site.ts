@@ -1,5 +1,6 @@
 import { blockNoteToMDX, parseBlockNoteContent } from "./blocknote-to-mdx";
-import { THEME_PRESETS, type ThemeColors, computeContrastForeground } from "./theme-presets";
+import { THEME_PRESETS, type ThemeColors } from "./theme-presets";
+import { computeContrastForeground } from "./color-utils";
 import { extractSearchableText, parseBlockNoteContent as parseBlocks } from "./search/extract-text";
 import type { SearchDocument } from "./search/types";
 import { parseOpenApiSpec } from "./openapi/parse-spec";
