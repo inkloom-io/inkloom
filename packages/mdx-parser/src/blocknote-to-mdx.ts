@@ -970,11 +970,31 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
       continue;
     }
 
-    // Handle tabs container - collect following tab blocks (skipping empty paragraphs)
+    // Handle tabs container - collect following tab blocks and their content (skipping empty paragraphs)
     if (block.type === "tabs") {
+      // Block types that act as group containers — encountering one ends content collection
+      const containerTypes = new Set([
+        "tabs",
+        "cardGroup",
+        "steps",
+        "codeGroup",
+        "accordionGroup",
+        "columns",
+        "frame",
+      ]);
+      // Block types that are children of group containers (except "tab" itself)
+      const groupChildTypes = new Set([
+        "card",
+        "step",
+        "codeBlock",
+        "accordion",
+        "column",
+        "frameContent",
+      ]);
+
       mdx += "<Tabs>\n";
       i++;
-      // Skip empty paragraphs and collect all following tab blocks
+      // Skip empty paragraphs and collect all following tab blocks with their content
       while (i < blocks.length) {
         const nextBlock = blocks[i];
         if (!nextBlock) break;
@@ -985,8 +1005,38 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
         }
         // Stop if we hit a non-tab block that isn't an empty paragraph
         if (nextBlock.type !== "tab") break;
-        mdx += convertBlock(nextBlock);
+
+        // Get the tab's base MDX output
+        let tabMdx = convertBlock(nextBlock);
         i++;
+
+        // Collect flat sibling content blocks that belong to this tab
+        let extraContent = "";
+        while (i < blocks.length) {
+          const contentBlock = blocks[i];
+          if (!contentBlock) break;
+          if (isEmptyParagraph(contentBlock)) {
+            i++;
+            continue;
+          }
+          // Stop at the next tab block, any container type, or any group child type
+          if (contentBlock.type === "tab") break;
+          if (containerTypes.has(contentBlock.type)) break;
+          if (groupChildTypes.has(contentBlock.type)) break;
+          // This content block belongs to the current tab
+          extraContent += convertBlock(contentBlock, 0);
+          i++;
+        }
+
+        // Inject extra content before </Tab>
+        if (extraContent) {
+          tabMdx = tabMdx.replace(
+            /\n<\/Tab>\n$/,
+            "\n\n" + extraContent + "</Tab>\n",
+          );
+        }
+
+        mdx += tabMdx;
       }
       mdx += "</Tabs>\n\n";
       prevBlockType = "tabs";

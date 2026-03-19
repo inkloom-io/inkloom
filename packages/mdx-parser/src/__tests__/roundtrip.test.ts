@@ -1673,25 +1673,74 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     expect(blocks2[0].type).toBe("quote");
   });
 
-  describe("tabs serialization does not absorb following content (regression)", () => {
-    it("content after last tab is serialized outside Tabs", () => {
+  describe("tabs serialization with flat sibling content blocks", () => {
+    it("flat sibling content blocks are serialized inside the last tab", () => {
       const blocks = [
         { type: "tabs", content: [] },
         { type: "tab", props: { title: "Tab 1" }, content: [{ type: "text", text: "First" }] },
         { type: "tab", props: { title: "Tab 2" }, content: [{ type: "text", text: "Second" }] },
-        { type: "heading", props: { level: 2 }, content: [{ type: "text", text: "After Tabs" }] },
-        { type: "paragraph", content: [{ type: "text", text: "Independent content" }] },
+        { type: "heading", props: { level: 2 }, content: [{ type: "text", text: "Tab 2 Heading" }] },
+        { type: "paragraph", content: [{ type: "text", text: "Tab 2 content" }] },
       ];
       const mdx = blockNoteToMDX(blocks);
-      // Heading should come AFTER </Tabs>, not inside a <Tab>
       const tabsCloseIndex = mdx.indexOf("</Tabs>");
-      const headingIndex = mdx.indexOf("## After Tabs");
+      const headingIndex = mdx.indexOf("## Tab 2 Heading");
+      const paragraphIndex = mdx.indexOf("Tab 2 content");
       expect(tabsCloseIndex).toBeGreaterThan(-1);
       expect(headingIndex).toBeGreaterThan(-1);
-      expect(headingIndex).toBeGreaterThan(tabsCloseIndex);
-      // Independent content should also be outside
-      const paragraphIndex = mdx.indexOf("Independent content");
-      expect(paragraphIndex).toBeGreaterThan(tabsCloseIndex);
+      // Heading and paragraph should be INSIDE </Tabs> (inside Tab 2)
+      expect(headingIndex).toBeLessThan(tabsCloseIndex);
+      expect(paragraphIndex).toBeLessThan(tabsCloseIndex);
+      // They should be inside the second <Tab>
+      const secondTabIndex = mdx.indexOf('<Tab title="Tab 2">');
+      const secondTabCloseIndex = mdx.indexOf("</Tab>", secondTabIndex);
+      expect(headingIndex).toBeGreaterThan(secondTabIndex);
+      expect(headingIndex).toBeLessThan(secondTabCloseIndex);
+    });
+
+    it("quote block inside a tab is serialized within the Tab element", () => {
+      const blocks = [
+        { type: "tabs", content: [] },
+        { type: "tab", props: { title: "First Tab" }, content: [{ type: "text", text: "First" }] },
+        { type: "tab", props: { title: "Second Tab" }, content: [{ type: "text", text: "Second" }] },
+        { type: "quote", content: [{ type: "text", text: "A quote inside tab 2" }] },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      const tabsCloseIndex = mdx.indexOf("</Tabs>");
+      const quoteIndex = mdx.indexOf("A quote inside tab 2");
+      expect(quoteIndex).toBeGreaterThan(-1);
+      expect(quoteIndex).toBeLessThan(tabsCloseIndex);
+    });
+
+    it("image block inside a tab is serialized within the Tab element", () => {
+      const blocks = [
+        { type: "tabs", content: [] },
+        { type: "tab", props: { title: "My Tab" }, content: [{ type: "text", text: "Content" }] },
+        { type: "image", props: { url: "test.png", alt: "test image" }, content: [] },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      const tabsCloseIndex = mdx.indexOf("</Tabs>");
+      const imageIndex = mdx.indexOf("test.png");
+      expect(imageIndex).toBeGreaterThan(-1);
+      expect(imageIndex).toBeLessThan(tabsCloseIndex);
+    });
+
+    it("content blocks between tabs are assigned to the preceding tab", () => {
+      const blocks = [
+        { type: "tabs", content: [] },
+        { type: "tab", props: { title: "Tab A" }, content: [{ type: "text", text: "Tab A text" }] },
+        { type: "paragraph", content: [{ type: "text", text: "Extra content for A" }] },
+        { type: "tab", props: { title: "Tab B" }, content: [{ type: "text", text: "Tab B text" }] },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      // Extra content should be inside Tab A, before Tab B
+      const tabAIndex = mdx.indexOf('<Tab title="Tab A">');
+      const tabACloseIndex = mdx.indexOf("</Tab>", tabAIndex);
+      const extraIndex = mdx.indexOf("Extra content for A");
+      const tabBIndex = mdx.indexOf('<Tab title="Tab B">');
+      expect(extraIndex).toBeGreaterThan(tabAIndex);
+      expect(extraIndex).toBeLessThan(tabACloseIndex);
+      expect(tabBIndex).toBeGreaterThan(tabACloseIndex);
     });
 
     it("tab with children serializes children inside the tab", () => {
@@ -1730,6 +1779,34 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
       const tabsCloseIndex = mdx.indexOf("</Tabs>");
       const accordionIndex = mdx.indexOf("<AccordionGroup>");
       expect(accordionIndex).toBeGreaterThan(tabsCloseIndex);
+    });
+
+    it("group child types act as boundaries and remain outside tabs", () => {
+      const blocks = [
+        { type: "tabs", content: [] },
+        { type: "tab", props: { title: "Tab 1" }, content: [{ type: "text", text: "Content" }] },
+        { type: "step", props: { title: "Step 1" }, content: [{ type: "text", text: "Step content" }] },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      const tabsCloseIndex = mdx.indexOf("</Tabs>");
+      const stepIndex = mdx.indexOf("Step content");
+      // Step (a group child type) should be outside Tabs
+      expect(stepIndex).toBeGreaterThan(tabsCloseIndex);
+    });
+
+    it("normal tabs without interleaved content serialize correctly", () => {
+      const blocks = [
+        { type: "tabs", content: [] },
+        { type: "tab", props: { title: "React" }, content: [{ type: "text", text: "React content" }] },
+        { type: "tab", props: { title: "Vue" }, content: [{ type: "text", text: "Vue content" }] },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      expect(mdx).toContain("<Tabs>");
+      expect(mdx).toContain('<Tab title="React">');
+      expect(mdx).toContain("React content");
+      expect(mdx).toContain('<Tab title="Vue">');
+      expect(mdx).toContain("Vue content");
+      expect(mdx).toContain("</Tabs>");
     });
   });
 });
