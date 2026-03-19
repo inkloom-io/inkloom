@@ -50,9 +50,6 @@ import {
  */
 export interface ComponentOverrides {
   ApiEndpoint?: React.ComponentType<Record<string, unknown>>;
-  ParamField?: React.ComponentType<Record<string, unknown>>;
-  ResponseField?: React.ComponentType<Record<string, unknown>>;
-  Expandable?: React.ComponentType<Record<string, unknown>>;
 }
 
 interface RenderOptions {
