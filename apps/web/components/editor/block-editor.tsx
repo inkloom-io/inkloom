@@ -64,7 +64,7 @@ import { schema, type CustomBlockNoteEditor, type CustomPartialBlock } from "./s
 import { CommentHoverTooltip } from "./comments/comment-hover-tooltip";
 import { BadgeToolbarButton } from "./toolbar/badge-toolbar-button";
 import { IconToolbarButton } from "./toolbar/icon-toolbar-button";
-import { isGroupChildType, GROUP_MAPPINGS } from "./custom-blocks/group-utils";
+import { isGroupChildType, isContainerType, GROUP_MAPPINGS, getGroupContainer } from "./custom-blocks/group-utils";
 
 // Collaboration configuration for real-time editing
 export interface CollaborationConfig {
@@ -860,6 +860,183 @@ export function BlockEditor({
     editor.domElement.addEventListener("keydown", handleKeyDown, true);
     return () => {
       editor.domElement?.removeEventListener("keydown", handleKeyDown, true);
+    };
+  }, [editor?.domElement]);
+
+  // Handle Backspace/Delete for custom blocks (accordion, callout, step, etc.)
+  // BlockNote's native backspace/delete can't merge or delete these blocks when their
+  // inline content is empty (canMerge requires childCount > 0) or they have children
+  // (getBottomNestedBlockInfo finds a non-empty child, preventing deletion).
+  // This handler intercepts Backspace/Delete before BlockNote and handles these cases.
+  useEffect(() => {
+    if (!editor?.domElement) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bnEditor = editor as any;
+
+    const handleCustomBlockDeletion = (e: KeyboardEvent) => {
+      if (e.key !== "Backspace" && e.key !== "Delete") return;
+
+      const tiptap = bnEditor._tiptapEditor;
+      if (!tiptap) return;
+
+      const state = tiptap.state;
+      const { selection } = state;
+
+      // Only handle when selection is empty (cursor, not range)
+      if (!selection.empty) return;
+
+      let cursorPos;
+      try {
+        cursorPos = editor.getTextCursorPosition();
+      } catch {
+        return;
+      }
+
+      const { block, prevBlock, nextBlock } = cursorPos;
+      const { $from } = selection;
+
+      // Helper: check if a block type is a deletable custom block
+      const isDeletableCustomBlock = (blockType: string): boolean => {
+        return isGroupChildType(blockType) || isContainerType(blockType) ||
+          blockType === "callout" || blockType === "expandable";
+      };
+
+      // Helper: remove a block, moving its children out first, and also
+      // remove its group container if this was the last child
+      const removeBlockWithChildren = (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        blockToRemove: any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        adjacentBlock: any,
+        insertDirection: "before" | "after",
+      ) => {
+        // Move children of the block being deleted to be siblings
+        const children = blockToRemove.children || [];
+        if (children.length > 0) {
+          if (insertDirection === "before") {
+            for (const child of children) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (editor as any).insertBlocks(
+                [{ ...child, id: undefined }],
+                adjacentBlock,
+                "before",
+              );
+            }
+          } else {
+            // Insert in reverse to maintain order when using "after"
+            for (let i = children.length - 1; i >= 0; i--) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (editor as any).insertBlocks(
+                [{ ...children[i], id: undefined }],
+                adjacentBlock,
+                "after",
+              );
+            }
+          }
+        }
+
+        // Check if this is the last group child — if so, remove the container too
+        const blockIdsToRemove: string[] = [blockToRemove.id];
+        if (isGroupChildType(blockToRemove.type)) {
+          const containerInfo = getGroupContainer(editor, blockToRemove);
+          if (containerInfo && containerInfo.siblings.length <= 1) {
+            blockIdsToRemove.push(containerInfo.container.id);
+          }
+        }
+
+        editor.removeBlocks(blockIdsToRemove);
+      };
+
+      if (e.key === "Backspace") {
+        const atStart = $from.parentOffset === 0;
+
+        if (atStart && prevBlock && isDeletableCustomBlock(prevBlock.type)) {
+          e.preventDefault();
+          e.stopPropagation();
+          removeBlockWithChildren(prevBlock, block, "before");
+          return;
+        }
+
+        // Also handle: cursor at start of a custom block with empty inline content
+        if (atStart && isDeletableCustomBlock(block.type)) {
+          const blockContent = block.content;
+          const isEmpty = !blockContent || (Array.isArray(blockContent) &&
+            (blockContent.length === 0 ||
+              (blockContent.length === 1 && blockContent[0]?.type === "text" &&
+                (!blockContent[0]?.text || blockContent[0]?.text === ""))));
+
+          if (isEmpty) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Move children out and remove this block
+            const children = block.children || [];
+            const insertRef = nextBlock || prevBlock;
+            if (children.length > 0 && insertRef) {
+              const dir = nextBlock ? "before" : "after";
+              if (dir === "before") {
+                for (const child of children) {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (editor as any).insertBlocks(
+                    [{ ...child, id: undefined }],
+                    insertRef,
+                    "before",
+                  );
+                }
+              } else {
+                for (let i = children.length - 1; i >= 0; i--) {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (editor as any).insertBlocks(
+                    [{ ...children[i], id: undefined }],
+                    insertRef,
+                    "after",
+                  );
+                }
+              }
+            }
+
+            // Also remove container if last child
+            const blockIdsToRemove: string[] = [block.id];
+            if (isGroupChildType(block.type)) {
+              const containerInfo = getGroupContainer(editor, block);
+              if (containerInfo && containerInfo.siblings.length <= 1) {
+                blockIdsToRemove.push(containerInfo.container.id);
+              }
+            }
+
+            editor.removeBlocks(blockIdsToRemove);
+
+            // Move cursor to next or previous block
+            if (nextBlock) {
+              try {
+                editor.setTextCursorPosition(nextBlock, "start");
+              } catch { /* block may not accept cursor */ }
+            } else if (prevBlock) {
+              try {
+                editor.setTextCursorPosition(prevBlock, "end");
+              } catch { /* block may not accept cursor */ }
+            }
+            return;
+          }
+        }
+      }
+
+      if (e.key === "Delete") {
+        const atEnd = $from.parentOffset === $from.parent.content.size;
+
+        if (atEnd && nextBlock && isDeletableCustomBlock(nextBlock.type)) {
+          e.preventDefault();
+          e.stopPropagation();
+          removeBlockWithChildren(nextBlock, block, "after");
+          return;
+        }
+      }
+    };
+
+    // Use capturing phase to intercept before BlockNote's handler
+    editor.domElement.addEventListener("keydown", handleCustomBlockDeletion, true);
+    return () => {
+      editor.domElement?.removeEventListener("keydown", handleCustomBlockDeletion, true);
     };
   }, [editor?.domElement]);
 
