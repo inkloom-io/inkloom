@@ -102,16 +102,18 @@ export function IconToolbarButton() {
         withinPortal={false}
         disabled={open}
       >
-        <PopoverTrigger asChild>
-          <MantineActionIcon
-            size={30}
-            variant="transparent"
-            onClick={() => {}}
-            onMouseDown={(e) => e.preventDefault()}
-          >
-            <Smile size={16} />
-          </MantineActionIcon>
-        </PopoverTrigger>
+        <span style={{ display: "inline-flex" }}>
+          <PopoverTrigger asChild>
+            <MantineActionIcon
+              size={30}
+              variant="transparent"
+              onClick={() => {}}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <Smile size={16} />
+            </MantineActionIcon>
+          </PopoverTrigger>
+        </span>
       </MantineTooltip>
       <PopoverContent
         className="w-72 p-2"

@@ -69,17 +69,19 @@ export function BadgeToolbarButton() {
         withinPortal={false}
         disabled={open}
       >
-        <PopoverTrigger asChild>
-          <MantineActionIcon
-            size={30}
-            variant="transparent"
-            data-selected={isInsideBadge || undefined}
-            onClick={() => {}}
-            onMouseDown={(e) => e.preventDefault()}
-          >
-            <Tag size={16} />
-          </MantineActionIcon>
-        </PopoverTrigger>
+        <span style={{ display: "inline-flex" }}>
+          <PopoverTrigger asChild>
+            <MantineActionIcon
+              size={30}
+              variant="transparent"
+              data-selected={isInsideBadge || undefined}
+              onClick={() => {}}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <Tag size={16} />
+            </MantineActionIcon>
+          </PopoverTrigger>
+        </span>
       </MantineTooltip>
       <PopoverContent
         className="w-48 p-2"
