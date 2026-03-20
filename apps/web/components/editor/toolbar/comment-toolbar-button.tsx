@@ -10,7 +10,7 @@ interface CommentToolbarButtonProps {
 
 export function CommentToolbarButton({ onAddComment }: CommentToolbarButtonProps) {
   const Components = useComponentsContext();
-  const t = useTranslations("editor.blockEditor.inlineToolbar");
+  const t = useTranslations("editor.blockEditor");
 
   if (!Components) return null;
 
