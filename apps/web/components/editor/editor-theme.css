@@ -314,6 +314,61 @@
   opacity: 1;
 }
 
+/* SUB-CONTENT SIDE MENU HOVER FIX
+   When moving the cursor from a child block (inside tabs, frames, steps, etc.)
+   toward the side menu, the cursor crosses the .bn-block-group padding area.
+   BlockNote's elementsFromPoint-based detection finds the parent container
+   instead of the child block, causing the side menu to jump away.
+
+   Fix: extend the child .bn-block element (which has data-node-type="blockContainer")
+   into the left padding area so elementsFromPoint still finds it in the gap. */
+
+/* Containers with padding-left on .bn-block-group (editor-theme.css) */
+.editor-theme-wrapper
+  .bn-block-outer:has([data-content-type="tab"])
+  > .bn-block
+  > .bn-block-group
+  > .bn-block-outer
+  > .bn-block,
+.editor-theme-wrapper
+  .bn-block-outer:has([data-content-type="frame"])
+  > .bn-block
+  > .bn-block-group
+  > .bn-block-outer
+  > .bn-block,
+.editor-theme-wrapper
+  .bn-block-outer:has([data-content-type="frameContent"])
+  > .bn-block
+  > .bn-block-group
+  > .bn-block-outer
+  > .bn-block,
+.editor-theme-wrapper
+  .bn-block-outer:has([data-content-type="step"])
+  > .bn-block
+  > .bn-block-group
+  > .bn-block-outer
+  > .bn-block,
+.editor-theme-wrapper
+  .bn-block-outer:has([data-content-type="column"])
+  > .bn-block
+  > .bn-block-group
+  > .bn-block-outer
+  > .bn-block,
+/* Containers with padding-left on .bn-block-group (accordion.css, callout.css) */
+.editor-theme-wrapper
+  .bn-block:has(> .node-accordion)
+  > .bn-block-group
+  > .bn-block-outer
+  > .bn-block,
+.editor-theme-wrapper
+  .bn-block:has(> .node-callout)
+  > .bn-block-group
+  > .bn-block-outer
+  > .bn-block {
+  margin-left: -16px;
+  padding-left: 16px;
+}
+
 /* ============================================================================
    TOOLBAR & MENUS (BlockNote + Mantine)
    Note: Toolbars are rendered as portals outside the editor wrapper,

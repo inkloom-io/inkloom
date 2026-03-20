@@ -25,8 +25,10 @@ import {
   UnnestBlockButton,
   CreateLinkButton,
   FilePanelController,
+  SideMenuController,
 } from "@blocknote/react";
 import { CustomFilePanel } from "./custom-file-panel";
+import { StickyHoverSideMenu } from "./custom-side-menu";
 import { useMutation } from "convex/react";
 import * as Y from "yjs";
 import { MessageSquarePlus, Tag, Smile } from "lucide-react";
@@ -1700,9 +1702,13 @@ export function BlockEditor({
           slashMenu={false}
           formattingToolbar={false}
           filePanel={false}
+          sideMenu={false}
         >
           {/* Custom file panel: closes immediately on image upload, shows in-block loading */}
           <FilePanelController filePanel={CustomFilePanel} />
+          {/* Custom side menu: freezes on hover to prevent disappearing when
+              moving cursor from sub-content blocks to the side menu buttons */}
+          <SideMenuController sideMenu={StickyHoverSideMenu} />
           <SuggestionMenuController
             triggerCharacter="/"
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
