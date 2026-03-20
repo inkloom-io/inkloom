@@ -1,7 +1,22 @@
 /* Steps Container Block Styles */
 
-.bn-steps-container {
-  width: 100%;
+/* ============================================================================
+   VISUAL CONTAINMENT FIX — Steps Container
+   The steps container has content: "none", so its child step blocks render
+   in .bn-block-group as a sibling of the header. We move the container border
+   styling to the .bn-block parent so both the header and child steps are
+   visually contained.
+
+   DOM structure:
+     .bn-block[data-node-type="blockContainer"]       ← styled container (NEW)
+       .react-renderer.node-steps
+         .bn-block-content[data-content-type="steps"]
+           .bn-steps-container                        ← header only (stripped of border)
+       .bn-block-group                                ← child step blocks — now visually inside
+   ============================================================================ */
+
+/* Steps container — border/background on .bn-block wrapper */
+.bn-block:has(> .node-steps) {
   border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
   border-radius: 12px;
   margin: 8px 0;
@@ -13,14 +28,18 @@
   overflow: hidden;
 }
 
-.bn-steps-container[data-has-children="true"] {
+/* When steps container has children (step blocks follow as siblings),
+   remove bottom radius/border so it connects to the first step block */
+.bn-block:has(> .node-steps .bn-steps-container[data-has-children="true"]) {
   border-radius: 12px 12px 0 0;
   margin-bottom: 0;
   border-bottom: none;
 }
 
-.bn-steps-container[data-has-children="false"] {
-  border-radius: 12px;
+/* Inner .bn-steps-container — stripped of border/background (now on .bn-block parent) */
+.bn-steps-container {
+  width: 100%;
+  margin: 0;
 }
 
 .bn-steps-header {
@@ -66,36 +85,68 @@
   text-align: center;
 }
 
-/* Step Block Styles */
+/* ============================================================================
+   VISUAL CONTAINMENT FIX — Step Block
+   BlockNote renders child blocks (code blocks, lists, callouts) in
+   .bn-block-group as a sibling of .bn-block-content, outside .bn-step.
+   We move visual container styling to the .bn-block parent so both the
+   step content and child blocks are visually contained.
 
-.bn-step {
-  display: flex;
-  width: 100%;
-  border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
-  border-top: none;
-  margin: 0;
-  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
-  transition: all 0.15s ease;
-}
+   DOM structure:
+     .bn-block[data-node-type="blockContainer"]       ← styled container (NEW)
+       .react-renderer.node-step
+         .bn-block-content[data-content-type="step"]
+           .bn-step                                   ← indicator + inline content (stripped of border/bg)
+       .bn-block-group                                ← child blocks — now visually inside
 
-.bn-step[data-in-group="true"] {
-  border-radius: 0;
-}
+   We use :has() to target .bn-block based on its step descendant.
+   This follows the pattern established by the accordion fix (el-4oq2).
+   ============================================================================ */
 
-.bn-step[data-is-last="true"],
-.bn-step[data-in-group="false"] {
-  border-radius: 0 0 12px 12px;
-}
-
-.bn-step[data-in-group="false"] {
+/* Standalone step (not in a group) — container styling on .bn-block */
+.bn-block:has(> .node-step) {
   border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
   border-left: 3px solid var(--editor-primary, #6366f1);
   border-radius: 8px;
   margin: 8px 0;
+  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
+  overflow: hidden;
+  transition: all 0.15s ease;
 }
 
-.bn-step:hover {
+.bn-block:has(> .node-step):hover {
   background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+}
+
+/* Grouped step — override standalone styles when inside a steps group */
+.bn-block:has(> .node-step .bn-step[data-in-group="true"]) {
+  border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-top: none;
+  border-left: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-radius: 0;
+  margin: 0;
+}
+
+/* Last step in a group gets bottom border-radius */
+.bn-block:has(> .node-step .bn-step[data-is-last="true"]) {
+  border-radius: 0 0 12px 12px;
+}
+
+/* Inner .bn-step — stripped of container styling (now on .bn-block parent) */
+.bn-step {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  transition: all 0.15s ease;
+}
+
+/* Child blocks (.bn-block-group) inside a step — position to the right of indicator.
+   Use padding-left to align with step content (past the indicator column). */
+.bn-block:has(> .node-step) > .bn-block-group {
+  padding: 0 16px 8px;
+  /* Offset to align with step content area (indicator width ~44px + gap) */
+  padding-left: 52px;
+  margin-left: 0;
 }
 
 /* Step indicator (number/icon + line) */
