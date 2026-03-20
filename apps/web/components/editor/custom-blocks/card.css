@@ -135,7 +135,8 @@
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 0.75rem;
-  width: 140px;
+  flex: 1;
+  min-width: 200px;
   outline: none;
   background: var(--editor-background-subtle, rgba(0, 0, 0, 0.06));
   color: var(--editor-foreground, #1a1a2e);
