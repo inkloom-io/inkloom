@@ -1564,7 +1564,9 @@
       "uploadFailed": "Upload failed",
       "failedToFetch": "Failed to fetch spec",
       "fetchFailed": "Fetch failed",
-      "invalidFileType": "Please upload a .json, .yaml, or .yml file"
+      "invalidFileType": "Please upload a .json, .yaml, or .yml file",
+      "validationWarnings": "Spec imported successfully, but has validation warnings:",
+      "validationWarningsHint": "These issues won't affect your API reference pages, but fixing them will improve spec compliance."
     },
     "fontSelector": {
       "title": "Custom Fonts",
