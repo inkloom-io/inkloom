@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useBlockNoteEditor, useSelectedBlocks } from "@blocknote/react";
 import { Tag } from "lucide-react";
@@ -24,15 +24,74 @@ const BADGE_COLORS = [
   { name: "pink", bg: "#ec489920", border: "#ec489940", text: "#ec4899" },
 ];
 
+/**
+ * Find the badge node at the current cursor position in the TipTap editor.
+ * Returns the position and node if the cursor is inside a badge, or null otherwise.
+ */
+function findBadgeAtCursor(editor: any): { pos: number; node: any } | null {
+  const tiptap = (editor as any)._tiptapEditor;
+  if (!tiptap) return null;
+
+  const { state } = tiptap;
+  const { selection, doc } = state;
+  const cursorPos = selection.$from.pos;
+
+  let result: { pos: number; node: any } | null = null;
+
+  doc.descendants((node: any, pos: number) => {
+    if (result) return false;
+    if (node.type.name === "badge") {
+      // Check if cursor is within this badge node's range
+      const endPos = pos + node.nodeSize;
+      if (cursorPos >= pos && cursorPos <= endPos) {
+        result = { pos, node };
+        return false;
+      }
+    }
+    return true;
+  });
+
+  return result;
+}
+
 export function BadgeToolbarButton() {
   const t = useTranslations("editor.blockEditor.inlineToolbar");
   const editor = useBlockNoteEditor();
   const selectedBlocks = useSelectedBlocks(editor);
   const [open, setOpen] = useState(false);
 
-  // Only show when there's a text selection
   const hasSelection = selectedBlocks.length > 0;
-  if (!hasSelection) return null;
+
+  // Check if the cursor is currently inside a badge node
+  const badgeAtCursor = useMemo(() => {
+    return findBadgeAtCursor(editor);
+    // Re-evaluate when selected blocks change (selection moved)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, selectedBlocks]);
+
+  const isInsideBadge = badgeAtCursor !== null;
+
+  // Show button when there's a selection OR when cursor is inside a badge
+  if (!hasSelection && !isInsideBadge) return null;
+
+  const handleUpdateBadgeColor = (color: string) => {
+    const badge = findBadgeAtCursor(editor);
+    if (!badge) return;
+
+    const tiptap = (editor as any)._tiptapEditor;
+    if (!tiptap) return;
+
+    const { state } = tiptap;
+    const nodeAtPos = state.doc.nodeAt(badge.pos);
+    if (nodeAtPos) {
+      const tr = state.tr.setNodeMarkup(badge.pos, undefined, {
+        ...nodeAtPos.attrs,
+        color,
+      });
+      tiptap.view.dispatch(tr);
+    }
+    setOpen(false);
+  };
 
   const handleInsertBadge = (color: string) => {
     // Get selected text from the editor
@@ -64,14 +123,25 @@ export function BadgeToolbarButton() {
     setOpen(false);
   };
 
+  const handleColorSelect = (color: string) => {
+    if (isInsideBadge) {
+      handleUpdateBadgeColor(color);
+    } else {
+      handleInsertBadge(color);
+    }
+  };
+
+  // Find the current badge color to highlight it in the picker
+  const currentBadgeColor = isInsideBadge ? badgeAtCursor.node.attrs.color : null;
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 px-2"
-          title={t("badge")}
+          className={cn("h-7 px-2", isInsideBadge && "bg-accent")}
+          title={isInsideBadge ? t("badgeColor") : t("badge")}
           onMouseDown={(e) => e.preventDefault()}
         >
           <Tag className="h-4 w-4" />
@@ -86,10 +156,11 @@ export function BadgeToolbarButton() {
             <button
               key={color.name}
               type="button"
-              onClick={() => handleInsertBadge(color.text)}
+              onClick={() => handleColorSelect(color.text)}
               className={cn(
                 "flex h-8 items-center justify-center rounded text-xs font-medium",
-                "hover:ring-2 hover:ring-ring hover:ring-offset-1"
+                "hover:ring-2 hover:ring-ring hover:ring-offset-1",
+                currentBadgeColor === color.text && "ring-2 ring-ring ring-offset-1"
               )}
               style={{
                 backgroundColor: color.bg,
