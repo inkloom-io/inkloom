@@ -2216,9 +2216,13 @@ export async function generateSiteFiles(
         // otherwise auto-create a new tab
         const apiTabSlug = basePath.replace(/^\//, "");
         const targetTabId = config.openapi?.tabId;
-        const existingTab = targetTabId
-          ? tabsConfig.find((t) => t.id === targetTabId)
-          : tabsConfig.find((t) => t.slug === apiTabSlug);
+        // Try matching by explicit tabId first, then fall back to slug match.
+        // The tabId can become stale if the user reconfigures tabs after setting
+        // the OpenAPI target tab, so slug matching acts as a resilient fallback.
+        const existingTab =
+          (targetTabId
+            ? tabsConfig.find((t) => t.id === targetTabId)
+            : undefined) ?? tabsConfig.find((t) => t.slug === apiTabSlug);
 
         if (existingTab) {
           // Merge: append generated API navigation into the existing tab's navigation
