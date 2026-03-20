@@ -439,8 +439,10 @@ describe("integration: Frame migration", () => {
     expect(frameBlock?.props?.caption).toBe("Dashboard overview");
     expect(frameBlock?.props?.hint).toBe("Click to enlarge");
 
-    // Frame should have an image child block
-    const children = frameBlock?.children;
+    // Frame uses the sibling pattern: frame block + frameContent block with children
+    const frameContentBlock = blocks.find((b: { type: string }) => b.type === "frameContent");
+    expect(frameContentBlock).toBeDefined();
+    const children = frameContentBlock?.children;
     expect(children).toBeDefined();
     expect(children?.length).toBeGreaterThanOrEqual(1);
     const imageChild = children?.find((b: { type: string }) => b.type === "image");
@@ -462,7 +464,10 @@ describe("integration: Frame migration", () => {
     const frameBlock = blocks.find((b: { type: string }) => b.type === "frame");
     expect(frameBlock).toBeDefined();
 
-    const imageChild = frameBlock?.children?.find((b: { type: string }) => b.type === "image");
+    // Frame uses the sibling pattern: frame block + frameContent block with children
+    const frameContentBlock = blocks.find((b: { type: string }) => b.type === "frameContent");
+    expect(frameContentBlock).toBeDefined();
+    const imageChild = frameContentBlock?.children?.find((b: { type: string }) => b.type === "image");
     expect(imageChild).toBeDefined();
     expect(imageChild?.props?.url).toBe("/images/example.png");
     // style prop should not appear in the image block props
@@ -485,7 +490,10 @@ describe("integration: Frame migration", () => {
     expect(frameBlock?.props?.caption).toBeUndefined();
     expect(frameBlock?.props?.hint).toBeUndefined();
 
-    const imageChild = frameBlock?.children?.find((b: { type: string }) => b.type === "image");
+    // Frame uses the sibling pattern: frame block + frameContent block with children
+    const frameContentBlock = blocks.find((b: { type: string }) => b.type === "frameContent");
+    expect(frameContentBlock).toBeDefined();
+    const imageChild = frameContentBlock?.children?.find((b: { type: string }) => b.type === "image");
     expect(imageChild).toBeDefined();
     expect(imageChild?.props?.url).toBe("/images/simple.png");
   });
