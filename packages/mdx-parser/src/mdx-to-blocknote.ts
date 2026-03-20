@@ -1402,8 +1402,9 @@ function convertBlockNode(node: MdastNode): BlockNoteBlock[] {
 
       // Separate paragraph children from non-paragraph children.
       // Consecutive simple paragraphs get merged into a single flat content
-      // array with hardBreak nodes between them. Non-paragraph children
-      // (nested blockquotes, headings, lists, etc.) go into children.
+      // array with newline text nodes between them. BlockNote represents
+      // line breaks as "\n" in text nodes (converted to ProseMirror hardBreak
+      // nodes internally), NOT as { type: "hardBreak" } inline content items.
       const mergedContent: BlockNoteInlineContent[] = [];
       const nonParagraphChildren: BlockNoteBlock[] = [];
 
@@ -1411,7 +1412,7 @@ function convertBlockNode(node: MdastNode): BlockNoteBlock[] {
         if (child.type === "paragraph" && !child.children?.length) {
           // Merge this paragraph's inline content into the flat content array
           if (mergedContent.length > 0) {
-            mergedContent.push({ type: "hardBreak" });
+            mergedContent.push({ type: "text", text: "\n", styles: {} });
           }
           if (child.content && Array.isArray(child.content)) {
             mergedContent.push(...(child.content as BlockNoteInlineContent[]));

@@ -286,15 +286,35 @@ function convertBlock(block: BlockNoteBlock, depth: number = 0): string {
       return "---\n\n";
 
     case "quote": {
-      // Split content on hardBreak nodes into separate paragraphs
+      // Split content on newline characters in text nodes into separate paragraphs.
+      // BlockNote represents line breaks as "\n" in text nodes (not as hardBreak
+      // inline content items). We also handle legacy { type: "hardBreak" } for
+      // data that hasn't been through the editor.
       const contentArray = block.content && isInlineArray(block.content) ? block.content : [];
       const paragraphs: BlockNoteInlineContent[][] = [];
       let currentParagraph: BlockNoteInlineContent[] = [];
 
       for (const item of contentArray) {
         if (item.type === "hardBreak") {
+          // Legacy hardBreak inline content item
           paragraphs.push(currentParagraph);
           currentParagraph = [];
+        } else if (item.type === "text" && item.text === "\n") {
+          // BlockNote-native newline text node
+          paragraphs.push(currentParagraph);
+          currentParagraph = [];
+        } else if (item.type === "text" && item.text && item.text.includes("\n")) {
+          // Text node containing embedded newlines — split into parts
+          const parts = item.text.split("\n");
+          for (let pi = 0; pi < parts.length; pi++) {
+            if (pi > 0) {
+              paragraphs.push(currentParagraph);
+              currentParagraph = [];
+            }
+            if (parts[pi]) {
+              currentParagraph.push({ ...item, text: parts[pi] });
+            }
+          }
         } else {
           currentParagraph.push(item);
         }

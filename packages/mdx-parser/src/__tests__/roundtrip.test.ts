@@ -1672,11 +1672,12 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     const blocks = mdxToBlockNote(input);
     expect(blocks).toHaveLength(1);
     expect(blocks[0].type).toBe("quote");
-    // All paragraphs are merged into flat content with hardBreak separators
+    // All paragraphs are merged into flat content with newline text node separators
     const content = blocks[0].content as Array<{ type: string; text?: string }>;
     expect(content).toBeDefined();
-    expect(content.some((c) => c.type === "hardBreak")).toBe(true);
-    expect(content.filter((c) => c.type === "text").map((c) => c.text)).toEqual([
+    // Line breaks are "\n" text nodes (BlockNote's native format), not { type: "hardBreak" }
+    expect(content.some((c) => c.type === "text" && c.text === "\n")).toBe(true);
+    expect(content.filter((c) => c.type === "text" && c.text !== "\n").map((c) => c.text)).toEqual([
       "first paragraph",
       "second paragraph",
     ]);
@@ -1693,12 +1694,12 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     expect(blocks).toHaveLength(1);
     expect(blocks[0].type).toBe("quote");
     const content = blocks[0].content as Array<{ type: string; text?: string }>;
-    // Should have 3 text nodes and 2 hardBreaks
-    const textNodes = content.filter((c) => c.type === "text");
-    const hardBreaks = content.filter((c) => c.type === "hardBreak");
-    expect(textNodes).toHaveLength(3);
-    expect(hardBreaks).toHaveLength(2);
-    expect(textNodes.map((c) => c.text)).toEqual([
+    // Should have 3 content text nodes and 2 newline text nodes
+    const contentTextNodes = content.filter((c) => c.type === "text" && c.text !== "\n");
+    const newlineNodes = content.filter((c) => c.type === "text" && c.text === "\n");
+    expect(contentTextNodes).toHaveLength(3);
+    expect(newlineNodes).toHaveLength(2);
+    expect(contentTextNodes.map((c) => c.text)).toEqual([
       "paragraph one",
       "paragraph two",
       "paragraph three",
