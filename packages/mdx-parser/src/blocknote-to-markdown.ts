@@ -286,12 +286,34 @@ function convertBlock(block: BlockNoteBlock, depth: number = 0): string {
       return "---\n\n";
 
     case "quote": {
-      const text = getInlineText(block);
-      const quoted = text
-        .split("\n")
-        .map((line) => `> ${line}`)
-        .join("\n");
-      return `${quoted}\n\n`;
+      // Split content on hardBreak nodes into separate paragraphs
+      const contentArray = block.content && isInlineArray(block.content) ? block.content : [];
+      const paragraphs: BlockNoteInlineContent[][] = [];
+      let currentParagraph: BlockNoteInlineContent[] = [];
+
+      for (const item of contentArray) {
+        if (item.type === "hardBreak") {
+          paragraphs.push(currentParagraph);
+          currentParagraph = [];
+        } else {
+          currentParagraph.push(item);
+        }
+      }
+      paragraphs.push(currentParagraph);
+
+      let quoteContent = "";
+      for (let i = 0; i < paragraphs.length; i++) {
+        const segmentText = convertInline(paragraphs[i]);
+        if (i > 0) {
+          quoteContent += "\n>\n";
+        }
+        const quotedLines = segmentText
+          .split("\n")
+          .map((line) => `> ${line}`)
+          .join("\n");
+        quoteContent += quotedLines;
+      }
+      return `${quoteContent}\n\n`;
     }
 
     default: {

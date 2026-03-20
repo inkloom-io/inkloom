@@ -815,16 +815,36 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
     }
 
     case "quote": {
-      const text = block.content && isInlineContentArray(block.content) ? convertInlineContent(block.content) : "";
-      // Convert to markdown blockquote by prefixing with >
+      // Split content on hardBreak nodes into separate paragraphs
+      const contentArray = block.content && isInlineContentArray(block.content) ? block.content : [];
+      const paragraphs: BlockNoteInlineContent[][] = [];
+      let currentParagraph: BlockNoteInlineContent[] = [];
+
+      for (const item of contentArray) {
+        if (item.type === "hardBreak") {
+          paragraphs.push(currentParagraph);
+          currentParagraph = [];
+        } else {
+          currentParagraph.push(item);
+        }
+      }
+      paragraphs.push(currentParagraph);
+
+      // Convert each paragraph segment to a blockquoted line group
       let quoteContent = "";
-      if (text) {
-        const quotedLines = text
+      for (let i = 0; i < paragraphs.length; i++) {
+        const segmentText = convertInlineContent(paragraphs[i]);
+        if (i > 0) {
+          // Separate paragraphs with an empty blockquote line
+          quoteContent += "\n>\n";
+        }
+        const quotedLines = segmentText
           .split("\n")
           .map((line) => `> ${line}`)
           .join("\n");
         quoteContent += quotedLines;
       }
+
       // Handle children as additional blockquoted content
       if (block.children && block.children.length > 0) {
         for (const child of block.children) {

@@ -1668,13 +1668,45 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
   });
 
   it("round-trips multi-line blockquote", () => {
-    const input = "> first paragraph\n> \n> second paragraph";
+    const input = "> first paragraph\n>\n> second paragraph";
     const blocks = mdxToBlockNote(input);
     expect(blocks).toHaveLength(1);
     expect(blocks[0].type).toBe("quote");
-    // First paragraph is the quote content, second is a child
-    expect(blocks[0].children).toBeDefined();
-    expect(blocks[0].children!.length).toBeGreaterThan(0);
+    // All paragraphs are merged into flat content with hardBreak separators
+    const content = blocks[0].content as Array<{ type: string; text?: string }>;
+    expect(content).toBeDefined();
+    expect(content.some((c) => c.type === "hardBreak")).toBe(true);
+    expect(content.filter((c) => c.type === "text").map((c) => c.text)).toEqual([
+      "first paragraph",
+      "second paragraph",
+    ]);
+    // No children for simple paragraph-only blockquotes
+    expect(blocks[0].children).toBeUndefined();
+    // Verify roundtrip
+    const output = blockNoteToMDX(blocks);
+    expect(output.trim()).toBe(input);
+  });
+
+  it("round-trips blockquote with 3+ paragraphs", () => {
+    const input = "> paragraph one\n>\n> paragraph two\n>\n> paragraph three";
+    const blocks = mdxToBlockNote(input);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("quote");
+    const content = blocks[0].content as Array<{ type: string; text?: string }>;
+    // Should have 3 text nodes and 2 hardBreaks
+    const textNodes = content.filter((c) => c.type === "text");
+    const hardBreaks = content.filter((c) => c.type === "hardBreak");
+    expect(textNodes).toHaveLength(3);
+    expect(hardBreaks).toHaveLength(2);
+    expect(textNodes.map((c) => c.text)).toEqual([
+      "paragraph one",
+      "paragraph two",
+      "paragraph three",
+    ]);
+    expect(blocks[0].children).toBeUndefined();
+    // Verify roundtrip
+    const output = blockNoteToMDX(blocks);
+    expect(output.trim()).toBe(input);
   });
 
   it("parses nested blockquote", () => {

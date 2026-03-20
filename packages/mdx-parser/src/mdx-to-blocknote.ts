@@ -1400,29 +1400,35 @@ function convertBlockNode(node: MdastNode): BlockNoteBlock[] {
         return [{ type: "quote", content: [] }];
       }
 
-      const firstChild = childBlocks[0];
-      const restChildren = childBlocks.slice(1);
+      // Separate paragraph children from non-paragraph children.
+      // Consecutive simple paragraphs get merged into a single flat content
+      // array with hardBreak nodes between them. Non-paragraph children
+      // (nested blockquotes, headings, lists, etc.) go into children.
+      const mergedContent: BlockNoteInlineContent[] = [];
+      const nonParagraphChildren: BlockNoteBlock[] = [];
 
-      // If the first child is a simple paragraph, promote its inline content
-      // to the quote block's content, and put remaining blocks as children
-      if (firstChild.type === "paragraph" && !firstChild.children?.length) {
-        const quoteBlock: BlockNoteBlock = {
-          type: "quote",
-          content: firstChild.content || [],
-        };
-        if (restChildren.length > 0) {
-          quoteBlock.children = restChildren;
+      for (const child of childBlocks) {
+        if (child.type === "paragraph" && !child.children?.length) {
+          // Merge this paragraph's inline content into the flat content array
+          if (mergedContent.length > 0) {
+            mergedContent.push({ type: "hardBreak" });
+          }
+          if (child.content && Array.isArray(child.content)) {
+            mergedContent.push(...(child.content as BlockNoteInlineContent[]));
+          }
+        } else {
+          nonParagraphChildren.push(child);
         }
-        return [quoteBlock];
       }
 
-      // Otherwise (e.g. nested blockquotes, headings, etc.), keep content empty
-      // and put all child blocks as children
-      return [{
+      const quoteBlock: BlockNoteBlock = {
         type: "quote",
-        content: [],
-        children: childBlocks,
-      }];
+        content: mergedContent,
+      };
+      if (nonParagraphChildren.length > 0) {
+        quoteBlock.children = nonParagraphChildren;
+      }
+      return [quoteBlock];
     }
 
     case "html": {
