@@ -893,6 +893,7 @@ a:has(.card) {
   font-size: 0.85em;
   font-weight: 500;
   line-height: 1.4;
+  border: 1px solid transparent;
 }
 
 .badge-green { background: var(--color-green-100, #dcfce7); color: var(--color-green-800, #166534); }
