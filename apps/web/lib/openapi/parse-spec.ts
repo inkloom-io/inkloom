@@ -96,6 +96,25 @@ function flattenSchemaFields(
 
   const fields: ParsedSchemaField[] = [];
 
+  // Handle allOf: merge properties from all sub-schemas
+  if (schema.allOf) {
+    const mergedRequired = [...requiredFields];
+    for (const sub of schema.allOf) {
+      const subSchema = sub as OpenAPIV3.SchemaObject;
+      if (subSchema.required) mergedRequired.push(...subSchema.required);
+      fields.push(...flattenSchemaFields(subSchema, mergedRequired, depth));
+    }
+    return fields;
+  }
+
+  // Handle oneOf/anyOf: use first variant (common convention)
+  if (schema.oneOf || schema.anyOf) {
+    const variants = (schema.oneOf || schema.anyOf) as OpenAPIV3.SchemaObject[];
+    if (variants.length > 0) {
+      return flattenSchemaFields(variants[0], requiredFields, depth);
+    }
+  }
+
   if (schema.properties) {
     for (const [name, propSchema] of Object.entries(schema.properties)) {
       const prop = propSchema as OpenAPIV3.SchemaObject;
@@ -452,6 +471,54 @@ export async function parseOpenApiSpec(
       if (endpointSecurity) endpoint.security = endpointSecurity;
 
       endpoints.push(endpoint);
+    }
+  }
+
+  // Process webhooks (OpenAPI 3.1)
+  const webhooks = (api as unknown as Record<string, unknown>).webhooks as
+    | Record<string, unknown>
+    | undefined;
+  if (webhooks && typeof webhooks === "object") {
+    for (const [hookName, hookItem] of Object.entries(webhooks)) {
+      if (!hookItem || typeof hookItem !== "object") continue;
+      const hookPathItem = hookItem as Record<string, unknown>;
+
+      for (const method of HTTP_METHODS) {
+        const operation = hookPathItem[method] as
+          | OpenAPIV3.OperationObject
+          | undefined;
+        if (!operation) continue;
+
+        const tag = operation.tags?.[0] || "Webhooks";
+        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+
+        const allParams = [
+          ...((hookPathItem.parameters as OpenAPIV3.ParameterObject[]) || []),
+          ...(operation.parameters || []),
+        ];
+
+        const endpointSecurity = operation.security
+          ? operation.security.flatMap((req) => Object.keys(req))
+          : undefined;
+
+        const endpoint: ParsedEndpoint = {
+          operationId:
+            operation.operationId ||
+            `${method}_webhook_${hookName.replace(/[/{}/]/g, "_")}`,
+          method: method.toUpperCase() as ParsedEndpoint["method"],
+          path: hookName,
+          summary: operation.summary || "",
+          description: operation.description || "",
+          tag,
+          deprecated: operation.deprecated || false,
+          parameters: extractParameters(allParams),
+          requestBody: extractRequestBody(operation.requestBody),
+          responses: extractResponses(operation.responses),
+        };
+        if (endpointSecurity) endpoint.security = endpointSecurity;
+
+        endpoints.push(endpoint);
+      }
     }
   }
 
