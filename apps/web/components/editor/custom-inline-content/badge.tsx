@@ -20,9 +20,8 @@ export const Badge = createReactInlineContentSpec(
       const style: React.CSSProperties = {};
       if (color) {
         style.color = color;
-        // Generate a light background based on the text color
-        style.backgroundColor = `${color}20`;
-        style.borderColor = `${color}40`;
+        style.backgroundColor = `${color}18`;
+        style.borderColor = `${color}30`;
       }
       return (
         <span className="bn-inline-badge" style={style} ref={props.contentRef} />

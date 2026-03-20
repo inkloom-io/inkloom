@@ -888,19 +888,34 @@ a:has(.card) {
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.85em;
-  font-weight: 500;
-  line-height: 1.4;
+  padding: 2px 10px;
+  border-radius: 6px;
+  font-size: 0.8125em;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
   border: 1px solid transparent;
 }
 
-.badge-green { background: var(--color-green-100, #dcfce7); color: var(--color-green-800, #166534); }
-.badge-red { background: var(--color-red-100, #fee2e2); color: var(--color-red-800, #991b1b); }
-.badge-blue { background: var(--color-blue-100, #dbeafe); color: var(--color-blue-800, #1e40af); }
-.badge-yellow { background: var(--color-yellow-100, #fef9c3); color: var(--color-yellow-800, #854d0e); }
-.badge-gray { background: var(--color-gray-100, #f3f4f6); color: var(--color-gray-800, #1f2937); }
+/* Named color variants — light mode */
+.badge-gray { background: #f3f4f6; color: #374151; border-color: #e5e7eb; }
+.badge-red { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+.badge-orange { background: #ffedd5; color: #9a3412; border-color: #fed7aa; }
+.badge-yellow { background: #fef9c3; color: #854d0e; border-color: #fde68a; }
+.badge-green { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+.badge-blue { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+.badge-purple { background: #f3e8ff; color: #6b21a8; border-color: #e9d5ff; }
+.badge-pink { background: #fce7f3; color: #9d174d; border-color: #fbcfe8; }
+
+/* Named color variants — dark mode */
+.dark .badge-gray, [data-theme="dark"] .badge-gray { background: rgba(156, 163, 175, 0.15); color: #d1d5db; border-color: rgba(156, 163, 175, 0.25); }
+.dark .badge-red, [data-theme="dark"] .badge-red { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: rgba(239, 68, 68, 0.25); }
+.dark .badge-orange, [data-theme="dark"] .badge-orange { background: rgba(249, 115, 22, 0.15); color: #fdba74; border-color: rgba(249, 115, 22, 0.25); }
+.dark .badge-yellow, [data-theme="dark"] .badge-yellow { background: rgba(234, 179, 8, 0.15); color: #fde047; border-color: rgba(234, 179, 8, 0.25); }
+.dark .badge-green, [data-theme="dark"] .badge-green { background: rgba(34, 197, 94, 0.15); color: #86efac; border-color: rgba(34, 197, 94, 0.25); }
+.dark .badge-blue, [data-theme="dark"] .badge-blue { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border-color: rgba(59, 130, 246, 0.25); }
+.dark .badge-purple, [data-theme="dark"] .badge-purple { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border-color: rgba(168, 85, 247, 0.25); }
+.dark .badge-pink, [data-theme="dark"] .badge-pink { background: rgba(236, 72, 153, 0.15); color: #f9a8d4; border-color: rgba(236, 72, 153, 0.25); }
 
 /* Legacy mark-based badges (backward compat) */
 mark {

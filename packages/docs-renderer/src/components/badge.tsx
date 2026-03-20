@@ -9,10 +9,8 @@ export function Badge({ color = "gray", children }: BadgeProps) {
   if (isHex) {
     const style: React.CSSProperties = {
       color: color,
-      backgroundColor: `${color}20`,
-      borderColor: `${color}40`,
-      borderWidth: "1px",
-      borderStyle: "solid",
+      backgroundColor: `${color}18`,
+      borderColor: `${color}30`,
     };
     return (
       <span className="badge" style={style}>
