@@ -2090,6 +2090,14 @@ export async function generateSiteFiles(
               folderPathPrefix
             );
 
+            // Only include folders that have navigable children.
+            // Folders with no children (no published pages or subfolders)
+            // would render as flat links pointing to invalid folder URLs,
+            // causing "Page not found" on click.
+            if (folderChildren.length === 0) {
+              continue;
+            }
+
             // Wrap children in a folder NavItem so the folder appears in the sidebar
             const folderNavItem: NavItem = {
               title: tabFolder.name,

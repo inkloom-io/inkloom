@@ -478,16 +478,13 @@ describe("generateSiteFiles – multi-folder tab navigation", () => {
     if (!navFile) throw new Error("Expected navigation file to exist");
     const navigation = JSON.parse(navFile.data);
 
-    // Both folders should appear in navigation
-    expect(navigation).toHaveLength(2);
-
     // Folder A should have 1 child
     expect(navigation[0].title).toBe("Folder A");
     expect(navigation[0].children).toHaveLength(1);
 
-    // Folder B should appear with empty children array (rendered as muted header in sidebar)
-    expect(navigation[1].title).toBe("Folder B");
-    expect(navigation[1].children).toHaveLength(0);
+    // Folder B should be excluded (no children = not useful in sidebar)
+    // After fix: empty folders should be omitted from the navigation
+    expect(navigation).toHaveLength(1);
   });
 
   /**
