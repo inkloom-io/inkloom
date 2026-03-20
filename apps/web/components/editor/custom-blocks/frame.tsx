@@ -110,7 +110,7 @@ export const Frame = createReactBlockSpec(
               {t("frameHint")}
             </p>
           )}
-          {!hasChildren && caption && (
+          {!hasChildren && (
             <div className="bn-frame-caption-area">
               <input
                 className="bn-frame-caption-input"
