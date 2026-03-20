@@ -2026,8 +2026,8 @@ export async function generateSiteFiles(
   };
 
   // Always generate tabs.json (empty array if no tabs) to override any previous deployment
-  const tabsConfig = hasTabs
-    ? config.navTabs!.map((tab) => ({
+  const tabsConfig = hasTabs && config.navTabs
+    ? config.navTabs.map((tab) => ({
         id: tab.id,
         name: tab.name,
         slug: tab.slug,
@@ -2049,7 +2049,7 @@ export async function generateSiteFiles(
     const assignedPagePaths: string[] = [];
 
     // Generate navigation for each tab
-    for (const rawTab of config.navTabs!) {
+    for (const rawTab of config.navTabs ?? []) {
       // Normalize tab to ensure items array exists (handles legacy folderId format)
       const tab = normalizeNavTab(rawTab);
       const tabNavigation: NavItem[] = [];

@@ -591,4 +591,125 @@ describe("generateSiteFiles – multi-folder tab navigation", () => {
     expect(refNavigation[0].title).toBe("Reference Folder");
     expect(refNavigation[0].children).toHaveLength(1);
   });
+
+  /**
+   * Exact reproduction of the reported production bug:
+   * - Guides tab with 4 folders (Getting Started, Customization, Writing Content, AI Tools)
+   * - API Reference tab with 1 folder (API documentation)
+   * - All pages are published (imported via migration)
+   * Bug: only first folder in Guides showed, API Reference was empty
+   */
+  it("should reproduce and verify fix for the multi-tab production bug report", async () => {
+    const pages = [
+      // Getting Started (3 pages)
+      { id: "p1", title: "Introduction", slug: "introduction", path: "/getting-started/introduction", content: EMPTY_CONTENT, position: 0 },
+      { id: "p2", title: "Quickstart", slug: "quickstart", path: "/getting-started/quickstart", content: EMPTY_CONTENT, position: 1 },
+      { id: "p3", title: "Development", slug: "development", path: "/getting-started/development", content: EMPTY_CONTENT, position: 2 },
+      // Customization (2 pages)
+      { id: "p4", title: "Global Settings", slug: "global-settings", path: "/customization/global-settings", content: EMPTY_CONTENT, position: 0 },
+      { id: "p5", title: "Navigation", slug: "navigation", path: "/customization/navigation", content: EMPTY_CONTENT, position: 1 },
+      // Writing Content (4 pages)
+      { id: "p6", title: "MDX Basics", slug: "mdx-basics", path: "/writing-content/mdx-basics", content: EMPTY_CONTENT, position: 0 },
+      { id: "p7", title: "Components", slug: "components", path: "/writing-content/components", content: EMPTY_CONTENT, position: 1 },
+      { id: "p8", title: "Code Blocks", slug: "code-blocks", path: "/writing-content/code-blocks", content: EMPTY_CONTENT, position: 2 },
+      { id: "p9", title: "Images", slug: "images", path: "/writing-content/images", content: EMPTY_CONTENT, position: 3 },
+      // AI Tools (3 pages)
+      { id: "p10", title: "AI Generation", slug: "ai-generation", path: "/ai-tools/ai-generation", content: EMPTY_CONTENT, position: 0 },
+      { id: "p11", title: "AI Review", slug: "ai-review", path: "/ai-tools/ai-review", content: EMPTY_CONTENT, position: 1 },
+      { id: "p12", title: "AI Translation", slug: "ai-translation", path: "/ai-tools/ai-translation", content: EMPTY_CONTENT, position: 2 },
+      // API documentation (1 page)
+      { id: "p13", title: "API Introduction", slug: "api-introduction", path: "/api-documentation/api-introduction", content: EMPTY_CONTENT, position: 0 },
+    ];
+
+    const folders = [
+      { id: "f1", name: "Getting Started", slug: "getting-started", path: "/getting-started", position: 0 },
+      { id: "f2", name: "Customization", slug: "customization", path: "/customization", position: 1 },
+      { id: "f3", name: "Writing Content", slug: "writing-content", path: "/writing-content", position: 2 },
+      { id: "f4", name: "AI Tools", slug: "ai-tools", path: "/ai-tools", position: 3 },
+      { id: "f5", name: "API documentation", slug: "api-documentation", path: "/api-documentation", position: 0 },
+    ];
+
+    const config = {
+      name: "Production Bug Repro",
+      navTabs: [
+        {
+          id: "tab-guides",
+          name: "Guides",
+          slug: "guides",
+          items: [
+            { type: "folder" as const, folderId: "f1" },
+            { type: "folder" as const, folderId: "f2" },
+            { type: "folder" as const, folderId: "f3" },
+            { type: "folder" as const, folderId: "f4" },
+          ],
+        },
+        {
+          id: "tab-api",
+          name: "API Reference",
+          slug: "api-reference",
+          items: [
+            { type: "folder" as const, folderId: "f5" },
+          ],
+        },
+      ],
+    };
+
+    const result = await generateSiteFiles(pages, folders, config);
+
+    // --- Verify Guides tab ---
+    const guidesNav = result.files.find((f) => f.file === "lib/navigation-guides.json");
+    expect(guidesNav).toBeDefined();
+    if (!guidesNav) throw new Error("Expected guides nav file");
+    const guides = JSON.parse(guidesNav.data);
+
+    // All 4 folders should be present (bug: only first folder showed)
+    expect(guides).toHaveLength(4);
+    expect(guides[0].title).toBe("Getting Started");
+    expect(guides[0].children).toHaveLength(3);
+    expect(guides[0].href).toBe("/guides/getting-started");
+    expect(guides[1].title).toBe("Customization");
+    expect(guides[1].children).toHaveLength(2);
+    expect(guides[1].href).toBe("/guides/customization");
+    expect(guides[2].title).toBe("Writing Content");
+    expect(guides[2].children).toHaveLength(4);
+    expect(guides[2].href).toBe("/guides/writing-content");
+    expect(guides[3].title).toBe("AI Tools");
+    expect(guides[3].children).toHaveLength(3);
+    expect(guides[3].href).toBe("/guides/ai-tools");
+
+    // Verify child page paths are correctly rewritten
+    expect(guides[0].children[0].href).toBe("/guides/getting-started/introduction");
+    expect(guides[1].children[0].href).toBe("/guides/customization/global-settings");
+
+    // --- Verify API Reference tab (bug: showed "Page Not Found") ---
+    const apiNav = result.files.find((f) => f.file === "lib/navigation-api-reference.json");
+    expect(apiNav).toBeDefined();
+    if (!apiNav) throw new Error("Expected api-reference nav file");
+    const api = JSON.parse(apiNav.data);
+
+    expect(api).toHaveLength(1);
+    expect(api[0].title).toBe("API documentation");
+    expect(api[0].children).toHaveLength(1);
+    expect(api[0].href).toBe("/api-reference/api-documentation");
+    expect(api[0].children[0].href).toBe("/api-reference/api-documentation/api-introduction");
+
+    // --- Verify tabs.json ---
+    const tabsFile = result.files.find((f) => f.file === "lib/tabs.json");
+    expect(tabsFile).toBeDefined();
+    if (!tabsFile) throw new Error("Expected tabs.json");
+    const tabs = JSON.parse(tabsFile.data);
+    expect(tabs).toHaveLength(2);
+    expect(tabs[0].slug).toBe("guides");
+    expect(tabs[1].slug).toBe("api-reference");
+
+    // --- Verify MDX files exist for all pages ---
+    const mdxFiles = result.files.filter((f) => f.file.endsWith(".mdx"));
+    expect(mdxFiles.length).toBeGreaterThanOrEqual(13);
+
+    // Verify pages from non-first folders get correct MDX paths
+    const customizationMdx = result.files.find((f) => f.file === "docs/guides/customization/global-settings.mdx");
+    expect(customizationMdx).toBeDefined();
+    const apiDocMdx = result.files.find((f) => f.file === "docs/api-reference/api-documentation/api-introduction.mdx");
+    expect(apiDocMdx).toBeDefined();
+  });
 });

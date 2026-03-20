@@ -78,9 +78,45 @@ export async function buildProject(
       convex.query(api.folders.listByBranch, { branchId }),
     ]);
 
-    // 5. Fetch content for each page
+    // 5. Recompute folder paths from parent chain (matches deploy.ts logic)
+    const folderMap = new Map(rawFolders.map((f: any) => [f._id, f]));
+    function computePath(folder: { _id: string; slug: string; parentId?: string }): string {
+      if (!folder.parentId) {
+        return `/${folder.slug}`;
+      }
+      const parent = folderMap.get(folder.parentId);
+      if (!parent) {
+        return `/${folder.slug}`;
+      }
+      return `${computePath(parent)}/${folder.slug}`;
+    }
+
+    const folders = rawFolders.map((f: any) => ({
+      id: f._id,
+      name: f.name,
+      slug: f.slug,
+      path: computePath(f),
+      position: f.position ?? 0,
+      icon: f.icon,
+    }));
+
+    // 6. Recompute page paths based on folder hierarchy (matches deploy.ts logic)
+    const folderById = new Map(folders.map((f) => [f.id, f]));
+    const pagesWithFixedPaths = rawPages.map((page: any) => {
+      if (!page.folderId) {
+        return { ...page, path: `/${page.slug}` };
+      }
+      const folder = folderById.get(page.folderId);
+      if (!folder) {
+        return page;
+      }
+      return { ...page, path: `${folder.path}/${page.slug}` };
+    });
+
+    // 7. Fetch content for published pages only (matches deploy.ts isPublished filter)
     const pages = [];
-    for (const page of rawPages) {
+    for (const page of pagesWithFixedPaths) {
+      if (!page.isPublished) continue;
       const contentDoc = await convex.query(api.pages.getContent, {
         pageId: page._id,
       });
@@ -97,27 +133,23 @@ export async function buildProject(
       });
     }
 
-    const folders = rawFolders.map((f: any) => ({
-      id: f._id,
-      name: f.name,
-      slug: f.slug,
-      path: f.path || `/${f.slug}`,
-      position: f.position ?? 0,
-      icon: f.icon,
-    }));
-
-    // 6. Generate site files
+    // 8. Generate site files
     await convex.mutation(api.deployments.updateBuildPhase, {
       deploymentId,
       buildPhase: "generating",
     });
 
+    // Access settings from the project object — navTabs lives under project.settings
+    const settings = (project as Record<string, unknown>).settings as
+      | { theme?: string; primaryColor?: string; navTabs?: unknown }
+      | undefined;
+
     const { files: siteFiles, warnings: buildWarnings } = await generateSiteFiles(pages, folders, {
       name: project.name,
       description: (project as Record<string, unknown>).description as string | undefined,
-      theme: (project as Record<string, unknown>).theme as "default" | undefined,
-      primaryColor: (project as Record<string, unknown>).primaryColor as string | undefined,
-      navTabs: (project as Record<string, unknown>).navTabs as undefined,
+      theme: settings?.theme as "default" | undefined,
+      primaryColor: settings?.primaryColor as string | undefined,
+      navTabs: settings?.navTabs as any,
     });
 
     if (buildWarnings && buildWarnings.length > 0) {
@@ -126,7 +158,7 @@ export async function buildProject(
       }
     }
 
-    // 7. Write files to disk
+    // 9. Write files to disk
     if (opts.clean !== false && existsSync(outDir)) {
       rmSync(outDir, { recursive: true, force: true });
     }
@@ -139,7 +171,7 @@ export async function buildProject(
       fileCount++;
     }
 
-    // 8. Update deployment record to ready
+    // 10. Update deployment record to ready
     const url = `file://${join(process.cwd(), outDir)}`;
     await convex.mutation(api.deployments.updateStatus, {
       deploymentId,
