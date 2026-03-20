@@ -1322,10 +1322,10 @@
   border-radius: 0 !important;
 }
 
-/* Caption moved via DOM manipulation — ensure full width when reparented */
-.bn-block:has(> .bn-block-group) > .bn-frame-caption-area {
-  width: 100%;
-}
+/* Caption reordering is handled via dynamically injected <style> elements
+   in frame.tsx (same pattern as Tabs CSS injection), using display:contents
+   + flex ordering to visually place the caption below .bn-block-group
+   without DOM manipulation that conflicts with ProseMirror. */
 
 .editor-theme-wrapper .bn-block-outer:has([data-content-type="frameContent"]) .bn-block-group,
 .bn-block-outer:has([data-content-type="frameContent"]) .bn-block-group {

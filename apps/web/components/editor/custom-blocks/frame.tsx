@@ -1,7 +1,7 @@
 "use client";
 
 import { createReactBlockSpec, useBlockNoteEditor } from "@blocknote/react";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { getGroupChildren, getGroupPosition, findContainerBefore } from "./group-utils";
 import "./frame.css";
@@ -182,20 +182,88 @@ export const FrameContent = createReactBlockSpec(
       const isLast = groupInfo?.isLast ?? false;
       const caption = groupInfo?.containerCaption ?? "";
 
-      const captionRef = useRef<HTMLDivElement>(null);
+      // Inject a <style> element to visually reorder the caption below children.
+      // Uses display:contents + flex ordering (same pattern as Tabs CSS injection)
+      // to make the caption appear after .bn-block-group without moving DOM nodes,
+      // which would conflict with ProseMirror's DOM management.
+      const [hasBlockGroup, setHasBlockGroup] = useState(false);
 
-      // Move caption DOM element after the block-group so it appears below children
       useEffect(() => {
-        if (!isLast || !captionRef.current) return;
-
-        const blockOuter = captionRef.current.closest('.bn-block-outer');
-        const bnBlock = blockOuter?.querySelector(':scope > .bn-block');
-        const blockGroup = bnBlock?.querySelector(':scope > .bn-block-group');
-
-        if (blockGroup) {
-          blockGroup.after(captionRef.current);
+        if (!isLast) {
+          setHasBlockGroup(false);
+          return;
         }
-      }, [isLast, caption, groupInfo]);
+
+        const checkForBlockGroup = () => {
+          const blockOuter = document.querySelector(
+            `.bn-block-outer[data-id="${props.block.id}"]`
+          );
+          if (!blockOuter) return;
+          const bnBlock = blockOuter.querySelector(':scope > .bn-block');
+          const bg = bnBlock?.querySelector(':scope > .bn-block-group');
+          setHasBlockGroup(!!bg);
+        };
+
+        checkForBlockGroup();
+
+        const unsubscribe = editor.onChange(() => {
+          checkForBlockGroup();
+        });
+
+        return () => {
+          unsubscribe();
+        };
+      }, [isLast, editor, props.block.id]);
+
+      useEffect(() => {
+        if (!isLast || !hasBlockGroup) return;
+
+        const blockId = props.block.id;
+        const styleId = `frame-caption-reorder-${blockId}`;
+
+        let styleEl = window.document.getElementById(styleId);
+        if (!styleEl) {
+          styleEl = window.document.createElement("style");
+          styleEl.id = styleId;
+          window.document.head.appendChild(styleEl);
+        }
+
+        // Use display:contents to flatten wrapper elements, then flex ordering
+        // to place caption (.bn-frame-caption-area) after .bn-block-group
+        styleEl.textContent = `
+          .bn-block-outer[data-id="${blockId}"] > .bn-block {
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          .bn-block-outer[data-id="${blockId}"] > .bn-block > .react-renderer {
+            display: contents !important;
+          }
+          .bn-block-outer[data-id="${blockId}"] > .bn-block > .react-renderer > [data-content-type="frameContent"] {
+            display: contents !important;
+          }
+          .bn-block-outer[data-id="${blockId}"] > .bn-block > .react-renderer > [data-content-type="frameContent"] > .bn-frame-content-block {
+            display: contents !important;
+          }
+          .bn-block-outer[data-id="${blockId}"] .bn-frame-content {
+            order: 1 !important;
+            width: 100% !important;
+          }
+          .bn-block-outer[data-id="${blockId}"] > .bn-block > .bn-block-group {
+            order: 2 !important;
+          }
+          .bn-block-outer[data-id="${blockId}"] .bn-frame-caption-area {
+            order: 3 !important;
+            width: 100% !important;
+          }
+        `;
+
+        return () => {
+          const el = window.document.getElementById(styleId);
+          if (el) {
+            el.remove();
+          }
+        };
+      }, [isLast, hasBlockGroup, props.block.id]);
 
       const updateCaption = useCallback(
         (newCaption: string) => {
@@ -224,7 +292,7 @@ export const FrameContent = createReactBlockSpec(
         >
           <div className="bn-frame-content" ref={props.contentRef} />
           {isLast && (
-            <div className="bn-frame-caption-area" ref={captionRef}>
+            <div className="bn-frame-caption-area">
               <input
                 className="bn-frame-caption-input"
                 value={caption}
