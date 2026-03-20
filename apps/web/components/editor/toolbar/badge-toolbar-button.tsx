@@ -10,11 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@inkloom/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@inkloom/ui/tooltip";
+
 import { cn } from "@inkloom/ui/lib/utils";
 
 const BADGE_COLORS = [
@@ -42,13 +38,14 @@ export function BadgeToolbarButton() {
     // Get selected text from the editor
     const selection = editor.getSelection();
     if (!selection) {
-      // No selection - insert an empty badge at cursor
+      // No selection - insert a badge with default text at cursor
       (editor as any).insertInlineContent([
         {
           type: "badge",
           props: { color },
-          content: "badge",
+          content: [{ type: "text", text: "badge", styles: {} }],
         },
+        " ",
       ]);
     } else {
       // There's a selection - get selected text, remove it, and insert badge with that text
@@ -58,8 +55,9 @@ export function BadgeToolbarButton() {
           {
             type: "badge",
             props: { color },
-            content: selectedText,
+            content: [{ type: "text", text: selectedText, styles: {} }],
           },
+          " ",
         ]);
       }
     }
@@ -68,23 +66,17 @@ export function BadgeToolbarButton() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2"
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              <Tag className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{t("badge")}</p>
-        </TooltipContent>
-      </Tooltip>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2"
+          title={t("badge")}
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <Tag className="h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
       <PopoverContent className="w-48 p-2" align="start">
         <p className="mb-2 text-xs font-medium text-muted-foreground">
           {t("badgeColor")}

@@ -10,11 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@inkloom/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@inkloom/ui/tooltip";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@inkloom/ui/tabs";
 import { cn } from "@inkloom/ui/lib/utils";
 import {
@@ -101,23 +97,17 @@ export function IconToolbarButton() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2"
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              <Smile className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{t("icon")}</p>
-        </TooltipContent>
-      </Tooltip>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2"
+          title={t("icon")}
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <Smile className="h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
       <PopoverContent className="w-72 p-2" align="start">
         <Tabs defaultValue="icon" className="w-full">
           <TabsList className="w-full">

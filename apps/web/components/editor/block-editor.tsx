@@ -740,8 +740,15 @@ export function BlockEditor({
             {
               type: "badge",
               props: { color: "#6b7280" },
-              content: t("slashMenu.badgeDefaultText"),
+              content: [
+                {
+                  type: "text",
+                  text: t("slashMenu.badgeDefaultText"),
+                  styles: {},
+                },
+              ],
             },
+            " ",
           ]);
         },
         aliases: ["badge", "tag", "label", "chip", "pill"],
