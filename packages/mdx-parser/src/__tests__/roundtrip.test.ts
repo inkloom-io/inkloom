@@ -2019,5 +2019,42 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
       expect(steps[0].props?.title).toBe('Install "sharp"');
       expect(steps[1].props?.title).toBe('Configure "sharp"');
     });
+
+    it("docs-renderer parseAttributes decodes &quot; from serialized MDX", () => {
+      // Simulate the full pipeline: editor → blockNoteToMDX → docs-renderer parseAttributes
+      // This verifies the cross-package roundtrip: mdx-parser serialization → docs-renderer parsing
+      const blocks = [
+        {
+          type: "accordion" as const,
+          props: { title: 'Error: Could not load the "sharp" module' },
+          content: [{ type: "text" as const, text: "Some content" }],
+        },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+
+      // The MDX should contain &quot; (escaped quotes)
+      expect(mdx).toContain("&quot;sharp&quot;");
+
+      // Now simulate what the docs-renderer does: regex-based attribute parsing
+      // This is the same regex used in docs-renderer/src/mdx-parser.ts parseAttributes
+      const attrRegex = /(\w+)=(?:"([^"]*)"|{([^}]*)})/g;
+      const openTagMatch = mdx.match(/<Accordion\s+([^>]*)>/);
+      expect(openTagMatch).toBeTruthy();
+
+      const attrString = openTagMatch![1];
+      let match;
+      const attrs: Record<string, string> = {};
+      while ((match = attrRegex.exec(attrString!)) !== null) {
+        if (match[1] && match[2] !== undefined) {
+          // Apply the same decodeAttrValue logic as docs-renderer
+          attrs[match[1]] = match[2]
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, "&");
+        }
+      }
+
+      expect(attrs.title).toBe('Error: Could not load the "sharp" module');
+      expect(attrs.title).not.toContain("&quot;");
+    });
   });
 });

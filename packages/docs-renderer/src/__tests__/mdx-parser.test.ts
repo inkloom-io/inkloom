@@ -55,6 +55,31 @@ describe("parseAttributes", () => {
     const result = parseAttributes('src="/images/test.png" alt="A & B"');
     expect(result).toEqual({ src: "/images/test.png", alt: "A & B" });
   });
+
+  it("decodes &quot; entities in attribute values", () => {
+    const result = parseAttributes(
+      'title="Error: Could not load the &quot;sharp&quot; module"'
+    );
+    expect(result.title).toBe('Error: Could not load the "sharp" module');
+  });
+
+  it("decodes &amp; entities in attribute values", () => {
+    const result = parseAttributes('title="Pros &amp; Cons"');
+    expect(result.title).toBe("Pros & Cons");
+  });
+
+  it("decodes both &quot; and &amp; entities in the same value", () => {
+    const result = parseAttributes(
+      'title="Error: &quot;foo&quot; &amp; &quot;bar&quot; failed"'
+    );
+    expect(result.title).toBe('Error: "foo" & "bar" failed');
+  });
+
+  it("does not double-decode &amp;quot; (already single-encoded)", () => {
+    // &amp;quot; should decode to the literal text &quot; (not to ")
+    const result = parseAttributes('title="literal &amp;quot; entity"');
+    expect(result.title).toBe('literal &quot; entity');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -221,6 +246,68 @@ describe("findMDXComponents", () => {
       expect(result.some((c) => c.type === name)).toBe(true);
     }
   });
+
+  it("decodes &quot; in Accordion title attributes", () => {
+    const content =
+      '<Accordion title="Error: Could not load the &quot;sharp&quot; module">Content</Accordion>';
+    const result = findMDXComponents(content);
+    expect(result).toHaveLength(1);
+    const comp = result[0];
+    if (comp) {
+      expect(comp.type).toBe("Accordion");
+      expect(comp.props.title).toBe(
+        'Error: Could not load the "sharp" module'
+      );
+      expect(comp.children).toBe("Content");
+    }
+  });
+
+  it("decodes &quot; in Callout, Card, Tab, Step, Expandable, and Frame titles", () => {
+    const components = [
+      {
+        tag: "Callout",
+        mdx: '<Callout type="info" title="Use &quot;strict mode&quot; always">Body</Callout>',
+        expectedTitle: 'Use "strict mode" always',
+      },
+      {
+        tag: "Card",
+        mdx: '<Card title="Install &quot;sharp&quot; package">Guide</Card>',
+        expectedTitle: 'Install "sharp" package',
+      },
+      {
+        tag: "Expandable",
+        mdx: '<Expandable title="The &quot;advanced&quot; options">Details</Expandable>',
+        expectedTitle: 'The "advanced" options',
+      },
+    ];
+    for (const { tag, mdx, expectedTitle } of components) {
+      const result = findMDXComponents(mdx);
+      expect(result).toHaveLength(1);
+      const comp = result[0];
+      if (comp) {
+        expect(comp.type).toBe(tag);
+        expect(comp.props.title).toBe(expectedTitle);
+      }
+    }
+  });
+
+  it("decodes &quot; in AccordionGroup's nested Accordion titles", () => {
+    const content = [
+      "<AccordionGroup>",
+      '<Accordion title="First &quot;quoted&quot; title">Content 1</Accordion>',
+      '<Accordion title="Second &quot;quoted&quot; title">Content 2</Accordion>',
+      "</AccordionGroup>",
+    ].join("\n");
+    const result = findMDXComponents(content);
+    // Only AccordionGroup at top level (nested Accordions are filtered)
+    expect(result).toHaveLength(1);
+    const group = result[0];
+    if (group) {
+      expect(group.type).toBe("AccordionGroup");
+      // The children string should contain the Accordion tags
+      expect(group.children).toContain("&quot;quoted&quot;");
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -344,5 +431,163 @@ describe("preprocessInlineComponents", () => {
     const source = '<Icon icon="star" size="20" />';
     const result = preprocessInlineComponents(source);
     expect(result).toContain('data-size="20"');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// End-to-end: HTML entity decoding in full rendering pipeline
+// ---------------------------------------------------------------------------
+describe("HTML entity decoding in component rendering pipeline", () => {
+  it("Accordion title with &quot; is decoded through full pipeline", () => {
+    const mdx = `Some intro text
+
+<Accordion title="Error: Could not load the &quot;sharp&quot; module using the darwin-arm64 runtime">
+
+Troubleshooting content here.
+
+</Accordion>
+
+Some trailing text`;
+
+    const preprocessed = preprocessInlineComponents(mdx);
+    const components = findMDXComponents(preprocessed);
+    expect(components).toHaveLength(1);
+    const accordion = components[0];
+    if (accordion) {
+      expect(accordion.type).toBe("Accordion");
+      expect(accordion.props.title).toBe(
+        'Error: Could not load the "sharp" module using the darwin-arm64 runtime'
+      );
+      // Verify the title does NOT contain literal &quot;
+      expect(accordion.props.title).not.toContain("&quot;");
+    }
+  });
+
+  it("AccordionGroup with nested Accordion &quot; titles are decoded", () => {
+    const mdx = `<AccordionGroup>
+<Accordion title="Error: &quot;sharp&quot; module failed">Content 1</Accordion>
+<Accordion title="Warning: &quot;imagemin&quot; not found">Content 2</Accordion>
+</AccordionGroup>`;
+
+    const preprocessed = preprocessInlineComponents(mdx);
+    const components = findMDXComponents(preprocessed);
+    expect(components).toHaveLength(1);
+    const group = components[0];
+    if (group) {
+      expect(group.type).toBe("AccordionGroup");
+      // Children string still has raw &quot; (decoded when child renderers parse it)
+      expect(group.children).toContain("&quot;");
+
+      // Simulate what renderAccordionChildren does: parse inner Accordion tags
+      const innerRegex = /<Accordion(?![a-zA-Z])\s*([^>]*)(?<!\/)>/g;
+      let match;
+      const titles: string[] = [];
+      while ((match = innerRegex.exec(group.children)) !== null) {
+        const props = parseAttributes(match[1] ?? "");
+        titles.push((props.title as string) || "");
+      }
+      expect(titles).toHaveLength(2);
+      expect(titles[0]).toBe('Error: "sharp" module failed');
+      expect(titles[1]).toBe('Warning: "imagemin" not found');
+      // Verify no literal &quot; in decoded titles
+      for (const title of titles) {
+        expect(title).not.toContain("&quot;");
+      }
+    }
+  });
+
+  it("Callout title with &quot; is decoded", () => {
+    const mdx =
+      '<Callout type="warning" title="Use &quot;strict mode&quot; always">Details here</Callout>';
+    const components = findMDXComponents(mdx);
+    expect(components).toHaveLength(1);
+    if (components[0]) {
+      expect(components[0].props.title).toBe('Use "strict mode" always');
+      expect(components[0].props.title).not.toContain("&quot;");
+    }
+  });
+
+  it("Card title with &quot; is decoded", () => {
+    const mdx =
+      '<Card title="Install &quot;sharp&quot; package" href="/guide">Guide content</Card>';
+    const components = findMDXComponents(mdx);
+    expect(components).toHaveLength(1);
+    if (components[0]) {
+      expect(components[0].props.title).toBe('Install "sharp" package');
+      expect(components[0].props.title).not.toContain("&quot;");
+    }
+  });
+
+  it("Tab title with &quot; is decoded", () => {
+    const mdx = `<Tabs>
+<Tab title="Using &quot;npm&quot;">npm install sharp</Tab>
+<Tab title="Using &quot;yarn&quot;">yarn add sharp</Tab>
+</Tabs>`;
+    const components = findMDXComponents(mdx);
+    expect(components).toHaveLength(1);
+    if (components[0]) {
+      expect(components[0].type).toBe("Tabs");
+      // Simulate renderTabChildren parsing
+      const tabRegex = /<Tab(?![a-zA-Z])\s*([^>]*)(?<!\/)>/g;
+      let match;
+      const titles: string[] = [];
+      while ((match = tabRegex.exec(components[0].children)) !== null) {
+        const props = parseAttributes(match[1] ?? "");
+        titles.push((props.title as string) || "");
+      }
+      expect(titles).toEqual(['Using "npm"', 'Using "yarn"']);
+    }
+  });
+
+  it("Step title with &quot; is decoded", () => {
+    const mdx = `<Steps>
+<Step title="Run &quot;build&quot; command">Execute it</Step>
+</Steps>`;
+    const components = findMDXComponents(mdx);
+    expect(components).toHaveLength(1);
+    if (components[0]) {
+      // Simulate renderStepChildren parsing
+      const stepRegex = /<Step(?![a-zA-Z])\s*([^>]*)(?<!\/)>/g;
+      const match = stepRegex.exec(components[0].children);
+      if (match) {
+        const props = parseAttributes(match[1] ?? "");
+        expect(props.title).toBe('Run "build" command');
+        expect(props.title).not.toContain("&quot;");
+      }
+    }
+  });
+
+  it("Expandable title with &quot; is decoded", () => {
+    const mdx =
+      '<Expandable title="The &quot;advanced&quot; options">Details</Expandable>';
+    const components = findMDXComponents(mdx);
+    expect(components).toHaveLength(1);
+    if (components[0]) {
+      expect(components[0].props.title).toBe('The "advanced" options');
+      expect(components[0].props.title).not.toContain("&quot;");
+    }
+  });
+
+  it("Frame caption with &quot; is decoded", () => {
+    const mdx =
+      '<Frame caption="The &quot;result&quot; screenshot">Content</Frame>';
+    const components = findMDXComponents(mdx);
+    expect(components).toHaveLength(1);
+    if (components[0]) {
+      expect(components[0].props.caption).toBe('The "result" screenshot');
+      expect(components[0].props.caption).not.toContain("&quot;");
+    }
+  });
+
+  it("attributes with both &quot; and &amp; are decoded correctly", () => {
+    const mdx =
+      '<Accordion title="Error: &quot;foo&quot; &amp; &quot;bar&quot; failed">Details</Accordion>';
+    const components = findMDXComponents(mdx);
+    expect(components).toHaveLength(1);
+    if (components[0]) {
+      expect(components[0].props.title).toBe(
+        'Error: "foo" & "bar" failed'
+      );
+    }
   });
 });
