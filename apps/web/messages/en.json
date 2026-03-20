@@ -972,7 +972,8 @@
       "versionNoteLabel": "Version note (optional)",
       "versionNotePlaceholder": "e.g. Updated API examples",
       "buildStep": "Build",
-      "deployStep": "Deploy"
+      "deployStep": "Deploy",
+      "liveStep": "Live"
     },
     "sidebar": {
       "pages": "Pages",

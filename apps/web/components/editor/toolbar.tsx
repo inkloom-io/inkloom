@@ -107,10 +107,11 @@ function deriveSteps(
     return [
       { label: "build", state: "in-progress" },
       { label: "deploy", state: "pending" },
+      { label: "live", state: "pending" },
     ];
   }
 
-  const phases = ["generating", "uploading", "propagating"];
+  const phases = ["generating", "uploading", "propagating", "verifying"];
   const idx = dep.buildPhase ? phases.indexOf(dep.buildPhase) : -1;
 
   return [
@@ -120,7 +121,16 @@ function deriveSteps(
     },
     {
       label: "deploy",
-      state: idx > 1 ? "complete" : idx === 1 ? "in-progress" : "pending",
+      state: idx > 2 ? "complete" : idx >= 1 ? "in-progress" : "pending",
+    },
+    {
+      label: "live",
+      state:
+        dep.status === "ready"
+          ? "complete"
+          : idx === 3
+            ? "in-progress"
+            : "pending",
     },
   ];
 }
@@ -167,7 +177,11 @@ function DeploySteps({ steps, t }: { steps: StepInfo[]; t: (key: string) => stri
                   : "text-muted-foreground"
             }`}
           >
-            {step.label === "build" ? t("buildStep") : t("deployStep")}
+            {step.label === "build"
+              ? t("buildStep")
+              : step.label === "deploy"
+                ? t("deployStep")
+                : t("liveStep")}
           </span>
 
           {/* Connecting line (except last step) */}
