@@ -24,36 +24,6 @@ const BADGE_COLORS = [
   { name: "pink", bg: "#ec489920", border: "#ec489940", text: "#ec4899" },
 ];
 
-/**
- * Find the badge node at the current cursor position in the TipTap editor.
- * Returns the position and node if the cursor is inside a badge, or null otherwise.
- */
-function findBadgeAtCursor(editor: any): { pos: number; node: any } | null {
-  const tiptap = (editor as any)._tiptapEditor;
-  if (!tiptap) return null;
-
-  const { state } = tiptap;
-  const { selection, doc } = state;
-  const cursorPos = selection.$from.pos;
-
-  let result: { pos: number; node: any } | null = null;
-
-  doc.descendants((node: any, pos: number) => {
-    if (result) return false;
-    if (node.type.name === "badge") {
-      // Check if cursor is within this badge node's range
-      const endPos = pos + node.nodeSize;
-      if (cursorPos >= pos && cursorPos <= endPos) {
-        result = { pos, node };
-        return false;
-      }
-    }
-    return true;
-  });
-
-  return result;
-}
-
 export function BadgeToolbarButton() {
   const t = useTranslations("editor.blockEditor.inlineToolbar");
   const editor = useBlockNoteEditor();
@@ -62,84 +32,35 @@ export function BadgeToolbarButton() {
 
   const hasSelection = selectedBlocks.length > 0;
 
-  // Check if the cursor is currently inside a badge node
-  const badgeAtCursor = useMemo(() => {
-    return findBadgeAtCursor(editor);
-    // Re-evaluate when selected blocks change (selection moved)
+  // Check if the badge style is currently active on the selection
+  // Cast to any because the generic useBlockNoteEditor() doesn't know about our custom badge style
+  const activeBadgeColor = useMemo(() => {
+    try {
+      const activeStyles = (editor as any).getActiveStyles();
+      if (activeStyles.badge) {
+        return typeof activeStyles.badge === "string" ? activeStyles.badge : null;
+      }
+    } catch {
+      // ignore
+    }
+    return null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, selectedBlocks]);
 
-  const isInsideBadge = badgeAtCursor !== null;
+  const isInsideBadge = activeBadgeColor !== null;
 
   // Show button when there's a selection OR when cursor is inside a badge
   if (!hasSelection && !isInsideBadge) return null;
 
-  const handleUpdateBadgeColor = (color: string) => {
-    const badge = findBadgeAtCursor(editor);
-    if (!badge) return;
-
-    const tiptap = (editor as any)._tiptapEditor;
-    if (!tiptap) return;
-
-    const { state } = tiptap;
-    const nodeAtPos = state.doc.nodeAt(badge.pos);
-    if (nodeAtPos) {
-      const tr = state.tr.setNodeMarkup(badge.pos, undefined, {
-        ...nodeAtPos.attrs,
-        color,
-      });
-      tiptap.view.dispatch(tr);
-    }
-    setOpen(false);
-  };
-
-  const handleInsertBadge = (color: string) => {
-    // Prevent nesting: never create a badge inside an existing badge.
-    // This is a real-time check to guard against stale useMemo state.
-    if (findBadgeAtCursor(editor)) {
-      handleUpdateBadgeColor(color);
-      return;
-    }
-
-    // Get selected text from the editor
-    const selection = editor.getSelection();
-    if (!selection) {
-      // No selection - insert a badge with default text at cursor
-      (editor as any).insertInlineContent([
-        {
-          type: "badge",
-          props: { color },
-          content: [{ type: "text", text: "badge", styles: {} }],
-        },
-        " ",
-      ]);
-    } else {
-      // There's a selection - get selected text, remove it, and insert badge with that text
-      const selectedText = getSelectedText(editor);
-      if (selectedText) {
-        (editor as any).insertInlineContent([
-          {
-            type: "badge",
-            props: { color },
-            content: [{ type: "text", text: selectedText, styles: {} }],
-          },
-          " ",
-        ]);
-      }
-    }
-    setOpen(false);
-  };
-
   const handleColorSelect = (color: string) => {
-    if (isInsideBadge) {
-      handleUpdateBadgeColor(color);
-    } else {
-      handleInsertBadge(color);
-    }
+    (editor as any).addStyles({ badge: color });
+    setOpen(false);
   };
 
-  // Find the current badge color to highlight it in the picker
-  const currentBadgeColor = isInsideBadge ? badgeAtCursor.node.attrs.color : null;
+  const handleRemoveBadge = () => {
+    (editor as any).removeStyles({ badge: true });
+    setOpen(false);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -157,7 +78,12 @@ export function BadgeToolbarButton() {
           <Tag className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-48 p-2" align="start">
+      <PopoverContent
+        className="w-48 p-2"
+        align="start"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         <p className="mb-2 text-xs font-medium text-muted-foreground">
           {t("badgeColor")}
         </p>
@@ -170,7 +96,7 @@ export function BadgeToolbarButton() {
               className={cn(
                 "flex h-8 items-center justify-center rounded text-xs font-medium",
                 "hover:ring-2 hover:ring-ring hover:ring-offset-1",
-                currentBadgeColor === color.text && "ring-2 ring-ring ring-offset-1"
+                activeBadgeColor === color.text && "ring-2 ring-ring ring-offset-1"
               )}
               style={{
                 backgroundColor: color.bg,
@@ -185,33 +111,16 @@ export function BadgeToolbarButton() {
             </button>
           ))}
         </div>
+        {isInsideBadge && (
+          <button
+            type="button"
+            onClick={handleRemoveBadge}
+            className="mt-2 w-full rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
+          >
+            {t("removeBadge")}
+          </button>
+        )}
       </PopoverContent>
     </Popover>
   );
-}
-
-/**
- * Extract the plain text of the current editor selection.
- */
-function getSelectedText(editor: any): string {
-  try {
-    const selection = editor.getSelection();
-    if (!selection) return "";
-    // Walk through selected blocks and collect text content
-    const blocks = selection.blocks;
-    if (!blocks || blocks.length === 0) return "";
-    const texts: string[] = [];
-    for (const block of blocks) {
-      if (block.content && Array.isArray(block.content)) {
-        for (const inline of block.content) {
-          if (inline.type === "text" && inline.text) {
-            texts.push(inline.text);
-          }
-        }
-      }
-    }
-    return texts.join(" ");
-  } catch {
-    return "";
-  }
 }

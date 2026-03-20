@@ -1171,6 +1171,7 @@
       "inlineToolbar": {
         "badge": "Insert badge",
         "badgeColor": "Badge color",
+        "removeBadge": "Remove badge",
         "icon": "Insert icon",
         "iconTabIcons": "Icons",
         "iconTabEmoji": "Emoji"

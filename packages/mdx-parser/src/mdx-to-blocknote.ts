@@ -259,20 +259,17 @@ function convertInlineNodes(
           }
         } else if (tagName === "mark") {
           // Inline badge: <mark style="color:green;">POST</mark>
+          // Convert to text items with badge style applied
           const styleStr = getAttrValue(node.attributes, "style") || "";
           const colorMatch = styleStr.match(/(?:^|;)\s*color:\s*([^;]+)/);
-          const color = colorMatch ? colorMatch[1].trim() : "";
+          const color = colorMatch ? colorMatch[1].trim() : "#6b7280";
           const children = node.children ? convertInlineNodes(node.children) : [];
-          // Extract text from children
-          const badgeText = children
-            .filter((c) => c.type === "text")
-            .map((c) => c.text || "")
-            .join("");
-          result.push({
-            type: "badge",
-            props: { color },
-            content: [{ type: "text", text: badgeText }],
-          });
+          for (const child of children) {
+            if (child.type === "text") {
+              child.styles = { ...child.styles, badge: color };
+            }
+            result.push(child);
+          }
         } else if (tagName === "Icon") {
           // Inline icon: <Icon icon="flag" size={32} />
           const iconName = getAttrValue(node.attributes, "icon") || "";
@@ -829,24 +826,22 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
 
     case "mark": {
       // Block-level mark: <mark style="color:green;">POST</mark>
+      // Convert to paragraph with text items that have badge style
       const styleStr = getAttrValue(attrs, "style") || "";
       const colorMatch = styleStr.match(/(?:^|;)\s*color:\s*([^;]+)/);
-      const color = colorMatch ? colorMatch[1].trim() : "";
+      const color = colorMatch ? colorMatch[1].trim() : "#6b7280";
       const children = node.children ? flattenToInline(node.children) : [];
-      const badgeText = children
-        .filter((c) => c.type === "text")
-        .map((c) => c.text || "")
-        .join("");
+      const content: BlockNoteInlineContent[] = [];
+      for (const child of children) {
+        if (child.type === "text") {
+          child.styles = { ...child.styles, badge: color };
+        }
+        content.push(child);
+      }
       return [
         {
           type: "paragraph",
-          content: [
-            {
-              type: "badge",
-              props: { color },
-              content: [{ type: "text", text: badgeText }],
-            },
-          ],
+          content,
         },
       ];
     }

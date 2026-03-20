@@ -571,28 +571,28 @@ describe("mdxToBlockNote", () => {
     expect(blocks[0].props?.expression).toBe("");
   });
 
-  it("parses inline mark as badge", () => {
+  it("parses inline mark as badge style", () => {
     const blocks = mdxToBlockNote('This is <mark style="color:green;">POST</mark> method');
     expect(blocks).toHaveLength(1);
     expect(blocks[0].type).toBe("paragraph");
-    const content = blocks[0].content as Array<{ type: string; props?: Record<string, string>; content?: Array<{ type: string; text?: string }> }>;
-    const badge = content.find((c) => c.type === "badge");
-    expect(badge).toBeDefined();
-    if (badge) {
-      expect(badge.props?.color).toBe("green");
-      expect(badge.content?.[0]?.text).toBe("POST");
+    const content = blocks[0].content as Array<{ type: string; text?: string; styles?: Record<string, unknown> }>;
+    const badgeItem = content.find((c) => c.type === "text" && c.styles?.badge);
+    expect(badgeItem).toBeDefined();
+    if (badgeItem) {
+      expect(badgeItem.styles?.badge).toBe("green");
+      expect(badgeItem.text).toBe("POST");
     }
   });
 
-  it("parses inline mark without style", () => {
+  it("parses inline mark without style as badge with default color", () => {
     const blocks = mdxToBlockNote("Use <mark>IMPORTANT</mark> here");
     expect(blocks).toHaveLength(1);
-    const content = blocks[0].content as Array<{ type: string; props?: Record<string, string>; content?: Array<{ type: string; text?: string }> }>;
-    const badge = content.find((c) => c.type === "badge");
-    expect(badge).toBeDefined();
-    if (badge) {
-      expect(badge.props?.color).toBe("");
-      expect(badge.content?.[0]?.text).toBe("IMPORTANT");
+    const content = blocks[0].content as Array<{ type: string; text?: string; styles?: Record<string, unknown> }>;
+    const badgeItem = content.find((c) => c.type === "text" && c.styles?.badge);
+    expect(badgeItem).toBeDefined();
+    if (badgeItem) {
+      expect(badgeItem.styles?.badge).toBe("#6b7280");
+      expect(badgeItem.text).toBe("IMPORTANT");
     }
   });
 
@@ -1249,16 +1249,16 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</video>");
   });
 
-  it("converts inline badge to mark element", () => {
+  it("converts badge style to mark element", () => {
     const mdx = blockNoteToMDX([
       {
         type: "paragraph",
         content: [
           { type: "text", text: "Method: " },
           {
-            type: "badge",
-            props: { color: "green" },
-            content: [{ type: "text", text: "POST" }],
+            type: "text",
+            text: "POST",
+            styles: { badge: "green" },
           },
         ],
       },
@@ -1267,21 +1267,37 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("Method:");
   });
 
-  it("converts inline badge without color", () => {
+  it("does not wrap text in mark when badge style is empty", () => {
     const mdx = blockNoteToMDX([
       {
         type: "paragraph",
         content: [
           {
-            type: "badge",
-            props: { color: "" },
-            content: [{ type: "text", text: "INFO" }],
+            type: "text",
+            text: "INFO",
+            styles: { badge: "" },
           },
         ],
       },
     ]);
-    expect(mdx).toContain("<mark>INFO</mark>");
-    expect(mdx).not.toContain("style");
+    expect(mdx).not.toContain("<mark>");
+    expect(mdx).toContain("INFO");
+  });
+
+  it("converts badge style with default color to mark element", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: "INFO",
+            styles: { badge: "#6b7280" },
+          },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<mark style="color:#6b7280;">INFO</mark>');
   });
 
   it("converts inline icon to Icon element", () => {

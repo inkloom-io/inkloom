@@ -133,16 +133,14 @@ function convertInlineContent(content: BlockNoteInlineContent[]): string {
           text = `<span style="${styles.join(";")}">${text}</span>`;
         }
 
-        return text;
-      }
+        // Badge style: wrap in <mark>
+        if (item.styles?.badge) {
+          const badgeColor = item.styles.badge;
+          const styleAttr = typeof badgeColor === "string" && badgeColor ? ` style="color:${badgeColor};"` : "";
+          text = `<mark${styleAttr}>${text}</mark>`;
+        }
 
-      if (item.type === "badge") {
-        const color = item.props?.color || "";
-        const badgeText = item.content
-          ? convertInlineContent(item.content)
-          : "";
-        const styleAttr = color ? ` style="color:${color};"` : "";
-        return `<mark${styleAttr}>${badgeText}</mark>`;
+        return text;
       }
 
       if (item.type === "icon") {

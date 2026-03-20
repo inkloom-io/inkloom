@@ -735,20 +735,13 @@ export function BlockEditor({
         title: t("slashMenu.badge"),
         subtext: t("slashMenu.badgeSubtext"),
         onItemClick: () => {
-          // Insert a badge inline content at the cursor
+          // Insert text with the badge style applied
           (editorInstance as any).insertInlineContent([
             {
-              type: "badge",
-              props: { color: "#6b7280" },
-              content: [
-                {
-                  type: "text",
-                  text: t("slashMenu.badgeDefaultText"),
-                  styles: {},
-                },
-              ],
+              type: "text",
+              text: t("slashMenu.badgeDefaultText"),
+              styles: { badge: "#6b7280" },
             },
-            " ",
           ]);
         },
         aliases: ["badge", "tag", "label", "chip", "pill"],
