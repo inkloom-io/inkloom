@@ -288,6 +288,136 @@ describe("parseMintlify", () => {
     });
   });
 
+  // ── Auto-detection of OpenAPI specs ──────────────────────────────────────
+
+  describe("auto-detect OpenAPI spec in subdirectory (api-reference/openapi.json)", () => {
+    const FIXTURE_DIR_NO_CONFIG = resolve(
+      __dirname,
+      "__fixtures__",
+      "no-config-openapi",
+    );
+    let result: Awaited<ReturnType<typeof parseMintlify>>;
+
+    beforeAll(async () => {
+      result = await parseMintlify(FIXTURE_DIR_NO_CONFIG);
+    });
+
+    it("auto-detects OpenAPI spec in api-reference/ subdirectory", () => {
+      expect(result.openapiSpecs).toBeDefined();
+      expect(result.openapiSpecs).toHaveLength(1);
+      const spec = result.openapiSpecs?.[0];
+      expect(spec?.path).toBe("api-reference/openapi.json");
+      expect(spec?.format).toBe("json");
+      expect(spec?.buffer).toBeInstanceOf(Buffer);
+    });
+
+    it("derives basePath from the API Reference tab", () => {
+      const spec = result.openapiSpecs?.[0];
+      expect(spec?.basePath).toBe("/api-reference");
+    });
+
+    it("emits auto-detection warning", () => {
+      const warning = result.warnings.find((w) =>
+        w.includes("Auto-detected OpenAPI spec file"),
+      );
+      expect(warning).toBeDefined();
+      expect(warning).toContain("api-reference/openapi.json");
+    });
+
+    it("skips endpoint placeholder pages", () => {
+      const slugs = result.pages.map((p) => p.slug);
+      expect(slugs).not.toContain("get-user");
+    });
+
+    it("preserves non-endpoint pages", () => {
+      const slugs = result.pages.map((p) => p.slug);
+      expect(slugs).toContain("introduction");
+    });
+  });
+
+  describe("auto-detect OpenAPI spec at root (openapi.yaml)", () => {
+    const FIXTURE_DIR_ROOT = resolve(
+      __dirname,
+      "__fixtures__",
+      "no-config-openapi-root",
+    );
+    let result: Awaited<ReturnType<typeof parseMintlify>>;
+
+    beforeAll(async () => {
+      result = await parseMintlify(FIXTURE_DIR_ROOT);
+    });
+
+    it("auto-detects YAML spec at root", () => {
+      expect(result.openapiSpecs).toBeDefined();
+      expect(result.openapiSpecs).toHaveLength(1);
+      const spec = result.openapiSpecs?.[0];
+      expect(spec?.path).toBe("openapi.yaml");
+      expect(spec?.format).toBe("yaml");
+      expect(spec?.buffer).toBeInstanceOf(Buffer);
+    });
+  });
+
+  describe("no spec present (should not error)", () => {
+    it("returns no openapiSpecs when no spec file exists", async () => {
+      // The sample-docs fixture already has an openapi.yaml AND a config reference,
+      // so we need a fixture with neither. We use the docs-json-openapi fixture
+      // which has an explicit config reference — that's not what we need.
+      // Instead, just confirm parseMintlify doesn't crash on a dir with no spec.
+      // We'll use a temp dir approach.
+      const { mkdtempSync, writeFileSync, mkdirSync } = await import("fs");
+      const { tmpdir } = await import("os");
+      const { join } = await import("path");
+
+      const tmpDir = mkdtempSync(join(tmpdir(), "mintlify-no-spec-"));
+      writeFileSync(
+        join(tmpDir, "docs.json"),
+        JSON.stringify({
+          name: "Test",
+          colors: { primary: "#000" },
+          navigation: [
+            {
+              tab: "Docs",
+              groups: [
+                { group: "Start", pages: ["intro"] },
+              ],
+            },
+          ],
+        }),
+      );
+      writeFileSync(
+        join(tmpDir, "intro.mdx"),
+        "---\ntitle: Intro\n---\n\nHello.",
+      );
+
+      const result = await parseMintlify(tmpDir);
+      expect(result.openapiSpecs).toBeUndefined();
+      // No auto-detection warning
+      const warning = result.warnings.find((w) =>
+        w.includes("Auto-detected OpenAPI spec file"),
+      );
+      expect(warning).toBeUndefined();
+    });
+  });
+
+  describe("config has explicit path — should not duplicate with auto-detect", () => {
+    it("does not auto-detect when config already specifies OpenAPI paths", async () => {
+      // The docs-json-openapi fixture has an explicit openapi reference at group level
+      const DOCS_JSON_FIXTURE_DIR = resolve(
+        __dirname,
+        "__fixtures__",
+        "docs-json-openapi",
+      );
+      const result = await parseMintlify(DOCS_JSON_FIXTURE_DIR);
+      // Should only have the one from config, not duplicated
+      expect(result.openapiSpecs).toHaveLength(1);
+      // Should NOT have an auto-detection warning
+      const warning = result.warnings.find((w) =>
+        w.includes("Auto-detected OpenAPI spec file"),
+      );
+      expect(warning).toBeUndefined();
+    });
+  });
+
   // ── docs.json with group-level OpenAPI ──────────────────────────────────
 
   describe("with docs-json-openapi fixture (group-level openapi)", () => {

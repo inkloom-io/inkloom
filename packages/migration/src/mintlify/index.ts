@@ -405,6 +405,44 @@ function slugify(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
+// ── OpenAPI auto-detection ────────────────────────────────────────────────────
+
+/** Well-known OpenAPI/Swagger spec filenames. */
+const OPENAPI_FILENAMES = [
+  "openapi.json",
+  "openapi.yaml",
+  "openapi.yml",
+  "swagger.json",
+  "swagger.yaml",
+  "swagger.yml",
+] as const;
+
+/** Subdirectories to scan for OpenAPI specs (relative to docs root). */
+const OPENAPI_SEARCH_DIRS = ["", "api-reference", "api"] as const;
+
+/**
+ * Auto-detect OpenAPI spec files on disk when not explicitly configured.
+ * Scans well-known filenames in the root and common subdirectories.
+ *
+ * @param dirPath - Absolute path to the Mintlify documentation directory
+ * @returns Array of relative paths to discovered spec files
+ */
+function autoDetectOpenApiSpecs(dirPath: string): string[] {
+  const found: string[] = [];
+
+  for (const subDir of OPENAPI_SEARCH_DIRS) {
+    for (const filename of OPENAPI_FILENAMES) {
+      const relativePath = subDir ? posix.join(subDir, filename) : filename;
+      const fullPath = resolve(dirPath, relativePath);
+      if (existsSync(fullPath)) {
+        found.push(relativePath);
+      }
+    }
+  }
+
+  return found;
+}
+
 // ── Main orchestrator ────────────────────────────────────────────────────────
 
 /**
@@ -442,6 +480,17 @@ export async function parseMintlify(
   // ── Step 2: Parse config ─────────────────────────────────────────────────
   const configResult = parseMintlifyConfig(configFile.config);
   warnings.push(...configResult.warnings);
+
+  // ── Step 2a: Auto-detect OpenAPI specs if none configured ───────────────
+  if (configResult.openApiPaths.length === 0) {
+    const detected = autoDetectOpenApiSpecs(resolvedDir);
+    if (detected.length > 0) {
+      configResult.openApiPaths.push(...detected);
+      warnings.push(
+        `Auto-detected OpenAPI spec file${detected.length > 1 ? "s" : ""}: ${detected.join(", ")}`,
+      );
+    }
+  }
 
   // ── Step 2b: Read OpenAPI spec files ────────────────────────────────────
   const openapiSpecs: MigrationOpenApiSpec[] = [];

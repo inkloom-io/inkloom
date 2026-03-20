@@ -1,0 +1,18 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "Acme Docs",
+  "colors": {
+    "primary": "#6366F1"
+  },
+  "navigation": [
+    {
+      "tab": "Guides",
+      "groups": [
+        {
+          "group": "Getting Started",
+          "pages": ["guides/introduction"]
+        }
+      ]
+    }
+  ]
+}
