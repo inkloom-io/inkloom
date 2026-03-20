@@ -2,14 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useBlockNoteEditor } from "@blocknote/react";
-import { ActionIcon as MantineActionIcon, Tooltip as MantineTooltip } from "@mantine/core";
+import { useBlockNoteEditor, useComponentsContext } from "@blocknote/react";
 import { Smile } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@inkloom/ui/popover";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@inkloom/ui/tabs";
 import { cn } from "@inkloom/ui/lib/utils";
@@ -80,9 +74,12 @@ const COMMON_EMOJIS = [
 ];
 
 export function IconToolbarButton() {
+  const Components = useComponentsContext();
   const t = useTranslations("editor.blockEditor.inlineToolbar");
   const editor = useBlockNoteEditor();
   const [open, setOpen] = useState(false);
+
+  if (!Components) return null;
 
   const handleInsertIcon = (iconName: string) => {
     (editor as any).insertInlineContent([
@@ -96,32 +93,20 @@ export function IconToolbarButton() {
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <MantineTooltip
-        label={t("icon")}
-        withinPortal={false}
-        disabled={open}
+    <Components.Generic.Popover.Root open={open} onOpenChange={setOpen}>
+      <Components.Generic.Popover.Trigger>
+        <Components.FormattingToolbar.Button
+          label={t("icon")}
+          mainTooltip={t("icon")}
+          icon={<Smile size={16} />}
+          onClick={() => setOpen(!open)}
+        />
+      </Components.Generic.Popover.Trigger>
+      <Components.Generic.Popover.Content
+        className="bn-popover-content bn-form-popover"
+        variant="form-popover"
       >
-        <span style={{ display: "inline-flex" }}>
-          <PopoverTrigger asChild>
-            <MantineActionIcon
-              size={30}
-              variant="transparent"
-              onClick={() => {}}
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              <Smile size={16} />
-            </MantineActionIcon>
-          </PopoverTrigger>
-        </span>
-      </MantineTooltip>
-      <PopoverContent
-        className="w-72 p-2"
-        align="start"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-      >
-        <Tabs defaultValue="icon" className="w-full">
+        <Tabs defaultValue="icon" className="w-72 p-2">
           <TabsList className="w-full">
             <TabsTrigger value="icon" className="flex-1">
               {t("iconTabIcons")}
@@ -164,7 +149,7 @@ export function IconToolbarButton() {
             </div>
           </TabsContent>
         </Tabs>
-      </PopoverContent>
-    </Popover>
+      </Components.Generic.Popover.Content>
+    </Components.Generic.Popover.Root>
   );
 }

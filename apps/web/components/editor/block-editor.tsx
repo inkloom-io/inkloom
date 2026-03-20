@@ -31,7 +31,7 @@ import { CustomFilePanel } from "./custom-file-panel";
 import { StickyHoverSideMenu } from "./custom-side-menu";
 import { useMutation } from "convex/react";
 import * as Y from "yjs";
-import { MessageSquarePlus, Tag, Smile } from "lucide-react";
+import { Tag, Smile } from "lucide-react";
 import {
   RiInfoCardLine,
   RiLayoutGridLine,
@@ -49,7 +49,7 @@ import {
   RiVideoLine,
   RiCodeBoxLine,
 } from "react-icons/ri";
-import { ActionIcon as MantineActionIcon, Tooltip as MantineTooltip } from "@mantine/core";
+import { CommentToolbarButton } from "./toolbar/comment-toolbar-button";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { ThemePreset } from "@/lib/theme-presets";
@@ -1742,18 +1742,7 @@ export function BlockEditor({
                 <IconToolbarButton key="iconButton" />
                 {/* Add Comment button */}
                 {onAddComment && pageId && currentUserId && (
-                  <MantineTooltip label={t("addComment")} withinPortal={false}>
-                    <MantineActionIcon
-                      size={30}
-                      variant="transparent"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        handleAddComment();
-                      }}
-                    >
-                      <MessageSquarePlus size={16} />
-                    </MantineActionIcon>
-                  </MantineTooltip>
+                  <CommentToolbarButton onAddComment={handleAddComment} />
                 )}
               </FormattingToolbar>
             )}

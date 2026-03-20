@@ -2,14 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { useBlockNoteEditor, useSelectedBlocks } from "@blocknote/react";
-import { ActionIcon as MantineActionIcon, Tooltip as MantineTooltip } from "@mantine/core";
+import { useBlockNoteEditor, useSelectedBlocks, useComponentsContext } from "@blocknote/react";
 import { Tag } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@inkloom/ui/popover";
 
 import { cn } from "@inkloom/ui/lib/utils";
 
@@ -25,6 +19,7 @@ const BADGE_COLORS = [
 ];
 
 export function BadgeToolbarButton() {
+  const Components = useComponentsContext();
   const t = useTranslations("editor.blockEditor.inlineToolbar");
   const editor = useBlockNoteEditor();
   const selectedBlocks = useSelectedBlocks(editor);
@@ -51,6 +46,7 @@ export function BadgeToolbarButton() {
 
   // Show button when there's a selection OR when cursor is inside a badge
   if (!hasSelection && !isInsideBadge) return null;
+  if (!Components) return null;
 
   const handleColorSelect = (color: string) => {
     (editor as any).addStyles({ badge: color });
@@ -63,69 +59,59 @@ export function BadgeToolbarButton() {
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <MantineTooltip
-        label={isInsideBadge ? t("badgeColor") : t("badge")}
-        withinPortal={false}
-        disabled={open}
+    <Components.Generic.Popover.Root open={open} onOpenChange={setOpen}>
+      <Components.Generic.Popover.Trigger>
+        <Components.FormattingToolbar.Button
+          label={isInsideBadge ? t("badgeColor") : t("badge")}
+          mainTooltip={isInsideBadge ? t("badgeColor") : t("badge")}
+          icon={<Tag size={16} />}
+          isSelected={isInsideBadge}
+          onClick={() => setOpen(!open)}
+        />
+      </Components.Generic.Popover.Trigger>
+      <Components.Generic.Popover.Content
+        className="bn-popover-content bn-form-popover"
+        variant="form-popover"
       >
-        <span style={{ display: "inline-flex" }}>
-          <PopoverTrigger asChild>
-            <MantineActionIcon
-              size={30}
-              variant="transparent"
-              data-selected={isInsideBadge || undefined}
-              onClick={() => {}}
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              <Tag size={16} />
-            </MantineActionIcon>
-          </PopoverTrigger>
-        </span>
-      </MantineTooltip>
-      <PopoverContent
-        className="w-48 p-2"
-        align="start"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-      >
-        <p className="mb-2 text-xs font-medium text-muted-foreground">
-          {t("badgeColor")}
-        </p>
-        <div className="grid grid-cols-4 gap-1">
-          {BADGE_COLORS.map((color) => (
+        <div className="w-48 p-2">
+          <p className="mb-2 text-xs font-medium text-muted-foreground">
+            {t("badgeColor")}
+          </p>
+          <div className="grid grid-cols-4 gap-1">
+            {BADGE_COLORS.map((color) => (
+              <button
+                key={color.name}
+                type="button"
+                onClick={() => handleColorSelect(color.text)}
+                className={cn(
+                  "flex h-8 items-center justify-center rounded text-xs font-medium",
+                  "hover:ring-2 hover:ring-ring hover:ring-offset-1",
+                  activeBadgeColor === color.text && "ring-2 ring-ring ring-offset-1"
+                )}
+                style={{
+                  backgroundColor: color.bg,
+                  color: color.text,
+                  borderColor: color.border,
+                  borderWidth: "1px",
+                  borderStyle: "solid",
+                }}
+                title={color.name}
+              >
+                {color.name.charAt(0).toUpperCase()}
+              </button>
+            ))}
+          </div>
+          {isInsideBadge && (
             <button
-              key={color.name}
               type="button"
-              onClick={() => handleColorSelect(color.text)}
-              className={cn(
-                "flex h-8 items-center justify-center rounded text-xs font-medium",
-                "hover:ring-2 hover:ring-ring hover:ring-offset-1",
-                activeBadgeColor === color.text && "ring-2 ring-ring ring-offset-1"
-              )}
-              style={{
-                backgroundColor: color.bg,
-                color: color.text,
-                borderColor: color.border,
-                borderWidth: "1px",
-                borderStyle: "solid",
-              }}
-              title={color.name}
+              onClick={handleRemoveBadge}
+              className="mt-2 w-full rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
             >
-              {color.name.charAt(0).toUpperCase()}
+              {t("removeBadge")}
             </button>
-          ))}
+          )}
         </div>
-        {isInsideBadge && (
-          <button
-            type="button"
-            onClick={handleRemoveBadge}
-            className="mt-2 w-full rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
-          >
-            {t("removeBadge")}
-          </button>
-        )}
-      </PopoverContent>
-    </Popover>
+      </Components.Generic.Popover.Content>
+    </Components.Generic.Popover.Root>
   );
 }
