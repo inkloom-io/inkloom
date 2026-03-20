@@ -94,6 +94,13 @@ export function BadgeToolbarButton() {
   };
 
   const handleInsertBadge = (color: string) => {
+    // Prevent nesting: never create a badge inside an existing badge.
+    // This is a real-time check to guard against stale useMemo state.
+    if (findBadgeAtCursor(editor)) {
+      handleUpdateBadgeColor(color);
+      return;
+    }
+
     // Get selected text from the editor
     const selection = editor.getSelection();
     if (!selection) {
