@@ -108,7 +108,12 @@ export function IconToolbarButton() {
           <Smile className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 p-2" align="start">
+      <PopoverContent
+        className="w-72 p-2"
+        align="start"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         <Tabs defaultValue="icon" className="w-full">
           <TabsList className="w-full">
             <TabsTrigger value="icon" className="flex-1">
