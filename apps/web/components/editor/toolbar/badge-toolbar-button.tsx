@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useBlockNoteEditor, useSelectedBlocks } from "@blocknote/react";
-import { Tooltip as MantineTooltip } from "@mantine/core";
+import { ActionIcon as MantineActionIcon, Tooltip as MantineTooltip } from "@mantine/core";
 import { Tag } from "lucide-react";
 import {
   Popover,
@@ -64,17 +64,21 @@ export function BadgeToolbarButton() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <MantineTooltip label={isInsideBadge ? t("badgeColor") : t("badge")} withinPortal={false} opened={!open ? undefined : false}>
+      <MantineTooltip
+        label={isInsideBadge ? t("badgeColor") : t("badge")}
+        withinPortal={false}
+        disabled={open}
+      >
         <PopoverTrigger asChild>
-          <button
-            type="button"
-            className={cn("mantine-ActionIcon-root", isInsideBadge && "data-selected")}
+          <MantineActionIcon
+            size={30}
+            variant="transparent"
             data-selected={isInsideBadge || undefined}
-            style={{ width: 28, height: 28, display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: 4, border: "none", background: "transparent", cursor: "pointer", padding: 0 }}
+            onClick={() => {}}
             onMouseDown={(e) => e.preventDefault()}
           >
             <Tag size={16} />
-          </button>
+          </MantineActionIcon>
         </PopoverTrigger>
       </MantineTooltip>
       <PopoverContent

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useBlockNoteEditor } from "@blocknote/react";
-import { Tooltip as MantineTooltip } from "@mantine/core";
+import { ActionIcon as MantineActionIcon, Tooltip as MantineTooltip } from "@mantine/core";
 import { Smile } from "lucide-react";
 import {
   Popover,
@@ -97,16 +97,20 @@ export function IconToolbarButton() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <MantineTooltip label={t("icon")} withinPortal={false} opened={!open ? undefined : false}>
+      <MantineTooltip
+        label={t("icon")}
+        withinPortal={false}
+        disabled={open}
+      >
         <PopoverTrigger asChild>
-          <button
-            type="button"
-            className="mantine-ActionIcon-root"
-            style={{ width: 28, height: 28, display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: 4, border: "none", background: "transparent", cursor: "pointer", padding: 0 }}
+          <MantineActionIcon
+            size={30}
+            variant="transparent"
+            onClick={() => {}}
             onMouseDown={(e) => e.preventDefault()}
           >
             <Smile size={16} />
-          </button>
+          </MantineActionIcon>
         </PopoverTrigger>
       </MantineTooltip>
       <PopoverContent
