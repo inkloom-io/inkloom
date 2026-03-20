@@ -1,40 +1,74 @@
 /* Callout Block Styles
    Uses CSS variables from the editor theme wrapper for consistent styling.
+
+   ============================================================================
+   VISUAL CONTAINMENT FIX
+   BlockNote renders child blocks (lists, code blocks, etc.) in .bn-block-group,
+   which is a sibling of the block-content wrapper — outside .bn-callout.
+   We move visual container styling (background, border-left, border-radius) to
+   the .bn-block parent element so both .bn-block-content (containing .bn-callout)
+   and .bn-block-group (children) are visually contained within the same area.
+
+   Actual DOM structure:
+     .bn-block[data-node-type="blockContainer"]       ← styled container (NEW)
+       .react-renderer.node-callout
+         .bn-block-content[data-content-type="callout"]
+           .bn-callout[data-callout-type="info"]       ← header + inline content (stripped of border/bg)
+       .bn-block-group                                 ← child blocks — now visually inside
+
+   We use :has() to target .bn-block based on its callout descendant, and
+   data-callout-type for type-specific colors.
+   This follows the same pattern as the accordion block visual containment fix.
+   ============================================================================
 */
 
-.bn-callout {
-  width: 100%;
+/* Container styling on .bn-block — type-specific backgrounds and borders */
+.bn-block:has(> .node-callout) {
   border-radius: 8px;
   margin: 8px 0;
-  padding: 16px;
   border-left: 4px solid;
   transition: all 0.15s ease;
+  overflow: hidden;
 }
 
-/* Type-specific colors */
-.bn-callout-info {
+/* Type-specific colors applied to .bn-block via :has() */
+.bn-block:has(> .node-callout [data-callout-type="info"]) {
   background: rgba(59, 130, 246, 0.1);
   border-left-color: #3b82f6;
 }
 
-.bn-callout-warning {
+.bn-block:has(> .node-callout [data-callout-type="warning"]) {
   background: rgba(245, 158, 11, 0.1);
   border-left-color: #f59e0b;
 }
 
-.bn-callout-danger {
+.bn-block:has(> .node-callout [data-callout-type="danger"]) {
   background: rgba(239, 68, 68, 0.1);
   border-left-color: #ef4444;
 }
 
-.bn-callout-success {
+.bn-block:has(> .node-callout [data-callout-type="success"]) {
   background: rgba(34, 197, 94, 0.1);
   border-left-color: #22c55e;
 }
 
-.bn-callout-tip {
+.bn-block:has(> .node-callout [data-callout-type="tip"]) {
   background: rgba(168, 85, 247, 0.1);
   border-left-color: #a855f7;
+}
+
+/* Style child blocks (.bn-block-group) to appear as callout content area */
+.bn-block:has(> .node-callout) > .bn-block-group {
+  padding: 0 16px 8px;
+  margin-left: 0;
+}
+
+/* Inner .bn-callout — stripped of container styling (now on .bn-block parent) */
+.bn-callout {
+  width: 100%;
+  padding: 16px;
+  margin: 0;
+  transition: all 0.15s ease;
 }
 
 .bn-callout-header {

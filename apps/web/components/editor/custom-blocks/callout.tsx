@@ -46,7 +46,7 @@ export const Callout = createReactBlockSpec(
       const calloutType = (type || "info") as CalloutType;
 
       return (
-        <div className={`bn-callout bn-callout-${calloutType}`}>
+        <div className={`bn-callout bn-callout-${calloutType}`} data-callout-type={calloutType}>
           <div className="bn-callout-header">
             {icons[calloutType]}
             <select
