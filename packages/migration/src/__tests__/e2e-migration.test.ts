@@ -157,30 +157,30 @@ describe("E2E: migrate() with Mintlify fixture", () => {
       }
     });
 
-    it("preserves page slugs from source navigation", () => {
+    it("preserves page slugs as basenames from source navigation", () => {
       const slugs = result.pages.map((p) => p.slug);
-      expect(slugs).toContain("guides/introduction");
-      expect(slugs).toContain("guides/quickstart");
-      expect(slugs).toContain("guides/auth/overview");
-      expect(slugs).toContain("guides/components/callouts");
-      expect(slugs).toContain("guides/components/interactive");
-      expect(slugs).toContain("guides/components/columns");
-      expect(slugs).toContain("api/overview");
-      expect(slugs).toContain("api/endpoints");
+      // Slugs should be basenames (last path segment), not full paths
+      expect(slugs).toContain("introduction");
+      expect(slugs).toContain("quickstart");
+      expect(slugs).toContain("overview"); // from guides/auth/overview
+      expect(slugs).toContain("callouts");
+      expect(slugs).toContain("interactive");
+      expect(slugs).toContain("columns");
+      expect(slugs).toContain("endpoints");
       // jwt-tokens is skipped (has openapi: directive)
-      expect(slugs).not.toContain("guides/auth/jwt-tokens");
+      expect(slugs).not.toContain("jwt-tokens");
     });
 
     it("assigns correct folder paths", () => {
       const introPage = result.pages.find(
-        (p) => p.slug === "guides/introduction",
+        (p) => p.slug === "introduction",
       );
       expect(introPage).toBeDefined();
       if (introPage) {
         expect(introPage.folderPath).toBeTruthy();
       }
 
-      const apiPage = result.pages.find((p) => p.slug === "api/overview");
+      const apiPage = result.pages.find((p) => p.slug === "overview" && p.folderPath === "api");
       expect(apiPage).toBeDefined();
       if (apiPage) {
         expect(apiPage.folderPath).toBeTruthy();
@@ -321,8 +321,8 @@ describe("E2E: migrate() with Mintlify fixture", () => {
 
     it("skips endpoint placeholder pages with openapi: frontmatter", () => {
       const slugs = result.pages.map((p) => p.slug);
-      expect(slugs).not.toContain("api/list-plants");
-      expect(slugs).not.toContain("api/create-plant");
+      expect(slugs).not.toContain("list-plants");
+      expect(slugs).not.toContain("create-plant");
     });
 
     it("emits a warning summarizing skipped endpoint pages", () => {
@@ -412,7 +412,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
   describe("component preservation", () => {
     it("preserves Callout (Note) blocks", () => {
       const introPage = result.pages.find(
-        (p) => p.slug === "guides/introduction",
+        (p) => p.slug === "introduction",
       );
       expect(introPage).toBeDefined();
       if (!introPage) return;
@@ -424,7 +424,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
 
     it("preserves all 5 callout variants (Note, Warning, Tip, Info, Check)", () => {
       const calloutsPage = result.pages.find(
-        (p) => p.slug === "guides/components/callouts",
+        (p) => p.slug === "callouts",
       );
       expect(calloutsPage).toBeDefined();
       if (!calloutsPage) return;
@@ -444,7 +444,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
 
     it("preserves Tabs blocks", () => {
       const quickstartPage = result.pages.find(
-        (p) => p.slug === "guides/quickstart",
+        (p) => p.slug === "quickstart",
       );
       expect(quickstartPage).toBeDefined();
       if (!quickstartPage) return;
@@ -459,7 +459,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
 
     it("preserves CardGroup blocks", () => {
       const authPage = result.pages.find(
-        (p) => p.slug === "guides/auth/overview",
+        (p) => p.slug === "overview" && p.folderPath === "authentication",
       );
       expect(authPage).toBeDefined();
       if (!authPage) return;
@@ -472,14 +472,14 @@ describe("E2E: migrate() with Mintlify fixture", () => {
     it("does not include skipped endpoint pages in output", () => {
       // jwt-tokens has openapi: directive and should be excluded
       const jwtPage = result.pages.find(
-        (p) => p.slug === "guides/auth/jwt-tokens",
+        (p) => p.slug === "jwt-tokens",
       );
       expect(jwtPage).toBeUndefined();
     });
 
     it("preserves Steps blocks", () => {
       const quickstartPage = result.pages.find(
-        (p) => p.slug === "guides/quickstart",
+        (p) => p.slug === "quickstart",
       );
       expect(quickstartPage).toBeDefined();
       if (!quickstartPage) return;
@@ -491,7 +491,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
 
     it("preserves heading blocks", () => {
       const introPage = result.pages.find(
-        (p) => p.slug === "guides/introduction",
+        (p) => p.slug === "introduction",
       );
       expect(introPage).toBeDefined();
       if (!introPage) return;
@@ -504,7 +504,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
     it("preserves code blocks with language", () => {
       // Use the interactive page which has standalone code blocks not nested in accordions
       const interactivePage = result.pages.find(
-        (p) => p.slug === "guides/components/interactive",
+        (p) => p.slug === "interactive",
       );
       expect(interactivePage).toBeDefined();
       if (!interactivePage) return;
@@ -521,7 +521,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
 
     it("preserves table blocks", () => {
       const introPage = result.pages.find(
-        (p) => p.slug === "guides/introduction",
+        (p) => p.slug === "introduction",
       );
       expect(introPage).toBeDefined();
       if (!introPage) return;
@@ -533,7 +533,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
 
     it("preserves image blocks", () => {
       const introPage = result.pages.find(
-        (p) => p.slug === "guides/introduction",
+        (p) => p.slug === "introduction",
       );
       expect(introPage).toBeDefined();
       if (!introPage) return;
@@ -545,7 +545,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
 
     it("preserves Columns with Card children as cardGroup blocks", () => {
       const columnsPage = result.pages.find(
-        (p) => p.slug === "guides/components/columns",
+        (p) => p.slug === "columns",
       );
       expect(columnsPage).toBeDefined();
       if (!columnsPage) return;
@@ -561,7 +561,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
 
     it("preserves Columns with non-card children as columns + column blocks", () => {
       const columnsPage = result.pages.find(
-        (p) => p.slug === "guides/components/columns",
+        (p) => p.slug === "columns",
       );
       expect(columnsPage).toBeDefined();
       if (!columnsPage) return;
@@ -577,7 +577,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
 
     it("preserves LaTeX blocks", () => {
       const latexPage = result.pages.find(
-        (p) => p.slug === "guides/components/latex",
+        (p) => p.slug === "latex",
       );
       expect(latexPage).toBeDefined();
       if (!latexPage) return;
@@ -593,7 +593,7 @@ describe("E2E: migrate() with Mintlify fixture", () => {
 
     it("preserves paragraph and list blocks", () => {
       const interactivePage = result.pages.find(
-        (p) => p.slug === "guides/components/interactive",
+        (p) => p.slug === "interactive",
       );
       expect(interactivePage).toBeDefined();
       if (!interactivePage) return;

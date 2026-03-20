@@ -229,7 +229,11 @@ function walkDirectory(dirPath: string, rootDir: string): string[] {
 
 /**
  * Derive a URL slug from a page reference path.
- * Mintlify URLs are file-path based: "guides/quickstart" → "/guides/quickstart".
+ * Uses the **basename** (last path segment) of the page ref, not the full path.
+ * This avoids multi-segment slugs that break navigation generation when
+ * deploy.ts constructs paths as `${folder.path}/${page.slug}`.
+ *
+ * Example: "essentials/settings" → "settings"
  */
 function pageRefToSlug(pageRef: string): string {
   // Strip extension if present
@@ -238,6 +242,11 @@ function pageRefToSlug(pageRef: string): string {
     if (slug.endsWith(ext)) {
       slug = slug.slice(0, -ext.length);
     }
+  }
+  // Use only the basename (last path segment) to avoid multi-segment slugs
+  const lastSlash = slug.lastIndexOf("/");
+  if (lastSlash !== -1) {
+    slug = slug.slice(lastSlash + 1);
   }
   return slug;
 }
@@ -469,6 +478,10 @@ export async function parseMintlify(
   // Track per-folder page positions when not available from nav
   const folderPositionCounters = new Map<string, number>();
 
+  // Track slugs per folder to deduplicate collisions.
+  // Key: "folderPath:slug", Value: count of occurrences so far.
+  const slugCounts = new Map<string, number>();
+
   for (const pageRef of configResult.pageRefs) {
     const resolved = resolvePageFile(resolvedDir, pageRef);
     if (!resolved) {
@@ -525,7 +538,16 @@ export async function parseMintlify(
       folderPositionCounters.set(folderPath, currentCount + 1);
     }
 
-    const slug = pageRefToSlug(pageRef);
+    let slug = pageRefToSlug(pageRef);
+
+    // Deduplicate slugs within the same folder to prevent collisions
+    // (e.g. "guides/intro" and "api/intro" both in the same folder)
+    const slugKey = `${folderPath}:${slug}`;
+    const existingCount = slugCounts.get(slugKey) ?? 0;
+    if (existingCount > 0) {
+      slug = `${slug}-${existingCount}`;
+    }
+    slugCounts.set(slugKey, existingCount + 1);
 
     pages.push({
       title,
@@ -599,10 +621,18 @@ export async function parseMintlify(
     allMdxContents.push(mdxContent);
 
     const pageRef = diskFile.slice(0, -ext.length);
-    const slug = pageRefToSlug(diskFile);
+    let slug = pageRefToSlug(diskFile);
     const title =
       transformed.metadata["title"] ||
       titleFromSlug(baseName);
+
+    // Deduplicate slugs for orphaned pages (folderPath is "")
+    const orphanSlugKey = `:${slug}`;
+    const orphanCount = slugCounts.get(orphanSlugKey) ?? 0;
+    if (orphanCount > 0) {
+      slug = `${slug}-${orphanCount}`;
+    }
+    slugCounts.set(orphanSlugKey, orphanCount + 1);
 
     warnings.push(
       `Page found on disk but not in navigation: ${diskFile}${isIndex ? " (index page)" : ""}`

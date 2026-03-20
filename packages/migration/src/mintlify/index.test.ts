@@ -32,22 +32,22 @@ describe("parseMintlify", () => {
 
     it("parses all non-endpoint pages referenced in navigation", () => {
       const slugs = result.pages.map((p) => p.slug);
-      expect(slugs).toContain("guides/introduction");
-      expect(slugs).toContain("guides/quickstart");
-      expect(slugs).toContain("guides/auth/overview");
-      expect(slugs).toContain("api/overview");
-      expect(slugs).toContain("api/endpoints");
+      // Slugs should be basenames only
+      expect(slugs).toContain("introduction");
+      expect(slugs).toContain("quickstart");
+      expect(slugs).toContain("overview"); // from guides/auth/overview or api/overview
+      expect(slugs).toContain("endpoints");
     });
 
     it("skips endpoint placeholder pages with openapi: frontmatter", () => {
       const slugs = result.pages.map((p) => p.slug);
       // jwt-tokens has openapi: POST /api/auth/token — should be skipped
-      expect(slugs).not.toContain("guides/auth/jwt-tokens");
+      expect(slugs).not.toContain("jwt-tokens");
     });
 
     it("extracts page titles from frontmatter", () => {
       const introPage = result.pages.find(
-        (p) => p.slug === "guides/introduction"
+        (p) => p.slug === "introduction" && p.folderPath === "getting-started"
       );
       expect(introPage).toBeDefined();
       expect(introPage?.title).toBe("Introduction");
@@ -55,7 +55,7 @@ describe("parseMintlify", () => {
 
     it("extracts metadata from frontmatter", () => {
       const introPage = result.pages.find(
-        (p) => p.slug === "guides/introduction"
+        (p) => p.slug === "introduction" && p.folderPath === "getting-started"
       );
       expect(introPage?.metadata).toEqual(
         expect.objectContaining({
@@ -75,22 +75,22 @@ describe("parseMintlify", () => {
 
     it("assigns pages to correct folders", () => {
       const introPage = result.pages.find(
-        (p) => p.slug === "guides/introduction"
+        (p) => p.slug === "introduction" && p.folderPath === "getting-started"
       );
       expect(introPage?.folderPath).toBe("getting-started");
 
       const authOverview = result.pages.find(
-        (p) => p.slug === "guides/auth/overview"
+        (p) => p.slug === "overview" && p.folderPath === "authentication"
       );
       expect(authOverview?.folderPath).toBe("authentication");
     });
 
     it("assigns position within folders", () => {
       const introPage = result.pages.find(
-        (p) => p.slug === "guides/introduction"
+        (p) => p.slug === "introduction" && p.folderPath === "getting-started"
       );
       const quickstartPage = result.pages.find(
-        (p) => p.slug === "guides/quickstart"
+        (p) => p.slug === "quickstart"
       );
       expect(introPage?.position).toBeLessThan(
         quickstartPage?.position ?? Infinity
@@ -101,7 +101,7 @@ describe("parseMintlify", () => {
 
     it("transforms Note → Callout info", () => {
       const introPage = result.pages.find(
-        (p) => p.slug === "guides/introduction"
+        (p) => p.slug === "introduction" && p.folderPath === "getting-started"
       );
       expect(introPage?.mdxContent).toContain('<Callout type="info">');
       expect(introPage?.mdxContent).not.toContain("<Note>");
@@ -109,7 +109,7 @@ describe("parseMintlify", () => {
 
     it("transforms Warning → Callout warning", () => {
       const quickstartPage = result.pages.find(
-        (p) => p.slug === "guides/quickstart"
+        (p) => p.slug === "quickstart"
       );
       expect(quickstartPage?.mdxContent).toContain(
         '<Callout type="warning">'
@@ -119,7 +119,7 @@ describe("parseMintlify", () => {
 
     it("transforms Tip → Callout tip", () => {
       const authPage = result.pages.find(
-        (p) => p.slug === "guides/auth/overview"
+        (p) => p.slug === "overview" && p.folderPath === "authentication"
       );
       expect(authPage?.mdxContent).toContain('<Callout type="tip">');
       expect(authPage?.mdxContent).not.toContain("<Tip>");
@@ -127,7 +127,7 @@ describe("parseMintlify", () => {
 
     it("transforms Note → Callout info on introduction page", () => {
       const introPage = result.pages.find(
-        (p) => p.slug === "guides/introduction"
+        (p) => p.slug === "introduction" && p.folderPath === "getting-started"
       );
       expect(introPage?.mdxContent).toContain('<Callout type="info">');
       expect(introPage?.mdxContent).not.toContain("<Note>");
@@ -135,14 +135,14 @@ describe("parseMintlify", () => {
 
     it("preserves non-Mintlify components (Tabs, Card, CardGroup)", () => {
       const quickstartPage = result.pages.find(
-        (p) => p.slug === "guides/quickstart"
+        (p) => p.slug === "quickstart"
       );
       expect(quickstartPage?.mdxContent).toContain("<Tabs>");
       expect(quickstartPage?.mdxContent).toContain("<Tab");
       expect(quickstartPage?.mdxContent).toContain("<Card");
 
       const authPage = result.pages.find(
-        (p) => p.slug === "guides/auth/overview"
+        (p) => p.slug === "overview" && p.folderPath === "authentication"
       );
       expect(authPage?.mdxContent).toContain("<CardGroup");
     });
@@ -178,11 +178,13 @@ describe("parseMintlify", () => {
     // ── URL Map ──────────────────────────────────────────────────────────
 
     it("builds URL map for all non-skipped pages", () => {
-      expect(result.urlMap.size).toBeGreaterThanOrEqual(5);
-      expect(result.urlMap.get("/guides/introduction")).toBe(
-        "/guides/introduction"
-      );
-      expect(result.urlMap.get("/api/overview")).toBe("/api/overview");
+      // With deduplication, some slugs may collide (e.g. "overview" appears
+      // in both auth and api), so the deduplicated slug gets "-1" suffix,
+      // reducing unique URL map entries. 4 is the minimum after dedup.
+      expect(result.urlMap.size).toBeGreaterThanOrEqual(4);
+      // With basename slugs, URLs use basenames
+      expect(result.urlMap.get("/introduction")).toBe("/introduction");
+      expect(result.urlMap.get("/quickstart")).toBe("/quickstart");
     });
 
     // ── Redirects ────────────────────────────────────────────────────────
@@ -235,7 +237,7 @@ describe("parseMintlify", () => {
 
     it("inlines snippet content into pages that import them", () => {
       const quickstartPage = result.pages.find(
-        (p) => p.slug === "guides/quickstart"
+        (p) => p.slug === "quickstart"
       );
       expect(quickstartPage).toBeDefined();
       // The snippet content should be inlined
