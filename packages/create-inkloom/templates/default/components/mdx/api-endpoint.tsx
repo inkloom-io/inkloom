@@ -381,6 +381,8 @@ function TryItSection({
   updateParam,
   requestBody,
   setRequestBody,
+  bodyFieldValues,
+  setBodyFieldValues,
   sendRequest,
   loading,
   error,
@@ -396,6 +398,8 @@ function TryItSection({
   updateParam: (name: string, value: string) => void;
   requestBody: string;
   setRequestBody: (v: string) => void;
+  bodyFieldValues: Record<string, string>;
+  setBodyFieldValues: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   sendRequest: () => void;
   loading: boolean;
   error: string | null;
@@ -540,7 +544,40 @@ function TryItSection({
       )}
 
       {/* Request Body */}
-      {hasRequestBody && (
+      {hasRequestBody && endpoint.requestBody && endpoint.requestBody.fields.length > 0 && (
+        <div className="api-tryit-field">
+          <label className="api-tryit-label">Request Body</label>
+          <div className="api-tryit-params">
+            {endpoint.requestBody.fields.map((f) => (
+              <div key={f.name} className="api-tryit-param">
+                <div className="api-tryit-param-info">
+                  <code className="api-tryit-param-name">{f.name}</code>
+                  <span className="api-tryit-param-meta">
+                    {f.type}
+                    {f.required && (
+                      <span className="api-tryit-param-required">*</span>
+                    )}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  className="api-tryit-input"
+                  placeholder={f.description || f.name}
+                  value={bodyFieldValues[f.name] || ""}
+                  onChange={(e) =>
+                    setBodyFieldValues((prev) => ({
+                      ...prev,
+                      [f.name]: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {/* Fallback raw textarea for endpoints without structured fields */}
+      {hasRequestBody && (!endpoint.requestBody || endpoint.requestBody.fields.length === 0) && (
         <div className="api-tryit-field">
           <label className="api-tryit-label">Request Body</label>
           <textarea
@@ -609,6 +646,7 @@ export function ApiEndpoint({
   const [authConfig, setAuthState] = useState<AuthConfig>({ type: "none" });
   const [paramValues, setParamValues] = useState<Record<string, string>>({});
   const [requestBody, setRequestBody] = useState("");
+  const [bodyFieldValues, setBodyFieldValues] = useState<Record<string, string>>({});
   const [response, setResponse] = useState<{
     status: number;
     statusText: string;
@@ -728,10 +766,32 @@ export function ApiEndpoint({
       }
     }
 
-    const hasBody =
-      requestBody &&
-      !["GET", "HEAD"].includes(endpoint.method.toUpperCase());
-    if (hasBody) {
+    // Build body from named fields or fallback to raw textarea
+    let bodyString: string | undefined;
+    const isBodyMethod = !["GET", "HEAD"].includes(endpoint.method.toUpperCase());
+
+    if (isBodyMethod && endpoint.requestBody && endpoint.requestBody.fields.length > 0) {
+      const body: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(bodyFieldValues)) {
+        if (value) {
+          const field = endpoint.requestBody.fields.find((f) => f.name === key);
+          if (field?.type === "integer" || field?.type === "number") {
+            body[key] = Number(value);
+          } else if (field?.type === "boolean") {
+            body[key] = value === "true";
+          } else {
+            body[key] = value;
+          }
+        }
+      }
+      if (Object.keys(body).length > 0) {
+        bodyString = JSON.stringify(body);
+      }
+    } else if (isBodyMethod && requestBody) {
+      bodyString = requestBody;
+    }
+
+    if (bodyString) {
       headers["Content-Type"] =
         endpoint.requestBody?.contentType || "application/json";
     }
@@ -740,9 +800,9 @@ export function ApiEndpoint({
       url,
       method: endpoint.method,
       headers,
-      body: hasBody ? requestBody : undefined,
+      body: bodyString,
     };
-  }, [data, endpoint, selectedServer, paramValues, authConfig, requestBody]);
+  }, [data, endpoint, selectedServer, paramValues, authConfig, requestBody, bodyFieldValues]);
 
   const sendRequest = useCallback(async () => {
     const config = buildRequestConfig();
@@ -913,6 +973,8 @@ export function ApiEndpoint({
               updateParam={updateParam}
               requestBody={requestBody}
               setRequestBody={setRequestBody}
+              bodyFieldValues={bodyFieldValues}
+              setBodyFieldValues={setBodyFieldValues}
               sendRequest={sendRequest}
               loading={loading}
               error={error}
