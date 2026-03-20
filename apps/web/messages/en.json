@@ -1291,7 +1291,8 @@
       "dangerZoneDescription": "Permanently delete this project and all its content",
       "deleteProject": "Delete Project",
       "deleteConfirmTitle": "Delete Project",
-      "deleteConfirmDescription": "Are you sure you want to delete \"{projectName}\"? This action cannot be undone.",
+      "deleteConfirmDescription": "This action cannot be undone. This will permanently delete the project <strong>{projectName}</strong> and all its pages, branches, and data.",
+      "typeToConfirm": "Type <strong>{projectName}</strong> to confirm",
       "deleting": "Deleting..."
     },
     "branding": {

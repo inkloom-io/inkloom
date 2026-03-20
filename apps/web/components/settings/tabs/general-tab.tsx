@@ -61,6 +61,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
   // Delete dialog
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   // Real-time uniqueness check for cfSlug
   const cfSlugCheckResult = useQuery(
@@ -134,6 +135,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
   );
 
   const handleDelete = async () => {
+    if (deleteConfirmation !== project.name) return;
     setIsDeleting(true);
     try {
       await deleteProject({ projectId: projectId as Id<"projects"> });
@@ -264,7 +266,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <Dialog open={deleteOpen} onOpenChange={(open) => { setDeleteOpen(open); if (!open) setDeleteConfirmation(""); }}>
             <DialogTrigger asChild>
               <Button variant="destructive">
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -275,9 +277,28 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
               <DialogHeader>
                 <DialogTitle>{t("deleteConfirmTitle")}</DialogTitle>
                 <DialogDescription>
-                  {t("deleteConfirmDescription", { projectName: project.name })}
+                  {t.rich("deleteConfirmDescription", {
+                    projectName: project.name,
+                    strong: (chunks) => <strong className="font-semibold">{chunks}</strong>,
+                  })}
                 </DialogDescription>
               </DialogHeader>
+              <div className="space-y-2">
+                <Label htmlFor="delete-confirm">
+                  {t.rich("typeToConfirm", {
+                    projectName: project.name,
+                    strong: (chunks) => <strong className="font-semibold">{chunks}</strong>,
+                  })}
+                </Label>
+                <Input
+                  id="delete-confirm"
+                  type="text"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  autoFocus
+                  placeholder={project.name}
+                />
+              </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setDeleteOpen(false)}>
                   {tc("cancel")}
@@ -285,7 +306,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
                 <Button
                   variant="destructive"
                   onClick={handleDelete}
-                  disabled={isDeleting}
+                  disabled={deleteConfirmation !== project.name || isDeleting}
                 >
                   {isDeleting ? t("deleting") : t("deleteProject")}
                 </Button>
