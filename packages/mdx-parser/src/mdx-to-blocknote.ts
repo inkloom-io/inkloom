@@ -669,17 +669,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
     case "Frame": {
       const hint = getAttrValue(attrs, "hint");
       const caption = getAttrValue(attrs, "caption");
-      const frameChildren: BlockNoteBlock[] = [];
-      // Convert child nodes into children of the frame block
-      if (node.children) {
-        for (const child of node.children) {
-          const childBlocks = convertBlockNode(child);
-          for (const childBlock of childBlocks) {
-            frameChildren.push(childBlock);
-          }
-        }
-      }
-      return [
+
+      const blocks: BlockNoteBlock[] = [
         {
           type: "frame",
           props: {
@@ -687,9 +678,27 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             ...(caption ? { caption } : {}),
           },
           content: [],
-          children: frameChildren,
         },
       ];
+
+      // Collect all children from the Frame's MDX content
+      const childBlocks: BlockNoteBlock[] = [];
+      if (node.children) {
+        for (const child of node.children) {
+          childBlocks.push(...convertBlockNode(child));
+        }
+      }
+
+      // Wrap children in a frameContent sibling (matching editor's group pattern)
+      if (childBlocks.length > 0) {
+        blocks.push({
+          type: "frameContent",
+          content: [],
+          children: childBlocks,
+        });
+      }
+
+      return blocks;
     }
 
     case "iframe": {
@@ -776,16 +785,26 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
         });
       }
 
-      return [
+      const figBlocks: BlockNoteBlock[] = [
         {
           type: "frame",
           props: {
             ...(figCaption ? { caption: figCaption } : {}),
           },
           content: [],
-          children: figureChildren,
         },
       ];
+
+      // Wrap children in a frameContent sibling (matching editor's group pattern)
+      if (figureChildren.length > 0) {
+        figBlocks.push({
+          type: "frameContent",
+          content: [],
+          children: figureChildren,
+        });
+      }
+
+      return figBlocks;
     }
 
     case "Icon": {

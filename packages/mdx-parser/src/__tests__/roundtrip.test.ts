@@ -432,74 +432,81 @@ describe("mdxToBlockNote", () => {
   it("parses Frame with image child", () => {
     const mdx = `<Frame caption="Yosemite National Park">\n<img src="/images/yosemite.png" alt="Yosemite" />\n</Frame>`;
     const blocks = mdxToBlockNote(mdx);
-    expect(blocks).toHaveLength(1);
+    expect(blocks).toHaveLength(2);
     expect(blocks[0].type).toBe("frame");
     expect(blocks[0].props?.caption).toBe("Yosemite National Park");
-    expect(blocks[0].children).toBeDefined();
-    expect(blocks[0].children?.length).toBeGreaterThan(0);
+    expect(blocks[1].type).toBe("frameContent");
+    expect(blocks[1].children).toBeDefined();
+    expect(blocks[1].children?.length).toBeGreaterThan(0);
   });
 
   it("parses Frame with hint prop", () => {
     const mdx = `<Frame hint="Important context">\n<img src="/images/photo.png" alt="Photo" />\n</Frame>`;
     const blocks = mdxToBlockNote(mdx);
-    expect(blocks).toHaveLength(1);
+    expect(blocks).toHaveLength(2);
     expect(blocks[0].type).toBe("frame");
     expect(blocks[0].props?.hint).toBe("Important context");
+    expect(blocks[1].type).toBe("frameContent");
   });
 
   it("parses Frame with both hint and caption", () => {
     const mdx = `<Frame hint="Plan ahead" caption="A beautiful park">\n<img src="/images/park.png" alt="Park" />\n</Frame>`;
     const blocks = mdxToBlockNote(mdx);
-    expect(blocks).toHaveLength(1);
+    expect(blocks).toHaveLength(2);
     expect(blocks[0].type).toBe("frame");
     expect(blocks[0].props?.hint).toBe("Plan ahead");
     expect(blocks[0].props?.caption).toBe("A beautiful park");
+    expect(blocks[1].type).toBe("frameContent");
   });
 
   it("parses Frame with code block child", () => {
     const mdx = '<Frame caption="Example code">\n\n```javascript\nconst x = 1;\n```\n\n</Frame>';
     const blocks = mdxToBlockNote(mdx);
-    expect(blocks).toHaveLength(1);
+    expect(blocks).toHaveLength(2);
     expect(blocks[0].type).toBe("frame");
-    expect(blocks[0].children?.some((c) => c.type === "codeBlock")).toBe(true);
+    expect(blocks[1].type).toBe("frameContent");
+    expect(blocks[1].children?.some((c) => c.type === "codeBlock")).toBe(true);
   });
 
   it("parses HTML figure with img and figcaption into frame with nested image (inline)", () => {
     const mdx = `<figure><img src=".gitbook/assets/screenshot.png" alt="image alt" /><figcaption><p>image caption</p></figcaption></figure>`;
     const blocks = mdxToBlockNote(mdx);
-    expect(blocks.length).toBe(1);
+    expect(blocks.length).toBe(2);
     expect(blocks[0].type).toBe("frame");
     expect(blocks[0].props?.caption).toBe("image caption");
-    expect(blocks[0].children).toBeDefined();
-    expect(blocks[0].children!.length).toBe(1);
-    expect(blocks[0].children![0].type).toBe("image");
-    expect(blocks[0].children![0].props?.url).toBe(".gitbook/assets/screenshot.png");
-    expect(blocks[0].children![0].props?.alt).toBe("image alt");
+    expect(blocks[1].type).toBe("frameContent");
+    expect(blocks[1].children).toBeDefined();
+    expect(blocks[1].children!.length).toBe(1);
+    expect(blocks[1].children![0].type).toBe("image");
+    expect(blocks[1].children![0].props?.url).toBe(".gitbook/assets/screenshot.png");
+    expect(blocks[1].children![0].props?.alt).toBe("image alt");
   });
 
   it("parses HTML figure with img and figcaption into frame with nested image (flow)", () => {
     const mdx = `<figure>\n<img src=".gitbook/assets/screenshot.png" alt="image alt" />\n<figcaption>\n<p>image caption</p>\n</figcaption>\n</figure>`;
     const blocks = mdxToBlockNote(mdx);
-    expect(blocks.length).toBe(1);
+    expect(blocks.length).toBe(2);
     expect(blocks[0].type).toBe("frame");
     expect(blocks[0].props?.caption).toBe("image caption");
-    expect(blocks[0].children).toBeDefined();
-    expect(blocks[0].children!.length).toBe(1);
-    expect(blocks[0].children![0].type).toBe("image");
-    expect(blocks[0].children![0].props?.url).toBe(".gitbook/assets/screenshot.png");
-    expect(blocks[0].children![0].props?.alt).toBe("image alt");
+    expect(blocks[1].type).toBe("frameContent");
+    expect(blocks[1].children).toBeDefined();
+    expect(blocks[1].children!.length).toBe(1);
+    expect(blocks[1].children![0].type).toBe("image");
+    expect(blocks[1].children![0].props?.url).toBe(".gitbook/assets/screenshot.png");
+    expect(blocks[1].children![0].props?.alt).toBe("image alt");
   });
 
   it("parses figure without figcaption", () => {
     const mdx = `<figure><img src="photo.png" alt="A photo" /></figure>`;
     const blocks = mdxToBlockNote(mdx);
-    expect(blocks.length).toBe(1);
+    expect(blocks.length).toBe(2);
     expect(blocks[0].type).toBe("frame");
     expect(blocks[0].props?.caption).toBeUndefined();
-    expect(blocks[0].children).toBeDefined();
-    expect(blocks[0].children!.length).toBe(1);
-    expect(blocks[0].children![0].type).toBe("image");
-    expect(blocks[0].children![0].props?.url).toBe("photo.png");
+    expect(blocks[1].type).toBe("frameContent");
+    expect(blocks[1].children).toBeDefined();
+    expect(blocks[1].children!.length).toBe(1);
+    expect(blocks[1].children![0].type).toBe("image");
+    expect(blocks[1].children![0].props?.url).toBe("photo.png");
   });
 
   it("parses figure without img", () => {
@@ -508,8 +515,7 @@ describe("mdxToBlockNote", () => {
     expect(blocks.length).toBe(1);
     expect(blocks[0].type).toBe("frame");
     expect(blocks[0].props?.caption).toBe("caption only");
-    expect(blocks[0].children).toBeDefined();
-    expect(blocks[0].children!.length).toBe(0);
+    // No image means no frameContent sibling is created
   });
 
   it("parses GitBook card-view table into cardGroup + cards (inline)", () => {
@@ -1054,7 +1060,27 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</ResponseField>");
   });
 
-  it("converts a frame with image child", () => {
+  it("converts a frame with image child (sibling pattern)", () => {
+    const mdx = blockNoteToMDX([
+      {
+        type: "frame",
+        props: { caption: "A beautiful scene" },
+        content: [],
+      },
+      {
+        type: "frameContent",
+        content: [],
+        children: [
+          { type: "image", props: { url: "https://img.com/pic.png", caption: "Photo" } },
+        ],
+      },
+    ]);
+    expect(mdx).toContain('<Frame caption="A beautiful scene">');
+    expect(mdx).toContain("</Frame>");
+    expect(mdx).toContain("pic.png");
+  });
+
+  it("converts a frame with nested children (legacy pattern)", () => {
     const mdx = blockNoteToMDX([
       {
         type: "frame",
@@ -1076,6 +1102,10 @@ describe("blockNoteToMDX", () => {
         type: "frame",
         props: { hint: "Pro tip", caption: "Example" },
         content: [],
+      },
+      {
+        type: "frameContent",
+        content: [],
         children: [
           { type: "image", props: { url: "/img.png", caption: "Img" } },
         ],
@@ -1089,6 +1119,10 @@ describe("blockNoteToMDX", () => {
     const mdx = blockNoteToMDX([
       {
         type: "frame",
+        content: [],
+      },
+      {
+        type: "frameContent",
         content: [],
         children: [
           { type: "image", props: { url: "/img.png", caption: "Img" } },
