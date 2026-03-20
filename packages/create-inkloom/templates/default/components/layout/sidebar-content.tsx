@@ -38,30 +38,46 @@ function NavLink({
 }) {
   const { pathname: rawPathname } = useLocation();
   const pathname = rawPathname.replace(/\/+$/, "") || "/";
-  const hasChildren = item.children && item.children.length > 0;
+  // Treat items with a `children` property as section headers (folders),
+  // even if children is empty. This prevents empty folders from rendering
+  // as flat links that lead to "Page not found".
+  const isFolder = Array.isArray(item.children);
+  const hasChildren = isFolder && item.children.length > 0;
   const linkHref = hasChildren
     ? getFirstLeafHref(item) || item.href
     : item.href;
-  const isActive = hasChildren
+  const isActive = isFolder
     ? pathname.startsWith(item.href)
     : pathname === linkHref;
 
-  if (hasChildren) {
-    // Render as section header — always expanded, no toggle
+  if (isFolder) {
+    // Render as section header — always expanded, no toggle.
+    // Uses isFolder (checks Array.isArray) rather than hasChildren
+    // so that folders with empty children arrays still render as
+    // section headers instead of flat links that show "Page not found".
     return (
       <li className={cn(!isFirst && "mt-6")}>
-        <Link
-          to={linkHref}
-          className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground)] flex items-center gap-2 py-1"
-        >
-          {item.icon && <IconDisplay icon={item.icon} />}
-          <span>{item.title}</span>
-        </Link>
-        <ul className="ml-0 mt-1 space-y-1 pl-0">
-          {item.children!.map((child) => (
-            <NavLink key={child.href} item={child} depth={depth + 1} />
-          ))}
-        </ul>
+        {hasChildren ? (
+          <Link
+            to={linkHref}
+            className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground)] flex items-center gap-2 py-1"
+          >
+            {item.icon && <IconDisplay icon={item.icon} />}
+            <span>{item.title}</span>
+          </Link>
+        ) : (
+          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-muted-foreground)] flex items-center gap-2 py-1">
+            {item.icon && <IconDisplay icon={item.icon} />}
+            <span>{item.title}</span>
+          </span>
+        )}
+        {hasChildren && (
+          <ul className="ml-0 mt-1 space-y-1 pl-0">
+            {item.children!.map((child) => (
+              <NavLink key={child.href} item={child} depth={depth + 1} />
+            ))}
+          </ul>
+        )}
       </li>
     );
   }
