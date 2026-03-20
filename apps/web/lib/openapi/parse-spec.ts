@@ -69,6 +69,8 @@ export interface ParsedSpec {
   servers: ParsedServer[];
   securitySchemes: Record<string, ParsedSecurityScheme>;
   security?: string[];
+  /** Non-blocking schema validation warnings (empty if spec is fully valid). */
+  warnings?: string[];
 }
 
 const HTTP_METHODS = ["get", "post", "put", "patch", "delete"] as const;
@@ -339,10 +341,32 @@ export async function parseOpenApiSpec(
     specObj = yaml.parse(specContent);
   }
 
-  // Validate and dereference all $ref pointers
-  const api = (await SwaggerParser.validate(
+  // Always dereference $refs — this resolves references without enforcing
+  // strict schema compliance, so functional specs with minor metadata issues
+  // (e.g. missing optional license fields) are never blocked.
+  const api = (await SwaggerParser.dereference(
     specObj as OpenAPIV3.Document
   )) as OpenAPIV3.Document;
+
+  // Collect non-blocking validation warnings by running strict validate in a
+  // try/catch on a fresh copy of the parsed object. Validation failure must
+  // never prevent the spec from being imported.
+  const warnings: string[] = [];
+  try {
+    // Re-parse to get a fresh object (validate mutates in-place)
+    let freshObj: OpenAPI.Document;
+    try {
+      freshObj = JSON.parse(specContent);
+    } catch {
+      const yaml = await import("yaml");
+      freshObj = yaml.parse(specContent);
+    }
+    await SwaggerParser.validate(freshObj as OpenAPIV3.Document);
+  } catch (err) {
+    if (err instanceof Error && err.message) {
+      warnings.push(err.message);
+    }
+  }
 
   // Extract servers
   const servers: ParsedServer[] = (api.servers || []).map((s) => ({
@@ -445,6 +469,7 @@ export async function parseOpenApiSpec(
     securitySchemes,
   };
   if (globalSecurity) result.security = globalSecurity;
+  if (warnings.length > 0) result.warnings = warnings;
 
   return result;
 }
