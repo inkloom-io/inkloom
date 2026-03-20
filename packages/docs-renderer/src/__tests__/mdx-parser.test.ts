@@ -212,6 +212,45 @@ describe("findMDXComponents", () => {
     }
   });
 
+  it("should NOT detect <Latex>...</Latex> inside a code fence", () => {
+    const content =
+      "Some text\n\n```markdown\n<Latex>8 x (vk x H1 - H2) = (0,1)</Latex>\n```\n\nMore text";
+    const result = findMDXComponents(content);
+    expect(result).toHaveLength(0);
+  });
+
+  it("should NOT detect any MDX component tag inside a code fence", () => {
+    const content = [
+      "# Example",
+      "",
+      "```jsx",
+      '<Callout type="info">Hello</Callout>',
+      '<Card title="Test">Content</Card>',
+      '<Image src="foo.png" />',
+      "```",
+      "",
+      "After fence",
+    ].join("\n");
+    const result = findMDXComponents(content);
+    expect(result).toHaveLength(0);
+  });
+
+  it("detects components outside code fences but ignores those inside", () => {
+    const content = [
+      '<Callout type="warning">Real callout</Callout>',
+      "",
+      "```mdx",
+      '<Callout type="info">Code example</Callout>',
+      "```",
+      "",
+      '<Card title="Real">Content</Card>',
+    ].join("\n");
+    const result = findMDXComponents(content);
+    expect(result).toHaveLength(2);
+    expect(result[0]?.type).toBe("Callout");
+    expect(result[1]?.type).toBe("Card");
+  });
+
   it("returns empty array for plain markdown", () => {
     const content = "# Hello\n\nThis is just regular markdown.";
     const result = findMDXComponents(content);
@@ -431,6 +470,50 @@ describe("preprocessInlineComponents", () => {
     const source = '<Icon icon="star" size="20" />';
     const result = preprocessInlineComponents(source);
     expect(result).toContain('data-size="20"');
+  });
+
+  it("should NOT convert <Latex inline> inside a code fence", () => {
+    const source = [
+      "Some text",
+      "",
+      "```markdown",
+      "<Latex inline>x^2</Latex>",
+      "```",
+      "",
+      "After fence",
+    ].join("\n");
+    const result = preprocessInlineComponents(source);
+    // The <Latex inline> inside the code fence must remain untouched
+    expect(result).toContain("<Latex inline>x^2</Latex>");
+    expect(result).not.toContain('class="latex-inline"');
+  });
+
+  it("converts inline Latex outside code fences but preserves those inside", () => {
+    const source = [
+      "Equation <Latex inline>a^2</Latex> here.",
+      "",
+      "```example",
+      "<Latex inline>b^2</Latex>",
+      "```",
+    ].join("\n");
+    const result = preprocessInlineComponents(source);
+    // Outside fence: converted
+    expect(result).toContain('class="latex-inline"');
+    // Inside fence: kept literal
+    expect(result).toContain("<Latex inline>b^2</Latex>");
+  });
+
+  it("should NOT convert <Icon> inside a code fence", () => {
+    const source = [
+      "Text",
+      "",
+      "```jsx",
+      '<Icon icon="star" />',
+      "```",
+    ].join("\n");
+    const result = preprocessInlineComponents(source);
+    expect(result).toContain('<Icon icon="star" />');
+    expect(result).not.toContain("data-icon");
   });
 });
 

@@ -136,6 +136,31 @@ export function findBalancedCloseTag(
 }
 
 /**
+ * Compute the index ranges of all fenced code blocks (``` ... ```) in the
+ * given string.  Each range is a [start, end) pair where `start` is the index
+ * of the opening backticks and `end` is one-past the closing backticks.
+ */
+function getCodeFenceRanges(content: string): Array<[number, number]> {
+  const ranges: Array<[number, number]> = [];
+  const regex = /^```[^\n]*\n[\s\S]*?^```/gm;
+  let m;
+  while ((m = regex.exec(content)) !== null) {
+    ranges.push([m.index, m.index + m[0].length]);
+  }
+  return ranges;
+}
+
+/**
+ * Return true when `index` falls inside any of the supplied code-fence ranges.
+ */
+function isInsideCodeFence(
+  index: number,
+  ranges: Array<[number, number]>
+): boolean {
+  return ranges.some(([start, end]) => index >= start && index < end);
+}
+
+/**
  * Find all MDX components in the content string.
  * Returns a sorted, filtered list of ParsedComponent objects.
  * Components nested inside other detected components are filtered out
@@ -143,6 +168,7 @@ export function findBalancedCloseTag(
  */
 export function findMDXComponents(content: string): ParsedComponent[] {
   const components: ParsedComponent[] = [];
+  const codeFenceRanges = getCodeFenceRanges(content);
   const componentNames = [
     "Card",
     "CardGroup",
@@ -176,6 +202,7 @@ export function findMDXComponents(content: string): ParsedComponent[] {
     const selfClosingRegex = new RegExp(`${namePattern}([^>]*?)/>`, "g");
     let match;
     while ((match = selfClosingRegex.exec(content)) !== null) {
+      if (isInsideCodeFence(match.index, codeFenceRanges)) continue;
       const attrStr = match[1] ?? "";
       components.push({
         type: name as ParsedComponent["type"],
@@ -193,6 +220,7 @@ export function findMDXComponents(content: string): ParsedComponent[] {
       "g"
     );
     while ((match = openTagRegex.exec(content)) !== null) {
+      if (isInsideCodeFence(match.index, codeFenceRanges)) continue;
       const attrStr = match[1] ?? "";
       const contentStart = match.index + match[0].length;
       const closeIdx = findBalancedCloseTag(content, name, contentStart);
@@ -307,42 +335,64 @@ export function preprocessCodeBlocks(content: string): {
  * findMDXComponents to handle.
  */
 export function preprocessInlineComponents(source: string): string {
-  // Convert <Icon icon="name" size={16} /> to <span data-icon="name" data-size="16"></span>
-  let result = source.replace(
-    /<Icon\s+([^>]*?)\/>/g,
-    (_match, attrStr: string) => {
-      const iconMatch = attrStr.match(/icon="([^"]*)"/);
-      const sizeMatch =
-        attrStr.match(/size=\{(\d+)\}/) || attrStr.match(/size="(\d+)"/);
-      const icon = iconMatch ? iconMatch[1] : "";
-      const size = sizeMatch ? sizeMatch[1] : "16";
-      return `<span data-icon="${icon}" data-size="${size}"></span>`;
+  // Split the source into code-fence and non-code-fence segments so that
+  // transformations are only applied to non-code-fence text.
+  const codeFenceRegex = /^```[^\n]*\n[\s\S]*?^```/gm;
+  const parts: string[] = [];
+  let lastIndex = 0;
+  let cfMatch;
+
+  while ((cfMatch = codeFenceRegex.exec(source)) !== null) {
+    // Text before this code fence — will be transformed
+    parts.push(source.slice(lastIndex, cfMatch.index));
+    // The code fence itself — kept as-is (prefixed with a NUL marker so we
+    // can distinguish it during reassembly)
+    parts.push(`\0CF\0${cfMatch[0]}`);
+    lastIndex = cfMatch.index + cfMatch[0].length;
+  }
+  parts.push(source.slice(lastIndex));
+
+  const transformed = parts.map((segment) => {
+    // Skip code fence segments (they carry the NUL marker)
+    if (segment.startsWith("\0CF\0")) {
+      return segment.slice(4); // strip the marker, return original text
     }
-  );
 
-  // Convert inline <Latex inline>expr</Latex> to pre-rendered KaTeX HTML spans.
-  // The `inline` attribute is added by wrapInlineLatex in blocknote-to-mdx.
-  // Block-level <Latex> (without `inline` attr) is left for findMDXComponents to handle.
-  result = result.replace(
-    /<Latex(\s+inline)?>([\s\S]*?)<\/Latex>/g,
-    (fullMatch, inlineAttr: string | undefined, expr: string) => {
-      if (!inlineAttr) {
-        // Block-level: leave for findMDXComponents
-        return fullMatch;
+    // Convert <Icon icon="name" size={16} /> to <span data-icon="name" data-size="16"></span>
+    let result = segment.replace(
+      /<Icon\s+([^>]*?)\/>/g,
+      (_match, attrStr: string) => {
+        const iconMatch = attrStr.match(/icon="([^"]*)"/);
+        const sizeMatch =
+          attrStr.match(/size=\{(\d+)\}/) || attrStr.match(/size="(\d+)"/);
+        const icon = iconMatch ? iconMatch[1] : "";
+        const size = sizeMatch ? sizeMatch[1] : "16";
+        return `<span data-icon="${icon}" data-size="${size}"></span>`;
       }
+    );
 
-      // Inline: pre-render with KaTeX in inline mode
-      try {
-        const html = katex.renderToString(expr.trim(), {
-          throwOnError: false,
-          displayMode: false,
-        });
-        return `<span class="latex-inline">${html}</span>`;
-      } catch {
-        return fullMatch;
+    // Convert inline <Latex inline>expr</Latex> to pre-rendered KaTeX HTML spans.
+    // Block-level <Latex> (without `inline` attr) is left for findMDXComponents.
+    result = result.replace(
+      /<Latex(\s+inline)?>([\s\S]*?)<\/Latex>/g,
+      (fullMatch, inlineAttr: string | undefined, expr: string) => {
+        if (!inlineAttr) {
+          return fullMatch;
+        }
+        try {
+          const html = katex.renderToString(expr.trim(), {
+            throwOnError: false,
+            displayMode: false,
+          });
+          return `<span class="latex-inline">${html}</span>`;
+        } catch {
+          return fullMatch;
+        }
       }
-    }
-  );
+    );
 
-  return result;
+    return result;
+  });
+
+  return transformed.join("");
 }
