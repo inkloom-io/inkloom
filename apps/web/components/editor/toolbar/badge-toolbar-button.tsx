@@ -3,8 +3,8 @@
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useBlockNoteEditor, useSelectedBlocks } from "@blocknote/react";
+import { Tooltip as MantineTooltip } from "@mantine/core";
 import { Tag } from "lucide-react";
-import { Button } from "@inkloom/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -64,20 +64,19 @@ export function BadgeToolbarButton() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            "h-7 px-2 bg-transparent text-[#404040] border-none hover:bg-[#f5f5f5] hover:text-[#171717] dark:text-[#e5e5e5] dark:hover:bg-[#262626] dark:hover:text-[#fafafa]",
-            isInsideBadge && "bg-accent"
-          )}
-          title={isInsideBadge ? t("badgeColor") : t("badge")}
-          onMouseDown={(e) => e.preventDefault()}
-        >
-          <Tag className="h-4 w-4" />
-        </Button>
-      </PopoverTrigger>
+      <MantineTooltip label={isInsideBadge ? t("badgeColor") : t("badge")} withinPortal={false} opened={!open ? undefined : false}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn("mantine-ActionIcon-root", isInsideBadge && "data-selected")}
+            data-selected={isInsideBadge || undefined}
+            style={{ width: 28, height: 28, display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: 4, border: "none", background: "transparent", cursor: "pointer", padding: 0 }}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <Tag size={16} />
+          </button>
+        </PopoverTrigger>
+      </MantineTooltip>
       <PopoverContent
         className="w-48 p-2"
         align="start"

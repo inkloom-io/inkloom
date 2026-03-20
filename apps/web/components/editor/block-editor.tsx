@@ -49,12 +49,7 @@ import {
   RiVideoLine,
   RiCodeBoxLine,
 } from "react-icons/ri";
-import { Button } from "@inkloom/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@inkloom/ui/tooltip";
+import { Tooltip as MantineTooltip } from "@mantine/core";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { ThemePreset } from "@/lib/theme-presets";
@@ -1747,24 +1742,19 @@ export function BlockEditor({
                 <IconToolbarButton key="iconButton" />
                 {/* Add Comment button */}
                 {onAddComment && pageId && currentUserId && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          handleAddComment();
-                        }}
-                        className="h-7 px-2"
-                      >
-                        <MessageSquarePlus className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t("addComment")}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <MantineTooltip label={t("addComment")} withinPortal={false}>
+                    <button
+                      type="button"
+                      className="mantine-ActionIcon-root"
+                      style={{ width: 28, height: 28, display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: 4, border: "none", background: "transparent", cursor: "pointer", padding: 0 }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleAddComment();
+                      }}
+                    >
+                      <MessageSquarePlus size={16} />
+                    </button>
+                  </MantineTooltip>
                 )}
               </FormattingToolbar>
             )}

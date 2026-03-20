@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useBlockNoteEditor } from "@blocknote/react";
+import { Tooltip as MantineTooltip } from "@mantine/core";
 import { Smile } from "lucide-react";
-import { Button } from "@inkloom/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -97,17 +97,18 @@ export function IconToolbarButton() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2 bg-transparent text-[#404040] border-none hover:bg-[#f5f5f5] hover:text-[#171717] dark:text-[#e5e5e5] dark:hover:bg-[#262626] dark:hover:text-[#fafafa]"
-          title={t("icon")}
-          onMouseDown={(e) => e.preventDefault()}
-        >
-          <Smile className="h-4 w-4" />
-        </Button>
-      </PopoverTrigger>
+      <MantineTooltip label={t("icon")} withinPortal={false} opened={!open ? undefined : false}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="mantine-ActionIcon-root"
+            style={{ width: 28, height: 28, display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: 4, border: "none", background: "transparent", cursor: "pointer", padding: 0 }}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <Smile size={16} />
+          </button>
+        </PopoverTrigger>
+      </MantineTooltip>
       <PopoverContent
         className="w-72 p-2"
         align="start"
