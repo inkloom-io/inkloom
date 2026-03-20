@@ -47,8 +47,16 @@ export interface MarkdownSegment {
 export type ContentSegment = CodeBlockSegment | MarkdownSegment;
 
 /**
+ * Decode HTML entities (&amp; and &quot;) in attribute values.
+ */
+function decodeAttrValue(value: string): string {
+  return value.replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+}
+
+/**
  * Parse attributes from a JSX-like tag string.
  * Supports key="value", key={value}, and boolean attributes.
+ * Decodes HTML entities (&quot; and &amp;) in string attribute values.
  */
 export function parseAttributes(
   attrString: string
@@ -66,7 +74,7 @@ export function parseAttributes(
 
     if (key) {
       if (stringValue !== undefined) {
-        attrs[key] = stringValue;
+        attrs[key] = decodeAttrValue(stringValue);
       } else if (jsValue !== undefined) {
         // Try to parse as number
         const num = Number(jsValue);

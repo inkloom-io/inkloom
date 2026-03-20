@@ -10,6 +10,13 @@ import type {
   TableContent,
 } from "./types.js";
 
+/**
+ * Decode HTML entities (&amp; and &quot;) in attribute values.
+ */
+function decodeAttrValue(value: string): string {
+  return value.replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+}
+
 function getAttrValue(
   attrs: MdxAttribute[] | undefined,
   name: string
@@ -17,9 +24,9 @@ function getAttrValue(
   if (!attrs) return undefined;
   const attr = attrs.find((a) => a.name === name);
   if (!attr) return undefined;
-  if (typeof attr.value === "string") return attr.value;
+  if (typeof attr.value === "string") return decodeAttrValue(attr.value);
   if (attr.value && typeof attr.value === "object" && "value" in attr.value) {
-    return attr.value.value;
+    return decodeAttrValue(attr.value.value);
   }
   if (attr.value === true || attr.value === null) return "true";
   return undefined;
@@ -563,7 +570,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
               // Parse title from meta — supports title="value" or bare text
               const titleMatch = child.meta.match(/title="([^"]*)"/);
               if (titleMatch) {
-                childProps.title = titleMatch[1];
+                childProps.title = decodeAttrValue(titleMatch[1]);
               } else {
                 // Title is everything in meta except {key=value} metadata blocks
                 const title = child.meta.replace(/\{[^}]*\}/g, "").trim();
@@ -1309,7 +1316,7 @@ function convertBlockNode(node: MdastNode): BlockNoteBlock[] {
         // Parse title from meta — supports title="value" or bare text
         const titleMatch = node.meta.match(/title="([^"]*)"/);
         if (titleMatch) {
-          props.title = titleMatch[1];
+          props.title = decodeAttrValue(titleMatch[1]);
         } else {
           // Title is everything in meta except {key=value} metadata blocks
           const title = node.meta.replace(/\{[^}]*\}/g, "").trim();

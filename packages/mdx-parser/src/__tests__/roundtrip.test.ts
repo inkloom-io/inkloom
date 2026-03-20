@@ -1809,4 +1809,149 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
       expect(mdx).toContain("</Tabs>");
     });
   });
+
+  describe("attribute value escaping", () => {
+    it("roundtrips accordion title with double quotes", () => {
+      const blocks = [
+        {
+          type: "accordion" as const,
+          props: { title: 'Error: Could not load the "sharp" module' },
+          content: [{ type: "text" as const, text: "Some content" }],
+        },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      // The serialized MDX should escape the quotes
+      expect(mdx).toContain("&quot;sharp&quot;");
+      expect(mdx).not.toContain('title="Error: Could not load the "sharp"');
+
+      // Parse it back
+      const parsed = mdxToBlockNote(mdx);
+      expect(parsed[0].type).toBe("accordion");
+      expect(parsed[0].props?.title).toBe('Error: Could not load the "sharp" module');
+    });
+
+    it("roundtrips callout title with double quotes", () => {
+      const blocks = [
+        {
+          type: "callout" as const,
+          props: { type: "warning", title: 'Use "strict mode" always' },
+          content: [{ type: "text" as const, text: "Details here" }],
+        },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      const parsed = mdxToBlockNote(mdx);
+      expect(parsed[0].props?.title).toBe('Use "strict mode" always');
+    });
+
+    it("roundtrips card title with double quotes", () => {
+      const blocks = [
+        {
+          type: "cardGroup" as const,
+          props: { cols: "2" },
+          content: [],
+        },
+        {
+          type: "card" as const,
+          props: { title: 'Install "sharp" package' },
+          content: [{ type: "text" as const, text: "Guide" }],
+        },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      const parsed = mdxToBlockNote(mdx);
+      const card = parsed.find((b) => b.type === "card");
+      expect(card?.props?.title).toBe('Install "sharp" package');
+    });
+
+    it("roundtrips tab title with double quotes", () => {
+      const blocks = [
+        {
+          type: "tabs" as const,
+          props: {},
+          content: [],
+        },
+        {
+          type: "tab" as const,
+          props: { title: 'Using "npm"' },
+          content: [{ type: "text" as const, text: "npm install" }],
+        },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      const parsed = mdxToBlockNote(mdx);
+      const tab = parsed.find((b) => b.type === "tab");
+      expect(tab?.props?.title).toBe('Using "npm"');
+    });
+
+    it("roundtrips step title with double quotes", () => {
+      const blocks = [
+        {
+          type: "steps" as const,
+          props: {},
+          content: [],
+        },
+        {
+          type: "step" as const,
+          props: { title: 'Run "build" command' },
+          content: [{ type: "text" as const, text: "Execute it" }],
+        },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      const parsed = mdxToBlockNote(mdx);
+      const step = parsed.find((b) => b.type === "step");
+      expect(step?.props?.title).toBe('Run "build" command');
+    });
+
+    it("roundtrips title with ampersand", () => {
+      const blocks = [
+        {
+          type: "accordion" as const,
+          props: { title: "Pros & Cons" },
+          content: [{ type: "text" as const, text: "Details" }],
+        },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      expect(mdx).toContain("&amp;");
+
+      const parsed = mdxToBlockNote(mdx);
+      expect(parsed[0].props?.title).toBe("Pros & Cons");
+    });
+
+    it("roundtrips title with both quotes and ampersand", () => {
+      const blocks = [
+        {
+          type: "accordion" as const,
+          props: { title: 'Error: "foo" & "bar" failed' },
+          content: [{ type: "text" as const, text: "Details" }],
+        },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      const parsed = mdxToBlockNote(mdx);
+      expect(parsed[0].props?.title).toBe('Error: "foo" & "bar" failed');
+    });
+
+    it("roundtrips multiple components with quoted titles", () => {
+      const blocks = [
+        {
+          type: "steps" as const,
+          props: {},
+          content: [],
+        },
+        {
+          type: "step" as const,
+          props: { title: 'Install "sharp"' },
+          content: [{ type: "text" as const, text: "Step 1" }],
+        },
+        {
+          type: "step" as const,
+          props: { title: 'Configure "sharp"' },
+          content: [{ type: "text" as const, text: "Step 2" }],
+        },
+      ];
+      const mdx = blockNoteToMDX(blocks);
+      const parsed = mdxToBlockNote(mdx);
+      const steps = parsed.filter((b) => b.type === "step");
+      expect(steps).toHaveLength(2);
+      expect(steps[0].props?.title).toBe('Install "sharp"');
+      expect(steps[1].props?.title).toBe('Configure "sharp"');
+    });
+  });
 });

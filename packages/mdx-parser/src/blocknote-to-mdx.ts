@@ -54,6 +54,15 @@ function isInlineContentArray(
 }
 
 /**
+ * Escape a string for use inside a JSX/MDX double-quoted attribute value.
+ * Replaces `&` with `&amp;` and `"` with `&quot;` so that attribute values
+ * containing double quotes survive serialization → parsing roundtrips.
+ */
+function escapeAttrValue(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
+/**
  * Post-process inline content string to convert $..$ and $$...$$ LaTeX
  * delimiters into <Latex> JSX tags.  Skips content inside <code>...</code>
  * spans and escaped \$ characters.
@@ -320,11 +329,11 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       if ((previewWidth && previewWidth !== 512) || caption) {
         const attrs = [
           `src="${url}"`,
-          `alt="${alt}"`,
+          `alt="${escapeAttrValue(alt)}"`,
           ...(previewWidth && previewWidth !== 512
             ? [`width={${previewWidth}}`]
             : []),
-          ...(caption ? [`caption="${caption}"`] : []),
+          ...(caption ? [`caption="${escapeAttrValue(caption)}"`] : []),
         ].join(" ");
         result = `<Image ${attrs} />\n\n`;
       } else {
@@ -518,7 +527,7 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       const text = block.content && isInlineContentArray(block.content) ? convertInlineContent(block.content) : "";
       const attrs = [
         `type="${type}"`,
-        title && `title="${title}"`,
+        title && `title="${escapeAttrValue(title)}"`,
       ]
         .filter(Boolean)
         .join(" ");
@@ -541,8 +550,8 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       const text = block.content && isInlineContentArray(block.content) ? convertInlineContent(block.content) : "";
 
       const attrs = [
-        `title="${title}"`,
-        icon && `icon="${icon}"`,
+        `title="${escapeAttrValue(title)}"`,
+        icon && `icon="${escapeAttrValue(icon)}"`,
         href && `href="${href}"`,
       ]
         .filter(Boolean)
@@ -588,8 +597,8 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       const icon = block.props?.icon as string;
       const text = block.content && isInlineContentArray(block.content) ? convertInlineContent(block.content) : "";
       const attrs = [
-        `title="${title}"`,
-        icon && `icon="${icon}"`,
+        `title="${escapeAttrValue(title)}"`,
+        icon && `icon="${escapeAttrValue(icon)}"`,
       ]
         .filter(Boolean)
         .join(" ");
@@ -617,8 +626,8 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       const icon = block.props?.icon as string;
       const text = block.content && isInlineContentArray(block.content) ? convertInlineContent(block.content) : "";
       const attrs = [
-        `title="${title}"`,
-        icon && `icon="${icon}"`,
+        `title="${escapeAttrValue(title)}"`,
+        icon && `icon="${escapeAttrValue(icon)}"`,
       ]
         .filter(Boolean)
         .join(" ");
@@ -656,8 +665,8 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
         : "";
 
       const attrs = [
-        `name="${rfName}"`,
-        rfType && `type="${rfType}"`,
+        `name="${escapeAttrValue(rfName)}"`,
+        rfType && `type="${escapeAttrValue(rfType)}"`,
         rfRequired && "required",
       ].filter(Boolean).join(" ");
 
@@ -691,8 +700,8 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
         const expType = block.props?.type as string;
         const expDefaultOpen = block.props?.defaultOpen as string;
         const expAttrs = [
-          `title="${expTitle}"`,
-          expType && `type="${expType}"`,
+          `title="${escapeAttrValue(expTitle)}"`,
+          expType && `type="${escapeAttrValue(expType)}"`,
           expDefaultOpen === "true" && `defaultOpen`,
         ].filter(Boolean).join(" ");
         result = `<Expandable ${expAttrs}>\n`;
@@ -716,8 +725,8 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
         : "";
 
       const attrs = [
-        `title="${title}"`,
-        icon && `icon="${icon}"`,
+        `title="${escapeAttrValue(title)}"`,
+        icon && `icon="${escapeAttrValue(icon)}"`,
         defaultOpen === "true" && `defaultOpen`,
       ].filter(Boolean).join(" ");
 
@@ -775,7 +784,7 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
 
       const attrParts = [
         `src="${src}"`,
-        title ? `title="${title}"` : null,
+        title ? `title="${escapeAttrValue(title)}"` : null,
         width ? `width="${width}"` : null,
         height ? `height="${height}"` : null,
         allow ? `allow="${allow}"` : null,
@@ -889,8 +898,8 @@ function collectResponseFieldSlice(
     : "";
 
   const attrs = [
-    `name="${rfName}"`,
-    rfType && `type="${rfType}"`,
+    `name="${escapeAttrValue(rfName)}"`,
+    rfType && `type="${escapeAttrValue(rfType)}"`,
     rfRequired && "required",
   ].filter(Boolean).join(" ");
 
@@ -910,8 +919,8 @@ function collectResponseFieldSlice(
     const expType = nextBlock.props?.type as string;
     const expDefaultOpen = nextBlock.props?.defaultOpen as string;
     const expAttrs = [
-      `title="${expTitle}"`,
-      expType && `type="${expType}"`,
+      `title="${escapeAttrValue(expTitle)}"`,
+      expType && `type="${escapeAttrValue(expType)}"`,
       expDefaultOpen === "true" && `defaultOpen`,
     ].filter(Boolean).join(" ");
     let expContent = `<Expandable ${expAttrs}>\n`;
@@ -1155,8 +1164,8 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
         const expType = block.props?.type as string;
         const expDefaultOpen = block.props?.defaultOpen as string;
         const expAttrs = [
-          `title="${expTitle}"`,
-          expType && `type="${expType}"`,
+          `title="${escapeAttrValue(expTitle)}"`,
+          expType && `type="${escapeAttrValue(expType)}"`,
           expDefaultOpen === "true" && `defaultOpen`,
         ].filter(Boolean).join(" ");
         mdx += `<Expandable ${expAttrs}>\n`;
@@ -1223,8 +1232,8 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
       const hint = (block.props?.hint as string) || "";
       const caption = (block.props?.caption as string) || "";
       const frameAttrs: string[] = [];
-      if (hint) frameAttrs.push(`hint="${hint}"`);
-      if (caption) frameAttrs.push(`caption="${caption}"`);
+      if (hint) frameAttrs.push(`hint="${escapeAttrValue(hint)}"`);
+      if (caption) frameAttrs.push(`caption="${escapeAttrValue(caption)}"`);
       const attrStr = frameAttrs.length > 0 ? ` ${frameAttrs.join(" ")}` : "";
       mdx += `<Frame${attrStr}>\n`;
       // Render nested children of the frame block (e.g. image blocks)
