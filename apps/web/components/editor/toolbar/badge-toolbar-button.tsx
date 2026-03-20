@@ -147,7 +147,10 @@ export function BadgeToolbarButton() {
         <Button
           variant="ghost"
           size="sm"
-          className={cn("h-7 px-2", isInsideBadge && "bg-accent")}
+          className={cn(
+            "h-7 px-2 bg-transparent text-[#404040] border-none hover:bg-[#f5f5f5] hover:text-[#171717] dark:text-[#e5e5e5] dark:hover:bg-[#262626] dark:hover:text-[#fafafa]",
+            isInsideBadge && "bg-accent"
+          )}
           title={isInsideBadge ? t("badgeColor") : t("badge")}
           onMouseDown={(e) => e.preventDefault()}
         >

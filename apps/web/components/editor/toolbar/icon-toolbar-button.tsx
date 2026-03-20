@@ -101,7 +101,7 @@ export function IconToolbarButton() {
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 px-2"
+          className="h-7 px-2 bg-transparent text-[#404040] border-none hover:bg-[#f5f5f5] hover:text-[#171717] dark:text-[#e5e5e5] dark:hover:bg-[#262626] dark:hover:text-[#fafafa]"
           title={t("icon")}
           onMouseDown={(e) => e.preventDefault()}
         >
