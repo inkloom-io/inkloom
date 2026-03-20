@@ -581,9 +581,41 @@ function parseRedirects(config: RawMintlifyConfig): RedirectRule[] {
 
 // ── OpenAPI parser ───────────────────────────────────────────────────────────
 
+/**
+ * Recursively walk navigation items and collect `openapi` fields from group entries.
+ * In docs.json format, groups can specify `openapi: "path/to/spec.yaml"` to reference
+ * an OpenAPI spec at the group level rather than at the root config level.
+ */
+function collectOpenApiFromNavigation(
+  items: unknown[] | undefined,
+): string[] {
+  if (!items || !Array.isArray(items)) return [];
+
+  const paths: string[] = [];
+  for (const item of items) {
+    if (typeof item !== "object" || item === null) continue;
+    const obj = item as Record<string, unknown>;
+
+    // Collect openapi field from group items
+    if (typeof obj["openapi"] === "string" && obj["openapi"]) {
+      paths.push(obj["openapi"]);
+    }
+
+    // Recurse into child pages/groups
+    if (Array.isArray(obj["pages"])) {
+      paths.push(...collectOpenApiFromNavigation(obj["pages"]));
+    }
+    if (Array.isArray(obj["groups"])) {
+      paths.push(...collectOpenApiFromNavigation(obj["groups"]));
+    }
+  }
+  return paths;
+}
+
 function parseOpenApiPaths(config: RawMintlifyConfig): string[] {
   const paths: string[] = [];
 
+  // Root-level openapi field (string or array)
   if (config.openapi) {
     if (typeof config.openapi === "string") {
       paths.push(config.openapi);
@@ -594,6 +626,7 @@ function parseOpenApiPaths(config: RawMintlifyConfig): string[] {
     }
   }
 
+  // Root-level api.spec field (legacy format)
   if (config.api && typeof config.api === "object") {
     const spec = (config.api as Record<string, unknown>).spec;
     if (typeof spec === "string") {
@@ -601,7 +634,24 @@ function parseOpenApiPaths(config: RawMintlifyConfig): string[] {
     }
   }
 
-  return paths;
+  // Group-level openapi fields in navigation (docs.json format)
+  // Navigation can be an array or an object with { tabs: [...] }
+  if (config.navigation) {
+    if (Array.isArray(config.navigation)) {
+      paths.push(...collectOpenApiFromNavigation(config.navigation));
+    } else if (
+      typeof config.navigation === "object" &&
+      "tabs" in config.navigation
+    ) {
+      const tabs = (config.navigation as Record<string, unknown>).tabs;
+      if (Array.isArray(tabs)) {
+        paths.push(...collectOpenApiFromNavigation(tabs));
+      }
+    }
+  }
+
+  // Deduplicate paths (same spec could be referenced at root and group level)
+  return [...new Set(paths)];
 }
 
 // ── Main parser ──────────────────────────────────────────────────────────────

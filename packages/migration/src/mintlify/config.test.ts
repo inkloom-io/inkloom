@@ -694,3 +694,132 @@ describe("parseMintlifyConfig — object-wrapped navigation", () => {
     );
   });
 });
+
+// ── Group-level OpenAPI extraction ────────────────────────────────────────────
+
+describe("parseMintlifyConfig — group-level OpenAPI paths", () => {
+  it("extracts openapi from a docs.json group (array navigation)", () => {
+    const config: RawMintlifyConfig = {
+      name: "Group OpenAPI",
+      colors: { primary: "#000" },
+      navigation: [
+        {
+          tab: "Guides",
+          groups: [
+            { group: "Getting Started", pages: ["intro"] },
+          ],
+        },
+        {
+          tab: "API Reference",
+          groups: [
+            { group: "Endpoints", openapi: "openapi/spec.yaml", pages: [] },
+          ],
+        },
+      ],
+    };
+    const result = parseMintlifyConfig(config);
+    expect(result.openApiPaths).toContain("openapi/spec.yaml");
+  });
+
+  it("extracts openapi from a docs.json group (object-wrapped navigation)", () => {
+    const config: RawMintlifyConfig = {
+      name: "Object Nav OpenAPI",
+      colors: { primary: "#000" },
+      navigation: {
+        tabs: [
+          {
+            tab: "Guides",
+            groups: [
+              { group: "Start", pages: ["intro"] },
+            ],
+          },
+          {
+            tab: "API Reference",
+            groups: [
+              { group: "Endpoints", openapi: "api/openapi.json", pages: [] },
+            ],
+          },
+        ],
+      } as RawMintlifyConfig["navigation"],
+    };
+    const result = parseMintlifyConfig(config);
+    expect(result.openApiPaths).toContain("api/openapi.json");
+  });
+
+  it("extracts openapi from nested groups", () => {
+    const config: RawMintlifyConfig = {
+      name: "Nested OpenAPI",
+      colors: { primary: "#000" },
+      navigation: [
+        {
+          tab: "API",
+          groups: [
+            {
+              group: "V1",
+              pages: [
+                {
+                  group: "Users",
+                  openapi: "specs/users.yaml",
+                  pages: [],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const result = parseMintlifyConfig(config);
+    expect(result.openApiPaths).toContain("specs/users.yaml");
+  });
+
+  it("deduplicates when same spec is at root and group level", () => {
+    const config: RawMintlifyConfig = {
+      name: "Dedup",
+      colors: { primary: "#000" },
+      openapi: "openapi.yaml",
+      navigation: [
+        {
+          tab: "API",
+          groups: [
+            { group: "Endpoints", openapi: "openapi.yaml", pages: [] },
+          ],
+        },
+      ],
+    };
+    const result = parseMintlifyConfig(config);
+    expect(result.openApiPaths).toEqual(["openapi.yaml"]);
+  });
+
+  it("collects multiple group-level specs from different groups", () => {
+    const config: RawMintlifyConfig = {
+      name: "Multi Group OpenAPI",
+      colors: { primary: "#000" },
+      navigation: [
+        {
+          tab: "API",
+          groups: [
+            { group: "Users API", openapi: "specs/users.json", pages: [] },
+            { group: "Billing API", openapi: "specs/billing.json", pages: [] },
+          ],
+        },
+      ],
+    };
+    const result = parseMintlifyConfig(config);
+    expect(result.openApiPaths).toContain("specs/users.json");
+    expect(result.openApiPaths).toContain("specs/billing.json");
+    expect(result.openApiPaths).toHaveLength(2);
+  });
+
+  it("extracts group-level openapi from top-level groups (no tabs)", () => {
+    const config: RawMintlifyConfig = {
+      name: "No Tabs Group OpenAPI",
+      colors: { primary: "#000" },
+      navigation: [
+        { group: "Docs", pages: ["intro"] },
+        { group: "API", openapi: "api-spec.yaml", pages: [] },
+      ],
+    };
+    const result = parseMintlifyConfig(config);
+    expect(result.openApiPaths).toContain("api-spec.yaml");
+  });
+});

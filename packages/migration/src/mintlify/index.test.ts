@@ -287,4 +287,50 @@ describe("parseMintlify", () => {
       expect(navMissingWarnings).toHaveLength(0);
     });
   });
+
+  // ── docs.json with group-level OpenAPI ──────────────────────────────────
+
+  describe("with docs-json-openapi fixture (group-level openapi)", () => {
+    const DOCS_JSON_FIXTURE_DIR = resolve(
+      __dirname,
+      "__fixtures__",
+      "docs-json-openapi",
+    );
+    let result: Awaited<ReturnType<typeof parseMintlify>>;
+
+    beforeAll(async () => {
+      result = await parseMintlify(DOCS_JSON_FIXTURE_DIR);
+    });
+
+    it("reads OpenAPI spec referenced at group level in docs.json", () => {
+      expect(result.openapiSpecs).toBeDefined();
+      expect(result.openapiSpecs).toHaveLength(1);
+      const spec = result.openapiSpecs?.[0];
+      expect(spec?.path).toBe("openapi.json");
+      expect(spec?.format).toBe("json");
+      expect(spec?.buffer).toBeInstanceOf(Buffer);
+    });
+
+    it("derives basePath from the API Reference tab slug", () => {
+      const spec = result.openapiSpecs?.[0];
+      expect(spec?.basePath).toBe("/api-reference");
+    });
+
+    it("skips endpoint placeholder pages with openapi frontmatter", () => {
+      const slugs = result.pages.map((p) => p.slug);
+      expect(slugs).not.toContain("create-user");
+    });
+
+    it("preserves non-endpoint pages", () => {
+      const slugs = result.pages.map((p) => p.slug);
+      expect(slugs).toContain("introduction");
+    });
+
+    it("emits warning about skipped endpoint pages", () => {
+      const warning = result.warnings.find(
+        (w) => w.includes("Skipped") && w.includes("endpoint page"),
+      );
+      expect(warning).toBeDefined();
+    });
+  });
 });
