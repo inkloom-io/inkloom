@@ -172,8 +172,9 @@
       "avgDeploy": "Avg deploy",
       "uptime": "Uptime",
       "edgeLocations": "Edge locations",
-      "mockSaved": "Saved",
-      "mockPages": "Pages",
+      "mockPublished": "Published",
+      "mockSectionGuides": "Guides",
+      "mockSectionApi": "API",
       "mockGettingStarted": "Getting Started",
       "mockInstallation": "Installation",
       "mockConfiguration": "Configuration",
@@ -181,7 +182,11 @@
       "mockAuthentication": "Authentication",
       "mockWebhooks": "Webhooks",
       "mockRateLimits": "Rate Limits",
-      "mockChangelog": "Changelog",
+      "mockTabDocs": "Documentation",
+      "mockTabApi": "API Reference",
+      "mockTabChangelog": "Changelog",
+      "mockCtaGetStarted": "Get Started",
+      "mockBreadcrumb": "Guides",
       "deployedToProduction": "Deployed to production",
       "deployedToProductionDetail": "docs.acme.com -- Updated 2m ago",
       "editorsOnline": "3 editors online"
@@ -221,6 +226,13 @@
         "title": "Two-way GitHub integration",
         "description": "Import docs from any GitHub repository. Changes sync bidirectionally -- edit in InkLoom or push to Git, everything stays in sync. Branch previews let you review doc changes alongside code PRs.",
         "branchInfo": "main -- 3 commits ahead"
+      },
+      "askAi": {
+        "badge": "AI",
+        "title": "Ask AI about your docs",
+        "description": "Your readers can ask questions and get instant answers grounded in your documentation. Powered by your content, not generic responses.",
+        "placeholder": "How do I authenticate API requests?",
+        "answer": "To authenticate API requests, include your API key in the Authorization header as a Bearer token. See the Authentication guide for details."
       },
       "domains": {
         "badge": "Domains",
