@@ -118,28 +118,37 @@ export function NavTabsConfig({
     const folderIds = new Set<string>();
     const pageIds = new Set<string>();
 
+    // Helper: collect a folder ID and all its descendant folder IDs
+    const collectFolderAndDescendants = (rootFolderId: string) => {
+      folderIds.add(rootFolderId);
+      // Iteratively find all descendant folders via parentId
+      const queue = [rootFolderId];
+      while (queue.length > 0) {
+        const currentId = queue.pop()!;
+        for (const f of allFolders) {
+          if (f.parentId === currentId && !folderIds.has(f._id)) {
+            folderIds.add(f._id);
+            queue.push(f._id);
+          }
+        }
+      }
+    };
+
     for (const tab of tabs) {
       for (const item of tab.items) {
         if (item.type === "folder" && item.folderId) {
-          folderIds.add(item.folderId);
-          // Also mark all child folders as assigned
-          const folder = allFolders.find((f: any) => f._id === item.folderId);
-          if (folder) {
-            for (const f of allFolders) {
-              if (f.path.startsWith(folder.path + "/")) {
-                folderIds.add(f._id);
-              }
-            }
-            // Mark all pages in this folder as assigned
-            for (const p of allPages) {
-              if (p.path.startsWith(folder.path + "/") || p.path === folder.path) {
-                pageIds.add(p._id);
-              }
-            }
-          }
+          // Collect the folder and all its descendant folders
+          collectFolderAndDescendants(item.folderId);
         } else if (item.type === "page" && item.pageId) {
           pageIds.add(item.pageId);
         }
+      }
+    }
+
+    // Mark all pages whose folderId is in the assigned folder set
+    for (const p of allPages) {
+      if (p.folderId && folderIds.has(p.folderId)) {
+        pageIds.add(p._id);
       }
     }
 
@@ -148,7 +157,7 @@ export function NavTabsConfig({
       assignedFolderIds: folderIds,
       assignedPageIds: pageIds,
       unassignedFolders: allFolders.filter((f: any) => !f.parentId && !folderIds.has(f._id)),
-      unassignedPages: allPages.filter((p: any) => p.path.split("/").length === 2 && !pageIds.has(p._id)),
+      unassignedPages: allPages.filter((p: any) => !p.folderId && !pageIds.has(p._id)),
     };
   }, [tabs, allFolders, allPages]);
 
@@ -293,9 +302,9 @@ export function NavTabsConfig({
     const currentTabPageIds = new Set(
       currentTab?.items.filter((i: any) => i.type === "page").map((i: any) => i.pageId) ?? []
     );
-    // Only show root-level pages (path like "/slug" with 2 segments)
+    // Only show root-level pages (no folder) that can be added to tabs
     return allPages.filter(
-      (p: any) => p.path.split("/").length === 2 && (!assignedPageIds.has(p._id) || currentTabPageIds.has(p._id))
+      (p: any) => !p.folderId && (!assignedPageIds.has(p._id) || currentTabPageIds.has(p._id))
     );
   };
 
