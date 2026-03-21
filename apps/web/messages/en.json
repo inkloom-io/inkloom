@@ -2900,6 +2900,87 @@
       "ctaTrial": "Start free trial"
     }
   },
+  "useCaseDevDocs": {
+    "hero": {
+      "badge": "Developer Documentation",
+      "headline": "Documentation developers (and LLMs) love",
+      "subhead": "Ship API references, SDK guides, and code examples that stay perfectly in sync with your codebase — automatically. Beautiful docs that are always accurate, always up to date.",
+      "ctaStart": "Start for Free",
+      "ctaDocs": "View Documentation"
+    },
+    "features": {
+      "badge": "Built for Developer Docs",
+      "title": "Everything your dev docs need",
+      "subtitle": "From auto-generated API references to AI-powered doc generation, InkLoom gives your developer documentation superpowers.",
+      "aiGeneration": {
+        "title": "AI-Powered Generation",
+        "description": "Point InkLoom at your codebase and watch it generate comprehensive documentation. AI reads your code, understands your APIs, and writes accurate docs — then keeps them updated as your code evolves."
+      },
+      "githubAction": {
+        "title": "GitHub Action for Continuous Sync",
+        "description": "Push code, get updated docs. The InkLoom Docs Action runs on every push or PR, automatically regenerating documentation so your docs never fall behind your code."
+      },
+      "openapi": {
+        "title": "OpenAPI Auto-Generated References",
+        "description": "Upload your OpenAPI or Swagger spec and get interactive API reference pages with method badges, parameter tables, request/response schemas, and a built-in Try It playground."
+      },
+      "codeBlocks": {
+        "title": "Rich Code Blocks",
+        "description": "Syntax highlighting for 100+ languages, one-click copy, line numbers, line highlighting, and tabbed code groups. Your code examples look as polished as your product."
+      },
+      "sdkTemplates": {
+        "title": "SDK & Library Quick-Starts",
+        "description": "Starter templates for common documentation patterns — REST API references, SDK guides, CLI docs, and library quick-starts. Go from zero to published in minutes."
+      },
+      "edgeDeployed": {
+        "title": "Edge-Deployed, Sub-100ms Loads",
+        "description": "Every docs site deploys to Cloudflare's global edge network. Your developers get lightning-fast page loads no matter where they are — because slow docs are docs nobody reads."
+      }
+    },
+    "howItWorks": {
+      "badge": "How It Works",
+      "title": "From code to docs in three steps",
+      "subtitle": "Set it up once, then forget about it. Your documentation stays accurate forever.",
+      "step1": {
+        "number": "1",
+        "title": "Write Code",
+        "description": "Develop your API, SDK, or library as you normally would. Add JSDoc comments, docstrings, or OpenAPI annotations for richer output."
+      },
+      "step2": {
+        "number": "2",
+        "title": "Push to GitHub",
+        "description": "The InkLoom Docs Action triggers automatically on every push or pull request. AI analyzes your changes and regenerates affected documentation."
+      },
+      "step3": {
+        "number": "3",
+        "title": "Docs Update Automatically",
+        "description": "Updated documentation deploys to the edge in seconds. API references, guides, and examples all reflect your latest code — no manual work required."
+      }
+    },
+    "integrations": {
+      "badge": "Integrations",
+      "title": "Fits into your existing workflow",
+      "subtitle": "InkLoom works with the tools your team already uses — no context switching required.",
+      "github": {
+        "title": "GitHub",
+        "description": "Bi-directional sync, PR previews, and automated doc generation via GitHub Actions. Your docs live alongside your code."
+      },
+      "cli": {
+        "title": "InkLoom CLI",
+        "description": "Push, pull, and deploy docs from your terminal. Import existing documentation from Mintlify, GitBook, or Notion with a single command."
+      },
+      "editor": {
+        "title": "Visual Editor",
+        "description": "A block-based editor that feels like Notion but deploys like Vercel. Real-time collaboration, version history, and instant preview."
+      }
+    },
+    "cta": {
+      "title": "Ship better docs today",
+      "subtitle": "Join thousands of developers who use InkLoom to ship documentation that's always accurate, always beautiful, and always fast.",
+      "ctaStart": "Start for Free",
+      "ctaDocs": "Read the Docs"
+    }
+  },
   "useCaseKnowledgeBase": {
     "hero": {
       "badge": "Use Case",
