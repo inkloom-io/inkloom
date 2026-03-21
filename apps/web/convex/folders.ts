@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { mutation, query, internalQuery, internalMutation } from "./_generated/server";
@@ -100,6 +100,12 @@ export const create = mutation({
     icon: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Lock guard: prevent changes on locked branches
+    const branch = await ctx.db.get(args.branchId);
+    if (branch?.isLocked) {
+      throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
+    }
+
     const slug = args.slug || slugify(args.name);
 
     // Calculate path
@@ -185,6 +191,12 @@ export const update = mutation({
 
     const folder = await ctx.db.get(folderId);
     if (!folder) throw new Error("Folder not found");
+
+    // Lock guard: prevent changes on locked branches
+    const branch = await ctx.db.get(folder.branchId);
+    if (branch?.isLocked) {
+      throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
+    }
 
     const updateData: Record<string, unknown> = { updatedAt: Date.now() };
 
@@ -342,6 +354,15 @@ export const getByBranchParentAndSlug = query({
 export const remove = mutation({
   args: { folderId: v.id("folders") },
   handler: async (ctx, args) => {
+    // Lock guard: prevent changes on locked branches
+    const folder = await ctx.db.get(args.folderId);
+    if (folder) {
+      const branch = await ctx.db.get(folder.branchId);
+      if (branch?.isLocked) {
+        throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
+      }
+    }
+
     await deleteFolderRecursive(ctx, args.folderId);
   },
 });
@@ -407,6 +428,12 @@ export const reorder = mutation({
   handler: async (ctx, args) => {
     const folder = await ctx.db.get(args.folderId);
     if (!folder) throw new Error("Folder not found");
+
+    // Lock guard: prevent changes on locked branches
+    const branch = await ctx.db.get(folder.branchId);
+    if (branch?.isLocked) {
+      throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
+    }
 
     const oldParentId = folder.parentId;
     const oldPosition = folder.position;

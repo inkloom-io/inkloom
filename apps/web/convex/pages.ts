@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { mutation, query, internalQuery, internalMutation } from "./_generated/server";
@@ -135,6 +135,12 @@ export const create = mutation({
     position: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    // Lock guard: prevent changes on locked branches
+    const branch = await ctx.db.get(args.branchId);
+    if (branch?.isLocked) {
+      throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
+    }
+
     const slug = slugify(args.title);
 
     // Calculate path
@@ -211,6 +217,12 @@ export const update = mutation({
 
     const page = await ctx.db.get(pageId);
     if (!page) throw new Error("Page not found");
+
+    // Lock guard: prevent changes on locked branches
+    const branch = await ctx.db.get(page.branchId);
+    if (branch?.isLocked) {
+      throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
+    }
 
     const updateData: Record<string, unknown> = { updatedAt: Date.now() };
 
@@ -291,6 +303,15 @@ export const updateContent = mutation({
     updatedBy: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
+    // Lock guard: prevent changes on locked branches
+    const page = await ctx.db.get(args.pageId);
+    if (page) {
+      const branch = await ctx.db.get(page.branchId);
+      if (branch?.isLocked) {
+        throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
+      }
+    }
+
     const existing = await ctx.db
       .query("pageContents")
       .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId))
@@ -314,7 +335,6 @@ export const updateContent = mutation({
     }
 
     // Update search index
-    const page = await ctx.db.get(args.pageId);
     if (page) {
       const branch = await ctx.db.get(page.branchId);
       if (branch) {
@@ -335,6 +355,15 @@ export const updateContent = mutation({
 export const remove = mutation({
   args: { pageId: v.id("pages") },
   handler: async (ctx, args) => {
+    // Lock guard: prevent changes on locked branches
+    const page = await ctx.db.get(args.pageId);
+    if (page) {
+      const branch = await ctx.db.get(page.branchId);
+      if (branch?.isLocked) {
+        throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
+      }
+    }
+
     // Delete search index
     await ctx.scheduler.runAfter(0, internal.search.deleteSearchIndex, {
       pageId: args.pageId,
@@ -371,6 +400,12 @@ export const reorder = mutation({
   handler: async (ctx, args) => {
     const page = await ctx.db.get(args.pageId);
     if (!page) throw new Error("Page not found");
+
+    // Lock guard: prevent changes on locked branches
+    const branch = await ctx.db.get(page.branchId);
+    if (branch?.isLocked) {
+      throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
+    }
 
     const oldFolderId = page.folderId;
     const oldPosition = page.position;
