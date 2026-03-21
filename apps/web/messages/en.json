@@ -1273,6 +1273,10 @@
     "page": {
       "projectNotFound": "Project not found",
       "selectPageToEdit": "Select a page to start editing",
+      "noPagesYet": "No pages yet",
+      "noPagesDescription": "Create your first page to get started, or import an existing project from GitHub.",
+      "createPage": "Create page",
+      "importFromGithub": "Import from GitHub",
       "connectingToCollaboration": "Connecting to collaboration...",
       "disableRealtimeTitle": "Disable realtime editing?",
       "disableRealtimeDescription": "Other editors will no longer see your changes in real time. You'll need to manually coordinate with co-editors to make sure each other's changes are not overwritten.",

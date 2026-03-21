@@ -23,7 +23,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@inkloom/ui/alert-dialog";
-import { Loader2 } from "lucide-react";
+import { FilePlus, Github, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@inkloom/ui/button";
 import type { ThemePreset } from "@/lib/theme-presets";
 import {
   useCollaboration,
@@ -344,6 +346,17 @@ export default function EditorPage({ params }: EditorPageProps) {
   );
 
   const updateContent = useMutation(api.pages.updateContent);
+  const createPage = useMutation(api.pages.create);
+
+  const handleCreateFirstPage = useCallback(async () => {
+    if (!currentBranchId) return;
+    const pageId = await createPage({
+      branchId: currentBranchId,
+      title: "Welcome",
+    });
+    trackEvent("page_created", { projectId, source: "editor_empty_state" });
+    selectPage(pageId);
+  }, [currentBranchId, createPage, projectId, selectPage]);
 
   // Get comment threads for comment count and highlighting
   const commentThreads = useQuery(
@@ -764,7 +777,45 @@ export default function EditorPage({ params }: EditorPageProps) {
                     )}
                 </div>
               ) : selectedPageId ? // Page selected but content still loading — keep area empty to avoid placeholder flash
-              null : (
+              null : pages && pages.length === 0 ? (
+                <div className="flex h-full items-center justify-center">
+                  <div className="flex flex-col items-center gap-4 max-w-sm text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--surface-bg)] border border-[var(--glass-border)]">
+                      <FilePlus
+                        className="h-5 w-5"
+                        style={{ color: "var(--text-dim)" }}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-base font-medium text-[var(--text-primary)]">
+                        {t("noPagesYet")}
+                      </h3>
+                      <p className="text-sm text-[var(--text-dim)]">
+                        {t("noPagesDescription")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        onClick={handleCreateFirstPage}
+                        size="sm"
+                      >
+                        <FilePlus className="h-4 w-4 mr-1.5" />
+                        {t("createPage")}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                      >
+                        <Link href={`/projects/${projectId}/settings?tab=integrations`}>
+                          <Github className="h-4 w-4 mr-1.5" />
+                          {t("importFromGithub")}
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
                 <div className="flex h-full items-center justify-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--surface-bg)] border border-[var(--glass-border)]">
