@@ -4,36 +4,10 @@ import { MDXContent } from "@/components/mdx/mdx-content";
 import { CopyPageDropdown } from "@/components/layout/copy-page-dropdown";
 import { useSiteData } from "@/src/data-provider";
 import {
-  Book,
-  BookOpen,
   ChevronLeft,
   ChevronRight,
-  Code,
-  Cog,
-  FileText,
-  Folder,
-  Home,
-  Lightbulb,
-  Link,
-  List,
-  Lock,
-  MessageSquare,
-  Pencil,
-  Play,
-  Plus,
-  Rocket,
-  Search,
-  Settings,
-  Shield,
-  Sparkles,
-  Star,
-  Target,
-  Terminal,
-  Users,
-  Wrench,
-  Zap,
   CircleHelp,
-  type LucideIcon,
+  icons,
 } from "lucide-react";
 
 interface NavItem {
@@ -73,34 +47,19 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-const LUCIDE_ICON_MAP: Record<string, LucideIcon> = {
-  book: Book,
-  "book-open": BookOpen,
-  code: Code,
-  cog: Cog,
-  "file-text": FileText,
-  folder: Folder,
-  home: Home,
-  lightbulb: Lightbulb,
-  link: Link,
-  list: List,
-  lock: Lock,
-  "message-square": MessageSquare,
-  pencil: Pencil,
-  play: Play,
-  plus: Plus,
-  rocket: Rocket,
-  search: Search,
-  settings: Settings,
-  shield: Shield,
-  sparkles: Sparkles,
-  star: Star,
-  target: Target,
-  terminal: Terminal,
-  users: Users,
-  wrench: Wrench,
-  zap: Zap,
-};
+// Convert kebab-case icon names to PascalCase for Lucide icon lookup
+// e.g., "book-open" -> "BookOpen", "star" -> "Star"
+function toPascalCase(str: string): string {
+  return str
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("");
+}
+
+function resolveLucideIcon(name: string) {
+  const pascalName = toPascalCase(name);
+  return icons[pascalName as keyof typeof icons] ?? null;
+}
 
 interface PageData {
   title: string;
@@ -129,17 +88,14 @@ function loadEmbeddedPageData(): PageData | null {
 function PageIcon({ icon, className }: { icon: string; className?: string }) {
   if (icon.startsWith("lucide:")) {
     const name = icon.replace("lucide:", "");
-    const LucideIcon = LUCIDE_ICON_MAP[name];
+    const LucideIcon = resolveLucideIcon(name);
     if (LucideIcon) return <LucideIcon className={className} />;
     return <CircleHelp className={className} />;
   }
   // Bare lucide name (backward compat)
-  if (LUCIDE_ICON_MAP[icon]) {
-    const LucideIcon = LUCIDE_ICON_MAP[icon];
-    return <LucideIcon className={className} />;
-  }
-  // ASCII-only name but not found
   if (/^[a-z][a-z0-9-]*$/.test(icon)) {
+    const LucideIcon = resolveLucideIcon(icon);
+    if (LucideIcon) return <LucideIcon className={className} />;
     return <CircleHelp className={className} />;
   }
   // Emoji

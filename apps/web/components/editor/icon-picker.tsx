@@ -39,6 +39,7 @@ import {
   Zap,
   X,
   CircleHelp,
+  icons,
   type LucideIcon,
 } from "lucide-react";
 
@@ -82,10 +83,19 @@ const LUCIDE_ICONS: { name: string; icon: LucideIcon }[] = [
   { name: "zap", icon: Zap },
 ];
 
-// Map for looking up Lucide icons by name
-export const LUCIDE_ICON_MAP: Record<string, LucideIcon> = Object.fromEntries(
-  LUCIDE_ICONS.map(({ name, icon }) => [name, icon])
-);
+// Convert kebab-case icon names to PascalCase for Lucide icon lookup
+// e.g., "book-open" -> "BookOpen", "star" -> "Star"
+function toPascalCase(str: string): string {
+  return str
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("");
+}
+
+function resolveLucideIcon(name: string) {
+  const pascalName = toPascalCase(name);
+  return icons[pascalName as keyof typeof icons] ?? null;
+}
 
 interface IconPickerProps {
   value?: string;
@@ -190,17 +200,14 @@ interface IconDisplayProps {
 export function IconDisplay({ icon, className }: IconDisplayProps) {
   if (icon.startsWith("lucide:")) {
     const iconName = icon.replace("lucide:", "");
-    const LucideIcon = LUCIDE_ICON_MAP[iconName];
+    const LucideIcon = resolveLucideIcon(iconName);
     if (LucideIcon) return <LucideIcon className={className} />;
     return <CircleHelp className={className} />;
   }
   // Check if bare name matches a Lucide icon (backward compat)
-  if (LUCIDE_ICON_MAP[icon]) {
-    const LucideIcon = LUCIDE_ICON_MAP[icon];
-    return <LucideIcon className={className} />;
-  }
-  // If it looks like an icon name (ASCII only) but wasn't found, show fallback
   if (/^[a-z][a-z0-9-]*$/.test(icon)) {
+    const LucideIcon = resolveLucideIcon(icon);
+    if (LucideIcon) return <LucideIcon className={className} />;
     return <CircleHelp className={className} />;
   }
   // Emoji

@@ -5,7 +5,7 @@ export { Callout } from "./components/callout";
 export { Card } from "./components/card";
 export { CardGroup } from "./components/card-group";
 export { Image } from "./components/image";
-export { IconDisplay, LUCIDE_ICON_MAP } from "./components/icon-display";
+export { IconDisplay } from "./components/icon-display";
 export { CodeBlock } from "./components/code-block";
 export { CodeGroup } from "./components/code-group";
 export { Heading } from "./components/heading";
