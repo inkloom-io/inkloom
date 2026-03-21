@@ -387,6 +387,15 @@ export class ConvexCliClient {
     await this.mutate("folders.remove", { folderId });
   }
 
+  // -- Project Settings -----------------------------------------------------
+
+  async updateProjectSettings(
+    projectId: string,
+    settings: Record<string, unknown>
+  ): Promise<void> {
+    await this.mutate("projects.updateSettings", { projectId, settings });
+  }
+
   // -- Assets ---------------------------------------------------------------
 
   async listAssets(projectId: string): Promise<ConvexAsset[]> {

@@ -20,6 +20,12 @@ import {
   type ApplyDiffSummary,
 } from "../lib/push.js";
 import { createConvexClient } from "../lib/convex-client.js";
+import {
+  readDocsConfig,
+  resolveNavTabs,
+  resolvePagePositions,
+  type DocsConfig,
+} from "../lib/docs-config.js";
 import fse from "fs-extra";
 
 /**
@@ -422,6 +428,7 @@ Examples:
       "--convex-url <url>",
       "Convex deployment URL for core mode (overrides NEXT_PUBLIC_CONVEX_URL)"
     )
+    .option("--no-config", "Skip docs.json processing")
     .addHelpText(
       "after",
       `
@@ -429,7 +436,8 @@ Examples:
   $ inkloom pages push proj_abc --dir ./docs --dry-run            Preview changes
   $ inkloom pages push proj_abc --dir ./docs --publish --delete   Full sync & publish
   $ INKLOOM_TOKEN=$TOKEN inkloom pages push $PROJECT --dir ./docs CI usage
-  $ inkloom pages push proj_abc --dir ./docs --convex-url <url>   Core mode (direct Convex)`
+  $ inkloom pages push proj_abc --dir ./docs --convex-url <url>   Core mode (direct Convex)
+  $ inkloom pages push proj_abc --dir ./docs --no-config          Skip docs.json`
     )
     .action(async (...args: unknown[]) => {
       const cmd = args[args.length - 1] as Command;
@@ -442,6 +450,7 @@ Examples:
         dryRun?: boolean;
         publish?: boolean;
         convexUrl?: string;
+        config?: boolean;
       };
 
       try {
@@ -666,6 +675,7 @@ async function pushCoreMode(
     dryRun?: boolean;
     publish?: boolean;
     convexUrl?: string;
+    config?: boolean;
   }
 ): Promise<void> {
   const client = createConvexClient({
@@ -737,6 +747,14 @@ async function pushCoreMode(
     });
 
     printPushResult(opts, summary);
+
+    // Apply docs.json config (navTabs, page positions, openapi)
+    if (localOpts.config !== false) {
+      const config = readDocsConfig(dir);
+      if (config) {
+        await applyDocsConfigConvex(client, config, projectId, branchId, dir);
+      }
+    }
   } finally {
     client.close();
   }
@@ -755,6 +773,7 @@ async function pushPlatformMode(
     delete?: boolean;
     dryRun?: boolean;
     publish?: boolean;
+    config?: boolean;
   }
 ): Promise<void> {
   const { createClient } = await import("../lib/client.js");
@@ -841,6 +860,307 @@ async function pushPlatformMode(
   });
 
   printPushResult(opts, summary);
+
+  // Apply docs.json config (navTabs, page positions, openapi)
+  if (localOpts.config !== false) {
+    const config = readDocsConfig(dir);
+    if (config) {
+      await applyDocsConfigPlatform(client, config, projectId, localOpts.branch, dir);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Push: docs.json config application
+// ---------------------------------------------------------------------------
+
+/**
+ * Apply docs.json config via the REST API (platform mode).
+ * After push, re-fetches folders/pages, resolves navTabs, updates settings,
+ * patches page positions, and optionally uploads an OpenAPI spec.
+ */
+async function applyDocsConfigPlatform(
+  client: Awaited<ReturnType<typeof import("../lib/client.js").createClient>>,
+  config: DocsConfig,
+  projectId: string,
+  branchId: string | undefined,
+  dir: string
+): Promise<void> {
+  try {
+    // 1. Re-fetch remote folders and pages (they may have been created by applyDiff)
+    const folderParams = new URLSearchParams();
+    if (branchId) folderParams.set("branchId", branchId);
+    const folderQs = folderParams.toString();
+    const foldersResponse = await client.get<
+      Array<{ _id: string; name: string; slug: string; parentId?: string }>
+    >(
+      `/api/v1/projects/${projectId}/folders${folderQs ? `?${folderQs}` : ""}`
+    );
+    const remoteFolders = foldersResponse.data.map((f) => ({
+      id: f._id,
+      name: f.name,
+      slug: f.slug,
+      parentId: f.parentId,
+    }));
+
+    const pageParams = new URLSearchParams();
+    if (branchId) pageParams.set("branchId", branchId);
+    const pagesResponse = await client.get<
+      Array<{
+        _id: string;
+        slug: string;
+        folderId?: string;
+        position?: number;
+      }>
+    >(
+      `/api/v1/projects/${projectId}/pages?${pageParams.toString()}`
+    );
+    const remotePages = pagesResponse.data.map((p) => ({
+      id: p._id,
+      slug: p.slug,
+      folderId: p.folderId,
+      position: p.position,
+    }));
+
+    // 2. Resolve and apply navTabs
+    const navTabs = resolveNavTabs(config, remoteFolders, remotePages);
+    await client.patch(
+      `/api/v1/projects/${projectId}/settings`,
+      { navTabs }
+    );
+
+    // 3. Resolve and apply page positions
+    const positionMap = resolvePagePositions(config);
+    const folderSlugToId = new Map<string, string>();
+    for (const folder of remoteFolders) {
+      folderSlugToId.set(folder.slug, folder.id);
+    }
+
+    let positionsUpdated = 0;
+    for (const [key, position] of positionMap) {
+      const [folderSlug, pageSlug] = key.split("/");
+      const folderId = folderSlugToId.get(folderSlug);
+      if (!folderId) continue;
+
+      const page = remotePages.find(
+        (p) => p.slug === pageSlug && p.folderId === folderId
+      );
+      if (!page) continue;
+
+      // Only update if position differs
+      if (page.position !== position) {
+        try {
+          await client.patch(
+            `/api/v1/projects/${projectId}/pages/${page.id}`,
+            { position }
+          );
+          positionsUpdated++;
+        } catch (err) {
+          process.stderr.write(
+            `Warning: failed to update position for ${key}: ${err instanceof Error ? err.message : String(err)}\n`
+          );
+        }
+      }
+    }
+
+    process.stderr.write(
+      `Applied docs.json: ${navTabs.length} navigation tab${navTabs.length === 1 ? "" : "s"}, ${positionsUpdated} page position${positionsUpdated === 1 ? "" : "s"}\n`
+    );
+
+    // 4. Upload OpenAPI spec if configured
+    if (config.openapi) {
+      await uploadOpenApiSpec(
+        config.openapi,
+        dir,
+        async (content: string, format: "json" | "yaml") => {
+          const response = await client.post<{
+            assetId: string;
+            summary: { title: string; version: string; endpointCount: number };
+          }>(
+            `/api/v1/projects/${projectId}/openapi`,
+            { content, format }
+          );
+          return response.data.summary;
+        }
+      );
+    }
+  } catch (err) {
+    process.stderr.write(
+      `Warning: failed to apply docs.json config: ${err instanceof Error ? err.message : String(err)}\n`
+    );
+  }
+}
+
+/**
+ * Apply docs.json config via Convex mutations (core mode).
+ */
+async function applyDocsConfigConvex(
+  client: ReturnType<typeof createConvexClient>,
+  config: DocsConfig,
+  projectId: string,
+  branchId: string,
+  dir: string
+): Promise<void> {
+  try {
+    // 1. Re-fetch remote folders and pages (they may have been created by applyDiffConvex)
+    const convexFolders = await client.listFoldersByBranch(branchId);
+    const remoteFolders = convexFolders.map((f) => ({
+      id: f._id,
+      name: f.name,
+      slug: f.slug,
+      parentId: f.parentId,
+    }));
+
+    const convexPages = await client.listPagesByBranch(branchId);
+    const remotePages = convexPages.map((p) => ({
+      id: p._id,
+      slug: p.slug,
+      folderId: p.folderId,
+      position: p.position,
+    }));
+
+    // 2. Resolve and apply navTabs
+    const navTabs = resolveNavTabs(config, remoteFolders, remotePages);
+    await client.updateProjectSettings(projectId, { navTabs });
+
+    // 3. Resolve and apply page positions
+    const positionMap = resolvePagePositions(config);
+    const folderSlugToId = new Map<string, string>();
+    for (const folder of remoteFolders) {
+      folderSlugToId.set(folder.slug, folder.id);
+    }
+
+    let positionsUpdated = 0;
+    for (const [key, position] of positionMap) {
+      const [folderSlug, pageSlug] = key.split("/");
+      const folderId = folderSlugToId.get(folderSlug);
+      if (!folderId) continue;
+
+      const page = remotePages.find(
+        (p) => p.slug === pageSlug && p.folderId === folderId
+      );
+      if (!page) continue;
+
+      if (page.position !== position) {
+        try {
+          await client.updatePage(page.id, { position });
+          positionsUpdated++;
+        } catch (err) {
+          process.stderr.write(
+            `Warning: failed to update position for ${key}: ${err instanceof Error ? err.message : String(err)}\n`
+          );
+        }
+      }
+    }
+
+    process.stderr.write(
+      `Applied docs.json: ${navTabs.length} navigation tab${navTabs.length === 1 ? "" : "s"}, ${positionsUpdated} page position${positionsUpdated === 1 ? "" : "s"}\n`
+    );
+
+    // 4. Upload OpenAPI spec if configured
+    if (config.openapi) {
+      await uploadOpenApiSpec(
+        config.openapi,
+        dir,
+        async (content: string, format: "json" | "yaml") => {
+          // In core mode, store the spec directly in project settings
+          await client.updateProjectSettings(projectId, {
+            openapi: { content, format },
+          });
+          // Parse spec to extract summary for display
+          try {
+            const parsed = format === "json" ? JSON.parse(content) : null;
+            if (parsed) {
+              return {
+                title: parsed.info?.title ?? "Unknown",
+                version: parsed.info?.version ?? "0.0.0",
+                endpointCount: countEndpoints(parsed),
+              };
+            }
+          } catch {
+            // ignore parse errors for summary
+          }
+          return { title: "OpenAPI spec", version: "unknown", endpointCount: 0 };
+        }
+      );
+    }
+  } catch (err) {
+    process.stderr.write(
+      `Warning: failed to apply docs.json config: ${err instanceof Error ? err.message : String(err)}\n`
+    );
+  }
+}
+
+/**
+ * Upload an OpenAPI spec file. Reads the file, detects format, and calls the
+ * provided upload function.
+ */
+async function uploadOpenApiSpec(
+  specPath: string,
+  baseDir: string,
+  upload: (content: string, format: "json" | "yaml") => Promise<{
+    title: string;
+    version: string;
+    endpointCount: number;
+  }>
+): Promise<void> {
+  const fullPath = path.join(baseDir, specPath);
+
+  let content: string;
+  try {
+    content = fs.readFileSync(fullPath, "utf-8");
+  } catch {
+    process.stderr.write(
+      `Warning: OpenAPI spec file not found: ${specPath}\n`
+    );
+    return;
+  }
+
+  const ext = path.extname(fullPath).toLowerCase();
+  let format: "json" | "yaml";
+  if (ext === ".json") {
+    format = "json";
+  } else if (ext === ".yaml" || ext === ".yml") {
+    format = "yaml";
+  } else {
+    process.stderr.write(
+      `Warning: cannot detect OpenAPI spec format from extension "${ext}", skipping\n`
+    );
+    return;
+  }
+
+  try {
+    const summary = await upload(content, format);
+    process.stderr.write(
+      `Uploaded OpenAPI spec: ${summary.title} v${summary.version} (${summary.endpointCount} endpoint${summary.endpointCount === 1 ? "" : "s"})\n`
+    );
+  } catch (err) {
+    process.stderr.write(
+      `Warning: failed to upload OpenAPI spec: ${err instanceof Error ? err.message : String(err)}\n`
+    );
+  }
+}
+
+/**
+ * Count the number of endpoints in a parsed OpenAPI spec object.
+ */
+function countEndpoints(spec: Record<string, unknown>): number {
+  const paths = spec.paths;
+  if (typeof paths !== "object" || paths === null) return 0;
+  let count = 0;
+  for (const pathObj of Object.values(paths as Record<string, unknown>)) {
+    if (typeof pathObj !== "object" || pathObj === null) continue;
+    for (const key of Object.keys(pathObj as Record<string, unknown>)) {
+      if (
+        ["get", "post", "put", "patch", "delete", "head", "options", "trace"].includes(
+          key.toLowerCase()
+        )
+      ) {
+        count++;
+      }
+    }
+  }
+  return count;
 }
 
 // ---------------------------------------------------------------------------
