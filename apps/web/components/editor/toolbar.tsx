@@ -112,7 +112,7 @@ function deriveSteps(
     ];
   }
 
-  const phases = ["generating", "uploading", "propagating", "verifying"];
+  const phases = ["generating", "uploading", "propagating"];
   const idx = dep.buildPhase ? phases.indexOf(dep.buildPhase) : -1;
 
   return [
@@ -122,16 +122,11 @@ function deriveSteps(
     },
     {
       label: "deploy",
-      state: idx > 2 ? "complete" : idx >= 1 ? "in-progress" : "pending",
+      state: idx >= 1 ? "in-progress" : "pending",
     },
     {
       label: "live",
-      state:
-        dep.status === "ready"
-          ? "complete"
-          : idx === 3
-            ? "in-progress"
-            : "pending",
+      state: dep.status === "ready" ? "complete" : "pending",
     },
   ];
 }
