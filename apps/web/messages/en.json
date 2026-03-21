@@ -1465,7 +1465,7 @@
         },
         "login_required": {
           "label": "Login Required",
-          "description": "Readers must sign in to view documentation"
+          "description": "Readers must sign in to view documentation. Also prevents bots and scrapers from accessing your content."
         },
         "domain_restricted": {
           "label": "Domain Restricted",
