@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname, useParams } from "next/navigation";
+import Link from "next/link";
 import { RefreshCw, Home } from "lucide-react";
 import { errorReportingAdapter } from "@/lib/adapters/error-reporting";
 import {
@@ -105,13 +106,13 @@ export default function DashboardError({
             {t("tryAgain")}
           </button>
 
-          <a
+          <Link
             href="/overview"
             className="inline-flex items-center gap-2 rounded-xl border border-[var(--glass-divider)] px-5 py-2 text-sm font-semibold text-foreground transition-all hover:bg-[rgba(255,255,255,0.05)]"
           >
             <Home className="h-4 w-4" />
             {t("backToDashboard")}
-          </a>
+          </Link>
         </div>
 
         {errorReportingAdapter.submitFeedback && (

@@ -233,7 +233,7 @@ export function NavTabsConfig({
     // Also strip out slugManuallyEdited which is only used locally
     const validTabs = tabs
       .filter((t: any) => t.name.trim() && t.items.length > 0)
-      .map(({ slugManuallyEdited, ...tab }) => tab);
+      .map(({ slugManuallyEdited: _slugManuallyEdited, ...tab }) => tab);
 
     setSaving(true);
     try {

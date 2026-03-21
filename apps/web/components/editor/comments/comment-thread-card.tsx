@@ -144,7 +144,7 @@ export function CommentThreadCard({
             <div className="mb-2 flex gap-1.5 rounded bg-muted/50 px-2 py-1">
               <Quote className="h-3 w-3 flex-shrink-0 text-muted-foreground mt-0.5" />
               <p className="line-clamp-1 text-xs italic text-muted-foreground">
-                "{thread.quotedText}"
+                &ldquo;{thread.quotedText}&rdquo;
               </p>
             </div>
           )}

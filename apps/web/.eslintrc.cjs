@@ -16,4 +16,15 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      // BlockNote custom blocks use a `render` callback that acts as a React
+      // component.  ESLint doesn't recognise the lowercase name, so the
+      // rules-of-hooks rule fires false positives.
+      files: ["components/editor/custom-blocks/**/*.tsx"],
+      rules: {
+        "react-hooks/rules-of-hooks": "off",
+      },
+    },
+  ],
 };

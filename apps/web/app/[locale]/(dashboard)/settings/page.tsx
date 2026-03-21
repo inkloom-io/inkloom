@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { Mail, LogOut, Key, Download, Trash2, AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
@@ -520,7 +521,7 @@ export default function SettingsPage() {
                 {t("signOutAllDevicesDescription")}
               </p>
             </div>
-            <a
+            <Link
               href="/auth/signout"
               className="flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all"
               style={{
@@ -541,7 +542,7 @@ export default function SettingsPage() {
             >
               <LogOut className="h-4 w-4" />
               {t("signOut")}
-            </a>
+            </Link>
           </div>
 
           {/* Delete Account */}

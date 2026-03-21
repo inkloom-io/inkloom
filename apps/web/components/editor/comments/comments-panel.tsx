@@ -232,7 +232,7 @@ export function CommentsPanel({
             <div className="mb-3 flex gap-2 rounded-md bg-muted p-2">
               <Quote className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
               <p className="text-sm text-muted-foreground line-clamp-3">
-                "{newCommentSelection.quotedText}"
+                &ldquo;{newCommentSelection.quotedText}&rdquo;
               </p>
             </div>
           )}

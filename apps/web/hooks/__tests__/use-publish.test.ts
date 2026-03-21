@@ -5,6 +5,11 @@ import type {
   UsePublishOptions,
   UsePublishReturn,
 } from "@/hooks/use-publish";
+import type {
+  DeployAdapter,
+  DeployOptions,
+  DeployResult,
+} from "@/lib/adapters/types";
 
 // ---------------------------------------------------------------------------
 // DeploymentState type compliance
@@ -360,7 +365,7 @@ describe("deployment state machine invariants", () => {
 
 describe("adapter type exports", () => {
   it("DeployAdapter interface matches expected shape", () => {
-    const _typeCheck: import("@/lib/adapters/types").DeployAdapter = {
+    const _typeCheck: DeployAdapter = {
       publish: async () => ({ success: true, url: "", message: "" }),
       getDeployUrl: () => "",
       getPublishEndpoint: () => "/api/build",
@@ -370,12 +375,12 @@ describe("adapter type exports", () => {
   });
 
   it("DeployOptions interface accepts projectId and optional branchId", () => {
-    const minOpts: import("@/lib/adapters/types").DeployOptions = {
+    const minOpts: DeployOptions = {
       projectId: "proj_1",
     };
     expect(minOpts.projectId).toBe("proj_1");
 
-    const fullOpts: import("@/lib/adapters/types").DeployOptions = {
+    const fullOpts: DeployOptions = {
       projectId: "proj_2",
       branchId: "branch_1",
     };
@@ -383,7 +388,7 @@ describe("adapter type exports", () => {
   });
 
   it("DeployResult interface has success, url, and message", () => {
-    const result: import("@/lib/adapters/types").DeployResult = {
+    const result: DeployResult = {
       success: true,
       url: "https://example.com",
       message: "Done",
