@@ -250,7 +250,7 @@ export function ReaderReactionsModal({
   pageTitle,
 }: ReaderReactionsModalProps) {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
-  const since = getSinceTimestamp(dateRange);
+  const since = useMemo(() => getSinceTimestamp(dateRange), [dateRange]);
 
   const bucketSize = dateRange === "7d" ? "daily" as const : dateRange === "30d" ? "daily" as const : "weekly" as const;
 
