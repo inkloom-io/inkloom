@@ -252,3 +252,32 @@
 .bn-tab[data-in-group="true"][data-is-active="false"] {
   display: none !important;
 }
+
+/* ── Seamless child blocks within a tab ──
+   When a tab block has child blocks (callouts, lists, images, etc.),
+   BlockNote renders them in a .bn-block-group sibling. Remove the tab's
+   bottom border so content flows seamlessly, and extend the tab's visual
+   container around the children. */
+
+/* Remove bottom border/radius from the tab when child blocks follow */
+.bn-block:has(> .bn-block-content[data-content-type="tab"] + .bn-block-group) > .bn-block-content[data-content-type="tab"] .bn-tab {
+  border-bottom: none !important;
+  border-radius: 0 !important;
+}
+
+/* Extend the tab's visual container around child blocks */
+.bn-block-content[data-content-type="tab"] + .bn-block-group {
+  border-left: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
+  border-radius: 0 0 12px 12px;
+  margin: 0;
+  padding: 0 4px 4px;
+}
+
+/* When the tab is in a group and is the last child, its children group
+   should inherit the bottom rounding of the overall tabs container */
+.bn-tab[data-in-group="true"]:last-child .bn-block-group {
+  border-radius: 0 0 12px 12px;
+}
