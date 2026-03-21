@@ -1183,38 +1183,89 @@ const INLINE_NODE_TYPES = new Set([
 
 /**
  * Separates child nodes of a JSX element into inline content and block-level children.
- * Inline nodes (paragraph, text, formatting) go into `inlineContent`.
- * Block nodes (code, table, list, heading, image, etc.) go into `blockChildren`.
+ *
+ * When the children are purely inline (no block-level nodes), all content goes
+ * into `inlineContent` and `blockChildren` is empty.
+ *
+ * When block-level nodes (lists, code blocks, images, etc.) appear among inline
+ * content, we must preserve document order. In that case *all* content is
+ * converted to block-level entries in `blockChildren` (inline runs become
+ * paragraph blocks) and `inlineContent` is left empty.
  */
 function convertMixedChildren(
   nodes: MdastNode[]
 ): { inlineContent: BlockNoteInlineContent[]; blockChildren: BlockNoteBlock[] } {
-  const inlineContent: BlockNoteInlineContent[] = [];
-  const blockChildren: BlockNoteBlock[] = [];
+  // Determine whether the node list is purely inline or contains block nodes.
+  const hasBlockNodes = nodes.some((node) => {
+    if (!INLINE_NODE_TYPES.has(node.type)) return true;
+    // A paragraph wrapping a single image is block-level
+    if (
+      node.type === "paragraph" &&
+      node.children &&
+      node.children.length === 1 &&
+      node.children[0] &&
+      node.children[0].type === "image"
+    ) {
+      return true;
+    }
+    return false;
+  });
 
-  for (const node of nodes) {
-    if (INLINE_NODE_TYPES.has(node.type)) {
-      // Check if this paragraph contains only a single image — treat as block content
-      if (
-        node.type === "paragraph" &&
-        node.children &&
-        node.children.length === 1 &&
-        node.children[0] &&
-        node.children[0].type === "image"
-      ) {
-        blockChildren.push(...convertBlockNode(node));
-      } else if (node.type === "paragraph" && node.children) {
+  if (!hasBlockNodes) {
+    // Pure inline — collect everything into inlineContent (original behaviour)
+    const inlineContent: BlockNoteInlineContent[] = [];
+    for (const node of nodes) {
+      if (node.type === "paragraph" && node.children) {
         inlineContent.push(...convertInlineNodes(node.children));
       } else {
         inlineContent.push(...convertInlineNodes([node]));
       }
+    }
+    return { inlineContent, blockChildren: [] };
+  }
+
+  // Mixed content — preserve document order by emitting everything as blocks.
+  // Consecutive inline nodes are flushed into paragraph blocks so ordering with
+  // interleaved block-level elements is maintained.
+  const blockChildren: BlockNoteBlock[] = [];
+  let pendingInline: MdastNode[] = [];
+
+  const flushInline = () => {
+    if (pendingInline.length === 0) return;
+    const inlineNodes: MdastNode[] = pendingInline.flatMap((n) =>
+      n.type === "paragraph" && n.children ? n.children : [n]
+    );
+    const content = convertInlineNodes(inlineNodes);
+    if (content.length > 0) {
+      blockChildren.push({ type: "paragraph", content });
+    }
+    pendingInline = [];
+  };
+
+  for (const node of nodes) {
+    // Paragraph wrapping a single image → block
+    if (
+      node.type === "paragraph" &&
+      node.children &&
+      node.children.length === 1 &&
+      node.children[0] &&
+      node.children[0].type === "image"
+    ) {
+      flushInline();
+      blockChildren.push(...convertBlockNode(node));
+      continue;
+    }
+
+    if (INLINE_NODE_TYPES.has(node.type)) {
+      pendingInline.push(node);
     } else {
-      // Block-level node — convert to BlockNote block(s)
+      flushInline();
       blockChildren.push(...convertBlockNode(node));
     }
   }
+  flushInline();
 
-  return { inlineContent, blockChildren };
+  return { inlineContent: [], blockChildren };
 }
 
 function flattenToInline(

@@ -253,11 +253,13 @@ describe("mdxToBlockNote", () => {
     expect(blocks[0].type).toBe("tabs");
     expect(blocks[1].type).toBe("tab");
     expect(blocks[1].props?.title).toBe("Example");
-    // Inline content stays in tab's content
-    const content = blocks[1].content as Array<{ type: string; text?: string }>;
-    expect(content.some((c) => c.text?.includes("Some text"))).toBe(true);
-    // Code block is nested in children, NOT a flat sibling
+    // With mixed content, inline text becomes a paragraph block in children
+    // to preserve document order relative to the code block
     expect(blocks[1].children).toBeDefined();
+    const textChild = blocks[1].children?.find(
+      (c) => c.type === "paragraph" && (c.content as Array<{ type: string; text?: string }>)?.some((ic) => ic.text?.includes("Some text"))
+    );
+    expect(textChild).toBeDefined();
     expect(blocks[1].children?.some((c) => c.type === "codeBlock")).toBe(true);
     const codeChild = blocks[1].children?.find((c) => c.type === "codeBlock");
     expect(codeChild?.props?.language).toBe("javascript");
@@ -713,11 +715,13 @@ describe("mdxToBlockNote", () => {
       const blocks = mdxToBlockNote(mdx);
       const tab = blocks.find((b) => b.type === "tab");
       expect(tab).toBeDefined();
-      // Inline text should be in content
-      const content = tab?.content as Array<{ type: string; text?: string }>;
-      expect(content.some((c) => c.text?.includes("intro text"))).toBe(true);
-      // Code block should be nested in children
+      // With mixed content, inline text becomes a paragraph in children
       expect(tab?.children).toBeDefined();
+      const paraChild = tab?.children?.find(
+        (c) => c.type === "paragraph" && (c.content as Array<{ type: string; text?: string }>)?.some((ic) => ic.text?.includes("intro text"))
+      );
+      expect(paraChild).toBeDefined();
+      // Code block should be nested in children
       expect(tab?.children?.some((c) => c.type === "codeBlock")).toBe(true);
       const codeChild = tab?.children?.find((c) => c.type === "codeBlock");
       expect(codeChild?.props?.language).toBe("javascript");
@@ -731,8 +735,11 @@ describe("mdxToBlockNote", () => {
       expect(step).toBeDefined();
       expect(step?.children).toBeDefined();
       expect(step?.children?.some((c) => c.type === "codeBlock")).toBe(true);
-      const content = step?.content as Array<{ type: string; text?: string }>;
-      expect(content.some((c) => c.text?.includes("Create a client"))).toBe(true);
+      // With mixed content, inline text becomes a paragraph in children
+      const paraChild = step?.children?.find(
+        (c) => c.type === "paragraph" && (c.content as Array<{ type: string; text?: string }>)?.some((ic) => ic.text?.includes("Create a client"))
+      );
+      expect(paraChild).toBeDefined();
     });
 
     it("parses a code block inside a Callout into children", () => {
@@ -787,6 +794,61 @@ describe("mdxToBlockNote", () => {
       // Table should be nested in children
       expect(tab?.children).toBeDefined();
       expect(tab?.children?.some((c) => c.type === "table")).toBe(true);
+    });
+
+    it("preserves paragraph → list → paragraph ordering in Step", () => {
+      const mdx = `<Steps>\n<Step title="Create a new project">\nClick **Create Project**. You'll be prompted to:\n\n- **Name your project** — this also sets your default URL\n- **Choose a template** — pick a starter template\n\nTemplates include API documentation, developer guides, and product docs layouts.\n</Step>\n</Steps>`;
+      const blocks = mdxToBlockNote(mdx);
+      const step = blocks.find((b) => b.type === "step");
+      expect(step).toBeDefined();
+      expect(step?.children).toBeDefined();
+      const children = step?.children || [];
+      // Should have: paragraph, bulletListItem, bulletListItem, paragraph — in that order
+      expect(children.length).toBeGreaterThanOrEqual(4);
+      expect(children[0].type).toBe("paragraph");
+      const firstParaContent = children[0].content as Array<{ type: string; text?: string }>;
+      expect(firstParaContent.some((c) => c.text?.includes("Create Project"))).toBe(true);
+      expect(children[1].type).toBe("bulletListItem");
+      expect(children[2].type).toBe("bulletListItem");
+      const lastChild = children[children.length - 1];
+      expect(lastChild.type).toBe("paragraph");
+      const lastParaContent = lastChild.content as Array<{ type: string; text?: string }>;
+      expect(lastParaContent.some((c) => c.text?.includes("Templates include"))).toBe(true);
+    });
+
+    it("preserves paragraph → list → paragraph ordering in Accordion", () => {
+      const mdx = `<AccordionGroup>\n<Accordion title="Details">\nPages have:\n\n- Title\n- Description\n\nThese are required fields.\n</Accordion>\n</AccordionGroup>`;
+      const blocks = mdxToBlockNote(mdx);
+      const accordion = blocks.find((b) => b.type === "accordion");
+      expect(accordion).toBeDefined();
+      expect(accordion?.children).toBeDefined();
+      const children = accordion?.children || [];
+      // Should have: paragraph, bulletListItem, bulletListItem, paragraph — in that order
+      expect(children.length).toBeGreaterThanOrEqual(4);
+      expect(children[0].type).toBe("paragraph");
+      expect(children[1].type).toBe("bulletListItem");
+      expect(children[2].type).toBe("bulletListItem");
+      const lastChild = children[children.length - 1];
+      expect(lastChild.type).toBe("paragraph");
+      const lastParaContent = lastChild.content as Array<{ type: string; text?: string }>;
+      expect(lastParaContent.some((c) => c.text?.includes("required fields"))).toBe(true);
+    });
+
+    it("preserves ordering with multiple block types in nested containers", () => {
+      const mdx = `<Steps>\n<Step title="Setup">\nFirst do this:\n\n\`\`\`bash\nnpm install\n\`\`\`\n\nThen check:\n\n- Item A\n- Item B\n\nAll done.\n</Step>\n</Steps>`;
+      const blocks = mdxToBlockNote(mdx);
+      const step = blocks.find((b) => b.type === "step");
+      expect(step).toBeDefined();
+      expect(step?.children).toBeDefined();
+      const children = step?.children || [];
+      // Should preserve: paragraph, codeBlock, paragraph, bulletListItem, bulletListItem, paragraph
+      const types = children.map((c) => c.type);
+      expect(types[0]).toBe("paragraph");
+      expect(types[1]).toBe("codeBlock");
+      expect(types[2]).toBe("paragraph");
+      expect(types[3]).toBe("bulletListItem");
+      expect(types[4]).toBe("bulletListItem");
+      expect(types[types.length - 1]).toBe("paragraph");
     });
   });
 
