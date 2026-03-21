@@ -2613,7 +2613,11 @@
       "trialBadge": "Unlimited users during trial",
       "migrationBadge": "One-click migration from GitBook and Mintlify",
       "annualBadge": "Annual saves 20%",
-      "migrationNote": "Switching from GitBook or Mintlify? Eligible annual migrations receive a 1-month credit after successful import."
+      "migrationNote": "Switching from GitBook or Mintlify? Eligible annual migrations receive a 1-month credit after successful import.",
+      "headline_b": "One org. Unlimited projects. Mix and match plans.",
+      "subhead_b": "Free for your changelog, Pro for your public docs, Ultimate for API reference — all on one invoice.",
+      "headline_c": "The plan GitBook should have offered you.",
+      "subhead_c": "Per-project pricing. No org-wide lock-in. No per-user surprises. Upgrade only what needs upgrading."
     },
     "howBilling": {
       "title": "How billing works",
