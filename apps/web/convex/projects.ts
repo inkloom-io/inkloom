@@ -102,6 +102,7 @@ export const create = mutation({
       slug,
       description: args.description,
       isPublic: false,
+      settings: { showBranding: true },
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -315,6 +316,7 @@ export const createFromImport = mutation({
       name: args.name,
       slug,
       isPublic: false,
+      settings: { showBranding: true },
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -385,6 +387,7 @@ export const createFromImport = mutation({
 
     // Build project settings from navTabs, branding, and migrationRedirects
     const settings: Record<string, unknown> = {};
+    settings.showBranding = true;
 
     if (args.navTabs && args.navTabs.length > 0) {
       settings.navTabs = args.navTabs.map((tab) => {

@@ -202,6 +202,7 @@ export const coreTables = {
             v.literal("system")
           )
         ),
+        showBranding: v.optional(v.boolean()),
         ctaButton: v.optional(
           v.object({
             label: v.string(),
