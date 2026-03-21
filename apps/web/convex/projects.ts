@@ -229,6 +229,9 @@ export const createFromImport = mutation({
         folderPath: v.optional(v.string()),
         content: v.string(),
         isPublished: v.boolean(),
+        subtitle: v.optional(v.string()),
+        icon: v.optional(v.string()),
+        description: v.optional(v.string()),
       })
     ),
     navTabs: v.optional(
@@ -365,6 +368,9 @@ export const createFromImport = mutation({
         path: page.path,
         position: page.position,
         isPublished: page.isPublished,
+        ...(page.subtitle ? { subtitle: page.subtitle } : {}),
+        ...(page.icon ? { icon: page.icon } : {}),
+        ...(page.description ? { description: page.description } : {}),
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
