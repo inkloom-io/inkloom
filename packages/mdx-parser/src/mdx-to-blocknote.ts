@@ -502,19 +502,18 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
     }
 
     case "Tabs": {
-      // Tabs container block, followed by child Tab blocks
+      // Tabs container block, followed by child Tab blocks.
+      // Use findAllJsxChildren to handle both flow and text JSX elements
+      // (remark-mdx wraps inline <Tab>...</Tab> as mdxJsxTextElement inside paragraphs).
       const blocks: BlockNoteBlock[] = [
         {
           type: "tabs",
           content: [],
         },
       ];
-      if (node.children) {
-        for (const child of node.children) {
-          if (child.type === "mdxJsxFlowElement" && child.name === "Tab") {
-            blocks.push(...convertMdxJsxElement(child));
-          }
-        }
+      const tabNodes = findAllJsxChildren(node, "Tab");
+      for (const tabNode of tabNodes) {
+        blocks.push(...convertMdxJsxElement(tabNode));
       }
       return blocks;
     }
@@ -1212,16 +1211,53 @@ function convertMixedChildren(
   });
 
   if (!hasBlockNodes) {
-    // Pure inline — collect everything into inlineContent (original behaviour)
+    // Count paragraph nodes to detect paragraph breaks (blank lines in MDX)
+    const paragraphCount = nodes.filter((n) => n.type === "paragraph").length;
+
+    if (paragraphCount <= 1) {
+      // Single paragraph or pure inline — collect everything into inlineContent
+      const inlineContent: BlockNoteInlineContent[] = [];
+      for (const node of nodes) {
+        if (node.type === "paragraph" && node.children) {
+          inlineContent.push(...convertInlineNodes(node.children));
+        } else {
+          inlineContent.push(...convertInlineNodes([node]));
+        }
+      }
+      return { inlineContent, blockChildren: [] };
+    }
+
+    // Multiple paragraphs — first paragraph becomes inlineContent,
+    // subsequent paragraphs become blockChildren to preserve paragraph breaks.
     const inlineContent: BlockNoteInlineContent[] = [];
+    const blockChildren: BlockNoteBlock[] = [];
+    let firstParagraph = true;
+
     for (const node of nodes) {
-      if (node.type === "paragraph" && node.children) {
-        inlineContent.push(...convertInlineNodes(node.children));
+      if (node.type === "paragraph") {
+        if (firstParagraph) {
+          inlineContent.push(...convertInlineNodes(node.children || []));
+          firstParagraph = false;
+        } else {
+          const content = convertInlineNodes(node.children || []);
+          if (content.length > 0) {
+            blockChildren.push({ type: "paragraph", content });
+          }
+        }
       } else {
-        inlineContent.push(...convertInlineNodes([node]));
+        // Non-paragraph inline nodes go into the first paragraph's content
+        if (firstParagraph) {
+          inlineContent.push(...convertInlineNodes([node]));
+        } else {
+          // Rare: inline nodes between paragraphs — append to last block child
+          const content = convertInlineNodes([node]);
+          if (content.length > 0) {
+            blockChildren.push({ type: "paragraph", content });
+          }
+        }
       }
     }
-    return { inlineContent, blockChildren: [] };
+    return { inlineContent, blockChildren };
   }
 
   // Mixed content — preserve document order by emitting everything as blocks.

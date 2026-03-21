@@ -1039,6 +1039,39 @@ x = 1
       expect(heading).toBeDefined();
       expect(tab?.children?.some((c) => c.type === "heading")).toBeFalsy();
     });
+
+    it("two paragraphs in a Tab produce separate paragraph blocks", () => {
+      const mdx = `<Tabs>\n<Tab title="Info">\nFirst paragraph text.\n\nSecond paragraph text.\n</Tab>\n</Tabs>`;
+      const blocks = mdxToBlockNote(mdx);
+      expect(blocks[0].type).toBe("tabs");
+      const tab = blocks[1];
+      expect(tab.type).toBe("tab");
+      expect(tab.props?.title).toBe("Info");
+      // First paragraph should be in content
+      const content = tab.content as Array<{ type: string; text?: string }>;
+      expect(content.some((c) => c.text === "First paragraph text.")).toBe(true);
+      // Second paragraph should be a child block, not merged into content
+      expect(tab.children).toBeDefined();
+      expect(tab.children?.length).toBeGreaterThanOrEqual(1);
+      const secondPara = tab.children?.find(
+        (c) => c.type === "paragraph" && (c.content as Array<{ type: string; text?: string }>)?.some((ic) => ic.text === "Second paragraph text.")
+      );
+      expect(secondPara).toBeDefined();
+    });
+
+    it("inline-format Tab elements are detected inside Tabs", () => {
+      const mdx = `<Tabs>\n  <Tab title="Tab 1">Content 1</Tab>\n  <Tab title="Tab 2">Content 2</Tab>\n</Tabs>\n\n## After Tabs`;
+      const blocks = mdxToBlockNote(mdx);
+      expect(blocks[0].type).toBe("tabs");
+      expect(blocks[1].type).toBe("tab");
+      expect(blocks[1].props?.title).toBe("Tab 1");
+      expect(blocks[2].type).toBe("tab");
+      expect(blocks[2].props?.title).toBe("Tab 2");
+      // Heading should be a top-level sibling, not inside tabs
+      const heading = blocks.find((b) => b.type === "heading");
+      expect(heading).toBeDefined();
+      expect(blocks[2].children?.some((c) => c.type === "heading")).toBeFalsy();
+    });
   });
 });
 
