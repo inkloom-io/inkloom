@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@inkloom/ui/alert-dialog";
-import { Eye, FilePlus, Github, Loader2 } from "lucide-react";
+import { Eye, FilePlus, Github, GitBranch, Loader2, Lock } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@inkloom/ui/button";
 import type { ThemePreset } from "@/lib/theme-presets";
@@ -190,6 +190,9 @@ export default function EditorPage({ params }: EditorPageProps) {
     [currentBranchId, projectId]
   );
 
+  // State to trigger branch creation from the lock banner
+  const [createBranchRequested, setCreateBranchRequested] = useState(false);
+
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -312,6 +315,9 @@ export default function EditorPage({ params }: EditorPageProps) {
 
   // When edit-locked by another user, make editor read-only
   const isEditLocked = editLock.isLocked && !collabGate.available;
+
+  // Branch lock: default branch is locked, require feature branches for edits
+  const isBranchLocked = currentBranch?.isLocked === true && currentBranch?.isDefault === true;
 
   // Latch: once collaboration connects for this page, keep the "-collab"
   // suffix so brief disconnections during token refresh don't remount the editor.
@@ -442,6 +448,11 @@ export default function EditorPage({ params }: EditorPageProps) {
         return;
       }
 
+      // Don't persist content changes when the branch is locked
+      if (isBranchLocked) {
+        return;
+      }
+
       // Don't persist content changes while in read-only mode during collaboration connection
       if (isCollaborationEnabled && !isCollaborationReady) {
         return;
@@ -481,6 +492,7 @@ export default function EditorPage({ params }: EditorPageProps) {
     },
     [
       selectedPageId,
+      isBranchLocked,
       collaboration.connected,
       updateContent,
       isCollaborationEnabled,
@@ -614,7 +626,9 @@ export default function EditorPage({ params }: EditorPageProps) {
           currentBranchId={currentBranchId!}
           onSwitchBranch={handleBranchSwitch}
           onFlushContent={flushContentSave}
-          isBranchLocked={!!(currentBranch?.isDefault && currentBranch?.isLocked)}
+          isBranchLocked={isBranchLocked}
+          createBranchRequested={createBranchRequested}
+          onCreateBranchRequestChange={setCreateBranchRequested}
         />
         <div className="flex flex-1 flex-col border-l border-[var(--glass-border)]">
           <EditorToolbar
@@ -727,12 +741,35 @@ export default function EditorPage({ params }: EditorPageProps) {
                       onForceTake={editLock.forceTake}
                     />
                   )}
+                  {/* Branch lock banner when default branch is locked */}
+                  {isBranchLocked && (
+                    <div
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm border-b border-[var(--glass-border)]"
+                      style={{
+                        backgroundColor: "color-mix(in srgb, var(--surface-bg) 90%, var(--text-dim) 10%)",
+                      }}
+                    >
+                      <Lock className="h-4 w-4 shrink-0 text-[var(--text-dim)]" />
+                      <span className="text-[var(--text-secondary)]">
+                        {t("branchLocked")}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="ml-auto shrink-0"
+                        onClick={() => setCreateBranchRequested(true)}
+                      >
+                        <GitBranch className="h-3.5 w-3.5 mr-1.5" />
+                        {t("createBranch")}
+                      </Button>
+                    </div>
+                  )}
                   <BlockEditor
                     key={editorKey}
                     initialContent={pageContent.content}
                     onChange={handleContentChange}
                     onEditorReady={handleEditorReady}
-                    editable={isCollaborationReady && !isEditLocked && !(currentBranch?.isDefault && currentBranch?.isLocked)}
+                    editable={isCollaborationReady && !isEditLocked && !isBranchLocked}
                     themePreset={
                       (project.settings?.theme as ThemePreset) || "default"
                     }

@@ -1323,7 +1323,9 @@
       "disableRealtimeTitle": "Disable realtime editing?",
       "disableRealtimeDescription": "Other editors will no longer see your changes in real time. You'll need to manually coordinate with co-editors to make sure each other's changes are not overwritten.",
       "cancel": "Cancel",
-      "disable": "Disable"
+      "disable": "Disable",
+      "branchLocked": "This branch is locked. Create a feature branch to make changes.",
+      "createBranch": "Create Branch"
     }
   },
   "settings": {

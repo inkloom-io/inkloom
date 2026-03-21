@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
@@ -62,6 +62,10 @@ interface BranchSwitcherProps {
   onFlushContent?: () => Promise<void>;
   canManage?: boolean;
   canDelete?: boolean;
+  /** When set to true externally, opens the create branch dialog */
+  externalCreateOpen?: boolean;
+  /** Called when the external create dialog state should be reset */
+  onExternalCreateOpenChange?: (open: boolean) => void;
 }
 
 export function BranchSwitcher({
@@ -71,6 +75,8 @@ export function BranchSwitcher({
   onFlushContent,
   canManage = true,
   canDelete = false,
+  externalCreateOpen,
+  onExternalCreateOpenChange,
 }: BranchSwitcherProps) {
   const t = useTranslations("editor.branchSwitcher");
   const tc = useTranslations("common");
@@ -98,6 +104,17 @@ export function BranchSwitcher({
   const [isRenaming, setIsRenaming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Allow parent to trigger the create branch dialog externally
+  useEffect(() => {
+    if (externalCreateOpen) {
+      setError(null);
+      setNewBranchName("");
+      setSourceBranchId(currentBranchId);
+      setCreateOpen(true);
+      onExternalCreateOpenChange?.(false);
+    }
+  }, [externalCreateOpen, currentBranchId, onExternalCreateOpenChange]);
 
   const currentBranch = branches?.find((b: Doc<"branches">) => b._id === currentBranchId);
   const defaultBranch = branches?.find((b: Doc<"branches">) => b.isDefault);

@@ -73,7 +73,12 @@ interface EditorSidebarProps {
   currentBranchId?: Id<"branches">;
   onSwitchBranch?: (branchId: Id<"branches">, branchName?: string) => void;
   onFlushContent?: () => Promise<void>;
+  /** When true, the default branch is locked — disables add page/folder and DnD */
   isBranchLocked?: boolean;
+  /** External trigger to open the create branch dialog in BranchSwitcher */
+  createBranchRequested?: boolean;
+  /** Reset callback for the external create branch trigger */
+  onCreateBranchRequestChange?: (open: boolean) => void;
 }
 
 // Custom node renderer for the tree
@@ -306,7 +311,9 @@ export function EditorSidebar({
   currentBranchId,
   onSwitchBranch,
   onFlushContent,
-  isBranchLocked = false,
+  isBranchLocked,
+  createBranchRequested,
+  onCreateBranchRequestChange,
 }: EditorSidebarProps) {
   const t = useTranslations("editor.sidebar");
   const tc = useTranslations("common");
@@ -678,6 +685,8 @@ export function EditorSidebar({
             onSwitchBranch={onSwitchBranch}
             onFlushContent={onFlushContent}
             canDelete
+            externalCreateOpen={createBranchRequested}
+            onExternalCreateOpenChange={onCreateBranchRequestChange}
           />
         </div>
       )}
@@ -702,7 +711,8 @@ export function EditorSidebar({
             ) : (
             <DialogTrigger asChild>
               <button
-                className="flex h-7 w-7 items-center justify-center rounded-md transition-colors text-[var(--text-dim)] hover:bg-[var(--glass-hover)] hover:text-[var(--text-medium)]"
+                className="flex h-7 w-7 items-center justify-center rounded-md transition-colors text-[var(--text-dim)] hover:bg-[var(--glass-hover)] hover:text-[var(--text-medium)] disabled:opacity-40 disabled:pointer-events-none"
+                disabled={isBranchLocked}
               >
                 <FolderPlus className="h-4 w-4" />
               </button>
@@ -744,7 +754,8 @@ export function EditorSidebar({
             ) : (
             <DialogTrigger asChild>
               <button
-                className="flex h-7 w-7 items-center justify-center rounded-md transition-colors text-[var(--text-dim)] hover:bg-[var(--glass-hover)] hover:text-[var(--text-medium)]"
+                className="flex h-7 w-7 items-center justify-center rounded-md transition-colors text-[var(--text-dim)] hover:bg-[var(--glass-hover)] hover:text-[var(--text-medium)] disabled:opacity-40 disabled:pointer-events-none"
+                disabled={isBranchLocked}
               >
                 <FilePlus className="h-4 w-4" />
               </button>
