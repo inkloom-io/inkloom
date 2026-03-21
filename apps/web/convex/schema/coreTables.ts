@@ -246,6 +246,7 @@ export const coreTables = {
     .index("by_org_and_slug", ["orgId", "slug"])
     .index("by_workos_org", ["workosOrgId"])
     .index("by_workos_org_and_slug", ["workosOrgId", "slug"])
+    .index("by_workos_org_and_updated_at", ["workosOrgId", "updatedAt"])
     .index("by_cf_slug", ["cfSlug"])
     .index("by_created_by", ["createdBy"])
     .index("by_updated_at", ["updatedAt"]),

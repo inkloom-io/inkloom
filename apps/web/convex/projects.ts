@@ -34,11 +34,16 @@ function slugify(text: string): string {
 /**
  * List all projects (core mode — no org filter).
  * In core mode there's a single tenant, so we return everything.
+ * Sorted by last updated time (most recently updated first).
  */
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("projects").order("desc").collect();
+    return await ctx.db
+      .query("projects")
+      .withIndex("by_updated_at")
+      .order("desc")
+      .collect();
   },
 });
 
@@ -46,11 +51,16 @@ export const list = query({
  * List projects by org ID.
  * In core mode the org filter is ignored (single tenant, return all).
  * Exists so the projects page can call `listByOrg` in both modes.
+ * Sorted by last updated time (most recently updated first).
  */
 export const listByOrg = query({
   args: { workosOrgId: v.string() },
   handler: async (ctx) => {
-    const projects = await ctx.db.query("projects").order("desc").collect();
+    const projects = await ctx.db
+      .query("projects")
+      .withIndex("by_updated_at")
+      .order("desc")
+      .collect();
     // Normalize plan: undefined → "free" so UI badges render correctly
     return projects.map((p) => ({ ...p, plan: p.plan ?? "free" }));
   },
@@ -598,8 +608,10 @@ export const updateCfSlug = mutation({
 export const getDashboardStats = query({
   args: {},
   handler: async (ctx) => {
+    // Sorted by last updated time (most recently updated first)
     const projects = await ctx.db
       .query("projects")
+      .withIndex("by_updated_at")
       .order("desc")
       .collect();
 
