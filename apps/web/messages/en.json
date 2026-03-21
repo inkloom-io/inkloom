@@ -493,7 +493,11 @@
     },
     "cta": {
       "title": "Ready to ship better docs?",
+      "title_b": "Outgrow GitBook or Mintlify in minutes",
+      "title_c": "Leave competitors behind with better docs",
       "subtitle": "Start with the free tier. Deploy your first docs site in under 5 minutes.",
+      "subtitle_b": "Import your existing docs and deploy to a global edge network — no lock-in, no rebuild.",
+      "subtitle_c": "Ship documentation that's faster, more flexible, and loved by developers worldwide.",
       "terminalTitle": "get started",
       "startForFree": "Start for free",
       "viewOnGitHub": "View on GitHub",
