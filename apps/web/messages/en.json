@@ -1609,7 +1609,11 @@
       "andMore": "...and {count} more",
       "allContentAssigned": "All content is assigned to tabs. Tabs will appear in the order shown above.",
       "duplicateSlugError": "A tab with this URL slug already exists",
-      "reservedSlugError": "This slug is reserved for the auto-generated API reference tab"
+      "reservedSlugError": "This slug is reserved for the auto-generated API reference tab",
+      "deleteTabTitle": "Delete navigation tab?",
+      "deleteTabDescription": "Are you sure you want to delete the \"{name}\" tab? The content inside won't be deleted, but it will no longer be organized under this tab.",
+      "deleteTabCancel": "Cancel",
+      "deleteTabConfirm": "Delete Tab"
     },
     "openapi": {
       "validatingSpec": "Validating spec...",

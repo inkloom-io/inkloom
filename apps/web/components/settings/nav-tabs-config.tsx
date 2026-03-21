@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -14,9 +14,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@inkloom/ui/select";
-import { GripVertical, Plus, Trash2, Loader2, Check, Folder, FileText, AlertTriangle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@inkloom/ui/alert-dialog";
+import { GripVertical, Plus, Trash2, Folder, FileText, AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { IconPicker, IconDisplay } from "@/components/editor/icon-picker";
+import { useAutoSave } from "@/hooks/use-auto-save";
+import { SaveStatus } from "@/components/settings/save-status";
 
 // Item in a tab - can be either a folder or a page
 type NavTabItem =
@@ -100,8 +112,7 @@ export function NavTabsConfig({
   );
 
   const [tabs, setTabs] = useState<NavTab[]>(migratedInitialTabs);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [tabToDelete, setTabToDelete] = useState<string | null>(null);
   const initializedRef = useRef(false);
   const lastSavedTabsRef = useRef<string>(JSON.stringify(migratedInitialTabs));
 
@@ -228,28 +239,6 @@ export function NavTabsConfig({
     );
   };
 
-  const handleSave = async () => {
-    // Filter out invalid tabs (no name or no items)
-    // Also strip out slugManuallyEdited which is only used locally
-    const validTabs = tabs
-      .filter((t: any) => t.name.trim() && t.items.length > 0)
-      .map(({ slugManuallyEdited: _slugManuallyEdited, ...tab }) => tab);
-
-    setSaving(true);
-    try {
-      await onSave(validTabs);
-      lastSavedTabsRef.current = JSON.stringify(validTabs);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    } catch (error) {
-      console.error("Failed to save tabs:", error);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const hasChanges = JSON.stringify(tabs) !== JSON.stringify(migratedInitialTabs);
-
   // Compute slug errors for each tab
   const slugErrors = useMemo(() => {
     const errors: Record<string, string> = {};
@@ -271,6 +260,25 @@ export function NavTabsConfig({
   }, [tabs, t]);
 
   const hasSlugErrors = Object.keys(slugErrors).length > 0;
+
+  // Derive a sanitized tabs value for auto-save (filter invalid tabs, strip slugManuallyEdited)
+  const tabsForSave = useMemo(
+    () =>
+      tabs
+        .filter((t) => t.name.trim() && t.items.length > 0)
+        .map(({ slugManuallyEdited: _, ...tab }) => tab),
+    [tabs]
+  );
+
+  const handleAutoSave = useCallback(
+    async (tabsToSave: NavTab[]) => {
+      await onSave(tabsToSave);
+      lastSavedTabsRef.current = JSON.stringify(tabsToSave);
+    },
+    [onSave]
+  );
+
+  const saveStatus = useAutoSave(tabsForSave, handleAutoSave, 800, initializedRef.current && !hasSlugErrors);
 
   // Get display info for an item
   const getItemDisplay = (item: NavTabItem) => {
@@ -510,7 +518,7 @@ export function NavTabsConfig({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
-                  onClick={() => handleRemoveTab(tab.id)}
+                  onClick={() => setTabToDelete(tab.id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -526,16 +534,7 @@ export function NavTabsConfig({
           {t("navTabs.addTab")}
         </Button>
 
-        {hasChanges && (
-          <Button size="sm" onClick={handleSave} disabled={saving || hasSlugErrors}>
-            {saving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : saved ? (
-              <Check className="mr-2 h-4 w-4" />
-            ) : null}
-            {saved ? t("navTabs.saved") : saving ? t("navTabs.saving") : t("navTabs.saveChanges")}
-          </Button>
-        )}
+        <SaveStatus status={saveStatus} />
       </div>
 
       {/* Unassigned content warning */}
@@ -581,6 +580,29 @@ export function NavTabsConfig({
           {t("navTabs.allContentAssigned")}
         </p>
       )}
+
+      <AlertDialog open={!!tabToDelete} onOpenChange={(open) => !open && setTabToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("navTabs.deleteTabTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("navTabs.deleteTabDescription", { name: tabs.find((tab) => tab.id === tabToDelete)?.name || "" })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("navTabs.deleteTabCancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (tabToDelete) handleRemoveTab(tabToDelete);
+                setTabToDelete(null);
+              }}
+            >
+              {t("navTabs.deleteTabConfirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
