@@ -377,6 +377,7 @@ export const upsertConfig = mutation({
     projectId: v.id("projects"),
     cfProjectName: v.optional(v.string()),
     liveDeploymentId: v.optional(v.id("deployments")),
+    accessAppId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db

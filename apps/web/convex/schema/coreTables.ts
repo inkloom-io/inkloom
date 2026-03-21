@@ -349,6 +349,7 @@ export const coreTables = {
     vercelToken: v.optional(v.string()),
     branchId: v.optional(v.id("branches")),
     liveDeploymentId: v.optional(v.id("deployments")),
+    accessAppId: v.optional(v.string()),
     productionUrl: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
