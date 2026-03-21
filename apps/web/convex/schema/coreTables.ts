@@ -216,6 +216,18 @@ export const coreTables = {
             })
           )
         ),
+        accessControl: v.optional(v.object({
+          mode: v.union(
+            v.literal("public"),
+            v.literal("login_required"),
+            v.literal("domain_restricted"),
+            v.literal("allowlist"),
+            v.literal("sso_required")
+          ),
+          allowedDomains: v.optional(v.array(v.string())),
+          allowedEmails: v.optional(v.array(v.string())),
+          sessionTtlDays: v.optional(v.number()),
+        })),
       })
     ),
     plan: v.optional(
