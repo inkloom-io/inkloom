@@ -497,7 +497,10 @@
       "resourcesProductGuides": "Product Guides",
       "resourcesMintlifyAlt": "Mintlify Alternative",
       "resourcesGitbookAlt": "GitBook Alternative",
-      "resourcesSwitchToInkLoom": "Switch to InkLoom"
+      "resourcesSwitchToInkLoom": "Switch to InkLoom",
+      "useCasesTitle": "Use Cases",
+      "ossProgram": "OSS Program",
+      "changelog": "Changelog"
     }
   },
   "changelog": {
