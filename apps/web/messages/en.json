@@ -1097,7 +1097,10 @@
     "previewPanel": {
       "docs": "Docs",
       "searchPlaceholder": "Search...",
-      "toggleTheme": "Toggle preview theme"
+      "toggleTheme": "Toggle preview theme",
+      "emptyStateTitle": "No page to preview",
+      "emptyStateSubtitleNoSelection": "Select a page from the sidebar to see a live preview",
+      "emptyStateSubtitleNoPages": "Create a page to see a live preview"
     },
     "versionDiff": {
       "comparingVersions": "Comparing versions",

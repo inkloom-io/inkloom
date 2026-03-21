@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@inkloom/ui/alert-dialog";
-import { FilePlus, Github, Loader2 } from "lucide-react";
+import { Eye, FilePlus, Github, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@inkloom/ui/button";
 import type { ThemePreset } from "@/lib/theme-presets";
@@ -61,6 +61,7 @@ export default function EditorPage({ params }: EditorPageProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const t = useTranslations("editor.page");
+  const tPreview = useTranslations("editor.previewPanel");
   const project = useQuery(api.projects.get, {
     projectId: projectId as Id<"projects">,
   });
@@ -907,7 +908,7 @@ export default function EditorPage({ params }: EditorPageProps) {
           side="right"
           className="w-full overflow-hidden border-l-0 bg-transparent p-0 sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
         >
-          {selectedPage && pageContent && (
+          {selectedPage && pageContent ? (
             <PreviewPanel
               content={editorContent ?? pageContent.content}
               pageTitle={selectedPage.title}
@@ -933,6 +934,18 @@ export default function EditorPage({ params }: EditorPageProps) {
               titleIconHidden={selectedPage.titleIconHidden}
               onOpenSearch={() => setIsSearchOpen(true)}
             />
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center bg-[var(--surface-bg)] p-8 text-center">
+              <Eye className="mb-4 h-12 w-12 text-[var(--text-tertiary)]" />
+              <h3 className="mb-2 text-lg font-semibold text-[var(--text-primary)]">
+                {tPreview("emptyStateTitle")}
+              </h3>
+              <p className="max-w-xs text-sm text-[var(--text-secondary)]">
+                {pages && pages.length === 0
+                  ? tPreview("emptyStateSubtitleNoPages")
+                  : tPreview("emptyStateSubtitleNoSelection")}
+              </p>
+            </div>
           )}
         </SheetContent>
       </Sheet>
