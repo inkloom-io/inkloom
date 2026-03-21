@@ -622,13 +622,13 @@ export default function EditorPage({ params }: EditorPageProps) {
             onTogglePreview={() => setIsPreviewOpen(!isPreviewOpen)}
             editor={editor}
             onOpenSearch={() => setIsSearchOpen(true)}
-            collaboration={{
+            collaboration={selectedPageId ? {
               connected: collaboration.connected,
               synced: collaboration.synced,
               error: collaboration.error,
               activeUsers: collaboration.activeUsers,
               currentUser: collaboration.currentUser,
-            }}
+            } : undefined}
             collaborationGated={
               isCollaborationEnabled &&
               !collabGate.available &&
@@ -755,7 +755,8 @@ export default function EditorPage({ params }: EditorPageProps) {
                     commentThreads={editorCommentThreads}
                     onThreadClick={handleThreadClick}
                   />
-                  {isCollaborationEnabled &&
+                  {selectedPageId &&
+                    isCollaborationEnabled &&
                     collabGate.available &&
                     !collaboration.connected &&
                     !collaboration.error &&
