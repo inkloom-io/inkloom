@@ -3453,7 +3453,7 @@
     "hero": {
       "badge": "Migration Hub",
       "headline": "Switch to InkLoom in minutes",
-      "subhead": "Moving your docs shouldn't be a project. Whether you're on Mintlify, GitBook, Notion, or plain Markdown -- InkLoom's CLI imports your content in a single command. No lock-in, no data loss, no downtime.",
+      "subhead": "Moving your docs shouldn't be a project. Whether you're on Mintlify, GitBook, or plain Markdown -- InkLoom's CLI imports your content in a single command. No lock-in, no data loss, no downtime.",
       "primaryCta": "Get started free",
       "secondaryCta": "Read the import guide",
       "beforeLabel": "Before",
@@ -3462,7 +3462,7 @@
     "sources": {
       "badge": "Import from anywhere",
       "title": "Where are your docs today?",
-      "subtitle": "InkLoom supports direct imports from popular documentation platforms and any standard Markdown or MDX source.",
+      "subtitle": "InkLoom supports direct imports from Mintlify and GitBook, plus any standard Markdown or MDX source.",
       "learnMore": "Learn more",
       "mintlify": {
         "name": "From Mintlify",
@@ -3471,10 +3471,6 @@
       "gitbook": {
         "name": "From GitBook",
         "description": "Pull your entire GitBook workspace into InkLoom with inkloom import --from gitbook. Keeps your structure intact."
-      },
-      "notion": {
-        "name": "From Notion",
-        "description": "Export from Notion as Markdown, then push to InkLoom via CLI. Your pages land exactly where you'd expect."
       },
       "markdown": {
         "name": "From Markdown / MDX",
@@ -3504,7 +3500,7 @@
       "collaboration": "Real-time collaboration",
       "edgeDeploy": "Edge deployment",
       "selfHost": "Self-host option",
-      "oneClickMigration": "One-click migration"
+      "cliMigration": "CLI migration tools"
     },
     "benefits": {
       "badge": "Why InkLoom",
@@ -3515,12 +3511,12 @@
         "description": "InkLoom is open source. Your content stays in standard MDX files you can take anywhere. Fork it, self-host it, or use our managed cloud -- the choice is always yours."
       },
       "perProject": {
-        "title": "Per-project pricing, not per-seat",
-        "description": "Pay for the docs projects you ship, not the people who edit them. Add your entire team to any project without surprise bills or awkward seat negotiations."
+        "title": "Transparent per-project pricing",
+        "description": "Pay for the docs projects you ship. Pricing scales with your projects, and seats are affordable so your whole team can collaborate without breaking the budget."
       },
       "aiPowered": {
-        "title": "AI-powered evergreen docs",
-        "description": "InkLoom's AI watches your codebase for changes and suggests doc updates automatically. Ship a new API endpoint and your docs stay current -- no manual effort required."
+        "title": "AI-powered doc generation",
+        "description": "Generate documentation from your codebase with a single CLI command or GitHub Action. InkLoom's AI engine explores your code, plans a doc structure, and writes accurate pages with real examples."
       },
       "cliBased": {
         "title": "CLI-first workflow",
@@ -3531,8 +3527,8 @@
         "description": "Make your docs truly yours. Apply custom themes, colors, fonts, and layouts that match your brand identity -- no CSS hacking required."
       },
       "analytics": {
-        "title": "Built-in analytics",
-        "description": "Understand how your users read your docs. Page views, search queries, and feedback signals -- all built in, no third-party scripts needed."
+        "title": "Reader feedback & analytics",
+        "description": "Built-in \"Was this helpful?\" reactions on every page give you direct reader feedback. Connect Google Analytics or PostHog for full visitor insights."
       }
     },
     "cta": {
