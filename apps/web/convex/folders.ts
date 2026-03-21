@@ -95,11 +95,12 @@ export const create = mutation({
     branchId: v.id("branches"),
     parentId: v.optional(v.id("folders")),
     name: v.string(),
+    slug: v.optional(v.string()),
     position: v.optional(v.number()),
     icon: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const slug = slugify(args.name);
+    const slug = args.slug || slugify(args.name);
 
     // Calculate path
     let path = `/${slug}`;
