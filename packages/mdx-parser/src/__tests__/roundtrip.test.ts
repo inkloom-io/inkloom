@@ -299,6 +299,48 @@ describe("mdxToBlockNote", () => {
     expect(blocks[2].props?.title).toBe("FAQ 2");
   });
 
+  it("parses inline (text-element) Steps with Step children", () => {
+    // When JSX children appear without blank lines, remark-mdx may wrap them
+    // as mdxJsxTextElement inside a paragraph instead of mdxJsxFlowElement
+    const mdx = `<Steps>\n<Step title="Install">Run install.</Step>\n<Step title="Configure">Edit config.</Step>\n</Steps>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[0].type).toBe("steps");
+    expect(blocks[1].type).toBe("step");
+    expect(blocks[1].props?.title).toBe("Install");
+    expect(blocks[2].type).toBe("step");
+    expect(blocks[2].props?.title).toBe("Configure");
+  });
+
+  it("parses inline (text-element) AccordionGroup with Accordion children", () => {
+    const mdx = `<AccordionGroup>\n<Accordion title="FAQ 1">Answer 1.</Accordion>\n<Accordion title="FAQ 2">Answer 2.</Accordion>\n</AccordionGroup>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[0].type).toBe("accordionGroup");
+    expect(blocks[1].type).toBe("accordion");
+    expect(blocks[1].props?.title).toBe("FAQ 1");
+    expect(blocks[2].type).toBe("accordion");
+    expect(blocks[2].props?.title).toBe("FAQ 2");
+  });
+
+  it("parses inline (text-element) CardGroup with Card children", () => {
+    const mdx = `<CardGroup cols={2}>\n<Card title="First" href="/first">Desc</Card>\n<Card title="Second">Desc 2</Card>\n</CardGroup>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[0].type).toBe("cardGroup");
+    expect(blocks[1].type).toBe("card");
+    expect(blocks[1].props?.title).toBe("First");
+    expect(blocks[2].type).toBe("card");
+    expect(blocks[2].props?.title).toBe("Second");
+  });
+
+  it("parses inline (text-element) Tabs with Tab children", () => {
+    const mdx = `<Tabs>\n<Tab title="JS">JavaScript code.</Tab>\n<Tab title="PY">Python code.</Tab>\n</Tabs>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[0].type).toBe("tabs");
+    expect(blocks[1].type).toBe("tab");
+    expect(blocks[1].props?.title).toBe("JS");
+    expect(blocks[2].type).toBe("tab");
+    expect(blocks[2].props?.title).toBe("PY");
+  });
+
   it("parses CodeGroup with code blocks", () => {
     const mdx = `<CodeGroup>\n\`\`\`javascript\nconst x = 1;\n\`\`\`\n\`\`\`python\nx = 1\n\`\`\`\n</CodeGroup>`;
     const blocks = mdxToBlockNote(mdx);
