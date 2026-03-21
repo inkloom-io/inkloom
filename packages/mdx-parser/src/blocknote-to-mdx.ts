@@ -407,8 +407,8 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
           const hasCellBgColor = typeof cellBgColor === "string" && cellBgColor !== "default" && cellBgColor !== "";
           if (hasCellTextColor || hasCellBgColor) {
             const styles: string[] = [];
-            if (hasCellTextColor) styles.push(`color:${resolveTextColor(cellTextColor!)}`);
-            if (hasCellBgColor) styles.push(`background-color:${resolveBackgroundColor(cellBgColor!)}`);
+            if (hasCellTextColor && cellTextColor) styles.push(`color:${resolveTextColor(cellTextColor)}`);
+            if (hasCellBgColor && cellBgColor) styles.push(`background-color:${resolveBackgroundColor(cellBgColor)}`);
             cellText = `<span style="${styles.join(";")}">${cellText}</span>`;
           }
           texts.push(cellText);
@@ -491,7 +491,8 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
         const dataRows = processedRows.slice(Math.min(headerRowCount, processedRows.length));
 
         // Use last header row's alignment for the separator
-        const lastHeader = headerRows[headerRows.length - 1]!;
+        const lastHeader = headerRows[headerRows.length - 1];
+        if (!lastHeader) throw new Error("Expected at least one header row");
 
         // Output header rows
         for (const hRow of headerRows) {
@@ -1194,7 +1195,8 @@ function serializeBlockChildren(blocks: BlockNoteBlock[]): string {
     if (block.type === "bulletListItem") {
       mdx += "<ul>\n";
       while (i < blocks.length && blocks[i]?.type === "bulletListItem") {
-        mdx += convertBlock(blocks[i]!);
+        const listItem = blocks[i];
+        if (listItem) mdx += convertBlock(listItem);
         i++;
       }
       mdx += "</ul>\n\n";
@@ -1231,7 +1233,8 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
     if (block.type === "bulletListItem") {
       mdx += "<ul>\n";
       while (i < blocks.length && blocks[i]?.type === "bulletListItem") {
-        mdx += convertBlock(blocks[i]!);
+        const listItem = blocks[i];
+        if (listItem) mdx += convertBlock(listItem);
         i++;
       }
       mdx += "</ul>\n\n";
