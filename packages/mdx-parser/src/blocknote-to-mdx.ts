@@ -995,13 +995,132 @@ function collectResponseFieldSlice(
 function serializeBlockChildren(blocks: BlockNoteBlock[]): string {
   let mdx = "";
   let i = 0;
+
+  // Helper to collect sibling blocks of a given type, skipping empty paragraphs
+  const collectSiblings = (childType: string): string => {
+    let result = "";
+    while (i < blocks.length) {
+      const nextBlock = blocks[i];
+      if (!nextBlock) break;
+      if (isEmptyParagraph(nextBlock)) {
+        i++;
+        continue;
+      }
+      if (nextBlock.type !== childType) break;
+      result += convertBlock(nextBlock);
+      i++;
+    }
+    return result;
+  };
+
   while (i < blocks.length) {
     const block = blocks[i];
     if (!block) {
       i++;
       continue;
     }
-    // Handle frame - collect following frameContent blocks (skipping empty paragraphs)
+
+    // Handle codeGroup - collect following codeBlock siblings
+    if (block.type === "codeGroup") {
+      mdx += "<CodeGroup>\n";
+      i++;
+      mdx += collectSiblings("codeBlock");
+      mdx += "</CodeGroup>\n\n";
+      continue;
+    }
+
+    // Handle tabs container - collect following tab siblings with extra content
+    if (block.type === "tabs") {
+      const containerTypes = new Set([
+        "tabs", "cardGroup", "steps", "codeGroup",
+        "accordionGroup", "columns", "frame",
+      ]);
+      const groupChildTypes = new Set([
+        "card", "step", "codeBlock", "accordion", "column", "frameContent",
+      ]);
+
+      mdx += "<Tabs>\n";
+      i++;
+      while (i < blocks.length) {
+        const nextBlock = blocks[i];
+        if (!nextBlock) break;
+        if (isEmptyParagraph(nextBlock)) {
+          i++;
+          continue;
+        }
+        if (nextBlock.type !== "tab") break;
+
+        let tabMdx = convertBlock(nextBlock);
+        i++;
+
+        // Collect flat sibling content blocks that belong to this tab
+        let extraContent = "";
+        while (i < blocks.length) {
+          const contentBlock = blocks[i];
+          if (!contentBlock) break;
+          if (isEmptyParagraph(contentBlock)) {
+            i++;
+            continue;
+          }
+          if (contentBlock.type === "tab") break;
+          if (containerTypes.has(contentBlock.type)) break;
+          if (groupChildTypes.has(contentBlock.type)) break;
+          extraContent += convertBlock(contentBlock, 0);
+          i++;
+        }
+
+        if (extraContent) {
+          tabMdx = tabMdx.replace(
+            /\n<\/Tab>\n$/,
+            "\n\n" + extraContent + "</Tab>\n",
+          );
+        }
+
+        mdx += tabMdx;
+      }
+      mdx += "</Tabs>\n\n";
+      continue;
+    }
+
+    // Handle steps container - collect following step siblings
+    if (block.type === "steps") {
+      mdx += "<Steps>\n";
+      i++;
+      mdx += collectSiblings("step");
+      mdx += "</Steps>\n\n";
+      continue;
+    }
+
+    // Handle accordionGroup - collect following accordion siblings
+    if (block.type === "accordionGroup") {
+      mdx += "<AccordionGroup>\n";
+      i++;
+      mdx += collectSiblings("accordion");
+      mdx += "</AccordionGroup>\n\n";
+      continue;
+    }
+
+    // Handle cardGroup - collect following card siblings
+    if (block.type === "cardGroup") {
+      const cols = (block.props?.cols as string) || "2";
+      mdx += `<CardGroup cols={${cols}}>\n`;
+      i++;
+      mdx += collectSiblings("card");
+      mdx += "</CardGroup>\n\n";
+      continue;
+    }
+
+    // Handle columns - collect following column siblings
+    if (block.type === "columns") {
+      const cols = (block.props?.cols as string) || "2";
+      mdx += `<Columns cols={${cols}}>\n`;
+      i++;
+      mdx += collectSiblings("column");
+      mdx += "</Columns>\n\n";
+      continue;
+    }
+
+    // Handle frame - collect following frameContent siblings
     if (block.type === "frame") {
       const hint = (block.props?.hint as string) || "";
       const caption = (block.props?.caption as string) || "";
@@ -1018,20 +1137,59 @@ function serializeBlockChildren(blocks: BlockNoteBlock[]): string {
       }
       // Also collect following frameContent sibling blocks
       i++;
-      while (i < blocks.length) {
-        const nextBlock = blocks[i];
-        if (!nextBlock) break;
-        if (isEmptyParagraph(nextBlock)) {
-          i++;
-          continue;
-        }
-        if (nextBlock.type !== "frameContent") break;
-        mdx += convertBlock(nextBlock);
-        i++;
-      }
+      mdx += collectSiblings("frameContent");
       mdx += `</Frame>\n\n`;
       continue;
     }
+
+    // Handle expandable - children-based or sibling-based
+    if (block.type === "expandable") {
+      const expChildBlocks = block.children as BlockNoteBlock[] | undefined;
+      if (expChildBlocks && expChildBlocks.length > 0) {
+        mdx += convertBlock(block);
+        i++;
+      } else {
+        const expTitle = (block.props?.title as string) || "Details";
+        const expType = block.props?.type as string;
+        const expDefaultOpen = block.props?.defaultOpen as string;
+        const expAttrs = [
+          `title="${escapeAttrValue(expTitle)}"`,
+          expType && `type="${escapeAttrValue(expType)}"`,
+          expDefaultOpen === "true" && `defaultOpen`,
+        ].filter(Boolean).join(" ");
+        mdx += `<Expandable ${expAttrs}>\n`;
+        i++;
+        while (i < blocks.length) {
+          const nextBlock = blocks[i];
+          if (!nextBlock) break;
+          if (isEmptyParagraph(nextBlock)) {
+            i++;
+            continue;
+          }
+          if (nextBlock.type !== "responseField") break;
+          const rfSlice = collectResponseFieldSlice(blocks, i);
+          mdx += rfSlice.mdx;
+          i = rfSlice.nextIndex;
+        }
+        mdx += "</Expandable>\n";
+      }
+      continue;
+    }
+
+    // Handle responseField - children-based or sibling-based
+    if (block.type === "responseField") {
+      const rfChildBlocks = block.children as BlockNoteBlock[] | undefined;
+      if (rfChildBlocks && rfChildBlocks.length > 0) {
+        mdx += convertBlock(block);
+        i++;
+      } else {
+        const rfSlice = collectResponseFieldSlice(blocks, i);
+        mdx += rfSlice.mdx;
+        i = rfSlice.nextIndex;
+      }
+      continue;
+    }
+
     // Normal block processing
     mdx += convertBlock(block, 0);
     i++;

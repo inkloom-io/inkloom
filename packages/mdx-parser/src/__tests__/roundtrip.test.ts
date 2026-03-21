@@ -385,6 +385,117 @@ describe("mdxToBlockNote", () => {
     expect(blocks[1].props?.height).toBe("500");
   });
 
+  it("parses CodeGroup inside a Step — siblings stay grouped", () => {
+    const mdx = `<Steps>
+<Step title="Install">
+<CodeGroup>
+\`\`\`bash npm
+npm install foo
+\`\`\`
+\`\`\`bash yarn
+yarn add foo
+\`\`\`
+\`\`\`bash pnpm
+pnpm add foo
+\`\`\`
+</CodeGroup>
+</Step>
+</Steps>`;
+    const blocks = mdxToBlockNote(mdx);
+    // Top-level: steps container + step sibling
+    expect(blocks[0].type).toBe("steps");
+    expect(blocks[1].type).toBe("step");
+    expect(blocks[1].props?.title).toBe("Install");
+    // Step's children should contain codeGroup + 3 codeBlock siblings
+    const stepChildren = blocks[1].children as Array<{ type: string; props?: Record<string, unknown> }>;
+    expect(stepChildren).toBeDefined();
+    expect(stepChildren.length).toBeGreaterThanOrEqual(4);
+    expect(stepChildren[0].type).toBe("codeGroup");
+    expect(stepChildren[1].type).toBe("codeBlock");
+    expect(stepChildren[1].props?.language).toBe("bash");
+    expect(stepChildren[2].type).toBe("codeBlock");
+    expect(stepChildren[3].type).toBe("codeBlock");
+  });
+
+  it("round-trips CodeGroup inside a Step", () => {
+    const mdx = `<Steps>
+<Step title="Install">
+<CodeGroup>
+\`\`\`bash npm
+npm install foo
+\`\`\`
+\`\`\`bash yarn
+yarn add foo
+\`\`\`
+\`\`\`bash pnpm
+pnpm add foo
+\`\`\`
+</CodeGroup>
+</Step>
+</Steps>`;
+    const blocks = mdxToBlockNote(mdx);
+    const serialized = blockNoteToMDX(blocks);
+    // The serialized MDX should contain <CodeGroup> inside the <Step>
+    expect(serialized).toContain("<CodeGroup>");
+    expect(serialized).toContain("</CodeGroup>");
+    // Code blocks should be inside the CodeGroup, not standalone
+    const codeGroupStart = serialized.indexOf("<CodeGroup>");
+    const codeGroupEnd = serialized.indexOf("</CodeGroup>");
+    const codeGroupContent = serialized.slice(codeGroupStart, codeGroupEnd);
+    expect(codeGroupContent).toContain("```bash npm");
+    expect(codeGroupContent).toContain("```bash yarn");
+    expect(codeGroupContent).toContain("```bash pnpm");
+  });
+
+  it("round-trips CodeGroup inside an Accordion", () => {
+    const mdx = `<AccordionGroup>
+<Accordion title="Setup">
+<CodeGroup>
+\`\`\`bash npm
+npm install bar
+\`\`\`
+\`\`\`bash yarn
+yarn add bar
+\`\`\`
+</CodeGroup>
+</Accordion>
+</AccordionGroup>`;
+    const blocks = mdxToBlockNote(mdx);
+    const serialized = blockNoteToMDX(blocks);
+    expect(serialized).toContain("<CodeGroup>");
+    expect(serialized).toContain("</CodeGroup>");
+    // Re-parse and verify structure is preserved
+    const blocks2 = mdxToBlockNote(serialized);
+    const accordion = blocks2.find(b => b.type === "accordion");
+    expect(accordion).toBeDefined();
+    const accChildren = accordion?.children as Array<{ type: string }> | undefined;
+    expect(accChildren).toBeDefined();
+    const codeGroupInAcc = accChildren?.find(c => c.type === "codeGroup");
+    expect(codeGroupInAcc).toBeDefined();
+    const codeBlocksInAcc = accChildren?.filter(c => c.type === "codeBlock");
+    expect(codeBlocksInAcc?.length).toBe(2);
+  });
+
+  it("top-level CodeGroup still works (no regression)", () => {
+    const mdx = `<CodeGroup>
+\`\`\`javascript
+const x = 1;
+\`\`\`
+\`\`\`python
+x = 1
+\`\`\`
+</CodeGroup>`;
+    const blocks = mdxToBlockNote(mdx);
+    const serialized = blockNoteToMDX(blocks);
+    expect(serialized).toContain("<CodeGroup>");
+    expect(serialized).toContain("</CodeGroup>");
+    // Re-parse and verify
+    const blocks2 = mdxToBlockNote(serialized);
+    expect(blocks2[0].type).toBe("codeGroup");
+    expect(blocks2[1].type).toBe("codeBlock");
+    expect(blocks2[2].type).toBe("codeBlock");
+  });
+
   it("parses a simple ResponseField", () => {
     const mdx = `<ResponseField name="id" type="string" required>\nThe unique identifier.\n</ResponseField>`;
     const blocks = mdxToBlockNote(mdx);
