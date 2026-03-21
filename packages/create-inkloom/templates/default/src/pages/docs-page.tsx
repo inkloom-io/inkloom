@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleHelp,
+  Link,
   icons,
 } from "lucide-react";
 
