@@ -3198,5 +3198,61 @@
       "signupCta": "Start for Free",
       "docsCta": "Read the Docs"
     }
+  },
+  "enterprisePage": {
+    "hero": {
+      "badge": "Enterprise",
+      "headline": "Documentation infrastructure for teams at scale",
+      "subhead": "Give every team a single source of truth. InkLoom Enterprise brings SSO, role-based access, custom domains, and dedicated support to organizations that ship docs as a core part of their product.",
+      "contactSalesCta": "Contact Sales",
+      "startTrialCta": "Start Free Trial"
+    },
+    "features": {
+      "badge": "Enterprise Features",
+      "title": "Everything your team needs to ship docs with confidence",
+      "subtitle": "Purpose-built for organizations that treat documentation as critical infrastructure — not an afterthought.",
+      "ssoTitle": "Single Sign-On (SSO)",
+      "ssoDesc": "Authenticate your team through your existing identity provider via WorkOS. Support for SAML, Google OAuth, and Microsoft — so your team logs in with the credentials they already use.",
+      "rbacTitle": "Role-Based Access Control",
+      "rbacDesc": "Fine-grained permissions let you control who can edit, review, and publish. Assign roles per project so contributors only see what they need.",
+      "customDomainsTitle": "Custom Domains",
+      "customDomainsDesc": "Publish documentation to your own domain — docs.yourcompany.com — with automatic SSL and global CDN delivery via Cloudflare.",
+      "auditLogsTitle": "Audit Logs",
+      "auditLogsDesc": "Full visibility into who changed what and when. Track every edit, publish, and permission change across your organization for compliance and accountability.",
+      "dedicatedSupportTitle": "Dedicated Support",
+      "dedicatedSupportDesc": "Get priority access to our engineering team with a dedicated account manager, private Slack channel, and guaranteed response times.",
+      "slaTitle": "SLA Guarantees",
+      "slaDesc": "Enterprise plans include uptime SLAs with financially-backed guarantees, so your published documentation is always available when your users need it."
+    },
+    "security": {
+      "badge": "Security & Compliance",
+      "title": "Built for teams that take security seriously",
+      "subtitle": "Your documentation often contains sensitive product details. We treat security as a first-class requirement, not a checkbox.",
+      "soc2Title": "SOC 2 Readiness",
+      "soc2Desc": "Our infrastructure and processes are designed around SOC 2 Type II controls. We maintain rigorous access management, encryption at rest and in transit, and continuous monitoring.",
+      "privacyTitle": "Data Privacy & Residency",
+      "privacyDesc": "Your content is yours. We enforce strict data isolation between organizations, support data export at any time, and never use customer content for model training.",
+      "selfHostTitle": "Self-Hosting Option",
+      "selfHostDesc": "Need full control? Deploy InkLoom on your own infrastructure. Our self-hosted option gives you complete ownership of your data and deployment environment."
+    },
+    "scale": {
+      "badge": "Built to Scale",
+      "title": "One platform, every team, every project",
+      "subtitle": "Most documentation platforms force you into one project per account. InkLoom was designed from the ground up for multi-project organizations.",
+      "multiOrgTitle": "Multi-Project Organizations",
+      "multiOrgDesc": "Manage dozens of documentation projects under a single organization. Each project gets its own settings, domain, and access controls — all from one dashboard.",
+      "perProjectTieringTitle": "Per-Project Tiering",
+      "perProjectTieringDesc": "Not every project needs the same plan. Mix Free, Pro, and Ultimate tiers across projects so you only pay for the features each team actually uses.",
+      "unlimitedEditorsTitle": "Unlimited Editors",
+      "unlimitedEditorsDesc": "No arbitrary user caps. Pro and Ultimate plans support unlimited editors, so your entire team can contribute without hitting a paywall.",
+      "singleInvoiceTitle": "Single Invoice",
+      "singleInvoiceDesc": "One organization, one bill. No more juggling separate accounts and invoices for every documentation project your company runs."
+    },
+    "cta": {
+      "title": "Ready to scale your documentation?",
+      "subtitle": "Talk to our team about how InkLoom Enterprise can streamline documentation across your organization — or get started with a free plan today.",
+      "contactSalesCta": "Contact Sales",
+      "freePlanCta": "Or start with the free plan"
+    }
   }
 }
