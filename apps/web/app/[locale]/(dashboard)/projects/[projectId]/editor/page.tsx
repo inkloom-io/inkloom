@@ -779,7 +779,8 @@ export default function EditorPage({ params }: EditorPageProps) {
                     )}
                 </div>
               ) : selectedPageId ? // Page selected but content still loading — keep area empty to avoid placeholder flash
-              null : pages && pages.length === 0 ? (
+              null : !pages ? // Pages query still loading — render nothing to avoid flashing "Select a page"
+              null : pages.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
                   <div className="flex flex-col items-center gap-4 max-w-sm text-center">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--surface-bg)] border border-[var(--glass-border)]">
