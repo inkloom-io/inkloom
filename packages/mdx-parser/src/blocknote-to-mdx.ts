@@ -1054,20 +1054,28 @@ function serializeBlockChildren(blocks: BlockNoteBlock[]): string {
         let tabMdx = convertBlock(nextBlock);
         i++;
 
-        // Collect flat sibling content blocks that belong to this tab
+        // Collect flat sibling content blocks that belong to this tab,
+        // but ONLY if there is another tab block ahead. Content after the
+        // last tab belongs outside the </Tabs> container.
+        const hasMoreTabs = blocks.slice(i).some(
+          (b) => b && b.type === "tab"
+        );
+
         let extraContent = "";
-        while (i < blocks.length) {
-          const contentBlock = blocks[i];
-          if (!contentBlock) break;
-          if (isEmptyParagraph(contentBlock)) {
+        if (hasMoreTabs) {
+          while (i < blocks.length) {
+            const contentBlock = blocks[i];
+            if (!contentBlock) break;
+            if (isEmptyParagraph(contentBlock)) {
+              i++;
+              continue;
+            }
+            if (contentBlock.type === "tab") break;
+            if (containerTypes.has(contentBlock.type)) break;
+            if (groupChildTypes.has(contentBlock.type)) break;
+            extraContent += convertBlock(contentBlock, 0);
             i++;
-            continue;
           }
-          if (contentBlock.type === "tab") break;
-          if (containerTypes.has(contentBlock.type)) break;
-          if (groupChildTypes.has(contentBlock.type)) break;
-          extraContent += convertBlock(contentBlock, 0);
-          i++;
         }
 
         if (extraContent) {
@@ -1282,22 +1290,30 @@ export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
         let tabMdx = convertBlock(nextBlock);
         i++;
 
-        // Collect flat sibling content blocks that belong to this tab
+        // Collect flat sibling content blocks that belong to this tab,
+        // but ONLY if there is another tab block ahead. Content after the
+        // last tab belongs outside the </Tabs> container.
+        const hasMoreTabs = blocks.slice(i).some(
+          (b) => b && b.type === "tab"
+        );
+
         let extraContent = "";
-        while (i < blocks.length) {
-          const contentBlock = blocks[i];
-          if (!contentBlock) break;
-          if (isEmptyParagraph(contentBlock)) {
+        if (hasMoreTabs) {
+          while (i < blocks.length) {
+            const contentBlock = blocks[i];
+            if (!contentBlock) break;
+            if (isEmptyParagraph(contentBlock)) {
+              i++;
+              continue;
+            }
+            // Stop at the next tab block, any container type, or any group child type
+            if (contentBlock.type === "tab") break;
+            if (containerTypes.has(contentBlock.type)) break;
+            if (groupChildTypes.has(contentBlock.type)) break;
+            // This content block belongs to the current tab
+            extraContent += convertBlock(contentBlock, 0);
             i++;
-            continue;
           }
-          // Stop at the next tab block, any container type, or any group child type
-          if (contentBlock.type === "tab") break;
-          if (containerTypes.has(contentBlock.type)) break;
-          if (groupChildTypes.has(contentBlock.type)) break;
-          // This content block belongs to the current tab
-          extraContent += convertBlock(contentBlock, 0);
-          i++;
         }
 
         // Inject extra content before </Tab>
