@@ -3387,9 +3387,11 @@
     "hero": {
       "badge": "Migration Hub",
       "headline": "Switch to InkLoom in minutes",
-      "subhead": "Moving your docs shouldn't be a project. Whether you're on Mintlify, GitBook, Notion, or plain Markdown — InkLoom's CLI imports your content in a single command. No lock-in, no data loss, no downtime.",
+      "subhead": "Moving your docs shouldn't be a project. Whether you're on Mintlify, GitBook, Notion, or plain Markdown -- InkLoom's CLI imports your content in a single command. No lock-in, no data loss, no downtime.",
       "primaryCta": "Get started free",
-      "secondaryCta": "Read the import guide"
+      "secondaryCta": "Read the import guide",
+      "beforeLabel": "Before",
+      "afterLabel": "After"
     },
     "sources": {
       "badge": "Import from anywhere",
@@ -3424,13 +3426,27 @@
       "publishTitle": "Publish",
       "publishDesc": "Deploy to Cloudflare's edge network with one click. Your new docs site is live in seconds."
     },
+    "comparison": {
+      "badge": "Before & After",
+      "title": "See the transformation",
+      "subtitle": "Your documentation, elevated. Compare a typical docs page before and after switching to InkLoom.",
+      "featureHeader": "Feature",
+      "blockEditor": "Block-based editor",
+      "aiDocs": "AI doc generation",
+      "ciCd": "CI/CD automation",
+      "openapi": "OpenAPI auto-gen",
+      "collaboration": "Real-time collaboration",
+      "edgeDeploy": "Edge deployment",
+      "selfHost": "Self-host option",
+      "oneClickMigration": "One-click migration"
+    },
     "benefits": {
       "badge": "Why InkLoom",
       "title": "Why teams switch to InkLoom",
       "subtitle": "Built for teams that care about developer experience, cost transparency, and owning their content.",
       "openSource": {
         "title": "No vendor lock-in",
-        "description": "InkLoom is open source. Your content stays in standard MDX files you can take anywhere. Fork it, self-host it, or use our managed cloud — the choice is always yours."
+        "description": "InkLoom is open source. Your content stays in standard MDX files you can take anywhere. Fork it, self-host it, or use our managed cloud -- the choice is always yours."
       },
       "perProject": {
         "title": "Per-project pricing, not per-seat",
@@ -3438,18 +3454,27 @@
       },
       "aiPowered": {
         "title": "AI-powered evergreen docs",
-        "description": "InkLoom's AI watches your codebase for changes and suggests doc updates automatically. Ship a new API endpoint and your docs stay current — no manual effort required."
+        "description": "InkLoom's AI watches your codebase for changes and suggests doc updates automatically. Ship a new API endpoint and your docs stay current -- no manual effort required."
       },
       "cliBased": {
         "title": "CLI-first workflow",
         "description": "Import, push, pull, and deploy from your terminal. Integrate with CI/CD via GitHub Actions. Docs-as-code, the way it should be."
+      },
+      "customThemes": {
+        "title": "Custom themes & branding",
+        "description": "Make your docs truly yours. Apply custom themes, colors, fonts, and layouts that match your brand identity -- no CSS hacking required."
+      },
+      "analytics": {
+        "title": "Built-in analytics",
+        "description": "Understand how your users read your docs. Page views, search queries, and feedback signals -- all built in, no third-party scripts needed."
       }
     },
     "cta": {
       "title": "Ready to switch?",
       "subtitle": "Start free, import your existing docs in minutes, and deploy to a global edge network. No credit card required.",
       "primaryCta": "Start your free project",
-      "secondaryCta": "Compare plans"
+      "secondaryCta": "Compare plans",
+      "terminalTitle": "Terminal"
     }
   }
 }
