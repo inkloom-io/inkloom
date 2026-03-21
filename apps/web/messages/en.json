@@ -2900,5 +2900,40 @@
       "ctaImport": "Import from GitBook",
       "ctaTrial": "Start free trial"
     }
+  },
+  "resourcesNav": {
+    "trigger": "Resources",
+    "headers": {
+      "explore": "EXPLORE",
+      "useCases": "USE CASES"
+    },
+    "explore": {
+      "startups": {
+        "title": "Startups",
+        "description": "Free plan + OSS for bootstrapped teams"
+      },
+      "enterprise": {
+        "title": "Enterprise",
+        "description": "SSO, roles, audit logs, dedicated support"
+      },
+      "switch": {
+        "title": "Switch to InkLoom",
+        "description": "Migrate from GitBook, Mintlify, or Notion"
+      }
+    },
+    "useCases": {
+      "developerDocs": {
+        "title": "Developer Docs",
+        "description": "API refs, SDK guides, code examples"
+      },
+      "knowledgeBase": {
+        "title": "Knowledge Base",
+        "description": "Internal wikis, runbooks, onboarding"
+      },
+      "productGuides": {
+        "title": "Product Guides",
+        "description": "User-facing help, tutorials, changelogs"
+      }
+    }
   }
 }
