@@ -475,6 +475,8 @@
       "productTitle": "Product",
       "productFeatures": "Features",
       "productPricing": "Pricing",
+      "productStartups": "Startups",
+      "productEnterprise": "Enterprise",
       "productSelfHost": "Self-Host",
       "resourcesTitle": "Resources",
       "resourcesDocs": "Documentation",
@@ -490,8 +492,12 @@
       "twitter": "Twitter",
       "github": "GitHub",
       "discord": "Discord",
+      "resourcesDevDocs": "Developer Docs",
+      "resourcesKnowledgeBase": "Knowledge Base",
+      "resourcesProductGuides": "Product Guides",
       "resourcesMintlifyAlt": "Mintlify Alternative",
-      "resourcesGitbookAlt": "GitBook Alternative"
+      "resourcesGitbookAlt": "GitBook Alternative",
+      "resourcesSwitchToInkLoom": "Switch to InkLoom"
     }
   },
   "changelog": {
