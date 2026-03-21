@@ -2901,6 +2901,87 @@
       "ctaTrial": "Start free trial"
     }
   },
+  "useCaseKnowledgeBase": {
+    "hero": {
+      "badge": "Use Case",
+      "headline": "Your team's source of truth",
+      "subhead": "Centralize your team's knowledge in one place that's always current. InkLoom gives you branch-based reviews, real-time collaboration, and powerful search — so everyone stays aligned.",
+      "ctaPrimary": "Start for Free",
+      "ctaSecondary": "Learn More"
+    },
+    "features": {
+      "badge": "Built for Teams",
+      "title": "Everything your knowledge base needs",
+      "subtitle": "Purpose-built tools for creating, reviewing, and maintaining internal documentation at scale.",
+      "branchReview": {
+        "title": "Branch-based content review",
+        "description": "Create branches to draft changes without affecting live docs. Review updates in isolation, iterate with your team, and merge when ready — just like code."
+      },
+      "mergeRequests": {
+        "title": "Merge requests for governance",
+        "description": "Every change goes through a structured review process. Assign reviewers, leave comments, request changes, and maintain a complete audit trail of approvals."
+      },
+      "realtimeCollab": {
+        "title": "Real-time collaboration",
+        "description": "Edit pages simultaneously with your team using real-time cursors and live updates powered by PartyKit. No more conflicting edits or stale copies."
+      },
+      "fullTextSearch": {
+        "title": "Full-text search",
+        "description": "Find any page, heading, or paragraph instantly with full-text search across your entire knowledge base. Your team always finds answers fast."
+      },
+      "internalPublishing": {
+        "title": "Internal-only publishing",
+        "description": "Keep sensitive docs private with internal-only publishing. Restrict access to your organization so runbooks, policies, and internal guides stay confidential."
+      },
+      "roleAccess": {
+        "title": "Role-based access control",
+        "description": "Assign roles like admin, editor, and viewer to control who can create, edit, or just read content. Fine-grained permissions keep your knowledge base secure."
+      }
+    },
+    "workflow": {
+      "badge": "How It Works",
+      "title": "A review workflow built for content",
+      "subtitle": "InkLoom brings the branch-and-merge model to documentation, so every change is reviewed before it goes live.",
+      "branch": {
+        "title": "Branch",
+        "description": "Create a branch to start drafting changes in isolation"
+      },
+      "edit": {
+        "title": "Edit",
+        "description": "Write and revise content with your team in real time"
+      },
+      "review": {
+        "title": "Review",
+        "description": "Open a merge request and get feedback from reviewers"
+      },
+      "merge": {
+        "title": "Merge",
+        "description": "Approve and merge changes into your live knowledge base"
+      }
+    },
+    "benefits": {
+      "badge": "Why Teams Choose InkLoom",
+      "title": "Knowledge that works for your team",
+      "subtitle": "Stop losing institutional knowledge to scattered docs, outdated wikis, and tribal memory.",
+      "onboarding": {
+        "title": "Faster onboarding",
+        "description": "New hires ramp up faster when everything they need is in one searchable, well-organized knowledge base — not scattered across Slack threads and Google Docs."
+      },
+      "singleSource": {
+        "title": "Single source of truth",
+        "description": "Eliminate conflicting copies and outdated information. With branch-based reviews, your team always knows which version is the approved, current one."
+      },
+      "versionHistory": {
+        "title": "Full version history",
+        "description": "Every change is tracked with who made it and when. Roll back to any previous version instantly for complete accountability and peace of mind."
+      }
+    },
+    "cta": {
+      "title": "Build your knowledge base",
+      "subtitle": "Start organizing your team's knowledge today. Free to get started, no credit card required.",
+      "button": "Get Started Free"
+    }
+  },
   "resourcesNav": {
     "trigger": "Resources",
     "headers": {
