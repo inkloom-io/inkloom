@@ -1190,6 +1190,17 @@ function serializeBlockChildren(blocks: BlockNoteBlock[]): string {
       continue;
     }
 
+    // Handle bullet list - group consecutive bulletListItem blocks in <ul>
+    if (block.type === "bulletListItem") {
+      mdx += "<ul>\n";
+      while (i < blocks.length && blocks[i]?.type === "bulletListItem") {
+        mdx += convertBlock(blocks[i]!);
+        i++;
+      }
+      mdx += "</ul>\n\n";
+      continue;
+    }
+
     // Normal block processing
     mdx += convertBlock(block, 0);
     i++;
