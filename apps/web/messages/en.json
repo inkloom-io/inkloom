@@ -2979,11 +2979,11 @@
       },
       "codeBlocks": {
         "title": "Rich Code Blocks",
-        "description": "Syntax highlighting for 100+ languages, one-click copy, line numbers, line highlighting, and tabbed code groups. Your code examples look as polished as your product."
+        "description": "Syntax highlighting for 20+ languages, one-click copy, and tabbed code groups. Your code examples look as polished as your product."
       },
       "sdkTemplates": {
-        "title": "SDK & Library Quick-Starts",
-        "description": "Starter templates for common documentation patterns — REST API references, SDK guides, CLI docs, and library quick-starts. Go from zero to published in minutes."
+        "title": "CLI & Quick-Start Templates",
+        "description": "Starter templates for common documentation patterns — REST API references, CLI docs, and project scaffolding. Go from zero to published in minutes with the InkLoom CLI."
       },
       "edgeDeployed": {
         "title": "Edge-Deployed, Sub-100ms Loads",
@@ -3029,7 +3029,7 @@
     },
     "cta": {
       "title": "Ship better docs today",
-      "subtitle": "Join thousands of developers who use InkLoom to ship documentation that's always accurate, always beautiful, and always fast.",
+      "subtitle": "Ship documentation that's always accurate, always beautiful, and always fast.",
       "ctaStart": "Start for Free",
       "ctaDocs": "Read the Docs"
     }
