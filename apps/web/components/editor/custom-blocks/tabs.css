@@ -273,7 +273,7 @@
   background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
   border-radius: 0 0 12px 12px;
   margin: 0;
-  padding: 0 4px 4px;
+  padding: 4px 16px 8px;
 }
 
 /* When the tab is in a group and is the last child, its children group
