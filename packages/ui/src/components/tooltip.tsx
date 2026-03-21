@@ -4,11 +4,15 @@ import { cn } from "../lib/utils";
 
 const TooltipProvider = TooltipPrimitive.Provider;
 const Tooltip = TooltipPrimitive.Root;
-const TooltipTrigger = TooltipPrimitive.Trigger;
+const TooltipTrigger = TooltipPrimitive.Trigger as React.ForwardRefExoticComponent<
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger> &
+    React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean } &
+    React.RefAttributes<HTMLButtonElement>
+>;
 
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content> & { className?: string; sideOffset?: number }
 >(({ className, sideOffset = 4, ...props }, ref) => (
   <TooltipPrimitive.Content
     ref={ref}

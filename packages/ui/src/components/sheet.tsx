@@ -5,13 +5,21 @@ import { X } from "lucide-react";
 import { cn } from "../lib/utils";
 
 const Sheet = SheetPrimitive.Root;
-const SheetTrigger = SheetPrimitive.Trigger;
-const SheetClose = SheetPrimitive.Close;
+const SheetTrigger = SheetPrimitive.Trigger as React.ForwardRefExoticComponent<
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Trigger> &
+    React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean } &
+    React.RefAttributes<HTMLButtonElement>
+>;
+const SheetClose = SheetPrimitive.Close as React.ForwardRefExoticComponent<
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Close> &
+    React.ButtonHTMLAttributes<HTMLButtonElement> &
+    React.RefAttributes<HTMLButtonElement>
+>;
 const SheetPortal = SheetPrimitive.Portal;
 
 const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay> & { className?: string }
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
@@ -48,6 +56,8 @@ interface SheetContentProps
     VariantProps<typeof sheetVariants> {
   /** Accessible title for screen readers (visually hidden by default) */
   title?: string;
+  className?: string;
+  children?: React.ReactNode;
 }
 
 const SheetContent = React.forwardRef<
@@ -102,7 +112,7 @@ SheetFooter.displayName = "SheetFooter";
 
 const SheetTitle = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Title>
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Title> & { className?: string; children?: React.ReactNode }
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Title
     ref={ref}
@@ -114,7 +124,7 @@ SheetTitle.displayName = SheetPrimitive.Title.displayName;
 
 const SheetDescription = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Description>
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Description> & { className?: string; children?: React.ReactNode }
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Description
     ref={ref}
