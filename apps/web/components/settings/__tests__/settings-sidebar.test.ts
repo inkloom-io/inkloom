@@ -5,8 +5,8 @@ describe("getVisibleTabs", () => {
   describe("platform mode (isMultiTenant=true)", () => {
     const tabs = getVisibleTabs(true);
 
-    it("returns all 7 tabs", () => {
-      expect(tabs).toHaveLength(7);
+    it("returns all 8 tabs", () => {
+      expect(tabs).toHaveLength(8);
     });
 
     it("includes core tabs", () => {
@@ -22,6 +22,7 @@ describe("getVisibleTabs", () => {
       expect(ids).toContain("ai");
       expect(ids).toContain("integrations");
       expect(ids).toContain("developer");
+      expect(ids).toContain("access-control");
     });
 
     it("preserves tab order", () => {
@@ -34,6 +35,7 @@ describe("getVisibleTabs", () => {
         "ai",
         "integrations",
         "developer",
+        "access-control",
       ]);
     });
   });
@@ -64,6 +66,11 @@ describe("getVisibleTabs", () => {
       const ids = tabs.map((t) => t.id);
       expect(ids).not.toContain("developer");
     });
+
+    it("excludes access-control tab", () => {
+      const ids = tabs.map((t) => t.id);
+      expect(ids).not.toContain("access-control");
+    });
   });
 
   describe("tab definitions", () => {
@@ -90,7 +97,7 @@ describe("getVisibleTabs", () => {
     it("platform-only tabs are marked with platformOnly=true", () => {
       const platformTabs = allTabs.filter((t) => t.platformOnly);
       const ids = platformTabs.map((t) => t.id);
-      expect(ids).toEqual(["ai", "integrations", "developer"]);
+      expect(ids).toEqual(["ai", "integrations", "developer", "access-control"]);
     });
 
     it("core tabs do not have platformOnly set", () => {
@@ -123,6 +130,7 @@ describe("SettingsSidebar module", () => {
       "ai",
       "integrations",
       "developer",
+      "access-control",
     ];
     for (const tab of tabs) {
       expect(validIds).toContain(tab.id);
