@@ -41,6 +41,12 @@ import {
 } from "lucide-react";
 import type { NodeRendererProps } from "react-arborist";
 import { Tree } from "react-arborist";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@inkloom/ui/tooltip";
 import { BranchSwitcher } from "./branch-switcher";
 import { IconPicker, IconDisplay } from "./icon-picker";
 import { trackEvent } from "@/lib/analytics";
@@ -67,6 +73,7 @@ interface EditorSidebarProps {
   currentBranchId?: Id<"branches">;
   onSwitchBranch?: (branchId: Id<"branches">, branchName?: string) => void;
   onFlushContent?: () => Promise<void>;
+  isBranchLocked?: boolean;
 }
 
 // Custom node renderer for the tree
@@ -299,6 +306,7 @@ export function EditorSidebar({
   currentBranchId,
   onSwitchBranch,
   onFlushContent,
+  isBranchLocked = false,
 }: EditorSidebarProps) {
   const t = useTranslations("editor.sidebar");
   const tc = useTranslations("common");
@@ -677,6 +685,21 @@ export function EditorSidebar({
         <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-dim)]">{t("pages")}</span>
         <div className="flex gap-0.5">
           <Dialog open={newFolderOpen} onOpenChange={setNewFolderOpen}>
+            {isBranchLocked ? (
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      disabled
+                      className="flex h-7 w-7 items-center justify-center rounded-md transition-colors text-[var(--text-dim)] opacity-40 cursor-not-allowed"
+                    >
+                      <FolderPlus className="h-4 w-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">{t("branchLocked")}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
             <DialogTrigger asChild>
               <button
                 className="flex h-7 w-7 items-center justify-center rounded-md transition-colors text-[var(--text-dim)] hover:bg-[var(--glass-hover)] hover:text-[var(--text-medium)]"
@@ -684,6 +707,7 @@ export function EditorSidebar({
                 <FolderPlus className="h-4 w-4" />
               </button>
             </DialogTrigger>
+            )}
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{t("newFolder")}</DialogTitle>
@@ -703,6 +727,21 @@ export function EditorSidebar({
             </DialogContent>
           </Dialog>
           <Dialog open={newPageOpen} onOpenChange={setNewPageOpen}>
+            {isBranchLocked ? (
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      disabled
+                      className="flex h-7 w-7 items-center justify-center rounded-md transition-colors text-[var(--text-dim)] opacity-40 cursor-not-allowed"
+                    >
+                      <FilePlus className="h-4 w-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">{t("branchLocked")}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
             <DialogTrigger asChild>
               <button
                 className="flex h-7 w-7 items-center justify-center rounded-md transition-colors text-[var(--text-dim)] hover:bg-[var(--glass-hover)] hover:text-[var(--text-medium)]"
@@ -710,6 +749,7 @@ export function EditorSidebar({
                 <FilePlus className="h-4 w-4" />
               </button>
             </DialogTrigger>
+            )}
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{t("newPage")}</DialogTitle>
@@ -745,6 +785,8 @@ export function EditorSidebar({
               paddingBottom={10}
               dndRootElement={dndRoot}
               onMove={handleMove}
+              disableDrag={isBranchLocked}
+              disableDrop={isBranchLocked}
               // Pass custom props to access in NodeRenderer
               {...({
                 onSelectPage,

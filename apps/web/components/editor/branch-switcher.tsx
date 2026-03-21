@@ -36,12 +36,21 @@ import {
   GitBranch,
   GitPullRequest,
   Loader2,
+  Lock,
+  LockOpen,
   MoreHorizontal,
   Pencil,
   Plus,
   Trash2,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@inkloom/ui/tooltip";
 import { CreateMergeRequestDialog } from "@/components/merge-request/create-dialog";
+import { usePermissions } from "@/components/dashboard/permission-guard";
 import { trackEvent } from "@/lib/analytics";
 import { captureException } from "@/lib/sentry";
 import { getErrorTranslationKey } from "@/lib/i18n-errors";
@@ -69,6 +78,8 @@ export function BranchSwitcher({
   const createBranch = useMutation(api.branches.create);
   const renameBranch = useMutation(api.branches.rename);
   const deleteBranch = useMutation(api.branches.remove);
+  const toggleLockMutation = useMutation(api.branches.toggleLock);
+  const { canChangeRoles } = usePermissions();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
@@ -277,6 +288,42 @@ export function BranchSwitcher({
           )}
         </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Lock toggle — only on default branch, only interactive for admins */}
+        {currentBranch && currentBranch.isDefault && (
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => {
+                    if (canChangeRoles) {
+                      toggleLockMutation({ branchId: currentBranchId });
+                    }
+                  }}
+                  disabled={!canChangeRoles}
+                  className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${
+                    !canChangeRoles
+                      ? "opacity-40 cursor-not-allowed"
+                      : "hover:bg-[var(--surface-active)]"
+                  }`}
+                >
+                  {currentBranch.isLocked ? (
+                    <Lock className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
+                  ) : (
+                    <LockOpen className="h-3.5 w-3.5 text-[var(--text-dim)]" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {!canChangeRoles
+                  ? t("lockPermissionRequired")
+                  : currentBranch.isLocked
+                    ? t("unlockDefaultBranch")
+                    : t("lockDefaultBranch")}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
 
         {/* Merge button — right-aligned, visible on non-default branches */}
         {isOnNonDefaultBranch && (

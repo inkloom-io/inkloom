@@ -614,6 +614,7 @@ export default function EditorPage({ params }: EditorPageProps) {
           currentBranchId={currentBranchId!}
           onSwitchBranch={handleBranchSwitch}
           onFlushContent={flushContentSave}
+          isBranchLocked={!!(currentBranch?.isDefault && currentBranch?.isLocked)}
         />
         <div className="flex flex-1 flex-col border-l border-[var(--glass-border)]">
           <EditorToolbar
@@ -731,7 +732,7 @@ export default function EditorPage({ params }: EditorPageProps) {
                     initialContent={pageContent.content}
                     onChange={handleContentChange}
                     onEditorReady={handleEditorReady}
-                    editable={isCollaborationReady && !isEditLocked}
+                    editable={isCollaborationReady && !isEditLocked && !(currentBranch?.isDefault && currentBranch?.isLocked)}
                     themePreset={
                       (project.settings?.theme as ThemePreset) || "default"
                     }

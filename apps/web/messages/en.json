@@ -1050,7 +1050,8 @@
       "deletePage": "Delete Page",
       "deletePageConfirmation": "Are you sure you want to delete \"{title}\"? This action cannot be undone.",
       "deleteFolder": "Delete Folder",
-      "deleteFolderConfirmation": "Are you sure you want to delete the folder \"{name}\"? All pages inside this folder will also be deleted. This action cannot be undone."
+      "deleteFolderConfirmation": "Are you sure you want to delete the folder \"{name}\"? All pages inside this folder will also be deleted. This action cannot be undone.",
+      "branchLocked": "Branch is locked"
     },
     "branchSwitcher": {
       "default": "default",
@@ -1071,7 +1072,10 @@
       "deleteBranchWarning": "This will permanently delete this branch and all its pages and folders. This action cannot be undone.",
       "failedToCreateBranch": "Failed to create branch",
       "failedToRenameBranch": "Failed to rename branch",
-      "failedToDeleteBranch": "Failed to delete branch"
+      "failedToDeleteBranch": "Failed to delete branch",
+      "lockDefaultBranch": "Lock default branch (require merge requests)",
+      "unlockDefaultBranch": "Unlock default branch",
+      "lockPermissionRequired": "Only admins can lock or unlock branches"
     },
     "versionHistory": {
       "title": "Version History",
