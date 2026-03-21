@@ -10,11 +10,12 @@
  * for the Popover, ensuring it renders in a portal that escapes overflow containers.
  */
 
-import {
+import type {
   BlockSchema,
   InlineContentSchema,
-  mergeCSSClasses,
-  StyleSchema,
+  StyleSchema} from "@blocknote/core";
+import {
+  mergeCSSClasses
 } from "@blocknote/core";
 import {
   BlockNoteViewRaw,
@@ -36,11 +37,12 @@ import { HiChevronDown } from "react-icons/hi";
 import React, { useCallback, useContext, useMemo, forwardRef, useEffect } from "react";
 
 // Import the default components and theme utilities from @blocknote/mantine
+import type {
+  Theme} from "@blocknote/mantine";
 import {
   components as defaultComponents,
   applyBlockNoteCSSVariablesFromTheme,
-  removeBlockNoteCSSVariables,
-  Theme,
+  removeBlockNoteCSSVariables
 } from "@blocknote/mantine";
 
 // Custom Popover components that use withinPortal={true}

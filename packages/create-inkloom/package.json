@@ -61,6 +61,7 @@
     "prompts": "^2.4.2"
   },
   "devDependencies": {
+    "@inkloom/docs-renderer": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.14.0",

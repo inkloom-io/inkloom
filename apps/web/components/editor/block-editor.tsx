@@ -30,7 +30,7 @@ import {
 import { CustomFilePanel } from "./custom-file-panel";
 import { StickyHoverSideMenu } from "./custom-side-menu";
 import { useMutation } from "convex/react";
-import * as Y from "yjs";
+import type * as Y from "yjs";
 import { Tag, Smile } from "lucide-react";
 import {
   RiInfoCardLine,

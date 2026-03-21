@@ -12,7 +12,7 @@ export const listByPage = query({
   },
   handler: async (ctx, args) => {
     // Get threads for this page, optionally filtered by status
-    let threadsQuery = ctx.db
+    const threadsQuery = ctx.db
       .query("commentThreads")
       .withIndex("by_page", (q: any) => q.eq("pageId", args.pageId));
 

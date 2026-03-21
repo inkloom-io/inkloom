@@ -39,7 +39,8 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import { Tree, NodeRendererProps } from "react-arborist";
+import type { NodeRendererProps } from "react-arborist";
+import { Tree } from "react-arborist";
 import { BranchSwitcher } from "./branch-switcher";
 import { IconPicker, IconDisplay } from "./icon-picker";
 import { trackEvent } from "@/lib/analytics";

@@ -71,9 +71,18 @@ importers:
       create-inkloom:
         specifier: workspace:*
         version: link:../../packages/create-inkloom
+      elkjs:
+        specifier: ^0.9.3
+        version: 0.9.3
+      katex:
+        specifier: ^0.16.38
+        version: 0.16.38
       lucide-react:
         specifier: ^0.563.0
         version: 0.563.0(react@19.2.4)
+      mermaid:
+        specifier: ^11.4.0
+        version: 11.13.0
       next:
         specifier: ^16.1.6
         version: 16.1.6(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -126,6 +135,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.1.18
         version: 4.2.1
+      '@types/katex':
+        specifier: ^0.16.8
+        version: 0.16.8
       '@types/node':
         specifier: ^20.14.0
         version: 20.19.35
@@ -208,6 +220,9 @@ importers:
       typescript:
         specifier: ^5.4.5
         version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.35)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/create-inkloom:
     dependencies:
@@ -217,9 +232,6 @@ importers:
       fs-extra:
         specifier: ^11.2.0
         version: 11.3.4
-      katex:
-        specifier: ^0.16.38
-        version: 0.16.38
       picocolors:
         specifier: ^1.0.0
         version: 1.1.1
@@ -227,6 +239,9 @@ importers:
         specifier: ^2.4.2
         version: 2.4.2
     devDependencies:
+      '@inkloom/docs-renderer':
+        specifier: workspace:*
+        version: link:../docs-renderer
       '@tailwindcss/postcss':
         specifier: ^4.1.18
         version: 4.2.1
@@ -308,15 +323,30 @@ importers:
       clsx:
         specifier: ^2.1.0
         version: 2.1.1
+      elkjs:
+        specifier: '>=0.9'
+        version: 0.9.3
       katex:
         specifier: ^0.16.38
         version: 0.16.38
       lucide-react:
         specifier: ^0.563.0
         version: 0.563.0(react@19.2.4)
+      mermaid:
+        specifier: '>=11'
+        version: 11.13.0
       react:
         specifier: ^19.0.0
         version: 19.2.4
+      react-markdown:
+        specifier: ^10.1.0
+        version: 10.1.0(@types/react@18.3.28)(react@19.2.4)
+      rehype-raw:
+        specifier: ^7.0.0
+        version: 7.0.0
+      remark-gfm:
+        specifier: ^4.0.1
+        version: 4.0.1
     devDependencies:
       '@inkloom/typescript-config':
         specifier: workspace:*
@@ -330,6 +360,9 @@ importers:
       typescript:
         specifier: ^5.4.5
         version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.19.35)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/eslint-config:
     devDependencies:
@@ -389,6 +422,9 @@ importers:
       '@inkloom/mdx-parser':
         specifier: workspace:*
         version: link:../mdx-parser
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.35
       tsup:
         specifier: ^8.1.0
         version: 8.5.1(@swc/core@1.15.18)(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
