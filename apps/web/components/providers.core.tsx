@@ -7,9 +7,14 @@ import { useState } from "react";
 import { TooltipProvider } from "@inkloom/ui/tooltip";
 import { CoreContextProvider } from "@/components/core-context-provider";
 
-const convex = new ConvexReactClient(
-  process.env.NEXT_PUBLIC_CONVEX_URL || "https://placeholder.convex.cloud"
-);
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!convexUrl) {
+  throw new Error(
+    "Missing NEXT_PUBLIC_CONVEX_URL environment variable. " +
+      "Set it in your .env.local or deployment environment."
+  );
+}
+const convex = new ConvexReactClient(convexUrl);
 
 /**
  * Core-mode provider tree.
