@@ -33,6 +33,28 @@ interface GenericBlock {
   type: string;
   props?: Record<string, unknown>;
   content?: unknown;
+  children?: GenericBlock[];
+}
+
+/**
+ * Find the array (scope) containing a block by its ID.
+ * Searches the top-level document first, then recursively checks nested children.
+ * Returns the array that directly contains the block, enabling group operations
+ * to work correctly even when blocks are nested inside containers like Steps.
+ */
+function findBlockScope(document: GenericBlock[], blockId: string): GenericBlock[] | null {
+  // Check top-level
+  if (document.some(b => b.id === blockId)) {
+    return document;
+  }
+  // Check children recursively
+  for (const block of document) {
+    if (block.children && block.children.length > 0) {
+      const result = findBlockScope(block.children as GenericBlock[], blockId);
+      if (result) return result;
+    }
+  }
+  return null;
 }
 
 /**
@@ -50,7 +72,8 @@ export function getGroupContainer(
   editor: any,
   block: GenericBlock
 ): { container: GenericBlock; index: number; siblings: GenericBlock[] } | null {
-  const document = editor.document as GenericBlock[];
+  const topDocument = editor.document as GenericBlock[];
+  const document = findBlockScope(topDocument, block.id) || topDocument;
   const blockIndex = document.findIndex((b) => b.id === block.id);
 
   if (blockIndex === -1) return null;
@@ -159,7 +182,8 @@ export function getGroupChildren(
   }
 
   const expectedChildType = GROUP_MAPPINGS[containerType as GroupContainerType];
-  const document = editor.document as GenericBlock[];
+  const topDocument = editor.document as GenericBlock[];
+  const document = findBlockScope(topDocument, containerBlock.id) || topDocument;
   const containerIndex = document.findIndex((b) => b.id === containerBlock.id);
 
   if (containerIndex === -1) return [];
@@ -219,7 +243,8 @@ export function findContainerBefore(
   block: GenericBlock,
   containerType: string
 ): GenericBlock | null {
-  const document = editor.document as GenericBlock[];
+  const topDocument = editor.document as GenericBlock[];
+  const document = findBlockScope(topDocument, block.id) || topDocument;
   const blockIndex = document.findIndex((b) => b.id === block.id);
 
   if (blockIndex === -1) return null;

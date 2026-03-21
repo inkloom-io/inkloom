@@ -520,6 +520,36 @@ describe("mdxToBlockNote", () => {
     // No image means no frameContent sibling is created
   });
 
+  it("parses Frame with image child inside a Step block", () => {
+    const mdx = `<Steps>\n<Step title="Upload">\n\n<Frame caption="Screenshot">\n<img src="/images/test.png" alt="Test" />\n</Frame>\n\n</Step>\n</Steps>`;
+    const blocks = mdxToBlockNote(mdx);
+    // Top level: steps, step
+    expect(blocks[0].type).toBe("steps");
+    expect(blocks[1].type).toBe("step");
+    expect(blocks[1].props?.title).toBe("Upload");
+    // Step's children should contain frame + frameContent as siblings
+    const children = blocks[1].children;
+    expect(children).toBeDefined();
+    expect(children!.length).toBe(2);
+    expect(children![0].type).toBe("frame");
+    expect(children![0].props?.caption).toBe("Screenshot");
+    expect(children![1].type).toBe("frameContent");
+    expect(children![1].children).toBeDefined();
+    expect(children![1].children!.length).toBe(1);
+    expect(children![1].children![0].type).toBe("image");
+    expect(children![1].children![0].props?.url).toBe("/images/test.png");
+  });
+
+  it("parses Frame with multiple children", () => {
+    const mdx = `<Frame caption="Multi">\n<img src="/a.png" alt="A" />\n\nSome text here\n</Frame>`;
+    const blocks = mdxToBlockNote(mdx);
+    expect(blocks[0].type).toBe("frame");
+    expect(blocks[0].props?.caption).toBe("Multi");
+    expect(blocks[1].type).toBe("frameContent");
+    expect(blocks[1].children).toBeDefined();
+    expect(blocks[1].children!.length).toBeGreaterThanOrEqual(1);
+  });
+
   it("parses GitBook card-view table into cardGroup + cards (inline)", () => {
     const mdx = `<table data-view="cards"><thead><tr><th></th><th></th><th data-hidden data-card-cover data-type="image">Cover image</th></tr></thead><tbody><tr><td>card</td><td></td><td><a href=".gitbook/assets/screenshot.png">screenshot.png</a></td></tr><tr><td>card 2 column 2</td><td>no image</td><td></td></tr></tbody></table>`;
     const blocks = mdxToBlockNote(mdx);
@@ -1195,6 +1225,38 @@ describe("blockNoteToMDX", () => {
     expect(mdx).toContain("</Frame>");
   });
 
+  it("converts a frame inside a step (nested sibling pattern)", () => {
+    const mdx = blockNoteToMDX([
+      { type: "steps", content: [] },
+      {
+        type: "step",
+        props: { title: "Upload" },
+        content: [],
+        children: [
+          {
+            type: "frame",
+            props: { caption: "Screenshot" },
+            content: [],
+          },
+          {
+            type: "frameContent",
+            content: [],
+            children: [
+              { type: "image", props: { url: "/images/test.png", caption: "Test" } },
+            ],
+          },
+        ],
+      },
+    ]);
+    expect(mdx).toContain("<Steps>");
+    expect(mdx).toContain('<Step title="Upload">');
+    expect(mdx).toContain('<Frame caption="Screenshot">');
+    expect(mdx).toContain("/images/test.png");
+    expect(mdx).toContain("</Frame>");
+    expect(mdx).toContain("</Step>");
+    expect(mdx).toContain("</Steps>");
+  });
+
   it("converts a LaTeX block", () => {
     const mdx = blockNoteToMDX([
       { type: "latex", props: { expression: "E = mc^2" }, content: [] },
@@ -1612,6 +1674,10 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     {
       name: "step with code block child",
       mdx: `<Steps>\n<Step title="Install">\nRun this:\n\n\`\`\`bash\nnpm install\n\`\`\`\n\n</Step>\n</Steps>`,
+    },
+    {
+      name: "step with frame and image child",
+      mdx: `<Steps>\n<Step title="Upload">\n\n<Frame caption="Screenshot">\n\n![Test](/images/test.png)\n\n</Frame>\n\n</Step>\n</Steps>`,
     },
     {
       name: "callout with code block child",

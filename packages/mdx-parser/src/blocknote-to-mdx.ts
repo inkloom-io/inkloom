@@ -532,9 +532,7 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       let calloutBody = text;
       if (block.children && block.children.length > 0) {
         if (calloutBody) calloutBody += "\n\n";
-        for (const child of block.children) {
-          calloutBody += convertBlock(child, 0);
-        }
+        calloutBody += serializeBlockChildren(block.children);
       }
       result = `<Callout ${attrs}>\n${calloutBody}\n</Callout>\n\n`;
       // Return early to skip default child processing
@@ -558,9 +556,7 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       let cardBody = text;
       if (block.children && block.children.length > 0) {
         if (cardBody) cardBody += "\n\n";
-        for (const child of block.children) {
-          cardBody += convertBlock(child, 0);
-        }
+        cardBody += serializeBlockChildren(block.children);
       }
 
       if (cardBody.trim()) {
@@ -603,9 +599,7 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       let tabBody = text;
       if (block.children && block.children.length > 0) {
         if (tabBody) tabBody += "\n\n";
-        for (const child of block.children) {
-          tabBody += convertBlock(child, 0);
-        }
+        tabBody += serializeBlockChildren(block.children);
       }
       result = `<Tab ${attrs}>\n${tabBody}\n</Tab>\n`;
       // Return early to skip default child processing
@@ -632,9 +626,7 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       let stepBody = text;
       if (block.children && block.children.length > 0) {
         if (stepBody) stepBody += "\n\n";
-        for (const child of block.children) {
-          stepBody += convertBlock(child, 0);
-        }
+        stepBody += serializeBlockChildren(block.children);
       }
       result = `<Step ${attrs}>\n${stepBody}\n</Step>\n`;
       // Return early to skip default child processing
@@ -731,9 +723,7 @@ function convertBlock(block: BlockNoteBlock, depth = 0): string {
       let accordionBody = text;
       if (block.children && block.children.length > 0) {
         if (accordionBody) accordionBody += "\n\n";
-        for (const child of block.children) {
-          accordionBody += convertBlock(child, 0);
-        }
+        accordionBody += serializeBlockChildren(block.children);
       }
 
       result = `<Accordion ${attrs}>\n${accordionBody}\n</Accordion>\n`;
@@ -995,6 +985,58 @@ function collectResponseFieldSlice(
   }
 
   return { mdx: result, nextIndex: j };
+}
+
+/**
+ * Serialize a list of blocks to MDX, handling frame/frameContent grouping.
+ * This is used for both top-level blocks (in blockNoteToMDX) and nested children
+ * (e.g. inside steps, tabs, accordion) where frame grouping must also be applied.
+ */
+function serializeBlockChildren(blocks: BlockNoteBlock[]): string {
+  let mdx = "";
+  let i = 0;
+  while (i < blocks.length) {
+    const block = blocks[i];
+    if (!block) {
+      i++;
+      continue;
+    }
+    // Handle frame - collect following frameContent blocks (skipping empty paragraphs)
+    if (block.type === "frame") {
+      const hint = (block.props?.hint as string) || "";
+      const caption = (block.props?.caption as string) || "";
+      const frameAttrs: string[] = [];
+      if (hint) frameAttrs.push(`hint="${escapeAttrValue(hint)}"`);
+      if (caption) frameAttrs.push(`caption="${escapeAttrValue(caption)}"`);
+      const attrStr = frameAttrs.length > 0 ? ` ${frameAttrs.join(" ")}` : "";
+      mdx += `<Frame${attrStr}>\n`;
+      // Render nested children of the frame block (e.g. image blocks)
+      if (block.children && Array.isArray(block.children)) {
+        for (const child of block.children as BlockNoteBlock[]) {
+          mdx += convertBlock(child);
+        }
+      }
+      // Also collect following frameContent sibling blocks
+      i++;
+      while (i < blocks.length) {
+        const nextBlock = blocks[i];
+        if (!nextBlock) break;
+        if (isEmptyParagraph(nextBlock)) {
+          i++;
+          continue;
+        }
+        if (nextBlock.type !== "frameContent") break;
+        mdx += convertBlock(nextBlock);
+        i++;
+      }
+      mdx += `</Frame>\n\n`;
+      continue;
+    }
+    // Normal block processing
+    mdx += convertBlock(block, 0);
+    i++;
+  }
+  return mdx;
 }
 
 export function blockNoteToMDX(blocks: BlockNoteBlock[]): string {
