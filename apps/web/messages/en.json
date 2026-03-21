@@ -3266,7 +3266,7 @@
       "title": "Built for product teams who care about UX",
       "subtitle": "From gorgeous themes to global CDN deployment, InkLoom handles the infrastructure so you can focus on writing docs that help your users succeed.",
       "themePresetsTitle": "Beautiful theme presets",
-      "themePresetsDesc": "Choose from nine hand-crafted themes — Ocean, Forest, Ember, Midnight, and more — or create a fully custom theme with your own colors, fonts, and effects. Your docs, your brand.",
+      "themePresetsDesc": "Choose from nine hand-crafted themes — Aurora, Verdant, Ember, Midnight, and more — or create a fully custom theme with your own colors, fonts, and effects. Your docs, your brand.",
       "customDomainsTitle": "Custom domains",
       "customDomainsDesc": "Serve docs from your own domain with vanity subdomains (my-product.inkloom.dev) or full custom hostnames (docs.yourcompany.com) via CNAME. SSL certificates are provisioned automatically.",
       "edgeDeployedTitle": "Edge-deployed globally",
@@ -3275,20 +3275,20 @@
       "changelogDesc": "Ship release notes alongside your docs. Your changelog lives at the same domain, styled with the same theme — so users always know what changed and when.",
       "starterTemplatesTitle": "Starter templates",
       "starterTemplatesDesc": "Don't start from scratch. Pick a starter template for API references, getting-started guides, or knowledge bases, then customize it to fit your product.",
-      "feedbackWidgetTitle": "\"Was this helpful?\" feedback",
-      "feedbackWidgetDesc": "Every page includes an optional feedback widget so readers can tell you what works and what doesn't. Track page-level satisfaction without third-party tools."
+      "feedbackWidgetTitle": "\"Was this page helpful?\" feedback",
+      "feedbackWidgetDesc": "Every page includes a feedback widget with three reaction options — helpful, neutral, or not helpful — so readers can tell you what works. Track page-level satisfaction without third-party tools."
     },
     "themes": {
       "badge": "Theme Showcase",
       "title": "Pick a theme. Make it yours.",
       "subtitle": "Every theme ships with light and dark modes, custom typography, and tuned color palettes. Switch themes in one click or build your own from scratch.",
-      "themeOcean": "Ocean",
-      "themeForest": "Forest",
+      "themeAurora": "Aurora",
+      "themeVerdant": "Verdant",
       "themeEmber": "Ember",
       "themeMidnight": "Midnight",
       "themeDune": "Dune",
       "themeFossil": "Fossil",
-      "customNote": "Plus Vapor, Aubergine, and fully custom themes with your own colors, fonts, and effects."
+      "customNote": "Plus Ink, Dune, Fossil, Vapor, Aubergine, and fully custom themes with your own colors, fonts, and effects."
     },
     "deploy": {
       "badge": "One-Click Publish",
