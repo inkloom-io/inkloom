@@ -1225,6 +1225,39 @@ function extractJsxChildren(
   return result;
 }
 
+/**
+ * Check whether a node is a whitespace-only text or paragraph node.
+ * These are produced by newlines between JSX tags and content.
+ */
+function isWhitespaceOnlyNode(node: MdastNode): boolean {
+  if (node.type === "text") {
+    return !node.value || node.value.trim() === "";
+  }
+  if (node.type === "paragraph" && node.children) {
+    return node.children.every((child) => isWhitespaceOnlyNode(child));
+  }
+  return false;
+}
+
+/**
+ * Strip leading and trailing whitespace-only text/paragraph nodes from a list.
+ * This removes spurious empty paragraphs generated from newlines between
+ * JSX container tags and their content (e.g. `<Tab title="...">\n  content`).
+ */
+function trimWhitespaceNodes(nodes: MdastNode[]): MdastNode[] {
+  let start = 0;
+  let end = nodes.length;
+
+  while (start < end && isWhitespaceOnlyNode(nodes[start]!)) {
+    start++;
+  }
+  while (end > start && isWhitespaceOnlyNode(nodes[end - 1]!)) {
+    end--;
+  }
+
+  return start === 0 && end === nodes.length ? nodes : nodes.slice(start, end);
+}
+
 // Set of node types that should be treated as inline content
 const INLINE_NODE_TYPES = new Set([
   "paragraph",
@@ -1249,8 +1282,12 @@ const INLINE_NODE_TYPES = new Set([
  * paragraph blocks) and `inlineContent` is left empty.
  */
 function convertMixedChildren(
-  nodes: MdastNode[]
+  inputNodes: MdastNode[]
 ): { inlineContent: BlockNoteInlineContent[]; blockChildren: BlockNoteBlock[] } {
+  // Strip leading/trailing whitespace-only nodes produced by newlines between
+  // JSX container tags and their content.
+  const nodes = trimWhitespaceNodes(inputNodes);
+
   // Determine whether the node list is purely inline or contains block nodes.
   const hasBlockNodes = nodes.some((node) => {
     if (!INLINE_NODE_TYPES.has(node.type)) return true;

@@ -1114,6 +1114,73 @@ x = 1
       expect(heading).toBeDefined();
       expect(blocks[2].children?.some((c) => c.type === "heading")).toBeFalsy();
     });
+
+    it("Tab content has no spurious empty paragraph at start", () => {
+      const mdx = `<Tabs>\n<Tab title="Simple Workflow">\nFor small teams or solo authors:\n\n1. Edit pages on the main branch\n2. Mark pages as published\n</Tab>\n</Tabs>`;
+      const blocks = mdxToBlockNote(mdx);
+      const tab = blocks.find((b) => b.type === "tab");
+      expect(tab).toBeDefined();
+      // The tab's inline content should start with actual text, not be empty
+      const content = tab?.content as Array<{ type: string; text?: string }>;
+      if (content && content.length > 0) {
+        // Content should have real text, not whitespace-only
+        const hasText = content.some((c) => c.text && c.text.trim().length > 0);
+        expect(hasText).toBe(true);
+      }
+      // Children should not start with an empty paragraph
+      if (tab?.children && tab.children.length > 0) {
+        const firstChild = tab.children[0];
+        if (firstChild.type === "paragraph") {
+          const childContent = firstChild.content as Array<{ type: string; text?: string }>;
+          const isEmpty = !childContent || childContent.length === 0 || childContent.every((c) => !c.text || c.text.trim() === "");
+          expect(isEmpty).toBe(false);
+        }
+      }
+    });
+
+    it("Step content has no spurious empty paragraph at start", () => {
+      const mdx = `<Steps>\n<Step title="Install">\nRun the install command.\n</Step>\n</Steps>`;
+      const blocks = mdxToBlockNote(mdx);
+      const step = blocks.find((b) => b.type === "step");
+      expect(step).toBeDefined();
+      const content = step?.content as Array<{ type: string; text?: string }>;
+      // Should have real content
+      expect(content.some((c) => c.text && c.text.includes("Run the install command"))).toBe(true);
+    });
+
+    it("Accordion content has no spurious empty paragraph at start", () => {
+      const mdx = `<AccordionGroup>\n<Accordion title="FAQ">\nThe answer is here.\n</Accordion>\n</AccordionGroup>`;
+      const blocks = mdxToBlockNote(mdx);
+      const accordion = blocks.find((b) => b.type === "accordion");
+      expect(accordion).toBeDefined();
+      const content = accordion?.content as Array<{ type: string; text?: string }>;
+      expect(content.some((c) => c.text && c.text.includes("The answer is here"))).toBe(true);
+    });
+
+    it("preserves intentional empty paragraphs in regular content", () => {
+      const mdx = `First paragraph.\n\nSecond paragraph.`;
+      const blocks = mdxToBlockNote(mdx);
+      expect(blocks).toHaveLength(2);
+      expect(blocks[0].type).toBe("paragraph");
+      expect(blocks[1].type).toBe("paragraph");
+    });
+
+    it("container block with mixed content has no leading empty paragraph", () => {
+      const mdx = `<Steps>\n<Step title="Setup">\nFirst do this:\n\n\`\`\`bash\nnpm install\n\`\`\`\n</Step>\n</Steps>`;
+      const blocks = mdxToBlockNote(mdx);
+      const step = blocks.find((b) => b.type === "step");
+      expect(step).toBeDefined();
+      expect(step?.children).toBeDefined();
+      // First child should not be an empty paragraph
+      if (step?.children && step.children.length > 0) {
+        const firstChild = step.children[0];
+        if (firstChild.type === "paragraph") {
+          const childContent = firstChild.content as Array<{ type: string; text?: string }>;
+          const isEmpty = !childContent || childContent.length === 0 || childContent.every((c) => !c.text || c.text.trim() === "");
+          expect(isEmpty).toBe(false);
+        }
+      }
+    });
   });
 });
 
