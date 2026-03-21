@@ -1197,7 +1197,7 @@
       "addNewTab": "Add new tab",
       "tabsHint": "Click \"+ Add Tab\" to add tabs to this container.",
       "iconPlaceholder": "Icon",
-      "tabTitlePlaceholder": "Tab title...",
+      "tabTitlePlaceholder": "Tab title",
       "stepDefault": "Step",
       "stepsContainer": "Steps",
       "addStep": "+ Add Step",
@@ -1229,7 +1229,6 @@
       "codeGroupContainer": "Code Group",
       "addCodeBlock": "+ Add Code Block",
       "codeGroupHint": "Click \"+ Add Code Block\" to add code examples in different languages.",
-      "tabTitlePlaceholder": "Tab title",
       "cardTitlePlaceholder": "Card title",
       "cardIconLabel": "Icon:",
       "cardLinkLabel": "Link:",
@@ -3015,6 +3014,59 @@
         "title": "Product Guides",
         "description": "User-facing help, tutorials, changelogs"
       }
+    }
+  },
+  "useCaseProductGuides": {
+    "hero": {
+      "badge": "Product Guides",
+      "headline": "Help docs your users actually read",
+      "subhead": "Create beautiful, fast product documentation that feels like part of your brand. InkLoom gives you themed help docs with custom domains, global edge delivery, and built-in reader feedback — so your users find answers before they open a ticket.",
+      "startFreeCta": "Start for Free",
+      "templatesCta": "Browse Templates"
+    },
+    "features": {
+      "badge": "Everything You Need",
+      "title": "Built for product teams who care about UX",
+      "subtitle": "From gorgeous themes to global CDN deployment, InkLoom handles the infrastructure so you can focus on writing docs that help your users succeed.",
+      "themePresetsTitle": "Beautiful theme presets",
+      "themePresetsDesc": "Choose from nine hand-crafted themes — Ocean, Forest, Ember, Midnight, and more — or create a fully custom theme with your own colors, fonts, and effects. Your docs, your brand.",
+      "customDomainsTitle": "Custom domains",
+      "customDomainsDesc": "Serve docs from your own domain with vanity subdomains (my-product.inkloom.dev) or full custom hostnames (docs.yourcompany.com) via CNAME. SSL certificates are provisioned automatically.",
+      "edgeDeployedTitle": "Edge-deployed globally",
+      "edgeDeployedDesc": "Every publish deploys your docs to Cloudflare Pages across 300+ locations worldwide. Readers get sub-100ms load times no matter where they are.",
+      "changelogTitle": "Built-in changelog",
+      "changelogDesc": "Ship release notes alongside your docs. Your changelog lives at the same domain, styled with the same theme — so users always know what changed and when.",
+      "starterTemplatesTitle": "Starter templates",
+      "starterTemplatesDesc": "Don't start from scratch. Pick a starter template for API references, getting-started guides, or knowledge bases, then customize it to fit your product.",
+      "feedbackWidgetTitle": "\"Was this helpful?\" feedback",
+      "feedbackWidgetDesc": "Every page includes an optional feedback widget so readers can tell you what works and what doesn't. Track page-level satisfaction without third-party tools."
+    },
+    "themes": {
+      "badge": "Theme Showcase",
+      "title": "Pick a theme. Make it yours.",
+      "subtitle": "Every theme ships with light and dark modes, custom typography, and tuned color palettes. Switch themes in one click or build your own from scratch.",
+      "themeOcean": "Ocean",
+      "themeForest": "Forest",
+      "themeEmber": "Ember",
+      "themeMidnight": "Midnight",
+      "themeDune": "Dune",
+      "themeFossil": "Fossil",
+      "customNote": "Plus Vapor, Aubergine, and fully custom themes with your own colors, fonts, and effects."
+    },
+    "deploy": {
+      "badge": "One-Click Publish",
+      "title": "From editor to live in seconds",
+      "description": "Hit publish and your docs are live on a global CDN instantly. No build pipelines to configure, no CI to maintain. InkLoom deploys to Cloudflare Pages so your help docs are always fast, always available, and always up to date.",
+      "oneClick": "One-click publish",
+      "globalCdn": "Global CDN (300+ PoPs)",
+      "instantRollback": "Instant rollback",
+      "customDomain": "Custom domain support"
+    },
+    "cta": {
+      "title": "Launch your docs today",
+      "subtitle": "Start free and upgrade when you're ready. No credit card required, no time limit on the free plan.",
+      "signupCta": "Start for Free",
+      "docsCta": "Read the Docs"
     }
   }
 }
