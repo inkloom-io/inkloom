@@ -51,6 +51,7 @@ import {
   Undo2,
   XCircle,
   PanelRightOpen,
+  Shield,
 } from "lucide-react";
 import Link from "next/link";
 import { AnimatedFlyingMascot } from "@/components/illustrations/animated-flying-mascot";
@@ -723,6 +724,12 @@ export function EditorToolbar({
         >
           {project.name}
         </span>
+        {project.settings?.accessControl?.mode && project.settings.accessControl.mode !== "public" && (
+          <span className="shrink-0 inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+            <Shield className="h-2.5 w-2.5" />
+            {t("protected")}
+          </span>
+        )}
         {!isDefaultBranch && branchName && (
           <>
             <span className="text-xs text-[var(--glass-border)]">/</span>

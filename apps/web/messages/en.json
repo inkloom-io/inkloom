@@ -945,6 +945,7 @@
       "publishedUpToDate": "Your site is up to date.",
       "publishAnyway": "Publish anyway",
       "draft": "Draft",
+      "protected": "Protected",
       "publish": "Publish",
       "publishing": "Publishing...",
       "saving": "Saving...",
@@ -1287,7 +1288,8 @@
       "seo": "SEO",
       "ai": "AI",
       "integrations": "Integrations",
-      "developer": "Developer"
+      "developer": "Developer",
+      "accessControl": "Access Control"
     },
     "saveStatus": {
       "saving": "Saving...",
@@ -1408,6 +1410,48 @@
       "apiKeys": "API Keys",
       "apiKeysDescription": "Manage API keys scoped to this project",
       "apiKeysValueProp": "Generate API keys to manage your documentation programmatically via the REST API and CLI tools."
+    },
+    "accessControl": {
+      "title": "Access Control",
+      "description": "Control who can access your published documentation site",
+      "valueProp": "Restrict access to your documentation with login requirements, domain restrictions, email allowlists, or SSO. Ensure only the right people can view your docs.",
+      "modeLabel": "Access Mode",
+      "modes": {
+        "public": {
+          "label": "Public",
+          "description": "Anyone can view your published documentation"
+        },
+        "login_required": {
+          "label": "Login Required",
+          "description": "Readers must sign in to view documentation"
+        },
+        "domain_restricted": {
+          "label": "Domain Restricted",
+          "description": "Only readers with matching email domains can access"
+        },
+        "allowlist": {
+          "label": "Email Allowlist",
+          "description": "Only specific email addresses can access"
+        },
+        "sso_required": {
+          "label": "SSO Required",
+          "description": "Readers must authenticate via your organization's SSO"
+        }
+      },
+      "allowedDomains": "Allowed Domains",
+      "allowedDomainsDescription": "Add email domains that are allowed to access your documentation",
+      "domainPlaceholder": "e.g. acme.com",
+      "invalidDomain": "Please enter a valid domain (e.g. acme.com)",
+      "duplicateDomain": "This domain has already been added",
+      "allowedEmails": "Allowed Email Addresses",
+      "allowedEmailsDescription": "Add specific email addresses that are allowed to access your documentation",
+      "emailPlaceholder": "e.g. user@example.com",
+      "invalidEmail": "Please enter a valid email address",
+      "duplicateEmail": "This email has already been added",
+      "sessionTtl": "Session Duration",
+      "sessionTtlDescription": "How long readers stay signed in before needing to re-authenticate",
+      "days": "{count, plural, =1 {1 day} other {# days}}",
+      "protectedBadge": "Protected"
     },
     "domainConfig": {
       "title": "Domains",

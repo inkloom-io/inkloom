@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@inkloom/ui/lib/utils";
-import { Settings, Palette, Search, Layers, Plug, Sparkles, Terminal } from "lucide-react";
+import { Settings, Palette, Search, Layers, Plug, Sparkles, Terminal, Shield } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAppContext } from "@/hooks/use-app-context";
 
@@ -12,7 +12,8 @@ export type SettingsTab =
   | "seo"
   | "ai"
   | "integrations"
-  | "developer";
+  | "developer"
+  | "access-control";
 
 interface TabDef {
   id: SettingsTab;
@@ -29,6 +30,7 @@ const TABS: TabDef[] = [
   { id: "ai", labelKey: "ai", icon: Sparkles, platformOnly: true },
   { id: "integrations", labelKey: "integrations", icon: Plug, platformOnly: true },
   { id: "developer", labelKey: "developer", icon: Terminal, platformOnly: true },
+  { id: "access-control", labelKey: "accessControl", icon: Shield, platformOnly: true },
 ];
 
 /** Returns the tabs visible in the current mode (core vs platform). */
