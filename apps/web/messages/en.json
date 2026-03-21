@@ -3309,10 +3309,14 @@
   "enterprisePage": {
     "hero": {
       "badge": "Enterprise",
-      "headline": "Documentation infrastructure for teams at scale",
+      "headline": "Documentation infrastructure for teams",
+      "headlineAccent": "at scale.",
       "subhead": "Give every team a single source of truth. InkLoom Enterprise brings SSO, role-based access, custom domains, and dedicated support to organizations that ship docs as a core part of their product.",
-      "contactSalesCta": "Contact Sales",
-      "startTrialCta": "Start Free Trial"
+      "contactSalesCta": "Talk to our team",
+      "startTrialCta": "Start Free Trial",
+      "floatingSecurityTitle": "Enterprise-grade security",
+      "floatingSecurityDesc": "SOC 2 compliant infrastructure",
+      "floatingTeamLabel": "8 editors online"
     },
     "features": {
       "badge": "Enterprise Features",
@@ -3329,7 +3333,9 @@
       "dedicatedSupportTitle": "Dedicated Support",
       "dedicatedSupportDesc": "Get priority access to our engineering team with a dedicated account manager, private Slack channel, and guaranteed response times.",
       "slaTitle": "SLA Guarantees",
-      "slaDesc": "Enterprise plans include uptime SLAs with financially-backed guarantees, so your published documentation is always available when your users need it."
+      "slaDesc": "Enterprise plans include uptime SLAs with financially-backed guarantees, so your published documentation is always available when your users need it.",
+      "apiAccessTitle": "API Access",
+      "apiAccessDesc": "Programmatic access to manage projects, pages, and deployments. Integrate InkLoom into your CI/CD pipeline and automate documentation workflows."
     },
     "security": {
       "badge": "Security & Compliance",
@@ -3353,13 +3359,19 @@
       "unlimitedEditorsTitle": "Unlimited Editors",
       "unlimitedEditorsDesc": "No arbitrary user caps. Pro and Ultimate plans support unlimited editors, so your entire team can contribute without hitting a paywall.",
       "singleInvoiceTitle": "Single Invoice",
-      "singleInvoiceDesc": "One organization, one bill. No more juggling separate accounts and invoices for every documentation project your company runs."
+      "singleInvoiceDesc": "One organization, one bill. No more juggling separate accounts and invoices for every documentation project your company runs.",
+      "editorsLabel": "Unlimited Editors",
+      "editorsDesc": "No per-seat limits on Pro and Ultimate plans",
+      "uptimeLabel": "Uptime SLA",
+      "uptimeDesc": "Financially-backed availability guarantee",
+      "edgeLabel": "Edge Deploy",
+      "edgeDesc": "Global CDN with sub-100ms response times"
     },
     "cta": {
       "title": "Ready to scale your documentation?",
       "subtitle": "Talk to our team about how InkLoom Enterprise can streamline documentation across your organization — or get started with a free plan today.",
-      "contactSalesCta": "Contact Sales",
-      "freePlanCta": "Or start with the free plan"
+      "contactSalesCta": "Talk to our team",
+      "freePlanCta": "Start with free plan"
     }
   },
   "ossProgramPage": {
