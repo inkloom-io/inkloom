@@ -2346,4 +2346,50 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
       expect(attrs.title).not.toContain("&quot;");
     });
   });
+
+  describe("inline JSX detection (mdxJsxTextElement)", () => {
+    it("parses Steps with inline Step children", () => {
+      // When child elements lack blank-line separation, the MDX parser
+      // produces mdxJsxTextElement instead of mdxJsxFlowElement.
+      const mdx = `<Steps>
+<Step title="First">Do this</Step>
+<Step title="Second">Do that</Step>
+</Steps>`;
+      const blocks = mdxToBlockNote(mdx);
+      const stepsBlock = blocks.find((b) => b.type === "steps");
+      expect(stepsBlock).toBeDefined();
+      const stepBlocks = blocks.filter((b) => b.type === "step");
+      expect(stepBlocks.length).toBeGreaterThanOrEqual(2);
+      expect(stepBlocks[0].props?.title).toBe("First");
+      expect(stepBlocks[1].props?.title).toBe("Second");
+    });
+
+    it("parses AccordionGroup with inline Accordion children", () => {
+      const mdx = `<AccordionGroup>
+<Accordion title="Q1">Answer 1</Accordion>
+<Accordion title="Q2">Answer 2</Accordion>
+</AccordionGroup>`;
+      const blocks = mdxToBlockNote(mdx);
+      const groupBlock = blocks.find((b) => b.type === "accordionGroup");
+      expect(groupBlock).toBeDefined();
+      const accordionBlocks = blocks.filter((b) => b.type === "accordion");
+      expect(accordionBlocks.length).toBeGreaterThanOrEqual(2);
+      expect(accordionBlocks[0].props?.title).toBe("Q1");
+      expect(accordionBlocks[1].props?.title).toBe("Q2");
+    });
+
+    it("parses CardGroup with inline Card children", () => {
+      const mdx = `<CardGroup cols={2}>
+<Card title="Card A" href="/a">Desc A</Card>
+<Card title="Card B" href="/b">Desc B</Card>
+</CardGroup>`;
+      const blocks = mdxToBlockNote(mdx);
+      const groupBlock = blocks.find((b) => b.type === "cardGroup");
+      expect(groupBlock).toBeDefined();
+      const cardBlocks = blocks.filter((b) => b.type === "card");
+      expect(cardBlocks.length).toBeGreaterThanOrEqual(2);
+      expect(cardBlocks[0].props?.title).toBe("Card A");
+      expect(cardBlocks[1].props?.title).toBe("Card B");
+    });
+  });
 });

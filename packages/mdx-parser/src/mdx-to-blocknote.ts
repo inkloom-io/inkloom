@@ -424,9 +424,22 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       const cols = getAttrValue(attrs, "cols") || "2";
 
       // Smart detection: check if ALL JSX children are <Card> elements
-      const jsxChildren = (node.children || []).filter(
-        (child) => child.type === "mdxJsxFlowElement"
-      );
+      // Also look inside paragraph wrappers for inline JSX children
+      const jsxChildren: MdastNode[] = [];
+      for (const child of node.children || []) {
+        if (
+          (child.type === "mdxJsxFlowElement" ||
+            child.type === "mdxJsxTextElement")
+        ) {
+          jsxChildren.push(child);
+        } else if (child.type === "paragraph" && child.children) {
+          for (const gc of child.children) {
+            if (gc.type === "mdxJsxTextElement") {
+              jsxChildren.push(gc);
+            }
+          }
+        }
+      }
       const allCards =
         jsxChildren.length > 0 &&
         jsxChildren.every((child) => child.name === "Card");
@@ -456,7 +469,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       ];
       if (node.children) {
         for (const child of node.children) {
-          if (child.type === "mdxJsxFlowElement") {
+          if (child.type === "mdxJsxFlowElement" || child.type === "mdxJsxTextElement") {
             // Each JSX child becomes a column block
             const childBlocks = child.children
               ? child.children.flatMap((grandchild) =>
@@ -490,12 +503,10 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
           content: [],
         },
       ];
-      // Convert child elements (Cards)
+      // Convert child elements (Cards) — handles both flow and inline JSX
       if (node.children) {
-        for (const child of node.children) {
-          if (child.type === "mdxJsxFlowElement" && child.name === "Card") {
-            blocks.push(...convertMdxJsxElement(child));
-          }
+        for (const child of extractJsxChildren(node.children, "Card")) {
+          blocks.push(...convertMdxJsxElement(child));
         }
       }
       return blocks;
@@ -511,9 +522,10 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
           content: [],
         },
       ];
-      const tabNodes = findAllJsxChildren(node, "Tab");
-      for (const tabNode of tabNodes) {
-        blocks.push(...convertMdxJsxElement(tabNode));
+      if (node.children) {
+        for (const child of extractJsxChildren(node.children, "Tab")) {
+          blocks.push(...convertMdxJsxElement(child));
+        }
       }
       return blocks;
     }
@@ -595,10 +607,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
         },
       ];
       if (node.children) {
-        for (const child of node.children) {
-          if (child.type === "mdxJsxFlowElement" && child.name === "Step") {
-            blocks.push(...convertMdxJsxElement(child));
-          }
+        for (const child of extractJsxChildren(node.children, "Step")) {
+          blocks.push(...convertMdxJsxElement(child));
         }
       }
       return blocks;
@@ -632,10 +642,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
         },
       ];
       if (node.children) {
-        for (const child of node.children) {
-          if (child.type === "mdxJsxFlowElement" && child.name === "Accordion") {
-            blocks.push(...convertMdxJsxElement(child));
-          }
+        for (const child of extractJsxChildren(node.children, "Accordion")) {
+          blocks.push(...convertMdxJsxElement(child));
         }
       }
       return blocks;
@@ -887,10 +895,22 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       if (node.children) {
         for (const child of node.children) {
           if (
-            child.type === "mdxJsxFlowElement" &&
+            (child.type === "mdxJsxFlowElement" || child.type === "mdxJsxTextElement") &&
             (child.name === "Expandable" || child.name === "ResponseField")
           ) {
             nestedChildren.push(child);
+          } else if (child.type === "paragraph" && child.children) {
+            // Look inside paragraph wrappers for inline JSX children
+            for (const gc of child.children) {
+              if (
+                gc.type === "mdxJsxTextElement" &&
+                (gc.name === "Expandable" || gc.name === "ResponseField")
+              ) {
+                nestedChildren.push(gc);
+              } else {
+                inlineNodes.push(gc);
+              }
+            }
           } else {
             inlineNodes.push(child);
           }
@@ -900,12 +920,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       // Convert nested children into block children (not siblings)
       const rfChildren: BlockNoteBlock[] = [];
       for (const child of nestedChildren) {
-        if (
-          child.type === "mdxJsxFlowElement" &&
-          (child.name === "Expandable" || child.name === "ResponseField")
-        ) {
-          rfChildren.push(...convertMdxJsxElement(child));
-        }
+        rfChildren.push(...convertMdxJsxElement(child));
       }
       return [
         {
@@ -926,14 +941,24 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       const expType = getAttrValue(attrs, "type");
       const expDefaultOpen = getAttrValue(attrs, "defaultOpen");
       // Convert nested children into block children (not siblings)
+      // Also look inside paragraph wrappers for inline JSX children
       const expChildren: BlockNoteBlock[] = [];
       if (node.children) {
         for (const child of node.children) {
           if (
-            child.type === "mdxJsxFlowElement" &&
+            (child.type === "mdxJsxFlowElement" || child.type === "mdxJsxTextElement") &&
             (child.name === "ResponseField" || child.name === "Expandable")
           ) {
             expChildren.push(...convertMdxJsxElement(child));
+          } else if (child.type === "paragraph" && child.children) {
+            for (const gc of child.children) {
+              if (
+                gc.type === "mdxJsxTextElement" &&
+                (gc.name === "ResponseField" || gc.name === "Expandable")
+              ) {
+                expChildren.push(...convertMdxJsxElement(gc));
+              }
+            }
           }
         }
       }
@@ -1166,6 +1191,38 @@ function serializeJsxToString(node: MdastNode): string {
     })
     .join("\n");
   return `<${name}${attrs ? " " + attrs : ""}>${childText}</${name}>`;
+}
+
+/**
+ * Extracts JSX child elements matching a specific name from a node's children.
+ *
+ * When the MDX parser encounters JSX children without blank-line separation
+ * (e.g. `<Step title="A">text</Step>` on one line), it wraps them in a
+ * paragraph node as `mdxJsxTextElement` instead of producing direct
+ * `mdxJsxFlowElement` children.  This helper looks for matching elements
+ * both at the top level and inside paragraph wrappers.
+ */
+function extractJsxChildren(
+  children: MdastNode[],
+  childName: string
+): MdastNode[] {
+  const result: MdastNode[] = [];
+  for (const child of children) {
+    if (
+      (child.type === "mdxJsxFlowElement" ||
+        child.type === "mdxJsxTextElement") &&
+      child.name === childName
+    ) {
+      result.push(child);
+    } else if (child.type === "paragraph" && child.children) {
+      for (const gc of child.children) {
+        if (gc.type === "mdxJsxTextElement" && gc.name === childName) {
+          result.push(gc);
+        }
+      }
+    }
+  }
+  return result;
 }
 
 // Set of node types that should be treated as inline content
