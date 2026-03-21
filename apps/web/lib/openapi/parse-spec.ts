@@ -82,7 +82,7 @@ function getSchemaType(schema: OpenAPIV3.SchemaObject | undefined): string {
     return `${itemType}[]`;
   }
   if (schema.enum) {
-    return schema.enum.map((v) => JSON.stringify(v)).join(" | ");
+    return schema.enum.map((v: unknown) => JSON.stringify(v)).join(" | ");
   }
   return schema.type || (schema.properties ? "object" : "unknown");
 }
@@ -314,7 +314,7 @@ function extractResponses(
 
   const result: ParsedResponse[] = [];
 
-  for (const [statusCode, responseOrRef] of Object.entries(responses)) {
+  for (const [statusCode, responseOrRef] of Object.entries(responses) as [string, OpenAPIV3.ResponseObject | OpenAPIV3.ReferenceObject][]) {
     if ("$ref" in responseOrRef) continue;
     const response = responseOrRef as OpenAPIV3.ResponseObject;
 
@@ -388,7 +388,7 @@ export async function parseOpenApiSpec(
   }
 
   // Extract servers
-  const servers: ParsedServer[] = (api.servers || []).map((s) => ({
+  const servers: ParsedServer[] = (api.servers || []).map((s: OpenAPIV3.ServerObject) => ({
     url: s.url,
     description: s.description || "",
   }));
@@ -399,7 +399,7 @@ export async function parseOpenApiSpec(
   if (components?.securitySchemes) {
     for (const [name, schemeOrRef] of Object.entries(
       components.securitySchemes
-    )) {
+    ) as [string, OpenAPIV3.SecuritySchemeObject | OpenAPIV3.ReferenceObject][]) {
       if ("$ref" in schemeOrRef) continue;
       const scheme = schemeOrRef as OpenAPIV3.SecuritySchemeObject;
       if (
@@ -427,17 +427,17 @@ export async function parseOpenApiSpec(
 
   // Extract global security requirements
   const globalSecurity = api.security
-    ? api.security.flatMap((req) => Object.keys(req))
+    ? api.security.flatMap((req: OpenAPIV3.SecurityRequirementObject) => Object.keys(req))
     : undefined;
 
   const endpoints: ParsedEndpoint[] = [];
   const tagCounts: Record<string, number> = {};
 
-  for (const [path, pathItem] of Object.entries(api.paths || {})) {
+  for (const [path, pathItem] of Object.entries(api.paths || {}) as [string, OpenAPIV3.PathItemObject][]) {
     if (!pathItem) continue;
 
     for (const method of HTTP_METHODS) {
-      const operation = pathItem[method];
+      const operation = (pathItem as Record<string, OpenAPIV3.OperationObject | undefined>)[method];
       if (!operation) continue;
 
       const tag = operation.tags?.[0] || "Default";
@@ -445,13 +445,13 @@ export async function parseOpenApiSpec(
 
       // Merge path-level and operation-level parameters
       const allParams = [
-        ...(pathItem.parameters || []),
+        ...((pathItem.parameters || []) as (OpenAPIV3.ParameterObject | OpenAPIV3.ReferenceObject)[]),
         ...(operation.parameters || []),
       ];
 
       // Per-endpoint security
       const endpointSecurity = operation.security
-        ? operation.security.flatMap((req) => Object.keys(req))
+        ? operation.security.flatMap((req: OpenAPIV3.SecurityRequirementObject) => Object.keys(req))
         : undefined;
 
       const endpoint: ParsedEndpoint = {
@@ -498,7 +498,7 @@ export async function parseOpenApiSpec(
         ];
 
         const endpointSecurity = operation.security
-          ? operation.security.flatMap((req) => Object.keys(req))
+          ? operation.security.flatMap((req: OpenAPIV3.SecurityRequirementObject) => Object.keys(req))
           : undefined;
 
         const endpoint: ParsedEndpoint = {

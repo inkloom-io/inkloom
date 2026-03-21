@@ -279,7 +279,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
                 <DialogDescription>
                   {t.rich("deleteConfirmDescription", {
                     projectName: project.name,
-                    strong: (chunks) => <strong className="font-semibold">{chunks}</strong>,
+                    strong: (chunks: React.ReactNode) => <strong className="font-semibold">{chunks}</strong>,
                   })}
                 </DialogDescription>
               </DialogHeader>
@@ -287,7 +287,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
                 <Label htmlFor="delete-confirm">
                   {t.rich("typeToConfirm", {
                     projectName: project.name,
-                    strong: (chunks) => <strong className="font-semibold">{chunks}</strong>,
+                    strong: (chunks: React.ReactNode) => <strong className="font-semibold">{chunks}</strong>,
                   })}
                 </Label>
                 <Input

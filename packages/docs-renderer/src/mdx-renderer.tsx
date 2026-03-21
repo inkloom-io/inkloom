@@ -470,7 +470,7 @@ export function getMarkdownComponents(options?: {
       style,
     }: {
       children?: React.ReactNode;
-      style?: React.CSSProperties;
+      style?: Record<string, string>;
     }) => {
       // The MDX parser outputs badges as <mark style="color:green;">text</mark>
       let color = "gray";

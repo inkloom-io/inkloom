@@ -2,8 +2,10 @@ import {
   createHighlighter,
   type Highlighter,
   type BundledLanguage,
-  type SpecialLanguage,
 } from "shiki";
+
+// "text" and other special pseudo-languages that shiki accepts but are not in BundledLanguage
+type SpecialLanguage = "text" | "plain" | "plaintext";
 
 let highlighterPromise: Promise<Highlighter> | null = null;
 
@@ -107,8 +109,8 @@ export async function highlightCode(
     defaultColor: "light",
   });
 
-  const tokens = result.tokens.map((line) =>
-    line.map((token) => ({
+  const tokens = result.tokens.map((line: typeof result.tokens[number]) =>
+    line.map((token: typeof line[number]) => ({
       content: token.content,
       color: token.color,
       fontStyle: token.fontStyle === 1 ? "italic" : undefined,
