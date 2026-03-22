@@ -420,25 +420,33 @@ body {
 /* --- Two-column layout (paired grid rows) --- */
 
 /* Remove max-width constraints when API two-column layout is present */
-article:has(.api-endpoint-2col) {
+article:has(.api-endpoint-sections) {
   max-width: none;
 }
 
-article:has(.api-endpoint-2col).prose {
+article:has(.api-endpoint-sections).prose {
   max-width: none;
 }
 
 /* Hide ToC on API pages — the right code-example column uses that space */
-:has(article .api-endpoint-2col) > .toc {
+:has(article .api-endpoint-sections) > .toc {
   display: none !important;
 }
 
+/* Outer wrapper — vertical stack of section grids */
+.api-endpoint-sections {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  margin: 1.5rem 0;
+}
+
+/* Per-section two-column grid — sticky is scoped to each section */
 .api-endpoint-2col {
   display: grid;
   grid-template-columns: 55% 1fr;
   gap: 0 2rem;
   align-items: start;
-  margin: 1.5rem 0;
   max-width: none;
 }
 
@@ -458,6 +466,10 @@ article:has(.api-endpoint-2col).prose {
 
 /* Responsive: single column on smaller screens */
 @media (max-width: 1024px) {
+  .api-endpoint-sections {
+    gap: 1.5rem;
+  }
+
   .api-endpoint-2col {
     grid-template-columns: 1fr;
     gap: 1.5rem 0;
@@ -469,7 +481,7 @@ article:has(.api-endpoint-2col).prose {
 }
 
 /* Widen prose for API pages */
-.api-endpoint-2col .prose {
+.api-endpoint-sections .prose {
   max-width: none;
 }
 

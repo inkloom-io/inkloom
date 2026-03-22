@@ -947,20 +947,22 @@ export function ApiEndpoint({
   const hasResponses = responseEntries.length > 0;
 
   return (
-    <div className={`api-endpoint-2col ${deprecated ? "api-deprecated" : ""}`}>
-      {/* Row 1: Description + Route Card */}
-      <div className="api-2col-primary">
-        {children && (
-          <div className="api-endpoint-description">{children}</div>
-        )}
-      </div>
-      <div className="api-2col-secondary">
-        <RouteCard method={method} path={path} deprecated={deprecated} />
+    <div className={`api-endpoint-sections ${deprecated ? "api-deprecated" : ""}`}>
+      {/* Section 1: Description + Route Card */}
+      <div className="api-endpoint-2col">
+        <div className="api-2col-primary">
+          {children && (
+            <div className="api-endpoint-description">{children}</div>
+          )}
+        </div>
+        <div className="api-2col-secondary">
+          <RouteCard method={method} path={path} deprecated={deprecated} />
+        </div>
       </div>
 
-      {/* Row 2: Try It + Code Samples */}
+      {/* Section 2: Try It + Code Samples */}
       {data && (
-        <>
+        <div className="api-endpoint-2col">
           <div className="api-2col-primary">
             <TryItSection
               data={data}
@@ -984,12 +986,12 @@ export function ApiEndpoint({
           <div className="api-2col-secondary">
             <CodeSamplesPanel config={requestConfig} />
           </div>
-        </>
+        </div>
       )}
 
-      {/* Row 3: Parameters + Param Example */}
+      {/* Section 3: Parameters + Param Example */}
       {hasParams && (
-        <>
+        <div className="api-endpoint-2col">
           <div className="api-2col-primary">
             <FieldDocs
               title="Parameters"
@@ -1000,27 +1002,27 @@ export function ApiEndpoint({
           <div className="api-2col-secondary">
             <ExamplePanel title="Parameter Example" example={paramExample} />
           </div>
-        </>
+        </div>
       )}
 
-      {/* Row 4: Request Body + Request Example */}
-      {hasRequestBody && (
-        <>
+      {/* Section 4: Request Body + Request Example */}
+      {hasRequestBody && endpoint.requestBody && (
+        <div className="api-endpoint-2col">
           <div className="api-2col-primary">
             <FieldDocs
               title="Request Body"
-              fields={endpoint.requestBody!.fields}
+              fields={endpoint.requestBody.fields}
             />
           </div>
           <div className="api-2col-secondary">
             <ExamplePanel title="Request Example" example={requestExample} />
           </div>
-        </>
+        </div>
       )}
 
-      {/* Row 5: Responses + Response Examples */}
+      {/* Section 5: Responses + Response Examples */}
       {hasResponses && (
-        <>
+        <div className="api-endpoint-2col">
           <div className="api-2col-primary">
             {responseEntries.map(([code, r]) => (
               <FieldDocs
@@ -1039,7 +1041,7 @@ export function ApiEndpoint({
               />
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
