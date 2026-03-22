@@ -119,7 +119,7 @@ export function TabBar({ tabs, basePath = "" }: TabBarProps) {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="flex lg:hidden flex-col py-4 h-[calc(100vh-7rem)] overflow-y-scroll border-t border-[var(--color-border)] bg-[var(--color-background)] animate-fade-in">
+        <div className="flex lg:hidden flex-col py-4 h-[calc(100vh-7rem)] overflow-hidden border-t border-[var(--color-border)] bg-[var(--color-background)] animate-fade-in">
           <div className="w-full flex px-6 items-center justify-between">
             {socialLinks.length > 0 && (
               <div className="flex">

@@ -8,7 +8,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "site-sidebar sticky hidden w-64 shrink-0 overflow-y-auto lg:block",
+        "site-sidebar sticky hidden w-64 shrink-0 overflow-hidden lg:block",
         stickyTop,
         sidebarHeight
       )}

@@ -126,7 +126,7 @@ export function SidebarContent(
 
   return (
     <div className="flex flex-col h-full">
-      <nav className="flex-1 px-4 pt-4 pb-8">
+      <nav className="flex-1 overflow-y-auto px-4 pt-4 pb-8">
         {!hideSocialLinks && socialLinks.length > 0 && (
           <div className="mb-6">
             <div className="space-y-1">
@@ -177,42 +177,8 @@ export function SidebarContent(
             href="https://inkloom.io"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-start justify-center gap-2 text-[var(--color-muted-foreground)] transition-colors duration-200 hover:text-[var(--color-foreground)]"
+            className="group flex items-center justify-center text-[var(--color-muted-foreground)] transition-colors duration-200 hover:text-[var(--color-foreground)]"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 32 32"
-              fill="none"
-              className="shrink-0 transition-transform duration-300 group-hover:translate-y-[-1px]"
-            >
-              <path
-                d="M22.5 4.5L8.5 24.5l-3 3 1-4L20.5 3.5a2.12 2.12 0 0 1 3 0l0 0a2.12 2.12 0 0 1 0 3l-1-2z"
-                fill="currentColor"
-                opacity="0.15"
-              />
-              <path
-                d="M20.5 3.5a2.12 2.12 0 0 1 3 3L8.5 24.5l-3 3 1-4L20.5 3.5z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M6.5 27.5c1.5-.5 3-1 4-2"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                opacity="0.5"
-              />
-              <circle
-                cx="6"
-                cy="27"
-                r="1"
-                fill="var(--color-primary)"
-                className="transition-opacity duration-300 opacity-0 group-hover:opacity-100"
-              />
-            </svg>
             <span className="text-[0.6875rem] tracking-wide">
               Built with{" "}
               <span
