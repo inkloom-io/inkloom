@@ -318,7 +318,7 @@ export function BranchSwitcher({
                     }
                   }}
                   disabled={!canChangeRoles}
-                  className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors ${
+                  className={`ml-auto flex h-7 w-7 items-center justify-center rounded-md transition-colors ${
                     !canChangeRoles
                       ? "opacity-40 cursor-not-allowed"
                       : "hover:bg-[var(--surface-active)]"
