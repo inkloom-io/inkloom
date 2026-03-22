@@ -1401,13 +1401,32 @@ function convertMixedChildren(
 
   const flushInline = () => {
     if (pendingInline.length === 0) return;
-    const inlineNodes: MdastNode[] = pendingInline.flatMap((n) =>
-      n.type === "paragraph" && n.children ? n.children : [n]
-    );
-    const content = convertInlineNodes(inlineNodes);
-    if (content.length > 0) {
-      blockChildren.push({ type: "paragraph", content });
+    // Preserve paragraph boundaries: each AST paragraph node becomes its own
+    // BlockNote paragraph block.  Non-paragraph inline nodes between paragraphs
+    // are collected into their own paragraph block.
+    let nonParagraphBuffer: MdastNode[] = [];
+
+    const flushNonParagraph = () => {
+      if (nonParagraphBuffer.length === 0) return;
+      const content = convertInlineNodes(nonParagraphBuffer);
+      if (content.length > 0) {
+        blockChildren.push({ type: "paragraph", content });
+      }
+      nonParagraphBuffer = [];
+    };
+
+    for (const n of pendingInline) {
+      if (n.type === "paragraph") {
+        flushNonParagraph();
+        const content = convertInlineNodes(n.children || []);
+        if (content.length > 0) {
+          blockChildren.push({ type: "paragraph", content });
+        }
+      } else {
+        nonParagraphBuffer.push(n);
+      }
     }
+    flushNonParagraph();
     pendingInline = [];
   };
 

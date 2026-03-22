@@ -2525,4 +2525,148 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
       expect(cardBlocks[1].props?.title).toBe("Card B");
     });
   });
+
+  describe("paragraph breaks in mixed content containers (el-3jmj)", () => {
+    it("two paragraphs + Frame inside a Step produce separate paragraph blocks", () => {
+      const mdx = `<Steps>
+<Step title="Sign up">
+Go to app.inkloom.io and create an account. You can sign up with GitHub, Google, or email.
+
+After signing up, you'll land on the Projects dashboard.
+
+<Frame caption="Dashboard">
+
+*Screenshot*
+
+</Frame>
+</Step>
+</Steps>`;
+      const blocks = mdxToBlockNote(mdx);
+      expect(blocks[0].type).toBe("steps");
+      const step = blocks[1];
+      expect(step.type).toBe("step");
+      // First paragraph should be in content
+      const content = step.content as Array<{ type: string; text?: string }>;
+      expect(
+        content.some((c) => c.text?.includes("create an account"))
+      ).toBe(true);
+      // Second paragraph should be a separate child block, NOT merged
+      const children = step.children || [];
+      const secondPara = children.find(
+        (c) =>
+          c.type === "paragraph" &&
+          (c.content as Array<{ type: string; text?: string }>)?.some((ic) =>
+            ic.text?.includes("After signing up")
+          )
+      );
+      expect(secondPara).toBeDefined();
+      // Frame should also be present
+      expect(children.some((c) => c.type === "frame")).toBe(true);
+    });
+
+    it("two paragraphs + code block inside a Tab produce separate paragraph blocks", () => {
+      const mdx = `<Tabs>
+<Tab title="Example">
+First paragraph.
+
+Second paragraph.
+
+\`\`\`js
+console.log("hi")
+\`\`\`
+</Tab>
+</Tabs>`;
+      const blocks = mdxToBlockNote(mdx);
+      const tab = blocks.find((b) => b.type === "tab");
+      expect(tab).toBeDefined();
+      const children = tab?.children || [];
+      const secondPara = children.find(
+        (c) =>
+          c.type === "paragraph" &&
+          (c.content as Array<{ type: string; text?: string }>)?.some((ic) =>
+            ic.text?.includes("Second paragraph")
+          )
+      );
+      expect(secondPara).toBeDefined();
+      expect(children.some((c) => c.type === "codeBlock")).toBe(true);
+    });
+
+    it("two paragraphs + list inside an Accordion produce separate paragraph blocks", () => {
+      const mdx = `<AccordionGroup>
+<Accordion title="FAQ">
+First paragraph.
+
+Second paragraph.
+
+- Item 1
+- Item 2
+</Accordion>
+</AccordionGroup>`;
+      const blocks = mdxToBlockNote(mdx);
+      const accordion = blocks.find((b) => b.type === "accordion");
+      expect(accordion).toBeDefined();
+      const children = accordion?.children || [];
+      const secondPara = children.find(
+        (c) =>
+          c.type === "paragraph" &&
+          (c.content as Array<{ type: string; text?: string }>)?.some((ic) =>
+            ic.text?.includes("Second paragraph")
+          )
+      );
+      expect(secondPara).toBeDefined();
+    });
+
+    it("three paragraphs at top level produce three separate blocks", () => {
+      const mdx = `First paragraph.
+
+Second paragraph.
+
+Third paragraph.`;
+      const blocks = mdxToBlockNote(mdx);
+      const paragraphs = blocks.filter((b) => b.type === "paragraph");
+      expect(paragraphs.length).toBe(3);
+      const texts = paragraphs.map(
+        (p) =>
+          (p.content as Array<{ type: string; text?: string }>)
+            ?.map((c) => c.text)
+            .join("") || ""
+      );
+      expect(texts[0]).toContain("First");
+      expect(texts[1]).toContain("Second");
+      expect(texts[2]).toContain("Third");
+    });
+
+    it("Quickstart Sign up step: paragraphs are not merged", () => {
+      const mdx = `<Steps>
+<Step title="Sign up">
+Go to [app.inkloom.io](https://app.inkloom.io) and create an account. You can sign up with GitHub, Google, or email.
+
+After signing up, you'll land on the Projects dashboard — your home base for managing documentation sites.
+
+<Frame caption="The Projects dashboard after signing up">
+
+*Screenshot: Projects dashboard*
+
+</Frame>
+</Step>
+</Steps>`;
+      const blocks = mdxToBlockNote(mdx);
+      const step = blocks.find((b) => b.type === "step");
+      expect(step).toBeDefined();
+      // The first paragraph content should NOT contain "After signing up"
+      const content = step?.content as Array<{ type: string; text?: string }>;
+      const firstParaText = content?.map((c) => c.text || "").join("");
+      expect(firstParaText).not.toContain("After signing up");
+      // "After signing up" should be in a separate child paragraph block
+      const children = step?.children || [];
+      const afterPara = children.find(
+        (c) =>
+          c.type === "paragraph" &&
+          (c.content as Array<{ type: string; text?: string }>)?.some((ic) =>
+            ic.text?.includes("After signing up")
+          )
+      );
+      expect(afterPara).toBeDefined();
+    });
+  });
 });
