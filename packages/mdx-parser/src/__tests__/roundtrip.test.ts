@@ -253,13 +253,11 @@ describe("mdxToBlockNote", () => {
     expect(blocks[0].type).toBe("tabs");
     expect(blocks[1].type).toBe("tab");
     expect(blocks[1].props?.title).toBe("Example");
-    // With mixed content, inline text becomes a paragraph block in children
-    // to preserve document order relative to the code block
+    // With mixed content, the first paragraph is promoted to inline content
+    // so the editor doesn't show a spurious empty line at the start
+    const tabContent = blocks[1].content as Array<{ type: string; text?: string }>;
+    expect(tabContent.some((c) => c.text?.includes("Some text"))).toBe(true);
     expect(blocks[1].children).toBeDefined();
-    const textChild = blocks[1].children?.find(
-      (c) => c.type === "paragraph" && (c.content as Array<{ type: string; text?: string }>)?.some((ic) => ic.text?.includes("Some text"))
-    );
-    expect(textChild).toBeDefined();
     expect(blocks[1].children?.some((c) => c.type === "codeBlock")).toBe(true);
     const codeChild = blocks[1].children?.find((c) => c.type === "codeBlock");
     expect(codeChild?.props?.language).toBe("javascript");
@@ -898,13 +896,11 @@ x = 1
       const blocks = mdxToBlockNote(mdx);
       const tab = blocks.find((b) => b.type === "tab");
       expect(tab).toBeDefined();
-      // With mixed content, inline text becomes a paragraph in children
-      expect(tab?.children).toBeDefined();
-      const paraChild = tab?.children?.find(
-        (c) => c.type === "paragraph" && (c.content as Array<{ type: string; text?: string }>)?.some((ic) => ic.text?.includes("intro text"))
-      );
-      expect(paraChild).toBeDefined();
+      // First paragraph is promoted to inline content to avoid empty line
+      const tabContent = tab?.content as Array<{ type: string; text?: string }>;
+      expect(tabContent.some((c) => c.text?.includes("intro text"))).toBe(true);
       // Code block should be nested in children
+      expect(tab?.children).toBeDefined();
       expect(tab?.children?.some((c) => c.type === "codeBlock")).toBe(true);
       const codeChild = tab?.children?.find((c) => c.type === "codeBlock");
       expect(codeChild?.props?.language).toBe("javascript");
@@ -916,13 +912,11 @@ x = 1
       const blocks = mdxToBlockNote(mdx);
       const step = blocks.find((b) => b.type === "step");
       expect(step).toBeDefined();
+      // First paragraph is promoted to inline content
+      const stepContent = step?.content as Array<{ type: string; text?: string }>;
+      expect(stepContent.some((c) => c.text?.includes("Create a client"))).toBe(true);
       expect(step?.children).toBeDefined();
       expect(step?.children?.some((c) => c.type === "codeBlock")).toBe(true);
-      // With mixed content, inline text becomes a paragraph in children
-      const paraChild = step?.children?.find(
-        (c) => c.type === "paragraph" && (c.content as Array<{ type: string; text?: string }>)?.some((ic) => ic.text?.includes("Create a client"))
-      );
-      expect(paraChild).toBeDefined();
     });
 
     it("parses a code block inside a Callout into children", () => {
@@ -984,15 +978,16 @@ x = 1
       const blocks = mdxToBlockNote(mdx);
       const step = blocks.find((b) => b.type === "step");
       expect(step).toBeDefined();
+      // First paragraph is promoted to inline content
+      const stepContent = step?.content as Array<{ type: string; text?: string }>;
+      expect(stepContent.some((c) => c.text?.includes("Create Project"))).toBe(true);
       expect(step?.children).toBeDefined();
       const children = step?.children || [];
-      // Should have: paragraph, bulletListItem, bulletListItem, paragraph — in that order
-      expect(children.length).toBeGreaterThanOrEqual(4);
-      expect(children[0].type).toBe("paragraph");
-      const firstParaContent = children[0].content as Array<{ type: string; text?: string }>;
-      expect(firstParaContent.some((c) => c.text?.includes("Create Project"))).toBe(true);
+      // Should have: bulletListItem, bulletListItem, paragraph — in that order
+      // (first paragraph promoted to inline content)
+      expect(children.length).toBeGreaterThanOrEqual(3);
+      expect(children[0].type).toBe("bulletListItem");
       expect(children[1].type).toBe("bulletListItem");
-      expect(children[2].type).toBe("bulletListItem");
       const lastChild = children[children.length - 1];
       expect(lastChild.type).toBe("paragraph");
       const lastParaContent = lastChild.content as Array<{ type: string; text?: string }>;
@@ -1004,13 +999,16 @@ x = 1
       const blocks = mdxToBlockNote(mdx);
       const accordion = blocks.find((b) => b.type === "accordion");
       expect(accordion).toBeDefined();
+      // First paragraph is promoted to inline content
+      const accContent = accordion?.content as Array<{ type: string; text?: string }>;
+      expect(accContent.some((c) => c.text?.includes("Pages have"))).toBe(true);
       expect(accordion?.children).toBeDefined();
       const children = accordion?.children || [];
-      // Should have: paragraph, bulletListItem, bulletListItem, paragraph — in that order
-      expect(children.length).toBeGreaterThanOrEqual(4);
-      expect(children[0].type).toBe("paragraph");
+      // Should have: bulletListItem, bulletListItem, paragraph — in that order
+      // (first paragraph promoted to inline content)
+      expect(children.length).toBeGreaterThanOrEqual(3);
+      expect(children[0].type).toBe("bulletListItem");
       expect(children[1].type).toBe("bulletListItem");
-      expect(children[2].type).toBe("bulletListItem");
       const lastChild = children[children.length - 1];
       expect(lastChild.type).toBe("paragraph");
       const lastParaContent = lastChild.content as Array<{ type: string; text?: string }>;
@@ -1022,15 +1020,18 @@ x = 1
       const blocks = mdxToBlockNote(mdx);
       const step = blocks.find((b) => b.type === "step");
       expect(step).toBeDefined();
+      // First paragraph is promoted to inline content
+      const stepContent = step?.content as Array<{ type: string; text?: string }>;
+      expect(stepContent.some((c) => c.text?.includes("First do this"))).toBe(true);
       expect(step?.children).toBeDefined();
       const children = step?.children || [];
-      // Should preserve: paragraph, codeBlock, paragraph, bulletListItem, bulletListItem, paragraph
+      // Should preserve: codeBlock, paragraph, bulletListItem, bulletListItem, paragraph
+      // (first paragraph promoted to inline content)
       const types = children.map((c) => c.type);
-      expect(types[0]).toBe("paragraph");
-      expect(types[1]).toBe("codeBlock");
-      expect(types[2]).toBe("paragraph");
+      expect(types[0]).toBe("codeBlock");
+      expect(types[1]).toBe("paragraph");
+      expect(types[2]).toBe("bulletListItem");
       expect(types[3]).toBe("bulletListItem");
-      expect(types[4]).toBe("bulletListItem");
       expect(types[types.length - 1]).toBe("paragraph");
     });
   });
@@ -1154,22 +1155,14 @@ x = 1
       const blocks = mdxToBlockNote(mdx);
       const tab = blocks.find((b) => b.type === "tab");
       expect(tab).toBeDefined();
-      // The tab's inline content should start with actual text, not be empty
+      // The first paragraph should be promoted to inline content
       const content = tab?.content as Array<{ type: string; text?: string }>;
-      if (content && content.length > 0) {
-        // Content should have real text, not whitespace-only
-        const hasText = content.some((c) => c.text && c.text.trim().length > 0);
-        expect(hasText).toBe(true);
-      }
-      // Children should not start with an empty paragraph
-      if (tab?.children && tab.children.length > 0) {
-        const firstChild = tab.children[0];
-        if (firstChild.type === "paragraph") {
-          const childContent = firstChild.content as Array<{ type: string; text?: string }>;
-          const isEmpty = !childContent || childContent.length === 0 || childContent.every((c) => !c.text || c.text.trim() === "");
-          expect(isEmpty).toBe(false);
-        }
-      }
+      expect(content.length).toBeGreaterThan(0);
+      expect(content.some((c) => c.text?.includes("For small teams"))).toBe(true);
+      // Children should NOT start with an empty paragraph — the first
+      // child should be a numbered list item (the paragraph was promoted)
+      expect(tab?.children).toBeDefined();
+      expect(tab?.children?.[0]?.type).toBe("numberedListItem");
     });
 
     it("Step content has no spurious empty paragraph at start", () => {

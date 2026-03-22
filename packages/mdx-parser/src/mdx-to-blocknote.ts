@@ -386,6 +386,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       const { inlineContent, blockChildren } = node.children
         ? convertMixedChildren(node.children)
         : { inlineContent: [], blockChildren: [] };
+      const { promoted, remaining } = promoteFirstParagraph(inlineContent, blockChildren);
       return [
         {
           type: "callout",
@@ -393,8 +394,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             type,
             ...(title ? { title } : {}),
           },
-          content: inlineContent,
-          ...(blockChildren.length > 0 ? { children: blockChildren } : {}),
+          content: promoted,
+          ...(remaining.length > 0 ? { children: remaining } : {}),
         },
       ];
     }
@@ -406,6 +407,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       const { inlineContent, blockChildren } = node.children
         ? convertMixedChildren(node.children)
         : { inlineContent: [], blockChildren: [] };
+      const { promoted, remaining } = promoteFirstParagraph(inlineContent, blockChildren);
       return [
         {
           type: "card",
@@ -414,8 +416,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             ...(icon ? { icon } : {}),
             ...(href ? { href } : {}),
           },
-          content: inlineContent,
-          ...(blockChildren.length > 0 ? { children: blockChildren } : {}),
+          content: promoted,
+          ...(remaining.length > 0 ? { children: remaining } : {}),
         },
       ];
     }
@@ -536,6 +538,11 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       const { inlineContent, blockChildren } = node.children
         ? convertMixedChildren(node.children)
         : { inlineContent: [], blockChildren: [] };
+      // When all content was promoted to block children (because of block-level
+      // elements like code blocks or lists), the inline content is empty.  If
+      // the first block child is a paragraph, promote its content to be the
+      // tab's inline content so the editor doesn't show an empty line.
+      const { promoted, remaining } = promoteFirstParagraph(inlineContent, blockChildren);
       return [
         {
           type: "tab",
@@ -543,8 +550,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             title,
             ...(icon ? { icon } : {}),
           },
-          content: inlineContent,
-          ...(blockChildren.length > 0 ? { children: blockChildren } : {}),
+          content: promoted,
+          ...(remaining.length > 0 ? { children: remaining } : {}),
         },
       ];
     }
@@ -620,6 +627,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       const { inlineContent, blockChildren } = node.children
         ? convertMixedChildren(node.children)
         : { inlineContent: [], blockChildren: [] };
+      const { promoted, remaining } = promoteFirstParagraph(inlineContent, blockChildren);
       return [
         {
           type: "step",
@@ -627,8 +635,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             title,
             ...(icon ? { icon } : {}),
           },
-          content: inlineContent,
-          ...(blockChildren.length > 0 ? { children: blockChildren } : {}),
+          content: promoted,
+          ...(remaining.length > 0 ? { children: remaining } : {}),
         },
       ];
     }
@@ -656,6 +664,7 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
       const { inlineContent, blockChildren } = node.children
         ? convertMixedChildren(node.children)
         : { inlineContent: [], blockChildren: [] };
+      const { promoted, remaining } = promoteFirstParagraph(inlineContent, blockChildren);
       return [
         {
           type: "accordion",
@@ -664,8 +673,8 @@ function convertMdxJsxElement(node: MdastNode): BlockNoteBlock[] {
             ...(icon ? { icon } : {}),
             ...(defaultOpen ? { defaultOpen } : {}),
           },
-          content: inlineContent,
-          ...(blockChildren.length > 0 ? { children: blockChildren } : {}),
+          content: promoted,
+          ...(remaining.length > 0 ? { children: remaining } : {}),
         },
       ];
     }
@@ -1256,6 +1265,36 @@ function trimWhitespaceNodes(nodes: MdastNode[]): MdastNode[] {
   }
 
   return start === 0 && end === nodes.length ? nodes : nodes.slice(start, end);
+}
+
+/**
+ * When convertMixedChildren puts all content into blockChildren (because of
+ * block-level elements), the inline content is left empty.  For blocks with
+ * content: "inline" (tab, step, accordion), this shows as an empty line in
+ * the editor.  If the first block child is a paragraph, promote its content
+ * to be the block's inline content so the user doesn't see a spurious empty
+ * line at the start.
+ */
+function promoteFirstParagraph(
+  inlineContent: BlockNoteInlineContent[],
+  blockChildren: BlockNoteBlock[]
+): { promoted: BlockNoteInlineContent[]; remaining: BlockNoteBlock[] } {
+  if (inlineContent.length > 0 || blockChildren.length === 0) {
+    return { promoted: inlineContent, remaining: blockChildren };
+  }
+  const first = blockChildren[0];
+  if (
+    first &&
+    first.type === "paragraph" &&
+    Array.isArray(first.content) &&
+    first.content.length > 0
+  ) {
+    return {
+      promoted: first.content as BlockNoteInlineContent[],
+      remaining: blockChildren.slice(1),
+    };
+  }
+  return { promoted: inlineContent, remaining: blockChildren };
 }
 
 // Set of node types that should be treated as inline content

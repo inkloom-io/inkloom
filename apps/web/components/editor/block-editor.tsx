@@ -61,7 +61,7 @@ import { schema, type CustomBlockNoteEditor, type CustomPartialBlock } from "./s
 import { CommentHoverTooltip } from "./comments/comment-hover-tooltip";
 import { BadgeToolbarButton } from "./toolbar/badge-toolbar-button";
 import { IconToolbarButton } from "./toolbar/icon-toolbar-button";
-import { isGroupChildType, isContainerType, GROUP_MAPPINGS, getGroupContainer } from "./custom-blocks/group-utils";
+import { isGroupChildType, isContainerType, GROUP_MAPPINGS, getGroupContainer, getGroupChildren } from "./custom-blocks/group-utils";
 
 // Collaboration configuration for real-time editing
 export interface CollaborationConfig {
@@ -947,7 +947,30 @@ export function BlockEditor({
       if (e.key === "Backspace") {
         const atStart = $from.parentOffset === 0;
 
+        // Protect group structures from being broken via backspace on the
+        // block AFTER a group child or container.
         if (atStart && prevBlock && isDeletableCustomBlock(prevBlock.type)) {
+          // If the previous block is a group child that belongs to a group,
+          // do NOT remove it — just swallow the keypress so the group stays
+          // intact.
+          if (isGroupChildType(prevBlock.type)) {
+            const containerInfo = getGroupContainer(editor, prevBlock);
+            if (containerInfo) {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+          }
+          // If the previous block is a group container (tabs, steps, etc.)
+          // with children, don't remove it — that would orphan its children.
+          if (isContainerType(prevBlock.type)) {
+            const groupChildren = getGroupChildren(editor, prevBlock);
+            if (groupChildren.length > 0) {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+          }
           e.preventDefault();
           e.stopPropagation();
           removeBlockWithChildren(prevBlock, block, "before");
@@ -963,6 +986,25 @@ export function BlockEditor({
                 (!blockContent[0]?.text || blockContent[0]?.text === ""))));
 
           if (isEmpty) {
+            // Protect group children: if this block is part of a group,
+            // don't delete it — that would break the group structure.
+            // Instead, just consume the keypress.
+            if (isGroupChildType(block.type)) {
+              const containerInfo = getGroupContainer(editor, block);
+              if (containerInfo) {
+                // If the block has children, or the group has multiple
+                // children, simply absorb the backspace.
+                const hasChildren = block.children && block.children.length > 0;
+                if (hasChildren || containerInfo.siblings.length > 1) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  return;
+                }
+                // Last child in the group with no children — allow deletion
+                // (the whole group gets removed, which is acceptable)
+              }
+            }
+
             e.preventDefault();
             e.stopPropagation();
 
@@ -1022,6 +1064,24 @@ export function BlockEditor({
         const atEnd = $from.parentOffset === $from.parent.content.size;
 
         if (atEnd && nextBlock && isDeletableCustomBlock(nextBlock.type)) {
+          // Protect group children from being deleted via Delete key
+          if (isGroupChildType(nextBlock.type)) {
+            const containerInfo = getGroupContainer(editor, nextBlock);
+            if (containerInfo) {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+          }
+          // Protect group containers with children from deletion
+          if (isContainerType(nextBlock.type)) {
+            const groupChildren = getGroupChildren(editor, nextBlock);
+            if (groupChildren.length > 0) {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+          }
           e.preventDefault();
           e.stopPropagation();
           removeBlockWithChildren(nextBlock, block, "after");
