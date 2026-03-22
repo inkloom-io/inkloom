@@ -1075,7 +1075,18 @@
       "failedToDeleteBranch": "Failed to delete branch",
       "lockDefaultBranch": "Lock default branch (require merge requests)",
       "unlockDefaultBranch": "Unlock default branch",
-      "lockPermissionRequired": "Only admins can lock or unlock branches"
+      "lockPermissionRequired": "Only admins can lock or unlock branches",
+      "localBranchesLabel": "Local branches",
+      "remoteBranchesLabel": "Remote branches (GitHub)",
+      "toggleRemoteBranches": "Toggle remote branches",
+      "showRemoteBranches": "Show remote GitHub branches",
+      "hideRemoteBranches": "Hide remote branches",
+      "connectGithubToImport": "Connect a GitHub repository to import remote branches",
+      "loadingRemoteBranches": "Loading remote branches...",
+      "noRemoteBranches": "No remote branches found",
+      "importRemoteBranchHint": "Content will be imported from the selected GitHub branch",
+      "importAndCreate": "Import & Create",
+      "failedToImportBranch": "Failed to import branch from GitHub"
     },
     "versionHistory": {
       "title": "Version History",

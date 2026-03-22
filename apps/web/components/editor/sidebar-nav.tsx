@@ -48,6 +48,7 @@ import {
   TooltipTrigger,
 } from "@inkloom/ui/tooltip";
 import { BranchSwitcher } from "./branch-switcher";
+import type { GitHubConnectionInfo } from "./branch-switcher";
 import { IconPicker, IconDisplay } from "./icon-picker";
 import { trackEvent } from "@/lib/analytics";
 
@@ -79,6 +80,8 @@ interface EditorSidebarProps {
   createBranchRequested?: boolean;
   /** Reset callback for the external create branch trigger */
   onCreateBranchRequestChange?: (open: boolean) => void;
+  /** GitHub connection details for the project (platform-only, optional). */
+  githubConnection?: GitHubConnectionInfo | null;
 }
 
 // Custom node renderer for the tree
@@ -314,6 +317,7 @@ export function EditorSidebar({
   isBranchLocked,
   createBranchRequested,
   onCreateBranchRequestChange,
+  githubConnection,
 }: EditorSidebarProps) {
   const t = useTranslations("editor.sidebar");
   const tc = useTranslations("common");
@@ -687,6 +691,7 @@ export function EditorSidebar({
             canDelete
             externalCreateOpen={createBranchRequested}
             onExternalCreateOpenChange={onCreateBranchRequestChange}
+            githubConnection={githubConnection}
           />
         </div>
       )}

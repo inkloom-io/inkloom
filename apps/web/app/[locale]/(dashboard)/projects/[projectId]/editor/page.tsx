@@ -44,6 +44,7 @@ import { AiGenerationBanner } from "@/components/editor/ai-generation-banner";
 import { TitleSection } from "@/components/editor/title-section";
 import { PageSeoPanel } from "@/components/editor/page-seo-panel";
 import { trackEvent } from "@/lib/analytics";
+import { useGitHubConnection } from "@/hooks/use-github-connection";
 
 // Dynamic import to avoid BlockNote SSR issues with React
 const BlockEditor = dynamic(
@@ -189,6 +190,9 @@ export default function EditorPage({ params }: EditorPageProps) {
     },
     [currentBranchId, projectId]
   );
+
+  // GitHub connection for remote branch import
+  const githubConnection = useGitHubConnection(projectId as Id<"projects">);
 
   // State to trigger branch creation from the lock banner
   const [createBranchRequested, setCreateBranchRequested] = useState(false);
@@ -629,6 +633,7 @@ export default function EditorPage({ params }: EditorPageProps) {
           isBranchLocked={isBranchLocked}
           createBranchRequested={createBranchRequested}
           onCreateBranchRequestChange={setCreateBranchRequested}
+          githubConnection={githubConnection}
         />
         <div className="flex flex-1 flex-col border-l border-[var(--glass-border)]">
           <EditorToolbar

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
@@ -26,7 +26,9 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@inkloom/ui/select";
@@ -35,6 +37,7 @@ import {
   ChevronDown,
   GitBranch,
   GitPullRequest,
+  Github,
   Loader2,
   Lock,
   LockOpen,
@@ -55,6 +58,22 @@ import { trackEvent } from "@/lib/analytics";
 import { captureException } from "@/lib/sentry";
 import { getErrorTranslationKey } from "@/lib/i18n-errors";
 
+/** Minimal GitHub connection info passed from the parent (platform-only). */
+export interface GitHubConnectionInfo {
+  installationId: number;
+  owner: string;
+  repo: string;
+  defaultBranch?: string;
+}
+
+interface RemoteBranch {
+  name: string;
+  isDefault: boolean;
+}
+
+/** Prefix used to distinguish remote branch values in the Select component. */
+const REMOTE_PREFIX = "remote:";
+
 interface BranchSwitcherProps {
   projectId: Id<"projects">;
   currentBranchId: Id<"branches">;
@@ -66,6 +85,8 @@ interface BranchSwitcherProps {
   externalCreateOpen?: boolean;
   /** Called when the external create dialog state should be reset */
   onExternalCreateOpenChange?: (open: boolean) => void;
+  /** GitHub connection details for the project (platform-only, optional). */
+  githubConnection?: GitHubConnectionInfo | null;
 }
 
 export function BranchSwitcher({
@@ -77,6 +98,7 @@ export function BranchSwitcher({
   canDelete = false,
   externalCreateOpen,
   onExternalCreateOpenChange,
+  githubConnection,
 }: BranchSwitcherProps) {
   const t = useTranslations("editor.branchSwitcher");
   const tc = useTranslations("common");
@@ -105,16 +127,35 @@ export function BranchSwitcher({
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Remote branch state
+  const [showRemote, setShowRemote] = useState(false);
+  const [remoteBranches, setRemoteBranches] = useState<RemoteBranch[]>([]);
+  const [isLoadingRemote, setIsLoadingRemote] = useState(false);
+  const [remoteFetchError, setRemoteFetchError] = useState<string | null>(null);
+
   // Allow parent to trigger the create branch dialog externally
   useEffect(() => {
     if (externalCreateOpen) {
       setError(null);
       setNewBranchName("");
       setSourceBranchId(currentBranchId);
+      setShowRemote(false);
       setCreateOpen(true);
       onExternalCreateOpenChange?.(false);
     }
   }, [externalCreateOpen, currentBranchId, onExternalCreateOpenChange]);
+
+  // If GitHub connection is removed while dialog is open, fall back to local-only
+  useEffect(() => {
+    if (!githubConnection && showRemote) {
+      setShowRemote(false);
+      setRemoteBranches([]);
+      // If user had a remote branch selected, clear it
+      if (sourceBranchId.startsWith(REMOTE_PREFIX)) {
+        setSourceBranchId(currentBranchId);
+      }
+    }
+  }, [githubConnection, showRemote, sourceBranchId, currentBranchId]);
 
   const currentBranch = branches?.find((b: Doc<"branches">) => b._id === currentBranchId);
   const defaultBranch = branches?.find((b: Doc<"branches">) => b.isDefault);
@@ -134,27 +175,100 @@ export function BranchSwitcher({
       : "skip"
   );
 
+  const fetchRemoteBranches = useCallback(async () => {
+    if (!githubConnection) return;
+    setIsLoadingRemote(true);
+    setRemoteFetchError(null);
+    try {
+      const params = new URLSearchParams({
+        installationId: String(githubConnection.installationId),
+        owner: githubConnection.owner,
+        repo: githubConnection.repo,
+      });
+      if (githubConnection.defaultBranch) {
+        params.set("defaultBranch", githubConnection.defaultBranch);
+      }
+      const res = await fetch(`/api/github/branches?${params.toString()}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to fetch remote branches");
+      }
+      const data = await res.json();
+      setRemoteBranches(data.branches ?? []);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to fetch remote branches";
+      setRemoteFetchError(message);
+      captureException(e, { source: "branch-switcher", action: "fetch-remote-branches" });
+    } finally {
+      setIsLoadingRemote(false);
+    }
+  }, [githubConnection]);
+
+  const handleToggleRemote = useCallback(() => {
+    if (!githubConnection) return;
+    const next = !showRemote;
+    setShowRemote(next);
+    if (next) {
+      fetchRemoteBranches();
+    } else {
+      // If switching back to local and user had a remote branch selected, reset
+      if (sourceBranchId.startsWith(REMOTE_PREFIX)) {
+        setSourceBranchId(currentBranchId);
+      }
+    }
+  }, [githubConnection, showRemote, fetchRemoteBranches, sourceBranchId, currentBranchId]);
+
+  const isRemoteSource = sourceBranchId.startsWith(REMOTE_PREFIX);
+  const selectedRemoteBranchName = isRemoteSource
+    ? sourceBranchId.slice(REMOTE_PREFIX.length)
+    : null;
+
   const handleCreate = async () => {
     if (!newBranchName.trim() || !sourceBranchId) return;
     setIsCreating(true);
     setError(null);
     try {
-      // Flush any pending content save so the clone includes the latest edits
-      if (onFlushContent) await onFlushContent();
-      const branchId = await createBranch({
-        projectId,
-        name: newBranchName.trim().toLowerCase(),
-        sourceBranchId: sourceBranchId as Id<"branches">,
-      });
-      trackEvent("branch_created", { projectId });
-      setNewBranchName("");
-      setSourceBranchId("");
-      setCreateOpen(false);
-      onSwitchBranch(branchId, newBranchName.trim().toLowerCase());
+      if (isRemoteSource && selectedRemoteBranchName) {
+        // Import from remote GitHub branch
+        const res = await fetch("/api/github/import-branch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId,
+            remoteBranch: selectedRemoteBranchName,
+            localBranchName: newBranchName.trim().toLowerCase(),
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || t("failedToImportBranch"));
+        }
+        const data = await res.json();
+        trackEvent("branch_imported_from_github", { projectId });
+        setNewBranchName("");
+        setSourceBranchId("");
+        setShowRemote(false);
+        setCreateOpen(false);
+        onSwitchBranch(data.branchId as Id<"branches">, newBranchName.trim().toLowerCase());
+      } else {
+        // Local branch creation (existing behavior)
+        if (onFlushContent) await onFlushContent();
+        const branchId = await createBranch({
+          projectId,
+          name: newBranchName.trim().toLowerCase(),
+          sourceBranchId: sourceBranchId as Id<"branches">,
+        });
+        trackEvent("branch_created", { projectId });
+        setNewBranchName("");
+        setSourceBranchId("");
+        setShowRemote(false);
+        setCreateOpen(false);
+        onSwitchBranch(branchId, newBranchName.trim().toLowerCase());
+      }
     } catch (e) {
       captureException(e, { source: "branch-switcher", action: "create-branch", projectId });
       const key = getErrorTranslationKey(e instanceof Error ? e.message : "");
-      setError(key ? t(key) : t("failedToCreateBranch"));
+      setError(key ? t(key) : (e instanceof Error ? e.message : t("failedToCreateBranch")));
     } finally {
       setIsCreating(false);
     }
@@ -295,6 +409,7 @@ export function BranchSwitcher({
                   setError(null);
                   setNewBranchName("");
                   setSourceBranchId(currentBranchId);
+                  setShowRemote(false);
                   setCreateOpen(true);
                 }}
               >
@@ -405,19 +520,100 @@ export function BranchSwitcher({
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">{t("branchFromLabel")}</label>
-              <Select value={sourceBranchId} onValueChange={setSourceBranchId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("selectSourceBranch")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {branches?.map((branch: Doc<"branches">) => (
-                    <SelectItem key={branch._id} value={branch._id}>
-                      {branch.name}
-                      {branch.isDefault ? " (default)" : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2">
+                <Select
+                  value={sourceBranchId}
+                  onValueChange={(val) => {
+                    setSourceBranchId(val);
+                    setError(null);
+                  }}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder={t("selectSourceBranch")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>{t("localBranchesLabel")}</SelectLabel>
+                      {branches?.map((branch: Doc<"branches">) => (
+                        <SelectItem key={branch._id} value={branch._id}>
+                          {branch.name}
+                          {branch.isDefault ? " (default)" : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                    {showRemote && (
+                      <SelectGroup>
+                        <SelectLabel>
+                          <span className="flex items-center gap-1.5">
+                            <Github className="h-3 w-3" />
+                            {t("remoteBranchesLabel")}
+                          </span>
+                        </SelectLabel>
+                        {isLoadingRemote && (
+                          <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            {t("loadingRemoteBranches")}
+                          </div>
+                        )}
+                        {remoteFetchError && (
+                          <div className="px-2 py-1.5 text-xs text-destructive">
+                            {remoteFetchError}
+                          </div>
+                        )}
+                        {!isLoadingRemote && !remoteFetchError && remoteBranches.length === 0 && (
+                          <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                            {t("noRemoteBranches")}
+                          </div>
+                        )}
+                        {!isLoadingRemote && remoteBranches.map((rb) => (
+                          <SelectItem
+                            key={`remote-${rb.name}`}
+                            value={`${REMOTE_PREFIX}${rb.name}`}
+                          >
+                            <span className="flex items-center gap-1.5">
+                              <Github className="h-3 w-3 shrink-0 opacity-60" />
+                              {rb.name}
+                              {rb.isDefault ? " (default)" : ""}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    )}
+                  </SelectContent>
+                </Select>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={handleToggleRemote}
+                        disabled={!githubConnection}
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md border transition-colors ${
+                          showRemote
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-input bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        } ${!githubConnection ? "opacity-40 cursor-not-allowed" : ""}`}
+                        aria-label={t("toggleRemoteBranches")}
+                        aria-pressed={showRemote}
+                      >
+                        <Github className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      {githubConnection
+                        ? showRemote
+                          ? t("hideRemoteBranches")
+                          : t("showRemoteBranches")
+                        : t("connectGithubToImport")}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              {isRemoteSource && (
+                <p className="text-xs text-muted-foreground">
+                  {t("importRemoteBranchHint")}
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -429,7 +625,7 @@ export function BranchSwitcher({
               disabled={!newBranchName.trim() || !sourceBranchId || isCreating}
             >
               {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {tc("create")}
+              {isRemoteSource ? t("importAndCreate") : tc("create")}
             </Button>
           </DialogFooter>
         </DialogContent>
