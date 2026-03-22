@@ -16,7 +16,8 @@
    ============================================================================ */
 
 /* Steps container — border/background on .bn-block wrapper */
-.bn-block:has(> .node-steps) {
+.bn-block:has(> .node-steps),
+.bn-block:has(> .bn-block-content[data-content-type="steps"]) {
   border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
   border-radius: 12px;
   margin: 8px 0;
@@ -30,7 +31,8 @@
 
 /* When steps container has children (step blocks follow as siblings),
    remove bottom radius/border so it connects to the first step block */
-.bn-block:has(> .node-steps .bn-steps-container[data-has-children="true"]) {
+.bn-block:has(> .node-steps .bn-steps-container[data-has-children="true"]),
+.bn-block:has(> .bn-block-content[data-content-type="steps"] .bn-steps-container[data-has-children="true"]) {
   border-radius: 12px 12px 0 0;
   margin-bottom: 0;
   border-bottom: none;
@@ -92,19 +94,20 @@
    We move visual container styling to the .bn-block parent so both the
    step content and child blocks are visually contained.
 
-   DOM structure:
-     .bn-block[data-node-type="blockContainer"]       ← styled container (NEW)
+   DOM structure (nodeView rendering for content: "inline"):
+     .bn-block[data-node-type="blockContainer"]       ← styled container
        .react-renderer.node-step
          .bn-block-content[data-content-type="step"]
-           .bn-step                                   ← indicator + inline content (stripped of border/bg)
-       .bn-block-group                                ← child blocks — now visually inside
+           .bn-step                                   ← indicator + inline content
+       .bn-block-group                                ← child blocks — visually inside
 
-   We use :has() to target .bn-block based on its step descendant.
-   This follows the pattern established by the accordion fix (el-4oq2).
+   We use :has() with BOTH .node-step (TipTap nodeView class) and
+   [data-content-type="step"] (BlockNote attribute) for robustness.
    ============================================================================ */
 
 /* Standalone step (not in a group) — container styling on .bn-block */
-.bn-block:has(> .node-step) {
+.bn-block:has(> .node-step),
+.bn-block:has(> .bn-block-content[data-content-type="step"]) {
   border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
   border-left: 3px solid var(--editor-primary, #6366f1);
   border-radius: 8px;
@@ -114,12 +117,14 @@
   transition: all 0.15s ease;
 }
 
-.bn-block:has(> .node-step):hover {
+.bn-block:has(> .node-step):hover,
+.bn-block:has(> .bn-block-content[data-content-type="step"]):hover {
   background: var(--editor-accent, rgba(128, 128, 128, 0.08));
 }
 
 /* Grouped step — override standalone styles when inside a steps group */
-.bn-block:has(> .node-step .bn-step[data-in-group="true"]) {
+.bn-block:has(> .node-step .bn-step[data-in-group="true"]),
+.bn-block:has(> .bn-block-content[data-content-type="step"] .bn-step[data-in-group="true"]) {
   border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
   border-top: none;
   border-left: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
@@ -128,7 +133,8 @@
 }
 
 /* Last step in a group gets bottom border-radius */
-.bn-block:has(> .node-step .bn-step[data-is-last="true"]) {
+.bn-block:has(> .node-step .bn-step[data-is-last="true"]),
+.bn-block:has(> .bn-block-content[data-content-type="step"] .bn-step[data-is-last="true"]) {
   border-radius: 0 0 12px 12px;
 }
 
@@ -141,12 +147,25 @@
 }
 
 /* Child blocks (.bn-block-group) inside a step — position to the right of indicator.
-   Use padding-left to align with step content (past the indicator column). */
-.bn-block:has(> .node-step) > .bn-block-group {
+   Use padding-left to align with step content (past the indicator column).
+   Also add a left border to visually continue the step indicator line. */
+.bn-block:has(> .node-step) > .bn-block-group,
+.bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group {
   padding: 0 16px 8px;
   /* Offset to align with step content area (indicator width ~44px + gap) */
   padding-left: 52px;
   margin-left: 0;
+  /* Continue the step indicator line alongside child blocks */
+  border-left: 2px solid var(--editor-primary, #6366f1);
+  margin-left: 29px; /* Center of step indicator circle: 16px padding + 14px half-width - 1px border */
+  padding-left: 23px; /* 52px original - 29px margin = 23px */
+  opacity: 1;
+}
+
+/* Fade the continued line for the last step in a group */
+.bn-block:has(> .node-step .bn-step[data-is-last="true"]) > .bn-block-group,
+.bn-block:has(> .bn-block-content[data-content-type="step"] .bn-step[data-is-last="true"]) > .bn-block-group {
+  border-image: linear-gradient(to bottom, var(--editor-primary, #6366f1) 60%, transparent) 1;
 }
 
 /* Step indicator (number/icon + line) */

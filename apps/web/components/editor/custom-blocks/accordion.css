@@ -86,7 +86,8 @@
    ============================================================================ */
 
 /* Standalone accordion (not in a group) — container styling on .bn-block */
-.bn-block:has(> .node-accordion) {
+.bn-block:has(> .node-accordion),
+.bn-block:has(> .bn-block-content[data-content-type="accordion"]) {
   border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
   border-left: 3px solid var(--editor-primary, #6366f1);
   border-radius: 8px;
@@ -96,12 +97,14 @@
   transition: all 0.15s ease;
 }
 
-.bn-block:has(> .node-accordion):hover {
+.bn-block:has(> .node-accordion):hover,
+.bn-block:has(> .bn-block-content[data-content-type="accordion"]):hover {
   background: var(--editor-accent, rgba(128, 128, 128, 0.08));
 }
 
 /* Grouped accordion — override standalone styles when inside a group */
-.bn-block:has(> .node-accordion .bn-accordion[data-in-group="true"]) {
+.bn-block:has(> .node-accordion .bn-accordion[data-in-group="true"]),
+.bn-block:has(> .bn-block-content[data-content-type="accordion"] .bn-accordion[data-in-group="true"]) {
   border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
   border-top: none;
   border-left: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
@@ -110,7 +113,8 @@
 }
 
 /* Last accordion in a group gets bottom border-radius */
-.bn-block:has(> .node-accordion .bn-accordion[data-is-last="true"]) {
+.bn-block:has(> .node-accordion .bn-accordion[data-is-last="true"]),
+.bn-block:has(> .bn-block-content[data-content-type="accordion"] .bn-accordion[data-is-last="true"]) {
   border-radius: 0 0 12px 12px;
 }
 
@@ -122,12 +126,14 @@
 }
 
 /* Hide child blocks (.bn-block-group) when accordion is collapsed */
-.bn-block:has(> .node-accordion .bn-accordion[data-expanded="false"]) > .bn-block-group {
+.bn-block:has(> .node-accordion .bn-accordion[data-expanded="false"]) > .bn-block-group,
+.bn-block:has(> .bn-block-content[data-content-type="accordion"] .bn-accordion[data-expanded="false"]) > .bn-block-group {
   display: none;
 }
 
 /* Style child blocks to appear as accordion content area */
-.bn-block:has(> .node-accordion) > .bn-block-group {
+.bn-block:has(> .node-accordion) > .bn-block-group,
+.bn-block:has(> .bn-block-content[data-content-type="accordion"]) > .bn-block-group {
   padding: 0 16px 8px;
   margin-left: 0;
 }
