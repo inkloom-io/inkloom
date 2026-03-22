@@ -569,7 +569,7 @@ a:has(.card) {
 .step-content {
   flex: 1;
   min-width: 0;
-  padding: 0 0.75rem 1.5rem 0.75rem;
+  padding: 0 1.25rem 1.5rem;
 }
 
 .step:last-child .step-content {
