@@ -1368,6 +1368,11 @@
       "deleting": "Deleting..."
     },
     "branding": {
+      "showBrandingTitle": "Branding Badge",
+      "showBrandingDescription": "Control the \"Built with InkLoom\" badge on your published site",
+      "showBrandingLabel": "Show \"Built with InkLoom\" badge",
+      "showBrandingHelp": "Display a small badge in the sidebar footer of your published documentation site.",
+      "showBrandingUpgrade": "Upgrade to Pro to remove the branding badge from your published site.",
       "socialLinks": "Social Links",
       "socialLinksDescription": "Add links to your social profiles -- they'll appear as icons in the published site header",
       "github": "GitHub",

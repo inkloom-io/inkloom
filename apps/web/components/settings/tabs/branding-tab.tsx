@@ -16,6 +16,7 @@ import { Label } from "@inkloom/ui/label";
 import { cn } from "@inkloom/ui/lib/utils";
 import { Separator } from "@inkloom/ui/separator";
 import {
+  BadgeCheck,
   ExternalLink,
   Eye,
   EyeOff,
@@ -36,6 +37,7 @@ import { LogoVariants } from "@/components/settings/logo-variants";
 import { FontSelector } from "@/components/settings/font-selector";
 import { CustomCssEditor } from "@/components/settings/custom-css-editor";
 import { GatedSection } from "@/components/gated-section";
+import { useFeatureGate } from "@/hooks/use-feature-gate";
 import { THEME_PRESETS, type ThemePreset } from "@/lib/theme-presets";
 import { useAutoSave } from "@/hooks/use-auto-save";
 import { SaveStatus } from "@/components/settings/save-status";
@@ -182,6 +184,7 @@ interface BrandingTabProps {
 export function BrandingTab({ projectId, project }: BrandingTabProps) {
   const updateSettings = useMutation(api.projects.updateSettings);
   const t = useTranslations("settings.branding");
+  const { available: canRemoveBranding } = useFeatureGate("remove_branding", projectId as Id<"projects">);
 
   // Branding settings — sync preview toggle with platform theme
   const { resolvedTheme: platformTheme } = useTheme();
@@ -225,6 +228,10 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
 
   // Live preview
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  // Show branding badge
+  const [showBranding, setShowBranding] = useState(true);
+  const [showBrandingInitialized, setShowBrandingInitialized] = useState(false);
 
   // Custom CSS
   const [customCss, setCustomCss] = useState("");
@@ -306,6 +313,14 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
       setCustomCssInitialized(true);
     }
   }, [project, customCssInitialized]);
+
+  // Initialize show branding
+  useEffect(() => {
+    if (project && !showBrandingInitialized) {
+      setShowBranding(project.settings?.showBranding ?? true);
+      setShowBrandingInitialized(true);
+    }
+  }, [project, showBrandingInitialized]);
 
   // Initialize CTA button
   useEffect(() => {
@@ -470,7 +485,18 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
     [updateSettings, projectId]
   );
 
+  const saveShowBranding = useCallback(
+    async (value: boolean) => {
+      await updateSettings({
+        projectId: projectId as Id<"projects">,
+        settings: { showBranding: value },
+      });
+    },
+    [updateSettings, projectId]
+  );
+
   // Auto-save hooks
+  const showBrandingStatus = useAutoSave(showBranding, saveShowBranding, 300, showBrandingInitialized);
   const brandingStatus = useAutoSave(
     { theme, primaryColor, backgroundColorLight, backgroundColorDark, backgroundSubtleColorLight, backgroundSubtleColorDark, logoAssetId },
     saveBranding,
@@ -547,6 +573,45 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BadgeCheck className="h-5 w-5" />
+              <div>
+                <CardTitle>{t("showBrandingTitle")}</CardTitle>
+                <CardDescription>
+                  {t("showBrandingDescription")}
+                </CardDescription>
+              </div>
+            </div>
+            <SaveStatus status={showBrandingStatus} />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-start gap-3 rounded-lg border p-4">
+            <input
+              type="checkbox"
+              id="show-branding"
+              checked={showBranding}
+              onChange={(e) => setShowBranding(e.target.checked)}
+              disabled={!canRemoveBranding}
+              className="mt-0.5 h-4 w-4 rounded border-border accent-primary disabled:opacity-50"
+            />
+            <div className="space-y-1">
+              <Label htmlFor="show-branding" className="cursor-pointer">
+                {t("showBrandingLabel")}
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {canRemoveBranding
+                  ? t("showBrandingHelp")
+                  : t("showBrandingUpgrade")}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
