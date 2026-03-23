@@ -553,6 +553,79 @@
       "changelog": "Changelog"
     }
   },
+  "featuresPage": {
+    "badge": "Features",
+    "headline": "Everything InkLoom can do",
+    "subhead": "The complete documentation platform for modern developer teams.",
+    "aiGeneration": {
+      "name": "AI Doc Generation",
+      "description": "Generate comprehensive documentation from your codebase with a single command.",
+      "why": "Your code already documents intent — InkLoom turns it into readable docs."
+    },
+    "evergreenDocs": {
+      "name": "Evergreen Documentation",
+      "description": "A GitHub Action keeps your docs in sync with every commit, automatically.",
+      "why": "Docs stay in sync with every commit, automatically.",
+      "link": "Learn about Evergreen Docs →"
+    },
+    "githubSync": {
+      "name": "GitHub Sync",
+      "description": "Bidirectional sync between InkLoom and GitHub. Branch previews, PR-based reviews, edit anywhere.",
+      "why": "Edit in InkLoom or push to Git — everything stays in sync."
+    },
+    "branchesReview": {
+      "name": "Branches & Review Workflow",
+      "description": "A full docs SDLC: create branches, open merge requests, assign reviewers, and merge with confidence.",
+      "why": "Review documentation changes like you review code."
+    },
+    "blockEditor": {
+      "name": "Block Editor",
+      "description": "A drag-and-drop block-based editor built for technical writing. Code blocks, callouts, tabs, embeds — no Markdown required.",
+      "why": "Technical writing that feels natural, not like wrestling a text file."
+    },
+    "openapi": {
+      "name": "OpenAPI / API Reference",
+      "description": "Drop in your OpenAPI spec and get fully interactive, auto-generated API reference docs.",
+      "why": "API docs that are always accurate and always beautiful."
+    },
+    "cliApi": {
+      "name": "CLI & API",
+      "description": "Deploy from your terminal, script doc updates, and integrate into any CI/CD pipeline.",
+      "why": "Automate documentation workflows however you want."
+    },
+    "themes": {
+      "name": "Themes & Customization",
+      "description": "Custom domains, brand colors, design tokens, and layout options to make your docs site feel like home.",
+      "why": "Your docs, your brand — not ours."
+    },
+    "deployment": {
+      "name": "Deployment & Hosting",
+      "description": "One-click deploys to Cloudflare's edge network (300+ locations) or self-host on your own infrastructure.",
+      "why": "Global performance with zero infrastructure work, or full control on your own servers."
+    },
+    "migration": {
+      "name": "Migration",
+      "description": "One-click import from Mintlify and GitBook. Bring your pages, navigation, and metadata.",
+      "why": "Switch platforms in minutes, not months.",
+      "linkMintlify": "Mintlify Alternative →",
+      "linkGitbook": "GitBook Alternative →"
+    },
+    "collaboration": {
+      "name": "Collaboration & Access",
+      "description": "Real-time editing with live cursors, role-based access control, and inline comments.",
+      "why": "Write together without stepping on each other's toes."
+    },
+    "search": {
+      "name": "Search",
+      "description": "Client-side full-text search index built at deploy time. Fuzzy matching, keyboard nav, section-level results.",
+      "why": "Your users find answers in milliseconds."
+    },
+    "cta": {
+      "title": "Ready to try it?",
+      "primary": "Start for free",
+      "secondary": "View on GitHub"
+    }
+  },
   "changelog": {
     "title": "Changelog",
     "subtitle": "New features, improvements, and fixes in InkLoom.",
