@@ -223,7 +223,10 @@
       "editorsOnline": "3 editors online"
     },
     "builtFor": {
-      "title": "Built for teams like"
+      "title": "Built for modern developer teams",
+      "title_b": "Pairs with the tools you already use",
+      "title_c": "Designed for teams that ship with",
+      "title_d": "Pairs with the tools you already use"
     },
     "features": {
       "badge": "Features",
