@@ -2549,7 +2549,7 @@
   "mintlifyAlternative": {
     "hero": {
       "headline": "Outgrow Mintlify without rebuilding your docs",
-      "subhead": "Import from Mintlify in one click. Remove 1-project-per-org and 5-user bottlenecks. Keep docs evergreen with AI.",
+      "subhead": "Import from Mintlify in one click. Remove 1-project-per-org and 5-user bottlenecks — then let AI keep every page in sync with your codebase so docs never go stale.",
       "importCta": "Import from Mintlify",
       "pricingCta": "See pricing",
       "creditNote": "Save 20% on annual. Eligible Mintlify migrations also receive a 1-month migration credit."
