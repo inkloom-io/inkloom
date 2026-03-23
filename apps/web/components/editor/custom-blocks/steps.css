@@ -152,20 +152,37 @@
 .bn-block:has(> .node-step) > .bn-block-group,
 .bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group {
   padding: 0 16px 8px;
-  /* Offset to align with step content area (indicator width ~44px + gap) */
-  padding-left: 52px;
-  margin-left: 0;
-  /* Continue the step indicator line alongside child blocks */
-  border-left: 2px solid var(--editor-primary, #6366f1);
+  margin-top: 0;
+  /* Continue the step indicator line alongside child blocks.
+     Color uses 40% mix to match .bn-step-line opacity: 0.4 */
+  border-left: 2px solid color-mix(in srgb, var(--editor-primary, #6366f1) 40%, transparent);
   margin-left: 29px; /* Center of step indicator circle: 16px padding + 14px half-width - 1px border */
   padding-left: 23px; /* 52px original - 29px margin = 23px */
-  opacity: 1;
 }
 
-/* Fade the continued line for the last step in a group */
+/* Remove parent .bn-block left border when step has child blocks to avoid double border */
+.bn-block:has(> .node-step):has(> .bn-block-group),
+.bn-block:has(> .bn-block-content[data-content-type="step"]):has(> .bn-block-group) {
+  border-left-color: transparent;
+}
+
+/* Eliminate gap between step inline content and child block-group */
+.bn-block:has(> .node-step) > .react-renderer,
+.bn-block:has(> .node-step) > .bn-block-content,
+.bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-content {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Fade the continued line for the last step in a group.
+   Start at 40% opacity to match .bn-step-line, fade to transparent. */
 .bn-block:has(> .node-step .bn-step[data-is-last="true"]) > .bn-block-group,
 .bn-block:has(> .bn-block-content[data-content-type="step"] .bn-step[data-is-last="true"]) > .bn-block-group {
-  border-image: linear-gradient(to bottom, var(--editor-primary, #6366f1) 60%, transparent) 1;
+  border-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--editor-primary, #6366f1) 40%, transparent) 60%,
+    transparent
+  ) 1;
 }
 
 /* Step indicator (number/icon + line) */
