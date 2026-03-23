@@ -517,15 +517,19 @@ describe("computeInlineDiff", () => {
   });
 
   it("detects inserted text", () => {
-    const source: InlineContent[] = [{ type: "text", text: "Hello" }];
-    const target: InlineContent[] = [{ type: "text", text: "Hello World" }];
+    // source = feature branch (new), target = main (old)
+    // "Hello" → "Hello World" means "World" was inserted in the feature branch
+    const source: InlineContent[] = [{ type: "text", text: "Hello World" }];
+    const target: InlineContent[] = [{ type: "text", text: "Hello" }];
     const result = computeInlineDiff(source, target);
     expect(result.some((seg) => seg.status === "insert")).toBe(true);
   });
 
   it("detects deleted text", () => {
-    const source: InlineContent[] = [{ type: "text", text: "Hello World" }];
-    const target: InlineContent[] = [{ type: "text", text: "Hello" }];
+    // source = feature branch (new), target = main (old)
+    // "Hello World" → "Hello" means "World" was deleted in the feature branch
+    const source: InlineContent[] = [{ type: "text", text: "Hello" }];
+    const target: InlineContent[] = [{ type: "text", text: "Hello World" }];
     const result = computeInlineDiff(source, target);
     expect(result.some((seg) => seg.status === "delete")).toBe(true);
   });

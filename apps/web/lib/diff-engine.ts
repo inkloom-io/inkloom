@@ -397,7 +397,7 @@ export function computeInlineDiff(
     return [{ text: sourceText, status: "equal" }];
   }
 
-  const ops = wordDiff(sourceText, targetText);
+  const ops = wordDiff(targetText, sourceText);
   return ops.map((op) => ({
     text: op.text,
     status: op.type,
