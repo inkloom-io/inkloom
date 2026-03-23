@@ -291,7 +291,7 @@
       }
     },
     "automation": {
-      "badge": "Coming Soon",
+      "badge": "Early Access",
       "title": "Documentation that writes",
       "titleHighlight": "and updates itself",
       "subtitle": "Point InkLoom at your codebase and watch it generate comprehensive product and developer documentation. A GitHub Action keeps everything evergreen -- docs update automatically with every PR and commit.",
