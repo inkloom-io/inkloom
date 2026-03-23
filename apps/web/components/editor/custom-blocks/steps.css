@@ -197,6 +197,15 @@
   border-image: none !important;
 }
 
+/* Hide nesting-depth indicator lines inside step child content.
+   The green indicator line already provides visual containment,
+   so the generic ::before left-border indicators are redundant. */
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step) > .bn-block-group > .bn-block-outer:not([data-prev-depth-changed])::before,
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group > .bn-block-outer:not([data-prev-depth-changed])::before {
+  border-left: none !important;
+  display: none !important;
+}
+
 /* Step indicator (number/icon + line) */
 .bn-step-indicator {
   display: flex;
