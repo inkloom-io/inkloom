@@ -149,8 +149,8 @@
 /* Child blocks (.bn-block-group) inside a step — position to the right of indicator.
    Use padding-left to align with step content (past the indicator column).
    Also add a left border to visually continue the step indicator line. */
-.bn-block:has(> .node-step) > .bn-block-group,
-.bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group {
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step) > .bn-block-group,
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group {
   padding: 0 16px 8px !important;
   margin-top: 0 !important;
   /* Continue the step indicator line alongside child blocks.
@@ -162,23 +162,23 @@
 }
 
 /* Remove parent .bn-block left border when step has child blocks to avoid double border */
-.bn-block:has(> .node-step):has(> .bn-block-group),
-.bn-block:has(> .bn-block-content[data-content-type="step"]):has(> .bn-block-group) {
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step):has(> .bn-block-group),
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .bn-block-content[data-content-type="step"]):has(> .bn-block-group) {
   border-left-color: transparent !important;
 }
 
 /* Eliminate gap between step inline content and child block-group */
-.bn-block:has(> .node-step) > .react-renderer,
-.bn-block:has(> .node-step) > .bn-block-content,
-.bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-content {
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step) > .react-renderer,
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step) > .bn-block-content,
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-content {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
 }
 
 /* Fade the continued line for the last step in a group.
    Start at 40% opacity to match .bn-step-line, fade to transparent. */
-.bn-block:has(> .node-step .bn-step[data-is-last="true"]) > .bn-block-group,
-.bn-block:has(> .bn-block-content[data-content-type="step"] .bn-step[data-is-last="true"]) > .bn-block-group {
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step .bn-step[data-is-last="true"]) > .bn-block-group,
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .bn-block-content[data-content-type="step"] .bn-step[data-is-last="true"]) > .bn-block-group {
   border-image: linear-gradient(
     to bottom,
     color-mix(in srgb, var(--editor-primary, #6366f1) 40%, transparent) 60%,
@@ -189,8 +189,8 @@
 /* Nested block-groups inside step children — no green line or extra indentation.
    Only the direct child .bn-block-group of a step .bn-block should have the
    green indicator line; deeper nested block-groups should be plain. */
-.bn-block:has(> .node-step) > .bn-block-group .bn-block-group,
-.bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group .bn-block-group {
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step) > .bn-block-group .bn-block-group,
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group .bn-block-group {
   margin-left: 0 !important;
   padding-left: 16px !important;
   border-left: none !important;
