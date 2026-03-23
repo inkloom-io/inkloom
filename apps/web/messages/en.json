@@ -2625,7 +2625,7 @@
       "headline": "Outgrow Mintlify without rebuilding your docs",
       "subhead": "Import from Mintlify in one click. Remove 1-project-per-org and 5-user bottlenecks — then let AI keep every page in sync with your codebase so docs never go stale.",
       "importCta": "Import from Mintlify",
-      "pricingCta": "See pricing",
+      "pricingCta": "Start for free",
       "creditNote": "Save 20% on annual. Eligible Mintlify migrations also receive a 1-month migration credit."
     },
     "problems": {
@@ -2715,7 +2715,7 @@
       "title": "Ready to switch?",
       "subtitle": "Import your Mintlify docs in minutes — not weeks.",
       "importCta": "Import from Mintlify",
-      "trialCta": "Start free trial"
+      "trialCta": "Start for free"
     }
   },
   "pricing": {
@@ -2998,7 +2998,7 @@
       "headline": "Stop upgrading your whole org for one docs project",
       "subhead": "Migrate from GitBook in one click. Keep a single invoice. Choose Pro or Ultimate per project instead of locking the whole org to one tier.",
       "ctaImport": "Import from GitBook",
-      "ctaPricing": "Compare pricing",
+      "ctaPricing": "Start for free",
       "note": "Save 20% on annual. Eligible GitBook migrations also receive a 1-month migration credit."
     },
     "problems": {
@@ -3110,7 +3110,7 @@
       "title": "Ready to switch?",
       "subtitle": "Import your GitBook docs in minutes. Get per-project pricing, AI-powered documentation, and the flexibility your team deserves.",
       "ctaImport": "Import from GitBook",
-      "ctaTrial": "Start free trial"
+      "ctaTrial": "Start for free"
     }
   },
   "useCaseDevDocs": {
@@ -3119,7 +3119,7 @@
       "headline": "Documentation developers (and LLMs) love",
       "subhead": "Ship API references, SDK guides, and code examples that stay perfectly in sync with your codebase — automatically. Beautiful docs that are always accurate, always up to date.",
       "ctaStart": "Start for Free",
-      "ctaDocs": "View Documentation"
+      "ctaDocs": "View on GitHub"
     },
     "features": {
       "badge": "Built for Developer Docs",
@@ -3191,7 +3191,7 @@
       "title": "Ship better docs today",
       "subtitle": "Ship documentation that's always accurate, always beautiful, and always fast.",
       "ctaStart": "Start for Free",
-      "ctaDocs": "Read the Docs"
+      "ctaDocs": "View on GitHub"
     }
   },
   "useCaseKnowledgeBase": {
@@ -3200,7 +3200,7 @@
       "headline": "Your team's source of truth",
       "subhead": "Centralize your team's knowledge in one place that's always current. InkLoom gives you branch-based reviews, real-time collaboration, and powerful search — so everyone stays aligned.",
       "ctaPrimary": "Start for Free",
-      "ctaSecondary": "Learn More"
+      "ctaSecondary": "View on GitHub"
     },
     "features": {
       "badge": "Built for Teams",
@@ -3272,7 +3272,8 @@
     "cta": {
       "title": "Build your knowledge base",
       "subtitle": "Start organizing your team's knowledge today. Free to get started, no credit card required.",
-      "button": "Get Started Free"
+      "button": "Get Started Free",
+      "githubCta": "View on GitHub"
     }
   },
   "resourcesNav": {
@@ -3419,7 +3420,7 @@
       "headline": "Help docs your users actually read",
       "subhead": "Create beautiful, fast product documentation that feels like part of your brand. InkLoom gives you themed help docs with custom domains, global edge delivery, and built-in reader feedback — so your users find answers before they open a ticket.",
       "startFreeCta": "Start for Free",
-      "templatesCta": "Browse Templates"
+      "templatesCta": "View on GitHub"
     },
     "features": {
       "badge": "Everything You Need",
@@ -3463,7 +3464,7 @@
       "title": "Launch your docs today",
       "subtitle": "Start free and upgrade when you're ready. No credit card required, no time limit on the free plan.",
       "signupCta": "Start for Free",
-      "docsCta": "Read the Docs"
+      "docsCta": "View on GitHub"
     }
   },
   "enterprisePage": {
@@ -3705,7 +3706,7 @@
       "headline": "Your docs are outdated. Right now.",
       "subhead": "InkLoom monitors your codebase and automatically updates documentation with every commit. Set up once, never fall behind again.",
       "ctaPrimary": "Start for free",
-      "ctaSecondary": "See how it works"
+      "ctaSecondary": "View on GitHub"
     },
     "pain": {
       "title": "Documentation debt is real",
