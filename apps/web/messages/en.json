@@ -549,6 +549,7 @@
       "resourcesSwitchToInkLoom": "Switch to InkLoom",
       "useCasesTitle": "Use Cases",
       "ossProgram": "OSS Program",
+      "resourcesEvergreenDocs": "Evergreen Docs",
       "changelog": "Changelog"
     }
   },
@@ -3623,6 +3624,67 @@
       "primaryCta": "Start your free project",
       "secondaryCta": "Compare plans",
       "terminalTitle": "Terminal"
+    }
+  },
+  "evergreenDocs": {
+    "hero": {
+      "badge": "Evergreen Documentation",
+      "headline": "Your docs are outdated. Right now.",
+      "subhead": "InkLoom monitors your codebase and automatically updates documentation with every commit. Set up once, never fall behind again.",
+      "ctaPrimary": "Start for free",
+      "ctaSecondary": "See how it works"
+    },
+    "pain": {
+      "title": "Documentation debt is real",
+      "subtitle": "Every team faces the same problem — docs fall behind code the moment you ship.",
+      "card1Title": "Documentation lags behind code",
+      "card1Description": "Every merge creates drift. Within weeks, your docs mislead users and erode developer trust.",
+      "card2Title": "Manual updates don't scale",
+      "card2Description": "As your codebase grows, no one has time to audit docs for accuracy after every release.",
+      "card3Title": "Stale docs erode trust",
+      "card3Description": "Developers stop reading your docs when they learn they can't rely on them. Support tickets spike."
+    },
+    "howItWorks": {
+      "badge": "How It Works",
+      "title": "Five steps to evergreen docs",
+      "subtitle": "Set it up once and your documentation stays accurate forever — automatically.",
+      "step1Label": "Push code",
+      "step1Description": "Commit to main or open a PR",
+      "step2Label": "CI scans changes",
+      "step2Description": "GitHub Action detects what changed",
+      "step3Label": "AI generates updates",
+      "step3Description": "InkLoom creates or updates affected pages",
+      "step4Label": "Review in PR",
+      "step4Description": "Preview doc changes alongside your code review",
+      "step5Label": "Auto deploy",
+      "step5Description": "Merge the PR, docs go live on the edge"
+    },
+    "differentiators": {
+      "title": "Why InkLoom is different",
+      "subtitle": "Not another docs tool — a docs engine that's native to your development workflow.",
+      "card1Title": "Git-native, not a separate workflow",
+      "card1Description": "Documentation updates are proposed as pull requests. Review them with the same tools and processes you already use for code.",
+      "card2Title": "AI that reads your code, not just your prompts",
+      "card2Description": "InkLoom indexes your actual codebase to generate accurate, contextual documentation — not generic content from a prompt.",
+      "card3Title": "One-click rollback",
+      "card3Description": "Full version history for every page. If an automated update isn't right, restore the previous version instantly."
+    },
+    "cta": {
+      "title": "Stop chasing your docs. Let them chase your code.",
+      "subtitle": "Set up once, stay in sync forever. Free to start, no credit card required.",
+      "ctaPrimary": "Start for free",
+      "ctaSecondary": "View on GitHub"
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "q1": "How does the automation actually work?",
+      "a1": "InkLoom provides a GitHub Action that runs in your CI pipeline. On every push or pull request, it analyzes code changes, identifies which documentation pages are affected, and uses AI to generate or update those pages. The updates are proposed as a pull request so you can review them before they go live.",
+      "q2": "Are updates auto-published or do they go through review?",
+      "a2": "By default, all documentation updates are proposed as pull requests. Your team reviews the changes alongside the code review, and docs only go live when the PR is merged. You can optionally configure auto-merge for trusted updates.",
+      "q3": "Is GitHub required?",
+      "a3": "GitHub is the primary integration today, with full support for GitHub Actions, PR-based workflows, and repository syncing. Support for GitLab and Bitbucket is planned.",
+      "q4": "Can I self-host InkLoom?",
+      "a4": "Yes. InkLoom is open source under the Apache 2.0 license. You can self-host the entire platform on your own infrastructure. See docs.inkloom.io for the self-hosting guide."
     }
   }
 }
