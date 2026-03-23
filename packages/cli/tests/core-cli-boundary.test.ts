@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI_PATH = resolve(__dirname, "../dist/cli.js");
@@ -208,7 +208,10 @@ describe("Core CLI entry point: command registration", () => {
   });
 });
 
-describe("Platform CLI docs command: properly separated", () => {
+const PLATFORM_DIR = resolve(__dirname, "../../../../platform");
+const hasPlatform = existsSync(PLATFORM_DIR);
+
+describe("Platform CLI docs command: properly separated", { skip: !hasPlatform && "platform/ directory not available (public repo)" }, () => {
   it("docs.ts should exist in platform/cli/commands/", () => {
     const platformDocsPath = resolve(
       __dirname,
