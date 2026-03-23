@@ -1391,9 +1391,29 @@
   background: transparent !important;
 }
 
-/* Children of step blocks — render inside the step panel */
-.editor-theme-wrapper .bn-block-outer:has([data-content-type="step"]) .bn-block-group,
-.bn-block-outer:has([data-content-type="step"]) .bn-block-group {
+/* Children of step blocks — direct child block-group gets green indicator line.
+   Use .node-step (not .node-steps) to distinguish individual step blocks from
+   the steps container, which also has [data-content-type="step"] descendants. */
+.editor-theme-wrapper .bn-block:has(> .node-step) > .bn-block-group,
+.bn-block:has(> .node-step) > .bn-block-group {
+  margin-left: 29px !important; /* Center of step indicator circle: 16px padding + 14px half-width - 1px border */
+  padding: 4px 16px 16px 23px !important; /* Left padding aligns with step content area */
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-left: 2px solid var(--editor-primary, #6366f1) !important;
+  background: transparent !important;
+}
+
+/* Fade the green line for the last step's child block-group */
+.editor-theme-wrapper .bn-block:has(> .node-step .bn-step[data-is-last="true"]) > .bn-block-group,
+.bn-block:has(> .node-step .bn-step[data-is-last="true"]) > .bn-block-group {
+  border-image: linear-gradient(to bottom, var(--editor-primary, #6366f1) 60%, transparent) 1 !important;
+}
+
+/* Nested block-groups inside step children — no green line or extra indentation */
+.editor-theme-wrapper .bn-block:has(> .node-step) > .bn-block-group .bn-block-group,
+.bn-block:has(> .node-step) > .bn-block-group .bn-block-group {
   margin-left: 0 !important;
   padding: 4px 16px 16px !important;
   border: none !important;
