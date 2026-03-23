@@ -227,9 +227,9 @@
     },
     "features": {
       "badge": "Features",
-      "title": "Everything you need to ship",
-      "titleLine2": "world-class documentation",
-      "subtitle": "From writing to deployment, InkLoom handles the entire documentation lifecycle so your team can focus on building.",
+      "title": "Write once. Stay current.",
+      "titleLine2": "Deploy everywhere.",
+      "subtitle": "Editor, API reference generator, GitHub sync, AI updates, edge deployment — the full docs lifecycle in one platform.",
       "blockEditor": {
         "badge": "Block Editor",
         "title": "Write docs like you think",
