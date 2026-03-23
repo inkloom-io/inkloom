@@ -494,6 +494,17 @@
       "exampleOrgPerMo": "/mo annual",
       "trialBadge": "14-day free trial"
     },
+    "painPoints": {
+      "badge": "Sound familiar?",
+      "title": "Documentation shouldn't be painful",
+      "subtitle": "Most teams struggle with the same three problems. InkLoom was built to solve all of them.",
+      "problem1": "Docs are always outdated",
+      "solution1": "InkLoom syncs with your codebase via GitHub — docs update automatically when your code changes.",
+      "problem2": "Setting up docs takes weeks",
+      "solution2": "Go from zero to published in under 5 minutes with our CLI. One command, beautiful docs.",
+      "problem3": "Your docs platform costs more than it should",
+      "solution3": "InkLoom is free for unlimited pages. No per-seat pricing, no page limits, no surprises."
+    },
     "cta": {
       "title": "Ready to ship better docs?",
       "title_b": "Outgrow GitBook or Mintlify in minutes",
