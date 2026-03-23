@@ -151,27 +151,28 @@
    Also add a left border to visually continue the step indicator line. */
 .bn-block:has(> .node-step) > .bn-block-group,
 .bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group {
-  padding: 0 16px 8px;
-  margin-top: 0;
+  padding: 0 16px 8px !important;
+  margin-top: 0 !important;
   /* Continue the step indicator line alongside child blocks.
      Color uses 40% mix to match .bn-step-line opacity: 0.4 */
-  border-left: 2px solid color-mix(in srgb, var(--editor-primary, #6366f1) 40%, transparent);
-  margin-left: 29px; /* Center of step indicator circle: 16px padding + 14px half-width - 1px border */
-  padding-left: 23px; /* 52px original - 29px margin = 23px */
+  border-left: 2px solid color-mix(in srgb, var(--editor-primary, #6366f1) 40%, transparent) !important;
+  margin-left: 29px !important; /* Center of step indicator circle: 16px padding + 14px half-width - 1px border */
+  padding-left: 23px !important; /* 52px original - 29px margin = 23px */
+  background: transparent !important;
 }
 
 /* Remove parent .bn-block left border when step has child blocks to avoid double border */
 .bn-block:has(> .node-step):has(> .bn-block-group),
 .bn-block:has(> .bn-block-content[data-content-type="step"]):has(> .bn-block-group) {
-  border-left-color: transparent;
+  border-left-color: transparent !important;
 }
 
 /* Eliminate gap between step inline content and child block-group */
 .bn-block:has(> .node-step) > .react-renderer,
 .bn-block:has(> .node-step) > .bn-block-content,
 .bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-content {
-  margin-bottom: 0;
-  padding-bottom: 0;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 /* Fade the continued line for the last step in a group.
@@ -182,7 +183,7 @@
     to bottom,
     color-mix(in srgb, var(--editor-primary, #6366f1) 40%, transparent) 60%,
     transparent
-  ) 1;
+  ) 1 !important;
 }
 
 /* Nested block-groups inside step children — no green line or extra indentation.
@@ -190,10 +191,10 @@
    green indicator line; deeper nested block-groups should be plain. */
 .bn-block:has(> .node-step) > .bn-block-group .bn-block-group,
 .bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group .bn-block-group {
-  margin-left: 0;
-  padding-left: 16px;
-  border-left: none;
-  border-image: none;
+  margin-left: 0 !important;
+  padding-left: 16px !important;
+  border-left: none !important;
+  border-image: none !important;
 }
 
 /* Step indicator (number/icon + line) */
