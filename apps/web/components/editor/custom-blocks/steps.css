@@ -185,6 +185,17 @@
   ) 1;
 }
 
+/* Nested block-groups inside step children — no green line or extra indentation.
+   Only the direct child .bn-block-group of a step .bn-block should have the
+   green indicator line; deeper nested block-groups should be plain. */
+.bn-block:has(> .node-step) > .bn-block-group .bn-block-group,
+.bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group .bn-block-group {
+  margin-left: 0;
+  padding-left: 16px;
+  border-left: none;
+  border-image: none;
+}
+
 /* Step indicator (number/icon + line) */
 .bn-step-indicator {
   display: flex;
