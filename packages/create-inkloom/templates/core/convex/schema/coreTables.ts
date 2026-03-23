@@ -2,10 +2,15 @@ import { defineTable } from "convex/server";
 import { v } from "convex/values";
 
 /**
- * Core tables for InkLoom — the documentation platform.
+ * Core tables — shipped in both the OSS core and the SaaS platform.
  *
- * This schema defines all tables needed for the core editor,
- * version history, branches, merge requests, and comments.
+ * IMPORTANT: These table definitions must NOT contain v.id() references to
+ * platform-only tables because the core standalone schema does not include
+ * those tables.
+ *
+ * For fields that reference platform-only tables (e.g. aiGenerationJobId),
+ * use v.optional(v.string()) instead of v.optional(v.id(...)).
+ * Convex IDs are strings at runtime, so data portability is preserved.
  */
 export const coreTables = {
   // Authentication & Users
@@ -28,6 +33,9 @@ export const coreTables = {
 
   // Projects
   projects: defineTable({
+    // NOTE: orgId is deprecated — kept for migration compatibility.
+    // Uses v.string() because the organizations table only exists in
+    // the platform schema.
     orgId: v.optional(v.string()),
     workosOrgId: v.optional(v.string()),
     name: v.string(),
@@ -61,13 +69,16 @@ export const coreTables = {
         logoDarkAssetId: v.optional(v.id("assets")),
         favicon: v.optional(v.string()),
         faviconAssetId: v.optional(v.id("assets")),
-        fonts: v.optional(
-          v.object({
-            heading: v.optional(v.string()),
-            body: v.optional(v.string()),
-            code: v.optional(v.string()),
-          })
-        ),
+        fonts: v.optional(v.object({
+          heading: v.optional(v.string()),
+          body: v.optional(v.string()),
+          code: v.optional(v.string()),
+        })),
+        accentColor: v.optional(v.string()),
+        sidebarBackgroundColor: v.optional(v.string()),
+        headerBackgroundColor: v.optional(v.string()),
+        linkColor: v.optional(v.string()),
+        codeAccentColor: v.optional(v.string()),
         customCss: v.optional(v.string()),
         customDomain: v.optional(v.string()),
         navTabs: v.optional(
@@ -145,33 +156,31 @@ export const coreTables = {
                 byokOpenRouterKey: v.optional(v.string()),
               })
             ),
+            openApiEnabled: v.optional(v.boolean()),
           })
         ),
-        seo: v.optional(
-          v.object({
-            ogTitle: v.optional(v.string()),
-            ogDescription: v.optional(v.string()),
-            ogImageAssetId: v.optional(v.id("assets")),
-            twitterCard: v.optional(
-              v.union(
-                v.literal("summary"),
-                v.literal("summary_large_image")
-              )
-            ),
-            robotsTxtCustom: v.optional(v.string()),
-            jsonLdOrg: v.optional(v.string()),
-          })
-        ),
-        analytics: v.optional(
-          v.object({
-            ga4MeasurementId: v.optional(v.string()),
-            posthogApiKey: v.optional(v.string()),
-            posthogHost: v.optional(v.string()),
-          })
-        ),
+        seo: v.optional(v.object({
+          ogTitle: v.optional(v.string()),
+          ogDescription: v.optional(v.string()),
+          ogImageAssetId: v.optional(v.id("assets")),
+          twitterCard: v.optional(v.union(v.literal("summary"), v.literal("summary_large_image"))),
+          robotsTxtCustom: v.optional(v.string()),
+          jsonLdOrg: v.optional(v.string()),
+        })),
+        analytics: v.optional(v.object({
+          ga4MeasurementId: v.optional(v.string()),
+          posthogApiKey: v.optional(v.string()),
+          posthogHost: v.optional(v.string()),
+        })),
         headScripts: v.optional(v.string()),
         bodyScripts: v.optional(v.string()),
         llmsTxt: v.optional(v.string()),
+        docsChat: v.optional(
+          v.object({
+            enabled: v.optional(v.boolean()),
+            model: v.optional(v.string()),
+          })
+        ),
         socialLinks: v.optional(
           v.array(
             v.object({
@@ -186,12 +195,40 @@ export const coreTables = {
             })
           )
         ),
+        defaultThemeMode: v.optional(
+          v.union(
+            v.literal("light"),
+            v.literal("dark"),
+            v.literal("system")
+          )
+        ),
+        showBranding: v.optional(v.boolean()),
         ctaButton: v.optional(
           v.object({
             label: v.string(),
             url: v.string(),
           })
         ),
+        migrationRedirects: v.optional(
+          v.array(
+            v.object({
+              from: v.string(),
+              to: v.string(),
+            })
+          )
+        ),
+        accessControl: v.optional(v.object({
+          mode: v.union(
+            v.literal("public"),
+            v.literal("login_required"),
+            v.literal("domain_restricted"),
+            v.literal("allowlist"),
+            v.literal("sso_required")
+          ),
+          allowedDomains: v.optional(v.array(v.string())),
+          allowedEmails: v.optional(v.array(v.string())),
+          sessionTtlDays: v.optional(v.number()),
+        })),
       })
     ),
     plan: v.optional(
@@ -200,6 +237,7 @@ export const coreTables = {
     hadTrial: v.optional(v.boolean()),
     trialEndsAt: v.optional(v.number()),
     hadRetentionOffer: v.optional(v.boolean()),
+    stripeTrialSubscriptionId: v.optional(v.string()),
     cfSlug: v.optional(v.string()),
     createdBy: v.optional(v.string()),
     createdAt: v.number(),
@@ -209,6 +247,7 @@ export const coreTables = {
     .index("by_org_and_slug", ["orgId", "slug"])
     .index("by_workos_org", ["workosOrgId"])
     .index("by_workos_org_and_slug", ["workosOrgId", "slug"])
+    .index("by_workos_org_and_updated_at", ["workosOrgId", "updatedAt"])
     .index("by_cf_slug", ["cfSlug"])
     .index("by_created_by", ["createdBy"])
     .index("by_updated_at", ["updatedAt"]),
@@ -237,6 +276,7 @@ export const coreTables = {
     position: v.number(),
     path: v.string(),
     icon: v.optional(v.string()),
+    // Uses v.string() — generationJobs is a platform-only table
     aiGenerationJobId: v.optional(v.string()),
     aiPendingReview: v.optional(v.boolean()),
     createdAt: v.number(),
@@ -262,8 +302,10 @@ export const coreTables = {
     titleSectionHidden: v.optional(v.boolean()),
     titleIconHidden: v.optional(v.boolean()),
     aiGenerated: v.optional(v.boolean()),
+    // Uses v.string() — generationJobs is a platform-only table
     aiGenerationJobId: v.optional(v.string()),
     aiPendingReview: v.optional(v.boolean()),
+    aiFolderSlug: v.optional(v.string()),
     seoTitle: v.optional(v.string()),
     seoDescription: v.optional(v.string()),
     ogImageAssetId: v.optional(v.id("assets")),
@@ -309,6 +351,7 @@ export const coreTables = {
     vercelToken: v.optional(v.string()),
     branchId: v.optional(v.id("branches")),
     liveDeploymentId: v.optional(v.id("deployments")),
+    accessAppId: v.optional(v.string()),
     productionUrl: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -336,9 +379,10 @@ export const coreTables = {
       v.union(
         v.literal("generating"),
         v.literal("uploading"),
-        v.literal("propagating")
+        v.literal("propagating"),
       )
     ),
+    warnings: v.optional(v.array(v.string())),
     createdBy: v.optional(v.id("users")),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -388,7 +432,7 @@ export const coreTables = {
       filterFields: ["projectId"],
     }),
 
-  // Comment Threads
+  // Comment Threads (anchored to blocks or inline text)
   commentThreads: defineTable({
     pageId: v.id("pages"),
     blockId: v.string(),
@@ -414,7 +458,7 @@ export const coreTables = {
     isEdited: v.boolean(),
   }).index("by_thread", ["threadId"]),
 
-  // Project Members
+  // Project-level RBAC memberships
   projectMembers: defineTable({
     projectId: v.id("projects"),
     userId: v.id("users"),
@@ -482,7 +526,7 @@ export const coreTables = {
     updatedAt: v.number(),
   }).index("by_merge_request", ["mergeRequestId"]),
 
-  // Branch Snapshots
+  // Branch Snapshots (fork-point tracking for three-way merge)
   branchSnapshots: defineTable({
     branchId: v.id("branches"),
     sourceBranchId: v.id("branches"),
