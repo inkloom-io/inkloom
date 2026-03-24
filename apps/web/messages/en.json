@@ -2293,13 +2293,21 @@
       "failedToComputeDiff": "Failed to compute diff",
       "noChanges": "No changes between these branches",
       "changedFiles": "Changed files ({count})",
+      "filesChanged": "{count} files changed",
       "root": "Root",
       "pageTitleChanged": "Page title has been changed",
       "pageDescriptionChanged": "Page description has been changed",
       "pageRemoved": "This page was removed from the source branch",
       "noBlockChanges": "No block-level changes",
       "failedToLoadDiff": "Failed to load diff for this page",
-      "selectFileToView": "Select a file to view changes"
+      "selectFileToView": "Select a file to view changes",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "viewed": "Viewed",
+      "viewedCount": "Viewed {viewed} of {total}",
+      "largeDiffWarning": "This page has a large diff ({count} changed blocks)",
+      "loadDiff": "Load diff",
+      "loadingDiff": "Loading diff..."
     },
     "blockDiff": {
       "added": "ADDED",

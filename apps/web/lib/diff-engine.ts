@@ -544,6 +544,39 @@ export function computeBlockDiff(
   return results;
 }
 
+// ── Character Count Computation ──────────────────────────────────────────
+
+export interface CharCounts {
+  added: number;
+  removed: number;
+}
+
+/**
+ * Compute the number of characters added and removed across block diffs.
+ * For added blocks: count all text as added.
+ * For removed blocks: count all text as removed.
+ * For modified blocks with inline diff: sum insert/delete segment lengths.
+ */
+export function computeCharCounts(blockDiffs: DiffResult[]): CharCounts {
+  let added = 0;
+  let removed = 0;
+
+  for (const diff of blockDiffs) {
+    if (diff.status === "added" && diff.sourceBlock) {
+      added += extractPlainText(diff.sourceBlock.content).length;
+    } else if (diff.status === "removed" && diff.targetBlock) {
+      removed += extractPlainText(diff.targetBlock.content).length;
+    } else if (diff.status === "modified" && diff.inlineDiff) {
+      for (const segment of diff.inlineDiff) {
+        if (segment.status === "insert") added += segment.text.length;
+        if (segment.status === "delete") removed += segment.text.length;
+      }
+    }
+  }
+
+  return { added, removed };
+}
+
 // ── Page Matching & Diffing ──────────────────────────────────────────────
 
 export interface PageInfo {

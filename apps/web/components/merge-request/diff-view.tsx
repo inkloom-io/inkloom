@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import type { BranchDiff, PageDiff } from "@/lib/diff-engine";
+import type { BranchDiff, PageDiff, DiffResult } from "@/lib/diff-engine";
+import { computeCharCounts } from "@/lib/diff-engine";
 import { BlockDiff } from "./block-diff";
 import { cn } from "@inkloom/ui/lib/utils";
 import { ScrollArea } from "@inkloom/ui/scroll-area";
@@ -13,10 +14,20 @@ import {
   FolderOpen,
   Loader2,
   ChevronRight,
+  ChevronDown,
   AlertTriangle,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { captureException } from "@/lib/sentry";
+
+// ── Constants ─────────────────────────────────────────────────────────────
+
+/** Pages with more changed blocks than this default to collapsed */
+const LARGE_DIFF_THRESHOLD = 50;
+
+// ── Types ─────────────────────────────────────────────────────────────────
 
 interface DiffViewProps {
   sourceBranchId: Id<"branches">;
@@ -24,10 +35,10 @@ interface DiffViewProps {
   mergeRequestId: Id<"mergeRequests">;
 }
 
-// Group pages by their parent folder path
-function groupByFolder(
-  pageDiffs: PageDiff[]
-): Map<string, PageDiff[]> {
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+/** Group pages by their parent folder path */
+function groupByFolder(pageDiffs: PageDiff[]): Map<string, PageDiff[]> {
   const groups = new Map<string, PageDiff[]>();
 
   for (const diff of pageDiffs) {
@@ -40,6 +51,23 @@ function groupByFolder(
 
   return groups;
 }
+
+/** Encode a page path for use as an HTML id */
+function encodePageId(path: string): string {
+  return `diff-page-${path.replace(/[^a-zA-Z0-9-_]/g, "-")}`;
+}
+
+/** Format a number with commas */
+function formatNumber(n: number): string {
+  return n.toLocaleString();
+}
+
+/** Count changed blocks in a diff (non-unchanged status) */
+function countChangedBlocks(blockDiffs: DiffResult[]): number {
+  return blockDiffs.filter((d) => d.status !== "unchanged").length;
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
   switch (status) {
@@ -66,6 +94,354 @@ function StatusBadge({ status }: { status: string }) {
   }
 }
 
+function CharCountBadge({
+  added,
+  removed,
+}: {
+  added: number;
+  removed: number;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+      {added > 0 && (
+        <span className="text-[#1a7f37] dark:text-[#3fb950]">
+          +{formatNumber(added)}
+        </span>
+      )}
+      {removed > 0 && (
+        <span className="text-[#cf222e] dark:text-[#f85149]">
+          -{formatNumber(removed)}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function ViewedCheckbox({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label?: string;
+}) {
+  return (
+    <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+      <span
+        role="checkbox"
+        aria-checked={checked}
+        tabIndex={0}
+        onClick={() => onChange(!checked)}
+        onKeyDown={(e) => {
+          if (e.key === " " || e.key === "Enter") {
+            e.preventDefault();
+            onChange(!checked);
+          }
+        }}
+        className={cn(
+          "inline-flex h-4 w-4 items-center justify-center rounded border transition-colors",
+          checked
+            ? "bg-primary border-primary text-primary-foreground"
+            : "border-[var(--glass-border)] hover:border-[var(--text-dim)]"
+        )}
+      >
+        {checked && <Check className="h-3 w-3" />}
+      </span>
+      {label && (
+        <span className="text-xs text-[var(--text-dim)]">{label}</span>
+      )}
+    </label>
+  );
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────
+
+function ReviewSidebar({
+  pageDiffs,
+  activePagePath,
+  viewedPages,
+  charCountsMap,
+  onFileClick,
+}: {
+  pageDiffs: PageDiff[];
+  activePagePath: string | null;
+  viewedPages: Set<string>;
+  charCountsMap: Map<string, { added: number; removed: number }>;
+  onFileClick: (path: string) => void;
+}) {
+  const t = useTranslations("mergeRequests.diffView");
+  const groupedPages = useMemo(() => groupByFolder(pageDiffs), [pageDiffs]);
+
+  return (
+    <div className="w-64 shrink-0 border-r border-[var(--glass-border)] bg-[var(--surface-bg)] sticky top-0 self-start h-screen overflow-hidden flex flex-col">
+      <div className="flex h-10 items-center px-3 border-b border-[var(--glass-divider)] shrink-0">
+        <span className="text-xs font-medium text-[var(--text-medium)]">
+          {t("changedFiles", { count: pageDiffs.length })}
+        </span>
+      </div>
+      <ScrollArea className="flex-1">
+        <div className="p-1">
+          {Array.from(groupedPages.entries()).map(([folder, pages]) => (
+            <div key={folder}>
+              <div className="flex items-center gap-1.5 px-2 py-1">
+                <FolderOpen className="h-3.5 w-3.5 text-[var(--text-dim)]" />
+                <span className="text-[11px] font-medium text-[var(--text-dim)] truncate">
+                  {folder === "/" ? t("root") : folder}
+                </span>
+              </div>
+              {pages.map((pageDiff) => {
+                const pageName =
+                  pageDiff.path.split("/").pop() || pageDiff.path;
+                const isActive = activePagePath === pageDiff.path;
+                const isViewed = viewedPages.has(pageDiff.path);
+                const counts = charCountsMap.get(pageDiff.path);
+
+                return (
+                  <button
+                    key={pageDiff.path}
+                    onClick={() => onFileClick(pageDiff.path)}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left text-xs transition-colors",
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-[var(--text-medium)] hover:bg-[var(--surface-active)]",
+                      isViewed && !isActive && "opacity-60"
+                    )}
+                  >
+                    <StatusBadge status={pageDiff.status} />
+                    <span className="truncate flex-1">{pageName}</span>
+                    {isViewed && (
+                      <Check className="h-3 w-3 shrink-0 text-emerald-500" />
+                    )}
+                    {counts && (counts.added > 0 || counts.removed > 0) && (
+                      <span className="shrink-0 text-[10px] font-semibold">
+                        {counts.added > 0 && (
+                          <span className="text-[#1a7f37] dark:text-[#3fb950]">
+                            +{counts.added}
+                          </span>
+                        )}
+                        {counts.added > 0 && counts.removed > 0 && " "}
+                        {counts.removed > 0 && (
+                          <span className="text-[#cf222e] dark:text-[#f85149]">
+                            -{counts.removed}
+                          </span>
+                        )}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
+
+// ── Page Diff Section ─────────────────────────────────────────────────────
+
+function PageDiffSection({
+  pageDiff,
+  loadedPageDiff,
+  isLoadingPageDiff,
+  isExpanded,
+  isLargeDiff,
+  isLargeDiffLoaded,
+  isViewed,
+  charCounts,
+  resolutions,
+  onToggleExpand,
+  onToggleViewed,
+  onLoadLargeDiff,
+  onResolutionChange,
+}: {
+  pageDiff: PageDiff;
+  loadedPageDiff: PageDiff | null;
+  isLoadingPageDiff: boolean;
+  isExpanded: boolean;
+  isLargeDiff: boolean;
+  isLargeDiffLoaded: boolean;
+  isViewed: boolean;
+  charCounts: { added: number; removed: number } | null;
+  resolutions: Record<number, "source" | "target">;
+  onToggleExpand: () => void;
+  onToggleViewed: () => void;
+  onLoadLargeDiff: () => void;
+  onResolutionChange: (blockIndex: number, resolution: "source" | "target") => void;
+}) {
+  const t = useTranslations("mergeRequests.diffView");
+  const pageId = encodePageId(pageDiff.path);
+  const changedBlockCount = loadedPageDiff
+    ? countChangedBlocks(loadedPageDiff.blockDiffs)
+    : 0;
+
+  return (
+    <div
+      id={pageId}
+      className="rounded-lg border border-[var(--glass-border)] overflow-hidden"
+    >
+      {/* Sticky page header */}
+      <div
+        className="flex items-center gap-2 px-4 h-10 bg-[var(--surface-bg)] border-b border-[var(--glass-divider)] sticky top-0 z-10 cursor-pointer select-none"
+        onClick={onToggleExpand}
+      >
+        {/* Collapse toggle */}
+        {isExpanded ? (
+          <ChevronDown className="h-3.5 w-3.5 text-[var(--text-dim)] shrink-0" />
+        ) : (
+          <ChevronRight className="h-3.5 w-3.5 text-[var(--text-dim)] shrink-0" />
+        )}
+
+        {/* Page path */}
+        <span className="text-xs font-medium text-[var(--text-bright)] truncate">
+          {pageDiff.path}
+        </span>
+
+        {/* Status badge */}
+        <StatusBadge status={pageDiff.status} />
+
+        {/* Char counts */}
+        {charCounts && (
+          <CharCountBadge
+            added={charCounts.added}
+            removed={charCounts.removed}
+          />
+        )}
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Viewed checkbox */}
+        <div onClick={(e) => e.stopPropagation()}>
+          <ViewedCheckbox
+            checked={isViewed}
+            onChange={onToggleViewed}
+            label={t("viewed")}
+          />
+        </div>
+      </div>
+
+      {/* Collapsible content */}
+      {isExpanded && (
+        <div className="p-4">
+          {/* Large diff placeholder */}
+          {isLargeDiff && !isLargeDiffLoaded ? (
+            <div className="flex flex-col items-center gap-3 py-8 text-center">
+              <AlertTriangle className="h-6 w-6 text-amber-500" />
+              <p className="text-sm text-[var(--text-dim)]">
+                {t("largeDiffWarning", { count: changedBlockCount || "many" })}
+              </p>
+              {charCounts && (
+                <CharCountBadge
+                  added={charCounts.added}
+                  removed={charCounts.removed}
+                />
+              )}
+              <button
+                onClick={onLoadLargeDiff}
+                className="rounded-md bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+              >
+                {t("loadDiff")}
+              </button>
+            </div>
+          ) : isLoadingPageDiff ? (
+            <div className="flex h-32 items-center justify-center">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            </div>
+          ) : loadedPageDiff ? (
+            <div className="space-y-3">
+              {/* Title change indicator */}
+              {loadedPageDiff.titleChanged && (
+                <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                  {t("pageTitleChanged")}
+                </div>
+              )}
+
+              {/* Description change indicator */}
+              {loadedPageDiff.descriptionChanged && (
+                <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                  {t("pageDescriptionChanged")}
+                </div>
+              )}
+
+              {/* Block diffs */}
+              {loadedPageDiff.blockDiffs.length > 0 ? (
+                <BlockDiff
+                  blockDiffs={loadedPageDiff.blockDiffs}
+                  resolutions={resolutions}
+                  onResolutionChange={onResolutionChange}
+                />
+              ) : loadedPageDiff.status === "removed" ? (
+                <div className="rounded-md border border-red-500/30 bg-red-500/5 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+                  {t("pageRemoved")}
+                </div>
+              ) : (
+                <div className="text-sm text-[var(--text-dim)]">
+                  {t("noBlockChanges")}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-sm text-[var(--text-dim)]">
+              {t("failedToLoadDiff")}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Review Header Bar ─────────────────────────────────────────────────────
+
+function ReviewHeaderBar({
+  fileCount,
+  totalAdded,
+  totalRemoved,
+  viewedCount,
+  allExpanded,
+  onExpandAll,
+  onCollapseAll,
+}: {
+  fileCount: number;
+  totalAdded: number;
+  totalRemoved: number;
+  viewedCount: number;
+  allExpanded: boolean;
+  onExpandAll: () => void;
+  onCollapseAll: () => void;
+}) {
+  const t = useTranslations("mergeRequests.diffView");
+
+  return (
+    <div className="flex items-center gap-3 px-4 h-12 bg-[var(--surface-bg)] border-b border-[var(--glass-divider)] shrink-0">
+      <span className="text-sm font-medium text-[var(--text-medium)]">
+        {t("filesChanged", { count: fileCount })}
+      </span>
+
+      <CharCountBadge added={totalAdded} removed={totalRemoved} />
+
+      <div className="flex-1" />
+
+      <span className="text-xs text-[var(--text-dim)]">
+        {t("viewedCount", { viewed: viewedCount, total: fileCount })}
+      </span>
+
+      <button
+        onClick={allExpanded ? onCollapseAll : onExpandAll}
+        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-[var(--text-medium)] hover:bg-[var(--surface-active)] transition-colors"
+      >
+        <ChevronsUpDown className="h-3.5 w-3.5" />
+        {allExpanded ? t("collapseAll") : t("expandAll")}
+      </button>
+    </div>
+  );
+}
+
+// ── Main Component ────────────────────────────────────────────────────────
+
 export function DiffView({
   sourceBranchId,
   targetBranchId,
@@ -77,21 +453,58 @@ export function DiffView({
     api.mergeRequestDiff.computePageDiffAction
   );
 
+  // Branch-level diff state
   const [branchDiff, setBranchDiff] = useState<BranchDiff | null>(null);
   const [isLoadingDiff, setIsLoadingDiff] = useState(true);
   const [diffError, setDiffError] = useState<string | null>(null);
 
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
-  const [selectedPageDiff, setSelectedPageDiff] = useState<PageDiff | null>(
-    null
+  // Per-page loaded diffs
+  const [pageDiffsMap, setPageDiffsMap] = useState<Map<string, PageDiff>>(
+    new Map()
   );
-  const [isLoadingPageDiff, setIsLoadingPageDiff] = useState(false);
+  const [loadingPages, setLoadingPages] = useState<Set<string>>(new Set());
 
-  const [resolutions, setResolutions] = useState<
-    Record<number, "source" | "target">
+  // Expand/collapse state
+  const [expandedPages, setExpandedPages] = useState<Set<string>>(new Set());
+  const [largeDiffLoadedPages, setLargeDiffLoadedPages] = useState<Set<string>>(
+    new Set()
+  );
+
+  // Viewed state (persisted in localStorage)
+  const viewedStorageKey = `mr-viewed-${mergeRequestId}`;
+  const [viewedPages, setViewedPages] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set<string>();
+    try {
+      const stored = localStorage.getItem(viewedStorageKey);
+      return stored ? new Set(JSON.parse(stored)) : new Set<string>();
+    } catch {
+      return new Set<string>();
+    }
+  });
+
+  // Active page tracking via IntersectionObserver
+  const [activePagePath, setActivePagePath] = useState<string | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Resolution state per page
+  const [pageResolutions, setPageResolutions] = useState<
+    Record<string, Record<number, "source" | "target">>
   >({});
 
-  // Load the branch-level diff on mount
+  // Persist viewed state to localStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(
+        viewedStorageKey,
+        JSON.stringify(Array.from(viewedPages))
+      );
+    } catch {
+      // localStorage not available
+    }
+  }, [viewedPages, viewedStorageKey]);
+
+  // Load branch-level diff on mount
   useEffect(() => {
     let cancelled = false;
     setIsLoadingDiff(true);
@@ -100,16 +513,26 @@ export function DiffView({
     computeDiff({ mergeRequestId })
       .then((diff) => {
         if (cancelled) return;
-        setBranchDiff(diff as BranchDiff);
-        // Auto-select the first changed page
-        const pageDiffs = (diff as BranchDiff).pageDiffs;
-        if (pageDiffs.length > 0) {
-          setSelectedPath(pageDiffs[0]!.path);
+        const typedDiff = diff as BranchDiff;
+        setBranchDiff(typedDiff);
+
+        // Initialize expanded state: expand all non-large pages
+        const expanded = new Set<string>();
+        for (const pd of typedDiff.pageDiffs) {
+          const changedCount = countChangedBlocks(pd.blockDiffs);
+          if (changedCount <= LARGE_DIFF_THRESHOLD) {
+            expanded.add(pd.path);
+          }
         }
+        setExpandedPages(expanded);
       })
       .catch((err) => {
         if (cancelled) return;
-        captureException(err, { source: "diff-view", action: "compute-diff", mergeRequestId });
+        captureException(err, {
+          source: "diff-view",
+          action: "compute-diff",
+          mergeRequestId,
+        });
         setDiffError(t("failedToComputeDiff"));
       })
       .finally(() => {
@@ -121,50 +544,229 @@ export function DiffView({
     };
   }, [mergeRequestId, computeDiff]);
 
-  // Load page-level diff when a page is selected
+  // Load page-level diffs for all pages once branchDiff is loaded
   useEffect(() => {
-    if (!selectedPath) {
-      setSelectedPageDiff(null);
-      return;
+    if (!branchDiff) return;
+
+    for (const pageDiff of branchDiff.pageDiffs) {
+      // For "removed" pages, we already have the data from branchDiff
+      if (pageDiff.status === "removed") {
+        setPageDiffsMap((prev) => {
+          const next = new Map(prev);
+          next.set(pageDiff.path, pageDiff);
+          return next;
+        });
+        continue;
+      }
+
+      // Check if this is a large diff that shouldn't auto-load
+      const changedCount = countChangedBlocks(pageDiff.blockDiffs);
+      if (changedCount > LARGE_DIFF_THRESHOLD) {
+        // Store the branch-level data (has block diffs from computeDiff)
+        setPageDiffsMap((prev) => {
+          const next = new Map(prev);
+          next.set(pageDiff.path, pageDiff);
+          return next;
+        });
+        continue;
+      }
+
+      // Load the detailed page diff
+      loadPageDiff(pageDiff.path);
     }
+  }, [branchDiff]);
 
-    let cancelled = false;
-    setIsLoadingPageDiff(true);
-    setResolutions({});
-
-    computePageDiffAction({
-      sourceBranchId,
-      targetBranchId,
-      pagePath: selectedPath,
-      mergeRequestId,
-    })
-      .then((pageDiff) => {
-        if (cancelled) return;
-        setSelectedPageDiff(pageDiff as PageDiff);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        captureException(err, { source: "diff-view", action: "compute-page-diff", pagePath: selectedPath, mergeRequestId });
-        setSelectedPageDiff(null);
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoadingPageDiff(false);
+  const loadPageDiff = useCallback(
+    (pagePath: string) => {
+      setLoadingPages((prev) => {
+        const next = new Set(prev);
+        next.add(pagePath);
+        return next;
       });
 
+      computePageDiffAction({
+        sourceBranchId,
+        targetBranchId,
+        pagePath,
+        mergeRequestId,
+      })
+        .then((result) => {
+          setPageDiffsMap((prev) => {
+            const next = new Map(prev);
+            next.set(pagePath, result as PageDiff);
+            return next;
+          });
+        })
+        .catch((err) => {
+          captureException(err, {
+            source: "diff-view",
+            action: "compute-page-diff",
+            pagePath,
+            mergeRequestId,
+          });
+        })
+        .finally(() => {
+          setLoadingPages((prev) => {
+            const next = new Set(prev);
+            next.delete(pagePath);
+            return next;
+          });
+        });
+    },
+    [sourceBranchId, targetBranchId, mergeRequestId, computePageDiffAction]
+  );
+
+  // IntersectionObserver for active page tracking
+  useEffect(() => {
+    if (!branchDiff || branchDiff.pageDiffs.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the topmost visible section
+        let topEntry: IntersectionObserverEntry | null = null;
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            if (
+              !topEntry ||
+              entry.boundingClientRect.top < topEntry.boundingClientRect.top
+            ) {
+              topEntry = entry;
+            }
+          }
+        }
+        if (topEntry) {
+          const id = topEntry.target.id;
+          // Decode the path from the id
+          const matchingPage = branchDiff.pageDiffs.find(
+            (pd) => encodePageId(pd.path) === id
+          );
+          if (matchingPage) {
+            setActivePagePath(matchingPage.path);
+          }
+        }
+      },
+      {
+        rootMargin: "-64px 0px -80% 0px",
+        threshold: 0,
+      }
+    );
+
+    // Observe all page section elements
+    const timer = setTimeout(() => {
+      for (const pageDiff of branchDiff.pageDiffs) {
+        const el = document.getElementById(encodePageId(pageDiff.path));
+        if (el) {
+          observer.observe(el);
+        }
+      }
+    }, 100);
+
     return () => {
-      cancelled = true;
+      clearTimeout(timer);
+      observer.disconnect();
     };
-  }, [selectedPath, sourceBranchId, targetBranchId, computePageDiffAction]);
+  }, [branchDiff]);
+
+  // Compute char counts for all loaded pages
+  const charCountsMap = useMemo(() => {
+    const map = new Map<string, { added: number; removed: number }>();
+    for (const [path, pageDiff] of pageDiffsMap) {
+      if (pageDiff.blockDiffs.length > 0) {
+        map.set(path, computeCharCounts(pageDiff.blockDiffs));
+      }
+    }
+    return map;
+  }, [pageDiffsMap]);
+
+  // Total char counts
+  const totalCharCounts = useMemo(() => {
+    let added = 0;
+    let removed = 0;
+    for (const counts of charCountsMap.values()) {
+      added += counts.added;
+      removed += counts.removed;
+    }
+    return { added, removed };
+  }, [charCountsMap]);
+
+  // Handlers
+  const handleFileClick = useCallback((path: string) => {
+    const el = document.getElementById(encodePageId(path));
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    // Also expand if collapsed
+    setExpandedPages((prev) => {
+      const next = new Set(prev);
+      next.add(path);
+      return next;
+    });
+  }, []);
+
+  const handleToggleExpand = useCallback((path: string) => {
+    setExpandedPages((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleToggleViewed = useCallback((path: string) => {
+    setViewedPages((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleLoadLargeDiff = useCallback(
+    (path: string) => {
+      setLargeDiffLoadedPages((prev) => {
+        const next = new Set(prev);
+        next.add(path);
+        return next;
+      });
+      loadPageDiff(path);
+    },
+    [loadPageDiff]
+  );
+
+  const handleExpandAll = useCallback(() => {
+    if (!branchDiff) return;
+    setExpandedPages(new Set(branchDiff.pageDiffs.map((pd) => pd.path)));
+  }, [branchDiff]);
+
+  const handleCollapseAll = useCallback(() => {
+    setExpandedPages(new Set());
+  }, []);
 
   const handleResolutionChange = useCallback(
-    (blockIndex: number, resolution: "source" | "target") => {
-      setResolutions((prev) => ({
+    (pagePath: string, blockIndex: number, resolution: "source" | "target") => {
+      setPageResolutions((prev) => ({
         ...prev,
-        [blockIndex]: resolution,
+        [pagePath]: {
+          ...(prev[pagePath] ?? {}),
+          [blockIndex]: resolution,
+        },
       }));
     },
     []
   );
+
+  // Check if all are expanded
+  const allExpanded = branchDiff
+    ? branchDiff.pageDiffs.every((pd) => expandedPages.has(pd.path))
+    : false;
+
+  // ── Render ──────────────────────────────────────────────────────────────
 
   if (isLoadingDiff) {
     return (
@@ -203,126 +805,70 @@ export function DiffView({
     );
   }
 
-  const groupedPages = groupByFolder(branchDiff.pageDiffs);
-
   return (
     <div className="flex min-h-0 flex-1 border border-[var(--glass-border)] rounded-lg overflow-hidden">
-      {/* Left sidebar: file tree */}
-      <div className="w-64 shrink-0 border-r border-[var(--glass-border)] bg-[var(--surface-bg)]">
-        <div className="flex h-10 items-center px-3 border-b border-[var(--glass-divider)]">
-          <span className="text-xs font-medium text-[var(--text-medium)]">
-            {t("changedFiles", { count: branchDiff.pageDiffs.length })}
-          </span>
+      {/* Sticky sidebar */}
+      <ReviewSidebar
+        pageDiffs={branchDiff.pageDiffs}
+        activePagePath={activePagePath}
+        viewedPages={viewedPages}
+        charCountsMap={charCountsMap}
+        onFileClick={handleFileClick}
+      />
+
+      {/* Main scrollable content area */}
+      <div className="flex flex-1 flex-col min-w-0" ref={contentRef}>
+        {/* Review header bar */}
+        <ReviewHeaderBar
+          fileCount={branchDiff.pageDiffs.length}
+          totalAdded={totalCharCounts.added}
+          totalRemoved={totalCharCounts.removed}
+          viewedCount={viewedPages.size}
+          allExpanded={allExpanded}
+          onExpandAll={handleExpandAll}
+          onCollapseAll={handleCollapseAll}
+        />
+
+        {/* Scrollable page sections */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 space-y-4">
+            {branchDiff.pageDiffs.map((pageDiff) => {
+              const loadedDiff = pageDiffsMap.get(pageDiff.path) ?? null;
+              const isLoading = loadingPages.has(pageDiff.path);
+              const isExpanded = expandedPages.has(pageDiff.path);
+              const changedCount = countChangedBlocks(
+                pageDiff.blockDiffs
+              );
+              const isLargeDiff = changedCount > LARGE_DIFF_THRESHOLD;
+              const isLargeDiffLoaded = largeDiffLoadedPages.has(
+                pageDiff.path
+              );
+              const isViewed = viewedPages.has(pageDiff.path);
+              const charCounts = charCountsMap.get(pageDiff.path) ?? null;
+
+              return (
+                <PageDiffSection
+                  key={pageDiff.path}
+                  pageDiff={pageDiff}
+                  loadedPageDiff={loadedDiff}
+                  isLoadingPageDiff={isLoading}
+                  isExpanded={isExpanded}
+                  isLargeDiff={isLargeDiff}
+                  isLargeDiffLoaded={isLargeDiffLoaded}
+                  isViewed={isViewed}
+                  charCounts={charCounts}
+                  resolutions={pageResolutions[pageDiff.path] ?? {}}
+                  onToggleExpand={() => handleToggleExpand(pageDiff.path)}
+                  onToggleViewed={() => handleToggleViewed(pageDiff.path)}
+                  onLoadLargeDiff={() => handleLoadLargeDiff(pageDiff.path)}
+                  onResolutionChange={(blockIndex, resolution) =>
+                    handleResolutionChange(pageDiff.path, blockIndex, resolution)
+                  }
+                />
+              );
+            })}
+          </div>
         </div>
-        <ScrollArea className="h-[calc(100%-2.5rem)]">
-          <div className="p-1">
-            {Array.from(groupedPages.entries()).map(([folder, pages]) => (
-              <div key={folder}>
-                {/* Folder header */}
-                <div className="flex items-center gap-1.5 px-2 py-1">
-                  <FolderOpen className="h-3.5 w-3.5 text-[var(--text-dim)]" />
-                  <span className="text-[11px] font-medium text-[var(--text-dim)] truncate">
-                    {folder === "/" ? t("root") : folder}
-                  </span>
-                </div>
-                {/* Pages in folder */}
-                {pages.map((pageDiff) => {
-                  const pageName =
-                    pageDiff.path.split("/").pop() || pageDiff.path;
-                  const isSelected = selectedPath === pageDiff.path;
-
-                  return (
-                    <button
-                      key={pageDiff.path}
-                      onClick={() => setSelectedPath(pageDiff.path)}
-                      className={cn(
-                        "flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-left text-xs transition-colors",
-                        isSelected
-                          ? "bg-primary/10 text-primary"
-                          : "text-[var(--text-medium)] hover:bg-[var(--surface-active)]"
-                      )}
-                    >
-                      <StatusBadge status={pageDiff.status} />
-                      <span className="truncate">{pageName}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
-      </div>
-
-      {/* Main area: page diff */}
-      <div className="flex flex-1 flex-col min-w-0">
-        {selectedPath ? (
-          <>
-            {/* Page diff header */}
-            <div className="flex h-10 items-center gap-2 px-4 border-b border-[var(--glass-divider)] bg-[var(--surface-bg)]">
-              <ChevronRight className="h-3.5 w-3.5 text-[var(--text-dim)]" />
-              <span className="text-xs font-medium text-[var(--text-bright)] truncate">
-                {selectedPath}
-              </span>
-              {selectedPageDiff && (
-                <StatusBadge status={selectedPageDiff.status} />
-              )}
-            </div>
-
-            {/* Page diff content */}
-            <ScrollArea className="flex-1">
-              <div className="p-4">
-                {isLoadingPageDiff ? (
-                  <div className="flex h-32 items-center justify-center">
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                  </div>
-                ) : selectedPageDiff ? (
-                  <div className="space-y-3">
-                    {/* Title change indicator */}
-                    {selectedPageDiff.titleChanged && (
-                      <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
-                        {t("pageTitleChanged")}
-                      </div>
-                    )}
-
-                    {/* Description change indicator */}
-                    {selectedPageDiff.descriptionChanged && (
-                      <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
-                        {t("pageDescriptionChanged")}
-                      </div>
-                    )}
-
-                    {/* Block diffs */}
-                    {selectedPageDiff.blockDiffs.length > 0 ? (
-                      <BlockDiff
-                        blockDiffs={selectedPageDiff.blockDiffs}
-                        resolutions={resolutions}
-                        onResolutionChange={handleResolutionChange}
-                      />
-                    ) : selectedPageDiff.status === "removed" ? (
-                      <div className="rounded-md border border-red-500/30 bg-red-500/5 px-4 py-3 text-sm text-red-600 dark:text-red-400">
-                        {t("pageRemoved")}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-[var(--text-dim)]">
-                        {t("noBlockChanges")}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-sm text-[var(--text-dim)]">
-                    {t("failedToLoadDiff")}
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          </>
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <span className="text-sm text-[var(--text-dim)]">
-              {t("selectFileToView")}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );
