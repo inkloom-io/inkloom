@@ -550,7 +550,7 @@ async function pullPlatformMode(
   }
 ): Promise<void> {
   const { createClient } = await import("../lib/client.js");
-  const client = createClient(opts);
+  const client = await createClient(opts);
   const outDir = path.resolve(localOpts.dir);
 
   // Fetch folders
@@ -777,7 +777,7 @@ async function pushPlatformMode(
   }
 ): Promise<void> {
   const { createClient } = await import("../lib/client.js");
-  const client = createClient(opts);
+  const client = await createClient(opts);
   const dir = path.resolve(localOpts.dir);
 
   if (!fs.existsSync(dir)) {

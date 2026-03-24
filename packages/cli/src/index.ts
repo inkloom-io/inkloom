@@ -1,8 +1,8 @@
 export const VERSION = "0.1.0";
 
 // Config
-export { readConfig, writeConfig, resolveConfig } from "./lib/config.js";
-export type { CliConfig, ResolvedConfig } from "./lib/config.js";
+export { readConfig, writeConfig, resolveConfig, resolveConfigSync } from "./lib/config.js";
+export type { CliConfig, ResolvedConfig, TokenSource } from "./lib/config.js";
 
 // Client (REST API — platform mode)
 export { createClient } from "./lib/client.js";

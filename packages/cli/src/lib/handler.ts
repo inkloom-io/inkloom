@@ -64,7 +64,7 @@ export function handleAction(
     const globalOpts = getGlobalOpts(cmd);
 
     try {
-      const client = createClient(globalOpts);
+      const client = await createClient(globalOpts);
       await fn(client, globalOpts, ...args.slice(0, -1));
     } catch (error) {
       if (error instanceof CliError) {

@@ -127,7 +127,7 @@ export async function browserLogin(opts?: {
   apiUrl?: string;
   org?: string;
 }): Promise<void> {
-  const config = resolveConfig({
+  const config = await resolveConfig({
     apiUrl: opts?.apiUrl,
     org: opts?.org,
   });

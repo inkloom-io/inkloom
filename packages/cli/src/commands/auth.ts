@@ -9,7 +9,7 @@ import { handleActionNoClient, type GlobalOpts } from "../lib/handler.js";
 import { printData, printSuccess } from "../lib/output.js";
 import { CliError, EXIT_AUTH } from "../lib/errors.js";
 import { isInteractive } from "../lib/prompt.js";
-import { setToken, deleteToken, getToken } from "../lib/credential-store.js";
+import { setToken, deleteToken } from "../lib/credential-store.js";
 import { browserLogin } from "../lib/browser-auth.js";
 
 /**
@@ -89,15 +89,27 @@ Examples:
     .description("Remove stored credentials")
     .action(
       handleActionNoClient(async () => {
-        // Clear credential store
-        await deleteToken();
+        const removedSources: string[] = [];
 
-        // Also clear legacy config token
+        // Clear credential store (keychain)
+        const deletedFromKeychain = await deleteToken();
+        if (deletedFromKeychain) {
+          removedSources.push("keychain");
+        }
+
+        // Clear legacy config token
         const config = readConfig();
-        delete config.token;
-        writeConfig(config);
+        if (config.token) {
+          delete config.token;
+          writeConfig(config);
+          removedSources.push("config file");
+        }
 
-        printSuccess("Logged out. Credentials removed.");
+        if (removedSources.length > 0) {
+          printSuccess(`Logged out. Token removed from ${removedSources.join(" and ")}.`);
+        } else {
+          printSuccess("Logged out. No stored credentials found.");
+        }
       })
     );
 
@@ -107,33 +119,39 @@ Examples:
     .description("Show current authentication status")
     .action(
       handleActionNoClient(async (opts: GlobalOpts) => {
-        const config = resolveConfig({
+        const config = await resolveConfig({
           token: opts.token,
           org: opts.org,
           apiUrl: opts.apiUrl,
         });
 
-        // Check credential store if no token from flags/env/config
-        let token = config.token;
-        if (!token) {
-          token = (await getToken()) ?? undefined;
-        }
-
-        if (!token) {
+        if (!config.token) {
           process.stderr.write("Not authenticated\n");
           process.exit(EXIT_AUTH);
         }
 
         const masked =
-          token.length > 16
-            ? token.slice(0, 16) + "..."
-            : token;
+          config.token.length > 16
+            ? config.token.slice(0, 16) + "..."
+            : config.token;
+
+        const sourceLabels: Record<string, string> = {
+          flag: "CLI flag",
+          environment: "environment variable",
+          keychain: "keychain",
+          config: "config file (legacy)",
+        };
+
+        const sourceLabel = config.tokenSource
+          ? sourceLabels[config.tokenSource] ?? config.tokenSource
+          : "unknown";
 
         if (opts.json) {
           printData(
             {
               authenticated: true,
               token: masked,
+              tokenSource: config.tokenSource,
               orgId: config.orgId ?? null,
               apiBaseUrl: config.apiBaseUrl,
             },
@@ -144,10 +162,18 @@ Examples:
 
         process.stderr.write("Authenticated\n");
         process.stderr.write(`  Token: ${masked}\n`);
+        process.stderr.write(`  Token source: ${sourceLabel}\n`);
         if (config.orgId) {
           process.stderr.write(`  Organization: ${config.orgId}\n`);
         }
         process.stderr.write(`  API: ${config.apiBaseUrl}\n`);
+
+        // Legacy migration hint: token in config file but not in keychain
+        if (config.tokenSource === "config") {
+          process.stderr.write(
+            "\nTip: Run `inkloom auth login` to upgrade to secure keychain storage.\n"
+          );
+        }
       })
     );
 }

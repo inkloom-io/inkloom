@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { getToken } from "./credential-store.js";
 
 /**
  * Config file fields stored in ~/.inkloom/config.json
@@ -13,11 +14,15 @@ export interface CliConfig {
   telemetryEnabled?: boolean;
 }
 
+/** Where the active token was resolved from. */
+export type TokenSource = "flag" | "environment" | "keychain" | "config" | null;
+
 /**
- * Fully resolved config with all sources merged (flags > env > file).
+ * Fully resolved config with all sources merged (flags > env > keychain > file).
  */
 export interface ResolvedConfig {
   token: string | undefined;
+  tokenSource: TokenSource;
   orgId: string | undefined;
   apiBaseUrl: string;
 }
@@ -56,18 +61,14 @@ export function writeConfig(config: CliConfig): void {
 }
 
 /**
- * Resolve config from all sources with precedence:
- * CLI flags > environment variables > config file.
+ * Resolve non-token config synchronously (orgId, apiBaseUrl).
+ * Token resolution requires async keychain access — use `resolveConfig()`.
  */
-export function resolveConfig(flags: {
-  token?: string;
+export function resolveConfigSync(flags: {
   org?: string;
   apiUrl?: string;
-}): ResolvedConfig {
+}): Omit<ResolvedConfig, "token" | "tokenSource"> & { fileToken: string | undefined } {
   const file = readConfig();
-
-  const token =
-    flags.token ?? process.env.INKLOOM_TOKEN ?? file.token ?? undefined;
 
   const orgId =
     flags.org ?? process.env.INKLOOM_ORG_ID ?? file.defaultOrgId ?? undefined;
@@ -78,5 +79,43 @@ export function resolveConfig(flags: {
     file.apiBaseUrl ??
     DEFAULT_API_URL;
 
-  return { token, orgId, apiBaseUrl };
+  return { orgId, apiBaseUrl, fileToken: file.token };
+}
+
+/**
+ * Resolve config from all sources with precedence:
+ * 1. CLI flags (--token)
+ * 2. Environment variables (INKLOOM_TOKEN)
+ * 3. OS keychain (credential store)
+ * 4. Config file (~/.inkloom/config.json — legacy)
+ */
+export async function resolveConfig(flags: {
+  token?: string;
+  org?: string;
+  apiUrl?: string;
+}): Promise<ResolvedConfig> {
+  const { orgId, apiBaseUrl, fileToken } = resolveConfigSync(flags);
+
+  // Resolve token with source tracking
+  let token: string | undefined;
+  let tokenSource: TokenSource = null;
+
+  if (flags.token) {
+    token = flags.token;
+    tokenSource = "flag";
+  } else if (process.env.INKLOOM_TOKEN) {
+    token = process.env.INKLOOM_TOKEN;
+    tokenSource = "environment";
+  } else {
+    const keychainToken = await getToken();
+    if (keychainToken) {
+      token = keychainToken;
+      tokenSource = "keychain";
+    } else if (fileToken) {
+      token = fileToken;
+      tokenSource = "config";
+    }
+  }
+
+  return { token, tokenSource, orgId, apiBaseUrl };
 }

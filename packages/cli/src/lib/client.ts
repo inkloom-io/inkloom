@@ -23,8 +23,8 @@ export interface Client {
   config: ResolvedConfig;
 }
 
-export function createClient(opts: ClientOptions): Client {
-  const config = resolveConfig({
+export async function createClient(opts: ClientOptions): Promise<Client> {
+  const config = await resolveConfig({
     token: opts.token,
     org: opts.org,
     apiUrl: opts.apiUrl,
