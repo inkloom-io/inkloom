@@ -252,27 +252,29 @@ export function ReviewThreadCard({
         </div>
       )}
 
-      {/* First comment / thread body */}
-      <div className="px-4 py-3">
-        <div className="flex gap-3">
-          <Avatar className="h-7 w-7 shrink-0">
-            {firstComment?.user?.avatarUrl && (
-              <AvatarImage
-                src={firstComment.user.avatarUrl}
-                alt={firstComment.user.name}
-              />
-            )}
-            <AvatarFallback className="text-[10px]">
-              {getInitials(firstComment?.user?.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm whitespace-pre-wrap">
-              {firstComment?.content}
-            </p>
+      {/* First comment / thread body — skip if no comment (suggestion-only thread) */}
+      {firstComment && firstComment.content && (
+        <div className="px-4 py-3">
+          <div className="flex gap-3">
+            <Avatar className="h-7 w-7 shrink-0">
+              {firstComment.user?.avatarUrl && (
+                <AvatarImage
+                  src={firstComment.user.avatarUrl}
+                  alt={firstComment.user.name}
+                />
+              )}
+              <AvatarFallback className="text-[10px]">
+                {getInitials(firstComment.user?.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm whitespace-pre-wrap">
+                {firstComment.content}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Suggestion diff */}
       {isSuggestion && thread.suggestedContent && (

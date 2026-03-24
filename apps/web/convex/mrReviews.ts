@@ -30,6 +30,11 @@ export const createThread = mutation({
 
     const now = Date.now();
 
+    // For regular comments, content is required. For suggestions, content is optional.
+    if (args.threadType === "comment" && !args.content.trim()) {
+      throw new Error("Comment content is required");
+    }
+
     const threadId = await ctx.db.insert("mrReviewThreads", {
       mergeRequestId: args.mergeRequestId,
       pagePath: args.pagePath,
@@ -46,14 +51,17 @@ export const createThread = mutation({
       updatedAt: now,
     });
 
-    await ctx.db.insert("mrReviewComments", {
-      threadId,
-      content: args.content,
-      createdBy: args.userId,
-      createdAt: now,
-      updatedAt: now,
-      isEdited: false,
-    });
+    // Only insert a comment record if the user actually wrote something
+    if (args.content.trim()) {
+      await ctx.db.insert("mrReviewComments", {
+        threadId,
+        content: args.content,
+        createdBy: args.userId,
+        createdAt: now,
+        updatedAt: now,
+        isEdited: false,
+      });
+    }
 
     return threadId;
   },

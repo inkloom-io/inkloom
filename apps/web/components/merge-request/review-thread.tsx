@@ -389,7 +389,7 @@ function ReviewThreadView({
       </div>
 
       {/* Suggestion diff */}
-      {isSuggestion && thread.quotedContent && thread.suggestedContent && (
+      {isSuggestion && (thread.quotedContent || thread.suggestedContent) && (
         <div className="px-3 pt-3">
           <SuggestionDiff
             original={thread.quotedContent}

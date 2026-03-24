@@ -68,9 +68,13 @@ export function ReviewCommentForm({
     }
   }, [threadType, quotedContent]);
 
+  const hasSuggestionChange =
+    threadType === "suggestion" && suggestedContent !== (quotedContent ?? "");
+
   const handleSubmit = useCallback(async () => {
     if (!userId) return;
-    if (!content.trim()) return;
+    // For comments, content is required. For suggestions, either content or a modified suggestion suffices.
+    if (!content.trim() && !hasSuggestionChange) return;
 
     setIsSubmitting(true);
     try {
@@ -96,6 +100,7 @@ export function ReviewCommentForm({
   }, [
     userId,
     content,
+    hasSuggestionChange,
     threadType,
     suggestedContent,
     mergeRequestId,
@@ -122,7 +127,8 @@ export function ReviewCommentForm({
     [handleSubmit, onClose]
   );
 
-  const canSubmit = content.trim().length > 0 && !isSubmitting;
+  const canSubmit =
+    (content.trim().length > 0 || hasSuggestionChange) && !isSubmitting;
 
   return (
     <div className="rounded-lg border border-primary/30 bg-[var(--surface-bg)] shadow-sm overflow-hidden">
@@ -191,7 +197,7 @@ export function ReviewCommentForm({
         <div className="space-y-1.5">
           {threadType === "suggestion" && (
             <label className="text-[11px] font-medium text-[var(--text-dim)] uppercase tracking-wide">
-              {t("commentLabel")}
+              {t("commentLabel")} <span className="normal-case font-normal">({t("optional")})</span>
             </label>
           )}
           <Textarea
