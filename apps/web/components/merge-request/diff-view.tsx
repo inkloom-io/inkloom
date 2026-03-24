@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useAction } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { BranchDiff, PageDiff, DiffResult } from "@/lib/diff-engine";
 import { computeCharCounts } from "@/lib/diff-engine";
+import { useAuth } from "@/hooks/use-auth";
 import { BlockDiff } from "./block-diff";
+import type { ReviewThreadData } from "./review-thread";
 import { ThreadResolutionCounter, PageThreadList } from "./review-thread";
 import { cn } from "@inkloom/ui/lib/utils";
 import { ScrollArea } from "@inkloom/ui/scroll-area";
@@ -254,6 +256,8 @@ function PageDiffSection({
   charCounts,
   resolutions,
   mergeRequestId,
+  threadsByBlock,
+  canManageThreads,
   onToggleExpand,
   onToggleViewed,
   onLoadLargeDiff,
@@ -269,6 +273,8 @@ function PageDiffSection({
   charCounts: { added: number; removed: number } | null;
   resolutions: Record<number, "source" | "target">;
   mergeRequestId: Id<"mergeRequests">;
+  threadsByBlock?: Map<number, ReviewThreadData[]>;
+  canManageThreads?: boolean;
   onToggleExpand: () => void;
   onToggleViewed: () => void;
   onLoadLargeDiff: () => void;
@@ -383,6 +389,10 @@ function PageDiffSection({
                   blockDiffs={loadedPageDiff.blockDiffs}
                   resolutions={resolutions}
                   onResolutionChange={onResolutionChange}
+                  mergeRequestId={mergeRequestId}
+                  pagePath={pageDiff.path}
+                  threadsByBlock={threadsByBlock}
+                  canManageThreads={canManageThreads}
                 />
               ) : loadedPageDiff.status === "removed" ? (
                 <div className="rounded-md border border-red-500/30 bg-red-500/5 px-4 py-3 text-sm text-red-600 dark:text-red-400">
@@ -465,10 +475,37 @@ export function DiffView({
   mergeRequestId,
 }: DiffViewProps) {
   const t = useTranslations("mergeRequests.diffView");
+  const { userId } = useAuth();
   const computeDiff = useAction(api.mergeRequestDiff.computeDiff);
   const computePageDiffAction = useAction(
     api.mergeRequestDiff.computePageDiffAction
   );
+
+  // ── Review threads ──────────────────────────────────────────────────
+  const allThreads = useQuery(api.mrReviews.listThreadsByMR, {
+    mergeRequestId,
+  });
+
+  // Group threads by pagePath → blockIndex
+  const threadsByPage = useMemo(() => {
+    const map = new Map<string, Map<number, ReviewThreadData[]>>();
+    if (!allThreads) return map;
+    for (const thread of allThreads as ReviewThreadData[]) {
+      let pageMap = map.get(thread.pagePath);
+      if (!pageMap) {
+        pageMap = new Map();
+        map.set(thread.pagePath, pageMap);
+      }
+      const existing = pageMap.get(thread.blockIndex) ?? [];
+      existing.push(thread);
+      pageMap.set(thread.blockIndex, existing);
+    }
+    return map;
+  }, [allThreads]);
+
+  // For now, any authenticated user can manage threads (server-side
+  // mutations enforce ownership rules for destructive operations).
+  const canManageThreads = !!userId;
 
   // Branch-level diff state
   const [branchDiff, setBranchDiff] = useState<BranchDiff | null>(null);
@@ -876,6 +913,8 @@ export function DiffView({
                   charCounts={charCounts}
                   resolutions={pageResolutions[pageDiff.path] ?? {}}
                   mergeRequestId={mergeRequestId}
+                  threadsByBlock={threadsByPage.get(pageDiff.path)}
+                  canManageThreads={canManageThreads}
                   onToggleExpand={() => handleToggleExpand(pageDiff.path)}
                   onToggleViewed={() => handleToggleViewed(pageDiff.path)}
                   onLoadLargeDiff={() => handleLoadLargeDiff(pageDiff.path)}

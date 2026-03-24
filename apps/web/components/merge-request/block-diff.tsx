@@ -1,15 +1,21 @@
 "use client";
 
-import { useState, Fragment } from "react";
+import { useState, Fragment, useCallback } from "react";
 import type {
   DiffResult,
   InlineDiffSegment,
   BlockData,
   InlineContent,
 } from "@/lib/diff-engine";
+import type { Id } from "@/convex/_generated/dataModel";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { TooltipProvider } from "@inkloom/ui/tooltip";
 import { ConflictResolver } from "./conflict-resolver";
+import { BlockGutter } from "./block-gutter";
+import { ReviewCommentForm } from "./review-comment-form";
+import { ReviewThread, ResolvedThreadGroup } from "./review-thread";
+import type { ReviewThreadData } from "./review-thread";
 
 interface BlockDiffProps {
   blockDiffs: DiffResult[];
@@ -18,6 +24,14 @@ interface BlockDiffProps {
     blockIndex: number,
     resolution: "source" | "target"
   ) => void;
+  /** Merge request ID for creating review threads. */
+  mergeRequestId?: Id<"mergeRequests">;
+  /** Page path for creating review threads. */
+  pagePath?: string;
+  /** Enriched review threads, keyed by blockIndex. */
+  threadsByBlock?: Map<number, ReviewThreadData[]>;
+  /** Whether the current user can manage threads (MR creator or admin). */
+  canManageThreads?: boolean;
 }
 
 // Extract plain text from BlockNote inline content
@@ -171,23 +185,156 @@ function UnchangedSeparator({
   );
 }
 
+// ── Block Row Wrapper ─────────────────────────────────────────────────────
+
+/**
+ * Wraps a diff block row with a hover-activated gutter button and
+ * renders any anchored review threads + an inline comment form below it.
+ */
+function BlockRow({
+  blockIndex,
+  blockId,
+  quotedContent,
+  mergeRequestId,
+  pagePath,
+  threads,
+  canManageThreads,
+  commentFormBlockIndex,
+  onOpenCommentForm,
+  onCloseCommentForm,
+  children,
+}: {
+  blockIndex: number;
+  blockId: string;
+  quotedContent?: string;
+  mergeRequestId?: Id<"mergeRequests">;
+  pagePath?: string;
+  threads?: ReviewThreadData[];
+  canManageThreads?: boolean;
+  commentFormBlockIndex: number | null;
+  onOpenCommentForm: (index: number) => void;
+  onCloseCommentForm: () => void;
+  children: React.ReactNode;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+  const reviewT = useTranslations("mergeRequests.review");
+
+  const openThreads = threads?.filter((th) => th.status === "open") ?? [];
+  const resolvedThreads =
+    threads?.filter((th) => th.status === "resolved") ?? [];
+  const threadCount = openThreads.length;
+  const showForm = commentFormBlockIndex === blockIndex;
+
+  const hasReviewSupport = mergeRequestId && pagePath;
+
+  return (
+    <div
+      data-block-index={blockIndex}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="flex gap-0">
+        {/* Gutter */}
+        {hasReviewSupport && (
+          <BlockGutter
+            visible={isHovered && !showForm}
+            threadCount={threadCount}
+            onClick={() => onOpenCommentForm(blockIndex)}
+            tooltipLabel={reviewT("addComment")}
+          />
+        )}
+
+        {/* Block content */}
+        <div className="flex-1 min-w-0">{children}</div>
+      </div>
+
+      {/* Inline comment form */}
+      {showForm && hasReviewSupport && (
+        <div className="mt-2 ml-8">
+          <ReviewCommentForm
+            mergeRequestId={mergeRequestId}
+            pagePath={pagePath}
+            blockId={blockId}
+            blockIndex={blockIndex}
+            quotedContent={quotedContent}
+            onClose={onCloseCommentForm}
+          />
+        </div>
+      )}
+
+      {/* Open threads */}
+      {openThreads.length > 0 && (
+        <div className="mt-2 ml-8 space-y-2">
+          {openThreads.map((thread) => (
+            <ReviewThread
+              key={thread._id}
+              thread={thread}
+              canManage={canManageThreads}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Resolved threads (collapsed group) */}
+      {resolvedThreads.length > 0 && (
+        <div className="mt-2 ml-8">
+          <ResolvedThreadGroup
+            threads={resolvedThreads}
+            canManage={canManageThreads}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main Component ────────────────────────────────────────────────────────
+
 export function BlockDiff({
   blockDiffs,
   resolutions,
   onResolutionChange,
+  mergeRequestId,
+  pagePath,
+  threadsByBlock,
+  canManageThreads,
 }: BlockDiffProps) {
   const t = useTranslations("mergeRequests.blockDiff");
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
   >({});
+  const [commentFormBlockIndex, setCommentFormBlockIndex] = useState<
+    number | null
+  >(null);
 
   const toggleSection = (key: string) => {
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const handleOpenCommentForm = useCallback((blockIndex: number) => {
+    setCommentFormBlockIndex(blockIndex);
+  }, []);
+
+  const handleCloseCommentForm = useCallback(() => {
+    setCommentFormBlockIndex(null);
+  }, []);
+
+  /** Get the block ID for a diff entry. */
+  const getBlockId = (diff: DiffResult, index: number): string => {
+    const block = diff.sourceBlock ?? diff.targetBlock;
+    return block?.id ?? `block-${index}`;
+  };
+
+  /** Get the text content for a block (for suggestion pre-fill). */
+  const getBlockText = (diff: DiffResult): string | undefined => {
+    const block = diff.sourceBlock ?? diff.targetBlock;
+    if (!block) return undefined;
+    return extractText(block.content) || undefined;
+  };
+
   // Group consecutive unchanged blocks into collapsible sections
   const elements: React.ReactNode[] = [];
-  let unchangedBuffer: DiffResult[] = [];
+  let unchangedBuffer: { diff: DiffResult; index: number }[] = [];
   let unchangedStartIndex = 0;
 
   const flushUnchanged = () => {
@@ -205,19 +352,30 @@ export function BlockDiff({
           t={t as any}
         />
         {isExpanded &&
-          unchangedBuffer.map((diff: any, j: number) => {
+          unchangedBuffer.map(({ diff, index: blockIdx }) => {
             const block = diff.targetBlock ?? diff.sourceBlock;
             if (!block) return null;
             return (
-              <div
-                key={`${sectionKey}-${j}`}
-                className="rounded-md border border-[var(--glass-border)] px-3 py-2 text-sm text-[var(--text-dim)]"
+              <BlockRow
+                key={`${sectionKey}-${blockIdx}`}
+                blockIndex={blockIdx}
+                blockId={getBlockId(diff, blockIdx)}
+                quotedContent={getBlockText(diff)}
+                mergeRequestId={mergeRequestId}
+                pagePath={pagePath}
+                threads={threadsByBlock?.get(blockIdx)}
+                canManageThreads={canManageThreads}
+                commentFormBlockIndex={commentFormBlockIndex}
+                onOpenCommentForm={handleOpenCommentForm}
+                onCloseCommentForm={handleCloseCommentForm}
               >
-                <div className="flex items-center gap-2 mb-1">
-                  <BlockTypeLabel type={block.type} t={t} />
+                <div className="rounded-md border border-[var(--glass-border)] px-3 py-2 text-sm text-[var(--text-dim)]">
+                  <div className="flex items-center gap-2 mb-1">
+                    <BlockTypeLabel type={block.type} t={t} />
+                  </div>
+                  <BlockContent block={block} />
                 </div>
-                <BlockContent block={block} />
-              </div>
+              </BlockRow>
             );
           })}
       </Fragment>
@@ -233,7 +391,7 @@ export function BlockDiff({
       if (unchangedBuffer.length === 0) {
         unchangedStartIndex = i;
       }
-      unchangedBuffer.push(diff);
+      unchangedBuffer.push({ diff, index: i });
       continue;
     }
 
@@ -245,40 +403,62 @@ export function BlockDiff({
       if (!block) continue;
 
       elements.push(
-        <div
+        <BlockRow
           key={`added-${i}`}
-          className="rounded-md border-l-4 border-l-emerald-500 border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm"
+          blockIndex={i}
+          blockId={getBlockId(diff, i)}
+          quotedContent={getBlockText(diff)}
+          mergeRequestId={mergeRequestId}
+          pagePath={pagePath}
+          threads={threadsByBlock?.get(i)}
+          canManageThreads={canManageThreads}
+          commentFormBlockIndex={commentFormBlockIndex}
+          onOpenCommentForm={handleOpenCommentForm}
+          onCloseCommentForm={handleCloseCommentForm}
         >
-          <div className="flex items-center gap-2 mb-1">
-            <BlockTypeLabel type={block.type} t={t} />
-            <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-              {t("added")}
-            </span>
+          <div className="rounded-md border-l-4 border-l-emerald-500 border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <BlockTypeLabel type={block.type} t={t} />
+              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                {t("added")}
+              </span>
+            </div>
+            <div className="text-emerald-800 dark:text-emerald-200">
+              <BlockContent block={block} />
+            </div>
           </div>
-          <div className="text-emerald-800 dark:text-emerald-200">
-            <BlockContent block={block} />
-          </div>
-        </div>
+        </BlockRow>
       );
     } else if (diff.status === "removed") {
       const block = diff.targetBlock;
       if (!block) continue;
 
       elements.push(
-        <div
+        <BlockRow
           key={`removed-${i}`}
-          className="rounded-md border-l-4 border-l-red-500 border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm"
+          blockIndex={i}
+          blockId={getBlockId(diff, i)}
+          quotedContent={getBlockText(diff)}
+          mergeRequestId={mergeRequestId}
+          pagePath={pagePath}
+          threads={threadsByBlock?.get(i)}
+          canManageThreads={canManageThreads}
+          commentFormBlockIndex={commentFormBlockIndex}
+          onOpenCommentForm={handleOpenCommentForm}
+          onCloseCommentForm={handleCloseCommentForm}
         >
-          <div className="flex items-center gap-2 mb-1">
-            <BlockTypeLabel type={block.type} t={t} />
-            <span className="text-[10px] font-semibold text-red-600 dark:text-red-400">
-              {t("removed")}
-            </span>
+          <div className="rounded-md border-l-4 border-l-red-500 border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <BlockTypeLabel type={block.type} t={t} />
+              <span className="text-[10px] font-semibold text-red-600 dark:text-red-400">
+                {t("removed")}
+              </span>
+            </div>
+            <div className="text-red-800 dark:text-red-200 line-through">
+              <BlockContent block={block} />
+            </div>
           </div>
-          <div className="text-red-800 dark:text-red-200 line-through">
-            <BlockContent block={block} />
-          </div>
-        </div>
+        </BlockRow>
       );
     } else if (diff.status === "modified") {
       const sourceBlock = diff.sourceBlock;
@@ -293,58 +473,72 @@ export function BlockDiff({
       const typeChanged = sourceBlock.type !== targetBlock.type;
 
       elements.push(
-        <div key={`modified-${i}`} className="space-y-1">
-          {/* MODIFIED badge row */}
-          <div className="flex items-center gap-2 px-1">
-            <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
-              {t("modified")}
-            </span>
-          </div>
+        <BlockRow
+          key={`modified-${i}`}
+          blockIndex={i}
+          blockId={getBlockId(diff, i)}
+          quotedContent={getBlockText(diff)}
+          mergeRequestId={mergeRequestId}
+          pagePath={pagePath}
+          threads={threadsByBlock?.get(i)}
+          canManageThreads={canManageThreads}
+          commentFormBlockIndex={commentFormBlockIndex}
+          onOpenCommentForm={handleOpenCommentForm}
+          onCloseCommentForm={handleCloseCommentForm}
+        >
+          <div className="space-y-1">
+            {/* MODIFIED badge row */}
+            <div className="flex items-center gap-2 px-1">
+              <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+                {t("modified")}
+              </span>
+            </div>
 
-          {/* Removed line (old/target content) */}
-          <div className="rounded-md border-l-4 border-l-red-500 border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm">
-            <div className="flex items-center gap-2 mb-1">
-              <BlockTypeLabel type={targetBlock.type} t={t} />
+            {/* Removed line (old/target content) */}
+            <div className="rounded-md border-l-4 border-l-red-500 border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <BlockTypeLabel type={targetBlock.type} t={t} />
+              </div>
+              <div className="leading-relaxed">
+                {diff.inlineDiff ? (
+                  <RemovedLineDiffDisplay segments={diff.inlineDiff} />
+                ) : (
+                  <div className="text-red-800 dark:text-red-200">
+                    <BlockContent block={targetBlock} />
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="leading-relaxed">
-              {diff.inlineDiff ? (
-                <RemovedLineDiffDisplay segments={diff.inlineDiff} />
-              ) : (
-                <div className="text-red-800 dark:text-red-200">
-                  <BlockContent block={targetBlock} />
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Added line (new/source content) */}
-          <div className="rounded-md border-l-4 border-l-emerald-500 border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm">
-            <div className="flex items-center gap-2 mb-1">
-              {typeChanged && <BlockTypeLabel type={sourceBlock.type} t={t} />}
+            {/* Added line (new/source content) */}
+            <div className="rounded-md border-l-4 border-l-emerald-500 border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm">
+              <div className="flex items-center gap-2 mb-1">
+                {typeChanged && <BlockTypeLabel type={sourceBlock.type} t={t} />}
+              </div>
+              <div className="leading-relaxed">
+                {diff.inlineDiff ? (
+                  <AddedLineDiffDisplay segments={diff.inlineDiff} />
+                ) : (
+                  <div className="text-emerald-800 dark:text-emerald-200">
+                    <BlockContent block={sourceBlock} />
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="leading-relaxed">
-              {diff.inlineDiff ? (
-                <AddedLineDiffDisplay segments={diff.inlineDiff} />
-              ) : (
-                <div className="text-emerald-800 dark:text-emerald-200">
-                  <BlockContent block={sourceBlock} />
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Conflict resolution UI — only shown for true three-way conflicts */}
-          {isConflict && (
-            <div className="mt-2">
-              <ConflictResolver
-                sourceBlock={sourceBlock}
-                targetBlock={targetBlock}
-                resolution={resolutions[i]}
-                onResolve={(resolution) => onResolutionChange(i, resolution)}
-              />
-            </div>
-          )}
-        </div>
+            {/* Conflict resolution UI — only shown for true three-way conflicts */}
+            {isConflict && (
+              <div className="mt-2">
+                <ConflictResolver
+                  sourceBlock={sourceBlock}
+                  targetBlock={targetBlock}
+                  resolution={resolutions[i]}
+                  onResolve={(resolution) => onResolutionChange(i, resolution)}
+                />
+              </div>
+            )}
+          </div>
+        </BlockRow>
       );
     }
   }
@@ -352,5 +546,9 @@ export function BlockDiff({
   // Flush any remaining unchanged blocks at the end
   flushUnchanged();
 
-  return <div className="space-y-2">{elements}</div>;
+  return (
+    <TooltipProvider>
+      <div className="space-y-2">{elements}</div>
+    </TooltipProvider>
+  );
 }

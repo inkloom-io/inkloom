@@ -4,43 +4,34 @@ import { useState, useCallback } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@inkloom/ui/button";
-import { Textarea } from "@inkloom/ui/textarea";
-import { Avatar, AvatarImage, AvatarFallback } from "@inkloom/ui/avatar";
+import { Badge } from "@inkloom/ui/badge";
 import { cn } from "@inkloom/ui/lib/utils";
 import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
-  Loader2,
   MessageSquare,
-  RotateCcw,
+  Lightbulb,
+  Check,
+  X,
+  Loader2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { getRelativeTimeKeyAndParams } from "@/lib/date-utils";
+import { ReplyForm } from "./review-comment-form";
 
-// ── Types ─────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────
 
-interface ThreadComment {
-  _id: Id<"mrReviewComments">;
-  content: string;
-  createdAt: number;
-  isEdited: boolean;
-  user: {
-    id: string;
-    name: string;
-    avatarUrl?: string;
-  } | null;
-}
-
-interface ReviewThreadData {
+/** Shape of enriched thread from listThreadsByPage / listThreadsByMR. */
+export interface ReviewThreadData {
   _id: Id<"mrReviewThreads">;
   mergeRequestId: Id<"mergeRequests">;
   pagePath: string;
   blockId: string;
   blockIndex: number;
-  threadType: "comment" | "suggestion";
   quotedContent?: string;
+  threadType: "comment" | "suggestion";
   suggestedContent?: string;
   suggestionStatus?: "pending" | "accepted" | "dismissed";
   status: "open" | "resolved";
@@ -48,298 +39,495 @@ interface ReviewThreadData {
   resolvedAt?: number;
   createdBy: Id<"users">;
   createdAt: number;
+  updatedAt: number;
   creator: {
-    id: string;
+    id: Id<"users">;
     name: string;
     avatarUrl?: string;
   } | null;
-  comments: ThreadComment[];
+  comments: ReviewCommentData[];
   commentCount: number;
 }
 
+export interface ReviewCommentData {
+  _id: Id<"mrReviewComments">;
+  threadId: Id<"mrReviewThreads">;
+  content: string;
+  createdBy: Id<"users">;
+  createdAt: number;
+  updatedAt: number;
+  isEdited: boolean;
+  user: {
+    id: Id<"users">;
+    name: string;
+    avatarUrl?: string;
+  } | null;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+
+function formatRelativeTime(timestamp: number): string {
+  const diff = Date.now() - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(timestamp).toLocaleDateString();
+}
+
+function UserAvatar({
+  user,
+  size = "sm",
+}: {
+  user: { name: string; avatarUrl?: string } | null;
+  size?: "sm" | "md";
+}) {
+  const dim = size === "sm" ? "h-6 w-6" : "h-7 w-7";
+  const textSize = size === "sm" ? "text-[10px]" : "text-xs";
+
+  if (user?.avatarUrl) {
+    return (
+      <img
+        src={user.avatarUrl}
+        alt={user.name}
+        className={cn(dim, "flex-shrink-0 rounded-full object-cover")}
+      />
+    );
+  }
+
+  const initials = user
+    ? user.name
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "?";
+
+  return (
+    <div
+      className={cn(
+        dim,
+        textSize,
+        "flex flex-shrink-0 items-center justify-center rounded-full bg-muted font-medium"
+      )}
+    >
+      {initials}
+    </div>
+  );
+}
+
+// ── Suggestion Diff Display ───────────────────────────────────────────────
+
+function SuggestionDiff({
+  original,
+  suggested,
+}: {
+  original?: string;
+  suggested?: string;
+}) {
+  if (!original && !suggested) return null;
+
+  return (
+    <div className="rounded-md border border-[var(--glass-border)] overflow-hidden text-xs font-mono">
+      {original && (
+        <div className="bg-red-500/5 border-b border-[var(--glass-border)] px-3 py-1.5">
+          <span className="text-red-600 dark:text-red-400 select-none mr-2">
+            −
+          </span>
+          <span className="text-red-800 dark:text-red-200">{original}</span>
+        </div>
+      )}
+      {suggested && (
+        <div className="bg-emerald-500/5 px-3 py-1.5">
+          <span className="text-emerald-600 dark:text-emerald-400 select-none mr-2">
+            +
+          </span>
+          <span className="text-emerald-800 dark:text-emerald-200">
+            {suggested}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Individual Comment ────────────────────────────────────────────────────
+
+function CommentItem({ comment }: { comment: ReviewCommentData }) {
+  return (
+    <div className="flex gap-2">
+      <UserAvatar user={comment.user} />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-2">
+          <span className="text-xs font-medium text-[var(--text-bright)] truncate">
+            {comment.user?.name ?? "Unknown"}
+          </span>
+          <span className="text-[10px] text-[var(--text-dim)]">
+            {formatRelativeTime(comment.createdAt)}
+          </span>
+          {comment.isEdited && (
+            <span className="text-[10px] text-[var(--text-dim)] italic">
+              (edited)
+            </span>
+          )}
+        </div>
+        <p className="text-sm text-[var(--text-medium)] mt-0.5 whitespace-pre-wrap break-words">
+          {comment.content}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── Thread Component ──────────────────────────────────────────────────────
+
 interface ReviewThreadProps {
   thread: ReviewThreadData;
-  userId?: Id<"users">;
-  mrCreatorId?: Id<"users">;
-  isAdmin?: boolean;
+  /** Whether this user can resolve/accept (MR creator or admin). */
+  canManage?: boolean;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────
-
-function getInitials(name: string | undefined | null): string {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
-
-// ── Thread Component ──────────────────────────────────────────────────
-
-export function ReviewThread({
-  thread,
-  userId,
-  mrCreatorId,
-  isAdmin,
-}: ReviewThreadProps) {
-  const t = useTranslations("mergeRequests.reviewThread");
-  const tc = useTranslations("common");
-
-  const [isExpanded, setIsExpanded] = useState(thread.status === "open");
-  const [replyText, setReplyText] = useState("");
-  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
-  const [isResolving, setIsResolving] = useState(false);
+export function ReviewThread({ thread, canManage = false }: ReviewThreadProps) {
+  const { userId } = useAuth();
 
   const resolveThread = useMutation(api.mrReviews.resolveThread);
   const unresolveThread = useMutation(api.mrReviews.unresolveThread);
-  const addComment = useMutation(api.mrReviews.addComment);
+  const acceptSuggestion = useMutation(api.mrReviews.acceptSuggestion);
+  const dismissSuggestion = useMutation(api.mrReviews.dismissSuggestion);
 
-  function relTime(ts: number) {
-    const { key, params } = getRelativeTimeKeyAndParams(ts);
-    return tc(key, params);
-  }
+  const [isResolving, setIsResolving] = useState(false);
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [isDismissing, setIsDismissing] = useState(false);
 
-  // Permission: can current user resolve this thread?
-  const canResolve = (() => {
-    if (!userId) return false;
-    // MR creator can resolve any thread
-    if (mrCreatorId && userId === mrCreatorId) return true;
-    // Admin can resolve any thread
-    if (isAdmin) return true;
-    // Thread creator can resolve their own thread
-    if (thread.createdBy === userId) return true;
-    // Thread participants can resolve
-    const isParticipant = thread.comments.some(
-      (c) => c.user && c.user.id === userId
-    );
-    return isParticipant;
-  })();
+  const isResolved = thread.status === "resolved";
+  const isSuggestion = thread.threadType === "suggestion";
+  const isPendingSuggestion =
+    isSuggestion && thread.suggestionStatus === "pending";
+  const isAcceptedSuggestion =
+    isSuggestion && thread.suggestionStatus === "accepted";
+  const isDismissedSuggestion =
+    isSuggestion && thread.suggestionStatus === "dismissed";
 
   const handleResolve = useCallback(async () => {
     if (!userId) return;
     setIsResolving(true);
     try {
-      await resolveThread({
-        threadId: thread._id,
-        userId,
-      });
-    } catch (error) {
-      console.error("Failed to resolve thread:", error);
+      await resolveThread({ threadId: thread._id, userId });
+    } catch {
+      // ignore
     } finally {
       setIsResolving(false);
     }
-  }, [userId, resolveThread, thread._id]);
+  }, [userId, thread._id, resolveThread]);
 
   const handleUnresolve = useCallback(async () => {
-    if (!userId) return;
     setIsResolving(true);
     try {
-      await unresolveThread({
-        threadId: thread._id,
-      });
-    } catch (error) {
-      console.error("Failed to unresolve thread:", error);
+      await unresolveThread({ threadId: thread._id });
+    } catch {
+      // ignore
     } finally {
       setIsResolving(false);
     }
-  }, [userId, unresolveThread, thread._id]);
+  }, [thread._id, unresolveThread]);
 
-  const handleAddReply = useCallback(async () => {
-    if (!replyText.trim() || !userId) return;
-    setIsSubmittingReply(true);
+  const handleAccept = useCallback(async () => {
+    if (!userId) return;
+    setIsAccepting(true);
     try {
-      await addComment({
-        threadId: thread._id,
-        content: replyText.trim(),
-        userId,
-      });
-      setReplyText("");
-    } catch (error) {
-      console.error("Failed to add reply:", error);
+      await acceptSuggestion({ threadId: thread._id, userId });
+    } catch {
+      // ignore
     } finally {
-      setIsSubmittingReply(false);
+      setIsAccepting(false);
     }
-  }, [replyText, userId, addComment, thread._id]);
+  }, [userId, thread._id, acceptSuggestion]);
 
-  const isResolved = thread.status === "resolved";
+  const handleDismiss = useCallback(async () => {
+    if (!userId) return;
+    setIsDismissing(true);
+    try {
+      await dismissSuggestion({ threadId: thread._id, userId });
+    } catch {
+      // ignore
+    } finally {
+      setIsDismissing(false);
+    }
+  }, [userId, thread._id, dismissSuggestion]);
 
-  // Resolved collapsed state
+  return (
+    <ReviewThreadView
+      thread={thread}
+      isResolved={isResolved}
+      isSuggestion={isSuggestion}
+      isPendingSuggestion={isPendingSuggestion}
+      isAcceptedSuggestion={isAcceptedSuggestion}
+      isDismissedSuggestion={isDismissedSuggestion}
+      canManage={canManage}
+      isResolving={isResolving}
+      isAccepting={isAccepting}
+      isDismissing={isDismissing}
+      onResolve={handleResolve}
+      onUnresolve={handleUnresolve}
+      onAccept={handleAccept}
+      onDismiss={handleDismiss}
+    />
+  );
+}
+
+// ── Thread View (pure render) ─────────────────────────────────────────────
+
+function ReviewThreadView({
+  thread,
+  isResolved,
+  isSuggestion,
+  isPendingSuggestion,
+  isAcceptedSuggestion,
+  isDismissedSuggestion,
+  canManage,
+  isResolving,
+  isAccepting,
+  isDismissing,
+  onResolve,
+  onUnresolve,
+  onAccept,
+  onDismiss,
+}: {
+  thread: ReviewThreadData;
+  isResolved: boolean;
+  isSuggestion: boolean;
+  isPendingSuggestion: boolean;
+  isAcceptedSuggestion: boolean;
+  isDismissedSuggestion: boolean;
+  canManage: boolean;
+  isResolving: boolean;
+  isAccepting: boolean;
+  isDismissing: boolean;
+  onResolve: () => void;
+  onUnresolve: () => void;
+  onAccept: () => void;
+  onDismiss: () => void;
+}) {
+  const t = useTranslations("mergeRequests.review");
+  const [isExpanded, setIsExpanded] = useState(!isResolved);
+
+  // Resolved threads collapse to a single line
   if (isResolved && !isExpanded) {
     return (
-      <div
-        className="flex items-center gap-2 rounded-md border border-[var(--glass-border)] bg-zinc-50 dark:bg-zinc-800/50 px-3 py-2 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+      <button
         onClick={() => setIsExpanded(true)}
+        className="flex w-full items-center gap-2 rounded-md border border-[var(--glass-border)] bg-[var(--surface-bg)] px-3 py-2 text-xs text-[var(--text-dim)] hover:bg-[var(--surface-active)] transition-colors"
       >
-        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-        <span className="text-xs text-muted-foreground flex-1">
-          {t("resolvedClickToExpand")}
+        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+        <ChevronRight className="h-3 w-3" />
+        <span>
+          {t("resolvedComments", { count: thread.commentCount })}
         </span>
-        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-      </div>
+        {isAcceptedSuggestion && (
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+            {t("changesApplied")}
+          </Badge>
+        )}
+      </button>
     );
   }
 
   return (
     <div
       className={cn(
-        "rounded-md border overflow-hidden",
+        "rounded-lg border overflow-hidden",
         isResolved
-          ? "border-[var(--glass-border)] bg-zinc-50/50 dark:bg-zinc-800/30"
-          : "border-blue-500/20"
+          ? "border-emerald-500/20 bg-emerald-500/5"
+          : "border-[var(--glass-border)] bg-[var(--surface-bg)]"
       )}
     >
       {/* Thread header */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-muted/30">
-        {/* Quoted content preview */}
-        {thread.quotedContent && (
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted-foreground truncate italic">
-              &ldquo;{thread.quotedContent}&rdquo;
-            </p>
-          </div>
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--glass-divider)]">
+        {isSuggestion ? (
+          <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
+        ) : (
+          <MessageSquare className="h-3.5 w-3.5 text-primary" />
         )}
-        {!thread.quotedContent && <div className="flex-1" />}
+        <span className="text-xs font-medium text-[var(--text-medium)]">
+          {isSuggestion ? t("suggestion") : t("comment")}
+        </span>
 
-        {/* Resolve / Unresolve buttons */}
-        {canResolve && (
-          <>
-            {isResolved ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-xs gap-1"
-                onClick={handleUnresolve}
-                disabled={isResolving}
-              >
-                {isResolving ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <RotateCcw className="h-3 w-3" />
-                )}
-                {t("unresolve")}
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-xs gap-1 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
-                onClick={handleResolve}
-                disabled={isResolving}
-              >
-                {isResolving ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="h-3 w-3" />
-                )}
-                {t("resolve")}
-              </Button>
-            )}
-          </>
+        {/* Status badges */}
+        {isAcceptedSuggestion && (
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+            <Check className="h-3 w-3 mr-0.5" />
+            {t("changesApplied")}
+          </Badge>
+        )}
+        {isDismissedSuggestion && (
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+            {t("dismissed")}
+          </Badge>
+        )}
+        {isResolved && (
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+            {t("resolved")}
+          </Badge>
         )}
 
-        {/* Collapse resolved thread */}
+        <div className="flex-1" />
+
+        {/* Collapse button for resolved threads */}
         {isResolved && (
           <button
-            type="button"
             onClick={() => setIsExpanded(false)}
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="p-0.5 rounded hover:bg-[var(--surface-active)] text-[var(--text-dim)]"
           >
             <ChevronDown className="h-3.5 w-3.5" />
           </button>
         )}
       </div>
 
-      {/* Comments */}
-      <div className="divide-y divide-[var(--glass-divider)]">
-        {thread.comments.map((comment) => (
-          <div key={comment._id} className="flex gap-2.5 px-3 py-2.5">
-            <Avatar className="h-6 w-6 shrink-0">
-              {comment.user?.avatarUrl && (
-                <AvatarImage
-                  src={comment.user.avatarUrl}
-                  alt={comment.user?.name ?? ""}
-                />
-              )}
-              <AvatarFallback className="text-[9px]">
-                {getInitials(comment.user?.name)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-xs font-medium">
-                  {comment.user?.name ?? t("unknownUser")}
-                </span>
-                <span className="text-[11px] text-muted-foreground">
-                  {relTime(comment.createdAt)}
-                </span>
-                {comment.isEdited && (
-                  <span className="text-[10px] text-muted-foreground italic">
-                    {t("edited")}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Suggested change display */}
-      {thread.threadType === "suggestion" && thread.suggestedContent && (
-        <div className="mx-3 my-2 rounded-md border border-dashed border-blue-500/30 bg-blue-500/5 p-3">
-          <p className="text-xs font-medium text-blue-700 dark:text-blue-400 mb-1">
-            {t("suggestedChange")}
-          </p>
-          <pre className="text-xs whitespace-pre-wrap text-muted-foreground">
-            {thread.suggestedContent}
-          </pre>
-          {thread.suggestionStatus === "accepted" && (
-            <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="h-3 w-3" />
-              {t("suggestionAccepted")}
-            </span>
-          )}
-          {thread.suggestionStatus === "dismissed" && (
-            <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-medium text-muted-foreground line-through">
-              {t("suggestionDismissed")}
-            </span>
-          )}
+      {/* Suggestion diff */}
+      {isSuggestion && thread.quotedContent && thread.suggestedContent && (
+        <div className="px-3 pt-3">
+          <SuggestionDiff
+            original={thread.quotedContent}
+            suggested={thread.suggestedContent}
+          />
         </div>
       )}
 
-      {/* Reply form (only for open threads) */}
-      {!isResolved && userId && (
-        <div className="border-t border-[var(--glass-divider)] px-3 py-2">
-          <div className="flex gap-2">
-            <Textarea
-              placeholder={t("replyPlaceholder")}
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              rows={1}
-              className="min-h-[32px] text-sm resize-none"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                  e.preventDefault();
-                  handleAddReply();
-                }
-              }}
-            />
+      {/* Comments */}
+      <div className="p-3 space-y-3">
+        {thread.comments.map((comment) => (
+          <CommentItem key={comment._id} comment={comment} />
+        ))}
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-2 px-3 pb-3">
+        {/* Suggestion actions */}
+        {isPendingSuggestion && canManage && (
+          <>
+            <Button
+              size="sm"
+              variant="default"
+              onClick={onAccept}
+              disabled={isAccepting}
+              className="h-7 text-xs"
+            >
+              {isAccepting && (
+                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+              )}
+              <Check className="mr-1 h-3 w-3" />
+              {t("acceptSuggestion")}
+            </Button>
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 shrink-0"
-              onClick={handleAddReply}
-              disabled={!replyText.trim() || isSubmittingReply}
+              onClick={onDismiss}
+              disabled={isDismissing}
+              className="h-7 text-xs"
             >
-              {isSubmittingReply ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <MessageSquare className="h-3.5 w-3.5" />
+              {isDismissing && (
+                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
               )}
+              <X className="mr-1 h-3 w-3" />
+              {t("dismissSuggestion")}
             </Button>
-          </div>
+          </>
+        )}
+
+        {/* Resolve / Unresolve */}
+        {canManage && !isResolved && !isPendingSuggestion && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onResolve}
+            disabled={isResolving}
+            className="h-7 text-xs"
+          >
+            {isResolving && (
+              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+            )}
+            <CheckCircle2 className="mr-1 h-3 w-3" />
+            {t("resolve")}
+          </Button>
+        )}
+        {canManage && isResolved && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onUnresolve}
+            disabled={isResolving}
+            className="h-7 text-xs"
+          >
+            {isResolving && (
+              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+            )}
+            {t("unresolve")}
+          </Button>
+        )}
+      </div>
+
+      {/* Reply form — only for open threads */}
+      {!isResolved && (
+        <div className="px-3 pb-3">
+          <ReplyForm threadId={thread._id} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Resolved Thread Group ─────────────────────────────────────────────────
+
+interface ResolvedThreadGroupProps {
+  threads: ReviewThreadData[];
+  canManage?: boolean;
+}
+
+/**
+ * Shows resolved threads as a collapsed group: "N resolved comments (expandable)"
+ */
+export function ResolvedThreadGroup({
+  threads,
+  canManage,
+}: ResolvedThreadGroupProps) {
+  const t = useTranslations("mergeRequests.review");
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (threads.length === 0) return null;
+
+  const totalComments = threads.reduce((s, th) => s + th.commentCount, 0);
+
+  return (
+    <div className="space-y-2">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex w-full items-center gap-2 rounded-md border border-[var(--glass-border)] bg-[var(--surface-bg)] px-3 py-2 text-xs text-[var(--text-dim)] hover:bg-[var(--surface-active)] transition-colors"
+      >
+        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+        {isExpanded ? (
+          <ChevronDown className="h-3 w-3" />
+        ) : (
+          <ChevronRight className="h-3 w-3" />
+        )}
+        <span>
+          {t("resolvedComments", { count: totalComments })}
+        </span>
+      </button>
+
+      {isExpanded && (
+        <div className="space-y-2 pl-2">
+          {threads.map((thread) => (
+            <ReviewThread
+              key={thread._id}
+              thread={thread}
+              canManage={canManage}
+            />
+          ))}
         </div>
       )}
     </div>
@@ -357,7 +545,7 @@ export function ThreadResolutionCounter({
   mergeRequestId,
   pagePath,
 }: ThreadResolutionCounterProps) {
-  const t = useTranslations("mergeRequests.reviewThread");
+  const t = useTranslations("mergeRequests.review");
 
   // Use page-specific or MR-wide query based on whether pagePath is provided
   const pageThreads = useQuery(
@@ -398,34 +586,31 @@ export function ThreadResolutionCounter({
 interface PageThreadListProps {
   mergeRequestId: Id<"mergeRequests">;
   pagePath: string;
-  userId?: Id<"users">;
-  mrCreatorId?: Id<"users">;
-  isAdmin?: boolean;
 }
 
 export function PageThreadList({
   mergeRequestId,
   pagePath,
-  userId,
-  mrCreatorId,
-  isAdmin,
 }: PageThreadListProps) {
+  const { userId } = useAuth();
   const threads = useQuery(api.mrReviews.listThreadsByPage, {
     mergeRequestId,
     pagePath,
   });
 
+  // Any authenticated user can manage threads (server-side mutations
+  // enforce ownership rules for destructive operations).
+  const canManage = !!userId;
+
   if (!threads || threads.length === 0) return null;
 
   return (
     <div className="space-y-2 mt-3">
-      {threads.map((thread: ReviewThreadData) => (
+      {(threads as ReviewThreadData[]).map((thread) => (
         <ReviewThread
           key={thread._id}
           thread={thread}
-          userId={userId}
-          mrCreatorId={mrCreatorId}
-          isAdmin={isAdmin}
+          canManage={canManage}
         />
       ))}
     </div>
