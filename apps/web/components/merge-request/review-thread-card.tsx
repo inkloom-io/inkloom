@@ -212,35 +212,37 @@ export function ReviewThreadCard({
           <span>{relTime(thread.createdAt)}</span>
         </div>
 
-        {isResolved && (
-          <Badge
-            variant="outline"
-            className="ml-auto text-xs border-green-200 text-green-700 dark:border-green-800 dark:text-green-400"
-          >
-            <CheckCircle2 className="h-3 w-3 mr-1" />
-            Resolved
-          </Badge>
-        )}
+        <div className="ml-auto flex items-center gap-2">
+          {isSuggestion && thread.suggestionStatus === "accepted" && (
+            <Badge
+              variant="outline"
+              className="text-xs border-green-200 text-green-700 dark:border-green-800 dark:text-green-400"
+            >
+              <Check className="h-3 w-3 mr-1" />
+              Accepted
+            </Badge>
+          )}
 
-        {isSuggestion && thread.suggestionStatus === "accepted" && (
-          <Badge
-            variant="outline"
-            className="ml-auto text-xs border-green-200 text-green-700 dark:border-green-800 dark:text-green-400"
-          >
-            <Check className="h-3 w-3 mr-1" />
-            Accepted
-          </Badge>
-        )}
+          {isSuggestion && thread.suggestionStatus === "dismissed" && (
+            <Badge
+              variant="outline"
+              className="text-xs border-muted-foreground/30 text-muted-foreground"
+            >
+              <X className="h-3 w-3 mr-1" />
+              Dismissed
+            </Badge>
+          )}
 
-        {isSuggestion && thread.suggestionStatus === "dismissed" && (
-          <Badge
-            variant="outline"
-            className="ml-auto text-xs border-muted-foreground/30 text-muted-foreground"
-          >
-            <X className="h-3 w-3 mr-1" />
-            Dismissed
-          </Badge>
-        )}
+          {isResolved && (
+            <Badge
+              variant="outline"
+              className="text-xs border-green-200 text-green-700 dark:border-green-800 dark:text-green-400"
+            >
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Resolved
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Quoted content snippet */}
