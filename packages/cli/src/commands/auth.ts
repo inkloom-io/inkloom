@@ -9,6 +9,8 @@ import { handleActionNoClient, type GlobalOpts } from "../lib/handler.js";
 import { printData, printSuccess } from "../lib/output.js";
 import { CliError, EXIT_AUTH } from "../lib/errors.js";
 import { isInteractive } from "../lib/prompt.js";
+import { setToken, deleteToken, getToken } from "../lib/credential-store.js";
+import { browserLogin } from "../lib/browser-auth.js";
 
 /**
  * Register auth commands: login, logout, status.
@@ -21,21 +23,28 @@ export function registerAuthCommands(program: Command): void {
   // --- auth login ---
   auth
     .command("login")
-    .description("Authenticate with an API key")
+    .description("Authenticate with InkLoom")
+    .option("--no-browser", "Skip browser login; prompt for token instead")
     .addHelpText(
       "after",
       `
 Examples:
-  $ inkloom auth login                          Interactive prompt for API key
+  $ inkloom auth login                          Open browser to authenticate
+  $ inkloom auth login --no-browser             Interactive prompt for API key
   $ inkloom auth login --token ik_live_user_... Store key directly (CI usage)
   $ INKLOOM_TOKEN=ik_live_user_... inkloom auth status  Use env var instead`
     )
     .action(
-      handleActionNoClient(async (opts: GlobalOpts) => {
-        // --token is a global flag; use it directly for non-interactive login
-        let token = opts.token;
+      handleActionNoClient(async (opts: GlobalOpts, localOpts: { browser: boolean }) => {
+        // --token global flag: direct token flow (CI/CD usage)
+        if (opts.token) {
+          await setToken(opts.token);
+          printSuccess("Token saved to credential store.");
+          return;
+        }
 
-        if (!token) {
+        // --no-browser: fall back to interactive token prompt
+        if (!localOpts.browser) {
           if (!isInteractive()) {
             throw new CliError(
               "No token provided. Use --token <key> in non-interactive mode.",
@@ -54,14 +63,23 @@ Examples:
             throw new CliError("Login cancelled.", EXIT_AUTH);
           }
 
-          token = response.token;
+          await setToken(response.token);
+          printSuccess("Token saved to credential store.");
+          return;
         }
 
-        const config = readConfig();
-        config.token = token;
-        writeConfig(config);
+        // Default: browser-based login flow
+        if (!isInteractive()) {
+          throw new CliError(
+            "Browser login requires an interactive terminal. Use --token <key> instead.",
+            EXIT_AUTH
+          );
+        }
 
-        printSuccess("Token saved to ~/.inkloom/config.json");
+        await browserLogin({
+          apiUrl: opts.apiUrl,
+          org: opts.org,
+        });
       })
     );
 
@@ -71,11 +89,15 @@ Examples:
     .description("Remove stored credentials")
     .action(
       handleActionNoClient(async () => {
+        // Clear credential store
+        await deleteToken();
+
+        // Also clear legacy config token
         const config = readConfig();
         delete config.token;
         writeConfig(config);
 
-        printSuccess("Logged out. Token removed from ~/.inkloom/config.json");
+        printSuccess("Logged out. Credentials removed.");
       })
     );
 
@@ -91,15 +113,21 @@ Examples:
           apiUrl: opts.apiUrl,
         });
 
-        if (!config.token) {
+        // Check credential store if no token from flags/env/config
+        let token = config.token;
+        if (!token) {
+          token = (await getToken()) ?? undefined;
+        }
+
+        if (!token) {
           process.stderr.write("Not authenticated\n");
           process.exit(EXIT_AUTH);
         }
 
         const masked =
-          config.token.length > 16
-            ? config.token.slice(0, 16) + "..."
-            : config.token;
+          token.length > 16
+            ? token.slice(0, 16) + "..."
+            : token;
 
         if (opts.json) {
           printData(
