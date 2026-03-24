@@ -358,14 +358,45 @@ export default function EditorPage({ params }: EditorPageProps) {
   // Get BlockNote-compatible collaboration config
   const collaborationConfig = useBlockNoteCollaboration(collaboration);
 
+  // Safety net: if collaboration takes too long to resolve (connect or error),
+  // make the editor editable anyway after a short grace period. This prevents
+  // the editor from being permanently stuck in read-only mode when the
+  // PartyKit server is unreachable or the token endpoint is slow.
+  const [collaborationGracePeriodExpired, setCollaborationGracePeriodExpired] =
+    useState(false);
+  useEffect(() => {
+    // Only start the grace timer when collaboration is actually being attempted
+    const isAttemptingCollaboration =
+      isCollaborationEnabled &&
+      collabGate.available &&
+      !collaborationDisabled &&
+      !!selectedPageId;
+    if (!isAttemptingCollaboration) {
+      setCollaborationGracePeriodExpired(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setCollaborationGracePeriodExpired(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [
+    isCollaborationEnabled,
+    collabGate.available,
+    collaborationDisabled,
+    selectedPageId,
+  ]);
+
   // Determine if we should wait for collaboration or render immediately
-  // Treat errors as "ready" so we fall back to solo editable mode
+  // Treat errors as "ready" so we fall back to solo editable mode.
+  // The grace period timeout ensures the editor becomes editable even if
+  // the collaboration connection is stuck (no connect AND no error).
   const isCollaborationReady =
     !isCollaborationEnabled ||
     !collabGate.available ||
     collaboration.connected ||
     !!collaboration.error ||
-    collaborationDisabled;
+    collaborationDisabled ||
+    collaborationGracePeriodExpired;
 
   // Soft edit lock for non-Ultimate plans (when realtime collaboration is unavailable)
   const editLock = useEditLock({
