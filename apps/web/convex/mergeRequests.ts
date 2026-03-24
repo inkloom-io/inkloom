@@ -37,7 +37,7 @@ export const list = query({
         return {
           ...mr,
           creator: creator
-            ? { name: creator.name, avatarUrl: creator.avatarUrl }
+            ? { name: creator.name, email: creator.email, avatarUrl: creator.avatarUrl }
             : null,
           sourceBranchName: sourceBranch?.name ?? "deleted",
           targetBranchName: targetBranch?.name ?? "deleted",
@@ -66,15 +66,15 @@ export const get = query({
     return {
       ...mr,
       creator: creator
-        ? { name: creator.name, avatarUrl: creator.avatarUrl }
+        ? { name: creator.name, email: creator.email, avatarUrl: creator.avatarUrl }
         : null,
       sourceBranchName: sourceBranch?.name ?? "deleted",
       targetBranchName: targetBranch?.name ?? "deleted",
       mergedByUser: mergedByUser
-        ? { name: mergedByUser.name, avatarUrl: mergedByUser.avatarUrl }
+        ? { name: mergedByUser.name, email: mergedByUser.email, avatarUrl: mergedByUser.avatarUrl }
         : null,
       closedByUser: closedByUser
-        ? { name: closedByUser.name, avatarUrl: closedByUser.avatarUrl }
+        ? { name: closedByUser.name, email: closedByUser.email, avatarUrl: closedByUser.avatarUrl }
         : null,
     };
   },
@@ -623,7 +623,7 @@ export const listComments = query({
         return {
           ...comment,
           creator: creator
-            ? { name: creator.name, avatarUrl: creator.avatarUrl }
+            ? { name: creator.name, email: creator.email, avatarUrl: creator.avatarUrl }
             : null,
         };
       })

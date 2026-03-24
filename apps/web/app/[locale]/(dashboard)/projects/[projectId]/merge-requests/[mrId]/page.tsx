@@ -307,17 +307,17 @@ export default function MergeRequestDetailPage(
 
             {/* Meta line */}
             <p className="text-sm text-muted-foreground">
-              {t("openedBy", { name: mr.creator?.name ?? t("unknownUser"), timeAgo: relTime(mr.createdAt) })}
+              {t("openedBy", { name: mr.creator?.name ?? mr.creator?.email ?? t("unknownUser"), timeAgo: relTime(mr.createdAt) })}
               {mr.status === "merged" && mr.mergedAt && (
                 <span>
                   {" "}
-                  &middot; {t("mergedBy", { name: mr.mergedByUser?.name ?? t("unknownUser"), timeAgo: relTime(mr.mergedAt) })}
+                  &middot; {t("mergedBy", { name: mr.mergedByUser?.name ?? mr.mergedByUser?.email ?? t("unknownUser"), timeAgo: relTime(mr.mergedAt) })}
                 </span>
               )}
               {mr.status === "closed" && mr.closedAt && (
                 <span>
                   {" "}
-                  &middot; {t("closedBy", { name: mr.closedByUser?.name ?? t("unknownUser"), timeAgo: relTime(mr.closedAt) })}
+                  &middot; {t("closedBy", { name: mr.closedByUser?.name ?? mr.closedByUser?.email ?? t("unknownUser"), timeAgo: relTime(mr.closedAt) })}
                 </span>
               )}
             </p>

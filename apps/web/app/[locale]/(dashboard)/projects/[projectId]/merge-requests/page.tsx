@@ -559,15 +559,15 @@ export default function MergeRequestsPage(props: MergeRequestsPageProps) {
                             {mr.creator.avatarUrl ? (
                               <img
                                 src={mr.creator.avatarUrl}
-                                alt={mr.creator.name ?? ""}
+                                alt={mr.creator.name ?? mr.creator.email ?? ""}
                                 className="h-4 w-4 rounded-full"
                               />
                             ) : (
                               <div className="flex h-4 w-4 items-center justify-center rounded-full bg-muted text-[8px] font-medium">
-                                {(mr.creator.name ?? "?")[0]?.toUpperCase()}
+                                {(mr.creator.name ?? mr.creator.email ?? "?")[0]?.toUpperCase()}
                               </div>
                             )}
-                            <span>{mr.creator.name ?? t("unknownUser")}</span>
+                            <span>{mr.creator.name ?? mr.creator.email ?? t("unknownUser")}</span>
                           </div>
                         )}
                         <span>{t("opened", { timeAgo: relTime(mr.createdAt) })}</span>
