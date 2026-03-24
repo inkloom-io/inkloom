@@ -535,6 +535,9 @@ export function DiffView({
   const [activePagePath, setActivePagePath] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // Track accepted suggestions that have already triggered a diff refetch
+  const processedAcceptedThreadsRef = useRef<Set<string>>(new Set());
+
   // Resolution state per page
   const [pageResolutions, setPageResolutions] = useState<
     Record<string, Record<number, "source" | "target">>
@@ -664,6 +667,25 @@ export function DiffView({
     },
     [sourceBranchId, targetBranchId, mergeRequestId, computePageDiffAction]
   );
+
+  // Recompute page diffs when suggestions are accepted
+  // allThreads is reactive (via useQuery), so when a suggestion's status
+  // changes to "accepted", this effect detects it and refetches the diff.
+  useEffect(() => {
+    if (!allThreads) return;
+    for (const thread of allThreads as ReviewThreadData[]) {
+      if (
+        thread.suggestionStatus === "accepted" &&
+        !processedAcceptedThreadsRef.current.has(thread._id)
+      ) {
+        processedAcceptedThreadsRef.current.add(thread._id);
+        const cachedDiff = pageDiffsMap.get(thread.pagePath);
+        if (cachedDiff) {
+          loadPageDiff(thread.pagePath);
+        }
+      }
+    }
+  }, [allThreads, pageDiffsMap, loadPageDiff]);
 
   // IntersectionObserver for active page tracking
   useEffect(() => {
