@@ -43,7 +43,6 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "pretest": "pnpm --filter @inkloom/mdx-parser --filter create-inkloom --filter @inkloom/migration build && pnpm build",
     "test": "node --import tsx --test tests/*.test.ts",
     "type-check": "tsc --noEmit"
   },
