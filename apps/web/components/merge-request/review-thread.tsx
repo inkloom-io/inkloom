@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ReplyForm } from "./review-comment-form";
+import { wordDiff } from "@/lib/diff-engine";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -132,6 +133,9 @@ function SuggestionDiff({
 }) {
   if (!original && !suggested) return null;
 
+  const diffOps =
+    original && suggested ? wordDiff(original, suggested) : undefined;
+
   return (
     <div className="rounded-md border border-[var(--glass-border)] overflow-hidden text-xs font-mono">
       {original && (
@@ -139,7 +143,24 @@ function SuggestionDiff({
           <span className="text-red-600 dark:text-red-400 select-none mr-2">
             −
           </span>
-          <span className="text-red-800 dark:text-red-200">{original}</span>
+          <span className="text-red-800 dark:text-red-200">
+            {diffOps
+              ? diffOps
+                  .filter((op) => op.type !== "insert")
+                  .map((op, i) =>
+                    op.type === "delete" ? (
+                      <span
+                        key={i}
+                        className="bg-red-500/30 rounded-sm px-0.5"
+                      >
+                        {op.text}
+                      </span>
+                    ) : (
+                      <span key={i}>{op.text}</span>
+                    )
+                  )
+              : original}
+          </span>
         </div>
       )}
       {suggested && (
@@ -148,7 +169,22 @@ function SuggestionDiff({
             +
           </span>
           <span className="text-emerald-800 dark:text-emerald-200">
-            {suggested}
+            {diffOps
+              ? diffOps
+                  .filter((op) => op.type !== "delete")
+                  .map((op, i) =>
+                    op.type === "insert" ? (
+                      <span
+                        key={i}
+                        className="bg-emerald-500/30 rounded-sm px-0.5"
+                      >
+                        {op.text}
+                      </span>
+                    ) : (
+                      <span key={i}>{op.text}</span>
+                    )
+                  )
+              : suggested}
           </span>
         </div>
       )}

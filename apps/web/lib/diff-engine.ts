@@ -346,7 +346,7 @@ function tokenizeWords(text: string): string[] {
  * Word-level diff using LCS on word tokens.
  * Produces much more readable output for prose than character-level Myers diff.
  */
-function wordDiff(oldStr: string, newStr: string): MyersDiffOp[] {
+export function wordDiff(oldStr: string, newStr: string): MyersDiffOp[] {
   if (oldStr === newStr) return [{ type: "equal", text: oldStr }];
   if (oldStr.length === 0) return [{ type: "insert", text: newStr }];
   if (newStr.length === 0) return [{ type: "delete", text: oldStr }];
