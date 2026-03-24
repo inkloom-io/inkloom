@@ -146,6 +146,9 @@ function generateHeadExtras(opts: {
     parts.push(`<meta property="og:type" content="${og.ogType}" />`);
     if (og.ogImage) {
       parts.push(`<meta property="og:image" content="${escapeHtml(og.ogImage)}" />`);
+      parts.push(`<meta property="og:image:width" content="1200" />`);
+      parts.push(`<meta property="og:image:height" content="630" />`);
+      parts.push(`<meta property="og:image:type" content="image/png" />`);
     }
     parts.push(`<meta name="twitter:card" content="${og.twitterCard}" />`);
     parts.push(`<meta name="twitter:title" content="${escapeHtml(og.ogTitle)}" />`);
