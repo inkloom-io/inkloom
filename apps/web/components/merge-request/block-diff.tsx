@@ -28,8 +28,8 @@ interface BlockDiffProps {
   mergeRequestId?: Id<"mergeRequests">;
   /** Page path for creating review threads. */
   pagePath?: string;
-  /** Enriched review threads, keyed by blockIndex. */
-  threadsByBlock?: Map<number, ReviewThreadData[]>;
+  /** Enriched review threads, keyed by blockId. */
+  threadsByBlock?: Map<string, ReviewThreadData[]>;
   /** Whether the current user can manage threads (MR creator or admin). */
   canManageThreads?: boolean;
 }
@@ -363,7 +363,7 @@ export function BlockDiff({
                 quotedContent={getBlockText(diff)}
                 mergeRequestId={mergeRequestId}
                 pagePath={pagePath}
-                threads={threadsByBlock?.get(blockIdx)}
+                threads={threadsByBlock?.get(getBlockId(diff, blockIdx))}
                 canManageThreads={canManageThreads}
                 commentFormBlockIndex={commentFormBlockIndex}
                 onOpenCommentForm={handleOpenCommentForm}
@@ -410,7 +410,7 @@ export function BlockDiff({
           quotedContent={getBlockText(diff)}
           mergeRequestId={mergeRequestId}
           pagePath={pagePath}
-          threads={threadsByBlock?.get(i)}
+          threads={threadsByBlock?.get(getBlockId(diff, i))}
           canManageThreads={canManageThreads}
           commentFormBlockIndex={commentFormBlockIndex}
           onOpenCommentForm={handleOpenCommentForm}
@@ -441,7 +441,7 @@ export function BlockDiff({
           quotedContent={getBlockText(diff)}
           mergeRequestId={mergeRequestId}
           pagePath={pagePath}
-          threads={threadsByBlock?.get(i)}
+          threads={threadsByBlock?.get(getBlockId(diff, i))}
           canManageThreads={canManageThreads}
           commentFormBlockIndex={commentFormBlockIndex}
           onOpenCommentForm={handleOpenCommentForm}
@@ -480,7 +480,7 @@ export function BlockDiff({
           quotedContent={getBlockText(diff)}
           mergeRequestId={mergeRequestId}
           pagePath={pagePath}
-          threads={threadsByBlock?.get(i)}
+          threads={threadsByBlock?.get(getBlockId(diff, i))}
           canManageThreads={canManageThreads}
           commentFormBlockIndex={commentFormBlockIndex}
           onOpenCommentForm={handleOpenCommentForm}

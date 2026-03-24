@@ -2343,34 +2343,6 @@
       "useSource": "Use source",
       "useTarget": "Use target"
     },
-    "review": {
-      "addComment": "Add a comment",
-      "comment": "Comment",
-      "suggestChange": "Suggest a change",
-      "suggestion": "Suggestion",
-      "suggestedReplacement": "Suggested replacement",
-      "suggestedContentPlaceholder": "Edit the block content with your suggested change...",
-      "suggestionModified": "Content has been modified from original",
-      "commentLabel": "Comment",
-      "optional": "optional",
-      "commentPlaceholder": "Leave a comment on this block...",
-      "suggestionCommentPlaceholder": "Explain your suggested change...",
-      "submitHint": "Ctrl+Enter to submit · Esc to cancel",
-      "cancel": "Cancel",
-      "submitComment": "Comment",
-      "submitSuggestion": "Suggest",
-      "reply": "Reply",
-      "replyPlaceholder": "Reply...",
-      "resolve": "Resolve",
-      "unresolve": "Unresolve",
-      "resolved": "Resolved",
-      "dismissed": "Dismissed",
-      "acceptSuggestion": "Accept suggestion",
-      "dismissSuggestion": "Dismiss",
-      "changesApplied": "Changes applied",
-      "resolvedComments": "{count, plural, =1 {1 resolved comment} other {# resolved comments}}",
-      "resolvedCount": "{resolved} of {total} resolved"
-    },
     "list": {
       "heading": "Merge Requests",
       "subtitle": "Review and manage branch merge proposals",
@@ -2482,7 +2454,9 @@
       "dismissSuggestion": "Dismiss",
       "dismissed": "Dismissed",
       "changesApplied": "Changes applied",
-      "addComment": "Add comment"
+      "addComment": "Add comment",
+      "resolvedComments": "{count, plural, =1 {1 resolved comment} other {# resolved comments}}",
+      "resolvedCount": "{resolved} of {total} resolved"
     },
     "reviewThread": {
       "resolve": "Resolve",

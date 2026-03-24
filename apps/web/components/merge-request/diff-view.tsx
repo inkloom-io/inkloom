@@ -273,7 +273,7 @@ function PageDiffSection({
   charCounts: { added: number; removed: number } | null;
   resolutions: Record<number, "source" | "target">;
   mergeRequestId: Id<"mergeRequests">;
-  threadsByBlock?: Map<number, ReviewThreadData[]>;
+  threadsByBlock?: Map<string, ReviewThreadData[]>;
   canManageThreads?: boolean;
   onToggleExpand: () => void;
   onToggleViewed: () => void;
@@ -486,9 +486,9 @@ export function DiffView({
     mergeRequestId,
   });
 
-  // Group threads by pagePath → blockIndex
+  // Group threads by pagePath → blockId (stable block ID, not positional index)
   const threadsByPage = useMemo(() => {
-    const map = new Map<string, Map<number, ReviewThreadData[]>>();
+    const map = new Map<string, Map<string, ReviewThreadData[]>>();
     if (!allThreads) return map;
     for (const thread of allThreads as ReviewThreadData[]) {
       let pageMap = map.get(thread.pagePath);
@@ -496,9 +496,9 @@ export function DiffView({
         pageMap = new Map();
         map.set(thread.pagePath, pageMap);
       }
-      const existing = pageMap.get(thread.blockIndex) ?? [];
+      const existing = pageMap.get(thread.blockId) ?? [];
       existing.push(thread);
-      pageMap.set(thread.blockIndex, existing);
+      pageMap.set(thread.blockId, existing);
     }
     return map;
   }, [allThreads]);
