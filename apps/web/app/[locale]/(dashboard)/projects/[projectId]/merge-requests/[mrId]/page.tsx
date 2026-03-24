@@ -11,7 +11,6 @@ import { Button } from "@inkloom/ui/button";
 import { Badge } from "@inkloom/ui/badge";
 import { Textarea } from "@inkloom/ui/textarea";
 import { Separator } from "@inkloom/ui/separator";
-import { Avatar, AvatarImage, AvatarFallback } from "@inkloom/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -33,18 +32,8 @@ import {
   GitMerge,
 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
-
-// ── Helpers ──────────────────────────────────────────────────────────────
-
-function getInitials(name: string | undefined | null): string {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((w: any) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
+import { ActivityTimeline } from "@/components/merge-request/activity-timeline";
+import type { ReviewThread } from "@/components/merge-request/review-thread-card";
 
 // ── Status Badge ─────────────────────────────────────────────────────────
 
@@ -429,6 +418,7 @@ export default function MergeRequestDetailPage(
         <div className="pt-6">
           {activeTab === "overview" && (
             <OverviewTab
+              mergeRequestId={mrId as Id<"mergeRequests">}
               mr={mr}
               comments={comments ?? []}
               commentText={commentText}
@@ -436,6 +426,7 @@ export default function MergeRequestDetailPage(
               onSubmitComment={handleAddComment}
               isSubmittingComment={isSubmittingComment}
               userId={userId}
+              onSwitchToChangesTab={(_thread: ReviewThread) => setActiveTab("changes")}
             />
           )}
 
@@ -504,11 +495,16 @@ export default function MergeRequestDetailPage(
 // ── Overview Tab ─────────────────────────────────────────────────────────
 
 interface OverviewTabProps {
+  mergeRequestId: Id<"mergeRequests">;
   mr: {
     description?: string;
     createdAt: number;
     status: string;
+    mergedAt?: number;
+    closedAt?: number;
     creator: { name?: string; avatarUrl?: string } | null;
+    mergedByUser?: { name?: string; avatarUrl?: string } | null;
+    closedByUser?: { name?: string; avatarUrl?: string } | null;
   };
   comments: Array<{
     _id: Id<"mergeRequestComments">;
@@ -521,9 +517,11 @@ interface OverviewTabProps {
   onSubmitComment: () => void;
   isSubmittingComment: boolean;
   userId: Id<"users"> | undefined;
+  onSwitchToChangesTab?: (thread: ReviewThread) => void;
 }
 
 function OverviewTab({
+  mergeRequestId,
   mr,
   comments,
   commentText,
@@ -531,6 +529,7 @@ function OverviewTab({
   onSubmitComment,
   isSubmittingComment,
   userId,
+  onSwitchToChangesTab,
 }: OverviewTabProps) {
   const t = useTranslations("mergeRequests.detail");
   const tc = useTranslations("common");
@@ -550,80 +549,45 @@ function OverviewTab({
         </div>
       )}
 
-      {/* Activity / Comments */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-medium text-muted-foreground">
-          {t("activityHeading", { count: comments.length })}
-        </h3>
+      {/* Unified Activity Timeline */}
+      <ActivityTimeline
+        mergeRequestId={mergeRequestId}
+        mr={mr}
+        comments={comments}
+        userId={userId}
+        relTime={relTime}
+        onNavigateToThread={onSwitchToChangesTab}
+      />
 
-        {comments.length === 0 && (
-          <p className="text-sm text-muted-foreground py-4 text-center">
-            {t("noCommentsYet")}
-          </p>
-        )}
-
-        <div className="space-y-4">
-          {comments.map((comment: any) => (
-            <div
-              key={comment._id}
-              className="flex gap-3 rounded-lg border p-4"
-            >
-              <Avatar className="h-8 w-8 shrink-0">
-                {comment.creator?.avatarUrl && (
-                  <AvatarImage
-                    src={comment.creator.avatarUrl}
-                    alt={comment.creator?.name ?? t("unknownUser")}
-                  />
-                )}
-                <AvatarFallback className="text-xs">
-                  {getInitials(comment.creator?.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium">
-                    {comment.creator?.name ?? t("unknownUser")}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {relTime(comment.createdAt)}
-                  </span>
-                </div>
-                <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Add comment form */}
-        <Separator />
-        <div className="space-y-3">
-          <Textarea
-            placeholder={t("commentPlaceholder")}
-            value={commentText}
-            onChange={(e) => onCommentTextChange(e.target.value)}
-            rows={3}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault();
-                onSubmitComment();
-              }
-            }}
-          />
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-muted-foreground">
-              {t("submitHint")}
-            </span>
-            <Button
-              size="sm"
-              onClick={onSubmitComment}
-              disabled={!commentText.trim() || isSubmittingComment || !userId}
-            >
-              {isSubmittingComment ? (
-                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-              ) : null}
-              {t("commentButton")}
-            </Button>
-          </div>
+      {/* Add comment form */}
+      <Separator />
+      <div className="space-y-3">
+        <Textarea
+          placeholder={t("commentPlaceholder")}
+          value={commentText}
+          onChange={(e) => onCommentTextChange(e.target.value)}
+          rows={3}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              onSubmitComment();
+            }
+          }}
+        />
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">
+            {t("submitHint")}
+          </span>
+          <Button
+            size="sm"
+            onClick={onSubmitComment}
+            disabled={!commentText.trim() || isSubmittingComment || !userId}
+          >
+            {isSubmittingComment ? (
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+            ) : null}
+            {t("commentButton")}
+          </Button>
         </div>
       </div>
     </div>
