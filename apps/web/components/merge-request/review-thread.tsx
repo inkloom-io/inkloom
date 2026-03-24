@@ -226,9 +226,11 @@ interface ReviewThreadProps {
   thread: ReviewThreadData;
   /** Whether this user can resolve/accept (MR creator or admin). */
   canManage?: boolean;
+  /** When true, skip the collapsed state (used inside ResolvedThreadGroup). */
+  forceExpanded?: boolean;
 }
 
-export function ReviewThread({ thread, canManage = false }: ReviewThreadProps) {
+export function ReviewThread({ thread, canManage = false, forceExpanded }: ReviewThreadProps) {
   const { userId } = useAuth();
 
   const resolveThread = useMutation(api.mrReviews.resolveThread);
@@ -305,6 +307,7 @@ export function ReviewThread({ thread, canManage = false }: ReviewThreadProps) {
       isAcceptedSuggestion={isAcceptedSuggestion}
       isDismissedSuggestion={isDismissedSuggestion}
       canManage={canManage}
+      forceExpanded={forceExpanded}
       isResolving={isResolving}
       isAccepting={isAccepting}
       isDismissing={isDismissing}
@@ -326,6 +329,7 @@ function ReviewThreadView({
   isAcceptedSuggestion,
   isDismissedSuggestion,
   canManage,
+  forceExpanded,
   isResolving,
   isAccepting,
   isDismissing,
@@ -341,6 +345,7 @@ function ReviewThreadView({
   isAcceptedSuggestion: boolean;
   isDismissedSuggestion: boolean;
   canManage: boolean;
+  forceExpanded?: boolean;
   isResolving: boolean;
   isAccepting: boolean;
   isDismissing: boolean;
@@ -350,10 +355,10 @@ function ReviewThreadView({
   onDismiss: () => void;
 }) {
   const t = useTranslations("mergeRequests.review");
-  const [isExpanded, setIsExpanded] = useState(!isResolved);
+  const [isExpanded, setIsExpanded] = useState(!isResolved || !!forceExpanded);
 
-  // Resolved threads collapse to a single line
-  if (isResolved && !isExpanded) {
+  // Resolved threads collapse to a single line (skip when forceExpanded)
+  if (isResolved && !isExpanded && !forceExpanded) {
     return (
       <button
         onClick={() => setIsExpanded(true)}
@@ -562,6 +567,7 @@ export function ResolvedThreadGroup({
               key={thread._id}
               thread={thread}
               canManage={canManage}
+              forceExpanded
             />
           ))}
         </div>
