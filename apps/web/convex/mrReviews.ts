@@ -261,13 +261,67 @@ export const acceptSuggestion = mutation({
       throw new Error("Suggestion is not pending");
     }
 
+    const now = Date.now();
+
     await ctx.db.patch(args.threadId, {
       suggestionStatus: "accepted",
       status: "resolved",
       resolvedBy: args.userId,
-      resolvedAt: Date.now(),
-      updatedAt: Date.now(),
+      resolvedAt: now,
+      updatedAt: now,
     });
+
+    // Apply suggested content to the source branch page
+    if (thread.suggestedContent) {
+      const mr = await ctx.db.get(thread.mergeRequestId);
+      if (mr) {
+        // Find the page on the source branch matching the thread's pagePath
+        const page = await ctx.db
+          .query("pages")
+          .withIndex("by_branch_and_path", (q: any) =>
+            q.eq("branchId", mr.sourceBranchId).eq("path", thread.pagePath)
+          )
+          .unique();
+
+        if (page) {
+          const pageContent = await ctx.db
+            .query("pageContents")
+            .withIndex("by_page", (q: any) => q.eq("pageId", page._id))
+            .unique();
+
+          if (pageContent) {
+            try {
+              const blocks = JSON.parse(pageContent.content) as Array<
+                Record<string, unknown>
+              >;
+
+              // Find the target block by blockId (preferred) or fall back to blockIndex
+              let blockIdx = blocks.findIndex(
+                (b) => b.id === thread.blockId
+              );
+              if (blockIdx === -1 && thread.blockIndex < blocks.length) {
+                blockIdx = thread.blockIndex;
+              }
+
+              if (blockIdx !== -1) {
+                blocks[blockIdx] = {
+                  ...blocks[blockIdx],
+                  content: [{ type: "text", text: thread.suggestedContent }],
+                };
+
+                await ctx.db.patch(pageContent._id, {
+                  content: JSON.stringify(blocks),
+                  updatedAt: now,
+                });
+              }
+            } catch {
+              // If content parsing fails, skip applying suggestion
+              // The thread is still marked as accepted
+            }
+          }
+        }
+      }
+    }
 
     return args.threadId;
   },
