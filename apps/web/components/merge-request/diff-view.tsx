@@ -9,7 +9,7 @@ import { computeCharCounts } from "@/lib/diff-engine";
 import { useAuth } from "@/hooks/use-auth";
 import { BlockDiff } from "./block-diff";
 import type { ReviewThreadData } from "./review-thread";
-import { ThreadResolutionCounter, PageThreadList } from "./review-thread";
+import { ThreadResolutionCounter } from "./review-thread";
 import { cn } from "@inkloom/ui/lib/utils";
 import { ScrollArea } from "@inkloom/ui/scroll-area";
 import {
@@ -404,11 +404,6 @@ function PageDiffSection({
                 </div>
               )}
 
-              {/* Review threads for this page */}
-              <PageThreadList
-                mergeRequestId={mergeRequestId}
-                pagePath={pageDiff.path}
-              />
             </div>
           ) : (
             <div className="text-sm text-[var(--text-dim)]">
