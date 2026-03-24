@@ -498,6 +498,20 @@ export default function EditorPage({ params }: EditorPageProps) {
     setRestoreCounter((c) => c + 1);
   }, []);
 
+  // Track the last time Convex content was updated (e.g. by a merge or restore)
+  // so we can detect external writes and avoid overwriting them with stale editor content.
+  const lastConvexUpdateRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (pageContent?.updatedAt) {
+      lastConvexUpdateRef.current = pageContent.updatedAt;
+    }
+  }, [pageContent?.updatedAt]);
+
+  // Track the last time we successfully saved content locally, so we can
+  // compare against Convex's updatedAt to detect external mutations.
+  const lastLocalSaveRef = useRef<number>(0);
+
   // Debounced content save to Convex
   const pendingContentRef = useRef<string | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -543,19 +557,36 @@ export default function EditorPage({ params }: EditorPageProps) {
       }
 
       const debounceMs = collaboration.connected ? 2000 : 500;
-      debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = setTimeout(async () => {
+        // Don't overwrite content that was updated externally (e.g., merge,
+        // version restore) since our last save. The Convex updatedAt would be
+        // more recent than our last save if an external mutation updated it.
+        if (lastConvexUpdateRef.current > lastLocalSaveRef.current) {
+          pendingContentRef.current = null;
+          setIsSaving(false);
+          return;
+        }
+
         const contentToSave = pendingContentRef.current;
         if (contentToSave) {
           pendingContentRef.current = null;
-          updateContent({
-            pageId: selectedPageId,
-            content: contentToSave,
-            updatedBy: currentUserId,
-          });
-          trackEvent("page_edited", {
-            projectId,
-            wordCount: contentToSave.split(/\s+/).filter(Boolean).length,
-          });
+          try {
+            await updateContent({
+              pageId: selectedPageId,
+              content: contentToSave,
+              updatedBy: currentUserId,
+            });
+            // Set local save timestamp AFTER the server confirms the mutation.
+            // This ensures our timestamp is later than the server's updatedAt,
+            // so the guard above won't incorrectly block subsequent saves.
+            lastLocalSaveRef.current = Date.now();
+            trackEvent("page_edited", {
+              projectId,
+              wordCount: contentToSave.split(/\s+/).filter(Boolean).length,
+            });
+          } catch (e) {
+            console.error("Failed to save content:", e);
+          }
         }
         setIsSaving(false);
       }, debounceMs);
@@ -586,6 +617,7 @@ export default function EditorPage({ params }: EditorPageProps) {
         content,
         updatedBy: currentUserId,
       });
+      lastLocalSaveRef.current = Date.now();
     }
   }, [selectedPageId, updateContent, currentUserId]);
 
