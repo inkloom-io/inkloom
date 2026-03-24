@@ -789,11 +789,24 @@ export function DiffView({
   const handleToggleViewed = useCallback((path: string) => {
     setViewedPages((prev) => {
       const next = new Set(prev);
-      if (next.has(path)) {
-        next.delete(path);
-      } else {
+      const isNowViewed = !next.has(path);
+      if (isNowViewed) {
         next.add(path);
+      } else {
+        next.delete(path);
       }
+
+      // Auto-collapse when marking as viewed, auto-expand when unmarking
+      setExpandedPages((prevExpanded) => {
+        const nextExpanded = new Set(prevExpanded);
+        if (isNowViewed) {
+          nextExpanded.delete(path); // collapse
+        } else {
+          nextExpanded.add(path); // expand
+        }
+        return nextExpanded;
+      });
+
       return next;
     });
   }, []);
