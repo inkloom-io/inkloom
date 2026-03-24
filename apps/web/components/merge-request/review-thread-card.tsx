@@ -20,6 +20,7 @@ import {
   Loader2,
   ExternalLink,
 } from "lucide-react";
+import { SuggestionDiff } from "./review-thread";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -280,19 +281,11 @@ export function ReviewThreadCard({
 
       {/* Suggestion diff */}
       {isSuggestion && thread.suggestedContent && (
-        <div className="mx-4 mb-3 rounded border overflow-hidden">
-          <div className="bg-red-50 dark:bg-red-950/20 px-3 py-1.5 border-b">
-            <p className="text-xs font-mono text-red-700 dark:text-red-400 line-clamp-2">
-              <span className="select-none mr-1.5 text-red-400">−</span>
-              {thread.quotedContent ?? "Original content"}
-            </p>
-          </div>
-          <div className="bg-green-50 dark:bg-green-950/20 px-3 py-1.5">
-            <p className="text-xs font-mono text-green-700 dark:text-green-400 line-clamp-2">
-              <span className="select-none mr-1.5 text-green-400">+</span>
-              {thread.suggestedContent}
-            </p>
-          </div>
+        <div className="mx-4 mb-3">
+          <SuggestionDiff
+            original={thread.quotedContent}
+            suggested={thread.suggestedContent}
+          />
         </div>
       )}
 

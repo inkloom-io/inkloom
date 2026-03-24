@@ -124,7 +124,7 @@ function UserAvatar({
 
 // ── Suggestion Diff Display ───────────────────────────────────────────────
 
-function SuggestionDiff({
+export function SuggestionDiff({
   original,
   suggested,
 }: {
