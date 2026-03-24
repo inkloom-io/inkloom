@@ -32,6 +32,11 @@ import {
   GitMerge,
 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+import { SubmitReviewDialog } from "@/components/merge-request/submit-review-dialog";
+import {
+  ReviewStatusBadges,
+  MergeReviewWarning,
+} from "@/components/merge-request/review-status-badges";
 import { ActivityTimeline } from "@/components/merge-request/activity-timeline";
 import type { ReviewThread } from "@/components/merge-request/review-thread-card";
 
@@ -280,6 +285,10 @@ export default function MergeRequestDetailPage(
                 </h1>
               )}
               <StatusBadge status={mr.status} />
+              <ReviewStatusBadges
+                mergeRequestId={mrId as Id<"mergeRequests">}
+                reviewStatus={mr.reviewStatus}
+              />
             </div>
 
             {/* Branch info */}
@@ -330,8 +339,13 @@ export default function MergeRequestDetailPage(
               </a>
             )}
 
-            {mr.status === "open" && (
+            {mr.status === "open" && userId && (
               <>
+                <SubmitReviewDialog
+                  mergeRequestId={mrId as Id<"mergeRequests">}
+                  userId={userId}
+                  mrStatus={mr.status}
+                />
                 <Button
                   variant="outline"
                   size="sm"
@@ -449,6 +463,8 @@ export default function MergeRequestDetailPage(
               {t("confirmMergeDescription", { source: mr.sourceBranchName, target: mr.targetBranchName })}
             </DialogDescription>
           </DialogHeader>
+
+          <MergeReviewWarning mergeRequestId={mrId as Id<"mergeRequests">} />
 
           <div className="py-4">
             <label className="flex items-center gap-3 cursor-pointer">

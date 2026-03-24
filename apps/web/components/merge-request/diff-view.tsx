@@ -7,6 +7,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import type { BranchDiff, PageDiff, DiffResult } from "@/lib/diff-engine";
 import { computeCharCounts } from "@/lib/diff-engine";
 import { BlockDiff } from "./block-diff";
+import { ThreadResolutionCounter, PageThreadList } from "./review-thread";
 import { cn } from "@inkloom/ui/lib/utils";
 import { ScrollArea } from "@inkloom/ui/scroll-area";
 import {
@@ -252,6 +253,7 @@ function PageDiffSection({
   isViewed,
   charCounts,
   resolutions,
+  mergeRequestId,
   onToggleExpand,
   onToggleViewed,
   onLoadLargeDiff,
@@ -266,6 +268,7 @@ function PageDiffSection({
   isViewed: boolean;
   charCounts: { added: number; removed: number } | null;
   resolutions: Record<number, "source" | "target">;
+  mergeRequestId: Id<"mergeRequests">;
   onToggleExpand: () => void;
   onToggleViewed: () => void;
   onLoadLargeDiff: () => void;
@@ -312,6 +315,14 @@ function PageDiffSection({
 
         {/* Spacer */}
         <div className="flex-1" />
+
+        {/* Thread resolution counter */}
+        <div onClick={(e) => e.stopPropagation()}>
+          <ThreadResolutionCounter
+            mergeRequestId={mergeRequestId}
+            pagePath={pageDiff.path}
+          />
+        </div>
 
         {/* Viewed checkbox */}
         <div onClick={(e) => e.stopPropagation()}>
@@ -382,6 +393,12 @@ function PageDiffSection({
                   {t("noBlockChanges")}
                 </div>
               )}
+
+              {/* Review threads for this page */}
+              <PageThreadList
+                mergeRequestId={mergeRequestId}
+                pagePath={pageDiff.path}
+              />
             </div>
           ) : (
             <div className="text-sm text-[var(--text-dim)]">
@@ -858,6 +875,7 @@ export function DiffView({
                   isViewed={isViewed}
                   charCounts={charCounts}
                   resolutions={pageResolutions[pageDiff.path] ?? {}}
+                  mergeRequestId={mergeRequestId}
                   onToggleExpand={() => handleToggleExpand(pageDiff.path)}
                   onToggleViewed={() => handleToggleViewed(pageDiff.path)}
                   onLoadLargeDiff={() => handleLoadLargeDiff(pageDiff.path)}

@@ -2405,6 +2405,42 @@
       "submitHint": "Press Cmd+Enter to submit",
       "commentButton": "Comment",
       "unknownUser": "Unknown"
+    },
+    "review": {
+      "reviewButton": "Review",
+      "typeComment": "Comment",
+      "typeCommentDescription": "Submit general feedback",
+      "typeApprove": "Approve",
+      "typeApproveDescription": "Approve these changes",
+      "typeRequestChanges": "Request changes",
+      "typeRequestChangesDescription": "Changes must be addressed before merging",
+      "submitReviewTitle": "Submit Review",
+      "submitReviewDescription": "Choose your review type and add an optional comment.",
+      "reviewBodyPlaceholder": "Leave a review comment (optional)...",
+      "cancelButton": "Cancel",
+      "submitComment": "Submit comment",
+      "submitApprove": "Approve",
+      "submitRequestChanges": "Request changes",
+      "approvedCount": "{count, plural, =1 {1 approval} other {# approvals}}",
+      "changesRequested": "Changes requested",
+      "unresolvedThreads": "{count, plural, =1 {1 unresolved thread} other {# unresolved threads}}",
+      "statusApproved": "Approved",
+      "statusChangesRequested": "Requested changes",
+      "statusCommented": "Commented",
+      "mergeWarningChangesRequested": "A reviewer has requested changes.",
+      "mergeWarningUnresolvedThreads": "{count, plural, =1 {1 unresolved review thread.} other {# unresolved review threads.}}"
+    },
+    "reviewThread": {
+      "resolve": "Resolve",
+      "unresolve": "Unresolve",
+      "resolvedClickToExpand": "Resolved — click to expand",
+      "replyPlaceholder": "Reply...",
+      "unknownUser": "Unknown",
+      "edited": "(edited)",
+      "suggestedChange": "Suggested change",
+      "suggestionAccepted": "Applied",
+      "suggestionDismissed": "Dismissed",
+      "resolvedCount": "{resolved} of {total} resolved"
     }
   },
   "ai": {
