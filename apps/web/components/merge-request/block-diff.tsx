@@ -58,44 +58,64 @@ function BlockTypeLabel({ type, t }: { type: string; t: (key: string) => string 
   );
 }
 
-// Render inline diff segments with highlighting
-function InlineDiffDisplay({
+// Render the "removed" half of a modified block's inline diff (equal + delete segments)
+function RemovedLineDiffDisplay({
   segments,
 }: {
   segments: InlineDiffSegment[];
 }) {
   return (
     <span>
-      {segments.map((segment: any, i: number) => {
-        if (segment.status === "equal") {
+      {segments
+        .filter((s) => s.status === "equal" || s.status === "delete")
+        .map((segment, i) => {
+          if (segment.status === "delete") {
+            return (
+              <span
+                key={i}
+                className="bg-red-500/25 text-red-900 dark:text-red-100 rounded-sm px-0.5"
+              >
+                {segment.text}
+              </span>
+            );
+          }
           return (
-            <span key={i} className="text-[var(--text-medium)]">
+            <span key={i} className="text-red-800/70 dark:text-red-200/70">
               {segment.text}
             </span>
           );
-        }
-        if (segment.status === "delete") {
+        })}
+    </span>
+  );
+}
+
+// Render the "added" half of a modified block's inline diff (equal + insert segments)
+function AddedLineDiffDisplay({
+  segments,
+}: {
+  segments: InlineDiffSegment[];
+}) {
+  return (
+    <span>
+      {segments
+        .filter((s) => s.status === "equal" || s.status === "insert")
+        .map((segment, i) => {
+          if (segment.status === "insert") {
+            return (
+              <span
+                key={i}
+                className="bg-emerald-500/25 text-emerald-900 dark:text-emerald-100 rounded-sm px-0.5"
+              >
+                {segment.text}
+              </span>
+            );
+          }
           return (
-            <span
-              key={i}
-              className="bg-red-500/15 text-red-700 dark:text-red-300 line-through"
-            >
+            <span key={i} className="text-emerald-800/70 dark:text-emerald-200/70">
               {segment.text}
             </span>
           );
-        }
-        if (segment.status === "insert") {
-          return (
-            <span
-              key={i}
-              className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-            >
-              {segment.text}
-            </span>
-          );
-        }
-        return <span key={i}>{segment.text}</span>;
-      })}
+        })}
     </span>
   );
 }
@@ -270,28 +290,48 @@ export function BlockDiff({
       // (only the source branch changed the block).
       const isConflict = diff.isConflict === true;
 
+      const typeChanged = sourceBlock.type !== targetBlock.type;
+
       elements.push(
-        <div
-          key={`modified-${i}`}
-          className="rounded-md border-l-4 border-l-amber-500 border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm"
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <BlockTypeLabel type={sourceBlock.type} t={t} />
+        <div key={`modified-${i}`} className="space-y-1">
+          {/* MODIFIED badge row */}
+          <div className="flex items-center gap-2 px-1">
             <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
               {t("modified")}
             </span>
           </div>
 
-          {/* Inline diff rendering */}
-          {diff.inlineDiff ? (
-            <div className="mt-1 leading-relaxed text-[var(--text-medium)]">
-              <InlineDiffDisplay segments={diff.inlineDiff} />
+          {/* Removed line (old/target content) */}
+          <div className="rounded-md border-l-4 border-l-red-500 border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm">
+            <div className="flex items-center gap-2 mb-1">
+              <BlockTypeLabel type={targetBlock.type} t={t} />
             </div>
-          ) : (
-            <div className="mt-1 text-[var(--text-medium)]">
-              <BlockContent block={sourceBlock} />
+            <div className="leading-relaxed">
+              {diff.inlineDiff ? (
+                <RemovedLineDiffDisplay segments={diff.inlineDiff} />
+              ) : (
+                <div className="text-red-800 dark:text-red-200">
+                  <BlockContent block={targetBlock} />
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          {/* Added line (new/source content) */}
+          <div className="rounded-md border-l-4 border-l-emerald-500 border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm">
+            <div className="flex items-center gap-2 mb-1">
+              {typeChanged && <BlockTypeLabel type={sourceBlock.type} t={t} />}
+            </div>
+            <div className="leading-relaxed">
+              {diff.inlineDiff ? (
+                <AddedLineDiffDisplay segments={diff.inlineDiff} />
+              ) : (
+                <div className="text-emerald-800 dark:text-emerald-200">
+                  <BlockContent block={sourceBlock} />
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Conflict resolution UI — only shown for true three-way conflicts */}
           {isConflict && (
