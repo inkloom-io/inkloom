@@ -367,7 +367,7 @@ function ReviewThreadView({
         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
         <ChevronRight className="h-3 w-3" />
         <span>
-          {t("resolvedComments", { count: thread.commentCount })}
+          {isSuggestion ? t("resolvedSuggestion") : t("resolvedComment")}
         </span>
         {isAcceptedSuggestion && (
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
@@ -541,8 +541,6 @@ export function ResolvedThreadGroup({
 
   if (threads.length === 0) return null;
 
-  const totalComments = threads.reduce((s, th) => s + th.commentCount, 0);
-
   return (
     <div className="space-y-2">
       <button
@@ -556,7 +554,7 @@ export function ResolvedThreadGroup({
           <ChevronRight className="h-3 w-3" />
         )}
         <span>
-          {t("resolvedComments", { count: totalComments })}
+          {t("resolvedComments", { count: threads.length })}
         </span>
       </button>
 

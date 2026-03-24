@@ -2454,8 +2454,10 @@
       "dismissSuggestion": "Dismiss",
       "dismissed": "Dismissed",
       "changesApplied": "Changes applied",
-      "addComment": "Add comment",
+      "addComment": "Add Comment or Suggestion",
       "resolvedComments": "{count, plural, =1 {1 resolved comment} other {# resolved comments}}",
+      "resolvedComment": "Resolved comment",
+      "resolvedSuggestion": "Resolved suggestion",
       "resolvedCount": "{resolved} of {total} resolved"
     },
     "reviewThread": {
