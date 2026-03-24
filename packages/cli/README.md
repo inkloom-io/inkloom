@@ -235,7 +235,7 @@ Credentials and preferences are stored in `~/.inkloom/config.json`:
 {
   "token": "ik_live_user_...",
   "defaultOrgId": "org_01ABC",
-  "apiBaseUrl": "https://app.inkloom.io",
+  "apiBaseUrl": "https://inkloom.io",
   "telemetryEnabled": false
 }
 ```
@@ -246,7 +246,7 @@ Credentials and preferences are stored in `~/.inkloom/config.json`:
 |----------|-------------|
 | `INKLOOM_TOKEN` | API key (overrides config file) |
 | `INKLOOM_ORG_ID` | Organization ID (overrides config file) |
-| `INKLOOM_API_URL` | API base URL (default: `https://app.inkloom.io`) |
+| `INKLOOM_API_URL` | API base URL (default: `https://inkloom.io`) |
 | `INKLOOM_TELEMETRY_DISABLED` | Set to `1` to disable telemetry |
 
 ### CLI flags

@@ -150,7 +150,7 @@ describe("auth status command", () => {
     );
     assert.equal(exitCode, 0);
     assert.ok(
-      stderr.includes("API: https://app.inkloom.io"),
+      stderr.includes("API: https://inkloom.io"),
       "Should show default API URL"
     );
   });
@@ -193,7 +193,7 @@ describe("auth status command", () => {
     assert.equal(parsed.authenticated, true);
     assert.equal(parsed.token, "ik_live_user_abc...");
     assert.equal(parsed.orgId, "org_01XYZ");
-    assert.equal(parsed.apiBaseUrl, "https://app.inkloom.io");
+    assert.equal(parsed.apiBaseUrl, "https://inkloom.io");
   });
 
   it("should mask short tokens correctly", () => {

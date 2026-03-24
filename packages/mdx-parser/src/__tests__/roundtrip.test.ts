@@ -2530,7 +2530,7 @@ describe("round-trip: MDX → BlockNote → MDX", () => {
     it("two paragraphs + Frame inside a Step produce separate paragraph blocks", () => {
       const mdx = `<Steps>
 <Step title="Sign up">
-Go to app.inkloom.io and create an account. You can sign up with GitHub, Google, or email.
+Go to inkloom.io and create an account. You can sign up with GitHub, Google, or email.
 
 After signing up, you'll land on the Projects dashboard.
 
@@ -2639,7 +2639,7 @@ Third paragraph.`;
     it("Quickstart Sign up step: paragraphs are not merged", () => {
       const mdx = `<Steps>
 <Step title="Sign up">
-Go to [app.inkloom.io](https://app.inkloom.io) and create an account. You can sign up with GitHub, Google, or email.
+Go to [inkloom.io](https://inkloom.io) and create an account. You can sign up with GitHub, Google, or email.
 
 After signing up, you'll land on the Projects dashboard — your home base for managing documentation sites.
 
