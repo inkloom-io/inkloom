@@ -536,6 +536,11 @@ export default function EditorPage({ params }: EditorPageProps) {
   useEffect(() => {
     if (pageContent?.updatedAt) {
       lastConvexUpdateRef.current = pageContent.updatedAt;
+      // Initialize local save ref on first load so the guard doesn't
+      // block saves before the user has ever saved in this session.
+      if (lastLocalSaveRef.current === 0) {
+        lastLocalSaveRef.current = pageContent.updatedAt;
+      }
     }
   }, [pageContent?.updatedAt]);
 
