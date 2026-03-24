@@ -53,6 +53,41 @@ const BlockEditor = dynamic(
   { ssr: false }
 );
 
+/**
+ * Recursively strip `id` fields from BlockNote blocks so that two block trees
+ * can be compared structurally (Yjs-generated blocks have different IDs than
+ * the ones stored in Convex).
+ */
+function stripBlockIds(blocks: unknown[]): unknown[] {
+  return blocks.map((block) => {
+    if (block && typeof block === "object") {
+      const { id, ...rest } = block as Record<string, unknown>;
+      // Recurse into children/content arrays
+      const out: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(rest)) {
+        out[key] = Array.isArray(value) ? stripBlockIds(value) : value;
+      }
+      return out;
+    }
+    return block;
+  });
+}
+
+/**
+ * Compare two block-JSON strings structurally, ignoring block IDs.
+ * Returns `true` when the meaningful content differs.
+ */
+function blocksAreDifferent(a: string, b: string): boolean {
+  try {
+    const aParsed = JSON.parse(a);
+    const bParsed = JSON.parse(b);
+    if (!Array.isArray(aParsed) || !Array.isArray(bParsed)) return false;
+    return JSON.stringify(stripBlockIds(aParsed)) !== JSON.stringify(stripBlockIds(bParsed));
+  } catch {
+    return false;
+  }
+}
+
 interface EditorPageProps {
   params: Promise<{ projectId: string }>;
 }
@@ -249,6 +284,29 @@ export default function EditorPage({ params }: EditorPageProps) {
           console.error("Failed to apply pending restore:", e);
         }
       });
+      return;
+    }
+
+    // Content-version guard: after a collaboration editor mounts, the Yjs
+    // document may contain stale pre-merge content that overrides the correct
+    // Convex content. Detect this and push the Convex blocks into the editor.
+    const latestCollabConfig = collaborationConfigRef.current;
+    const latestPageContent = pageContentRef.current;
+    if (latestCollabConfig && latestPageContent) {
+      requestAnimationFrame(() => {
+        try {
+          const editorBlocks = JSON.stringify(editorInstance.document);
+          const convexBlocks = latestPageContent.content;
+
+          // Only correct if structural content actually differs (ignore block IDs)
+          if (blocksAreDifferent(editorBlocks, convexBlocks)) {
+            const blocks = JSON.parse(convexBlocks);
+            editorInstance.replaceBlocks(editorInstance.document, blocks);
+          }
+        } catch (e) {
+          console.error("Failed to sync merged content to collaboration editor:", e);
+        }
+      });
     }
   }, []);
 
@@ -355,6 +413,14 @@ export default function EditorPage({ params }: EditorPageProps) {
     api.pages.getContent,
     selectedPageId ? { pageId: selectedPageId } : "skip"
   );
+
+  // Refs for latest pageContent and collaborationConfig — read inside
+  // handleEditorReady without adding them as callback dependencies (avoids
+  // stale-closure issues and unnecessary editor remounts).
+  const pageContentRef = useRef(pageContent);
+  pageContentRef.current = pageContent;
+  const collaborationConfigRef = useRef(collaborationConfig);
+  collaborationConfigRef.current = collaborationConfig;
 
   const updateContent = useMutation(api.pages.updateContent);
   const createPage = useMutation(api.pages.create);
