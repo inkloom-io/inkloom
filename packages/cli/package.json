@@ -1,6 +1,6 @@
 {
   "name": "@inkloom/cli",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "InkLoom CLI — manage documentation sites from the command line",
   "license": "MIT",
   "repository": {
