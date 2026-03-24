@@ -1,5 +1,11 @@
 # @inkloom/cli
 
+## 0.2.2
+
+### Patch Changes
+
+- [`d1b6af5`](https://github.com/inkloom-io/inkloom-private/commit/d1b6af56764009241979d90dd9ee1499016119ab) Thanks [@notadamking](https://github.com/notadamking)! - Fix default API URL from app.inkloom.io to inkloom.io to resolve 522 connection errors.
+
 ## 0.2.1
 
 ### Patch Changes
