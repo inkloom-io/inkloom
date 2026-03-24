@@ -1559,6 +1559,9 @@
       "analyticsAndScriptsCardDescription": "Add analytics tracking and custom scripts to your published site"
     },
     "developer": {
+      "projectId": "Project ID",
+      "projectIdDescription": "Use this ID to connect external integrations like the InkLoom GitHub Action or REST API.",
+      "copyProjectId": "Copy project ID",
       "apiKeys": "API Keys",
       "apiKeysDescription": "Manage API keys scoped to this project",
       "apiKeysValueProp": "Generate API keys to manage your documentation programmatically via the REST API and CLI tools."
