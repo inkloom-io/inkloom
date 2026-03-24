@@ -1,5 +1,11 @@
 # @inkloom/cli
 
+## 0.2.1
+
+### Patch Changes
+
+- [`065c51f`](https://github.com/inkloom-io/inkloom-private/commit/065c51f53af9bbd10deb202817b42c8deb75fa4a) Thanks [@notadamking](https://github.com/notadamking)! - Fix install failure by moving bundled workspace dep (@inkloom/migration) from dependencies to devDependencies. Since tsup bundles it at build time, it should not be a runtime dependency.
+
 ## 0.2.0
 
 ### Minor Changes
