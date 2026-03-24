@@ -2,6 +2,7 @@
 
 import { use, useState, useCallback, lazy, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -101,10 +102,21 @@ export default function MergeRequestDetailPage(
   const updateMutation = useMutation(api.mergeRequests.update);
   const addCommentMutation = useMutation(api.mergeRequests.addComment);
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState<"overview" | "changes">(
-    "overview"
-  );
+  // Tab state — persisted in URL query parameter
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab") === "changes" ? "changes" : "overview";
+  const [activeTab, setActiveTabState] = useState<"overview" | "changes">(initialTab);
+
+  const setActiveTab = useCallback((tab: "overview" | "changes") => {
+    setActiveTabState(tab);
+    const url = new URL(window.location.href);
+    if (tab === "overview") {
+      url.searchParams.delete("tab");
+    } else {
+      url.searchParams.set("tab", tab);
+    }
+    window.history.replaceState({}, "", url.toString());
+  }, []);
 
   // Comment form
   const [commentText, setCommentText] = useState("");
