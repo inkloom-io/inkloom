@@ -61,7 +61,7 @@ const BlockEditor = dynamic(
 function stripBlockIds(blocks: unknown[]): unknown[] {
   return blocks.map((block) => {
     if (block && typeof block === "object") {
-      const { id, ...rest } = block as Record<string, unknown>;
+      const { id: _id, ...rest } = block as Record<string, unknown>;
       // Recurse into children/content arrays
       const out: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(rest)) {
