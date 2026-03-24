@@ -501,6 +501,9 @@ export const coreTables = {
     githubPrNumber: v.optional(v.number()),
     githubPrUrl: v.optional(v.string()),
     githubRepoFullName: v.optional(v.string()),
+    reviewStatus: v.optional(
+      v.union(v.literal("approved"), v.literal("changes_requested"))
+    ),
     createdBy: v.id("users"),
     mergedBy: v.optional(v.id("users")),
     mergedAt: v.optional(v.number()),
@@ -549,4 +552,60 @@ export const coreTables = {
   })
     .index("by_project_and_page", ["projectId", "pageSlug"])
     .index("by_session_and_page", ["sessionId", "pageSlug"]),
+
+  // MR Review Threads (block-anchored, threaded review comments)
+  mrReviewThreads: defineTable({
+    mergeRequestId: v.id("mergeRequests"),
+    pagePath: v.string(),
+    blockId: v.string(),
+    blockIndex: v.number(),
+    quotedContent: v.optional(v.string()),
+    threadType: v.union(
+      v.literal("comment"),
+      v.literal("suggestion")
+    ),
+    suggestedContent: v.optional(v.string()),
+    suggestionStatus: v.optional(
+      v.union(
+        v.literal("pending"),
+        v.literal("accepted"),
+        v.literal("dismissed")
+      )
+    ),
+    status: v.union(v.literal("open"), v.literal("resolved")),
+    resolvedBy: v.optional(v.id("users")),
+    resolvedAt: v.optional(v.number()),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_merge_request", ["mergeRequestId"])
+    .index("by_merge_request_and_page", ["mergeRequestId", "pagePath"]),
+
+  // MR Review Comments (replies within review threads)
+  mrReviewComments: defineTable({
+    threadId: v.id("mrReviewThreads"),
+    content: v.string(),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    isEdited: v.boolean(),
+  })
+    .index("by_thread", ["threadId"]),
+
+  // MR Reviews (approval / request-changes / comment reviews)
+  mrReviews: defineTable({
+    mergeRequestId: v.id("mergeRequests"),
+    reviewerId: v.id("users"),
+    status: v.union(
+      v.literal("approved"),
+      v.literal("changes_requested"),
+      v.literal("commented")
+    ),
+    body: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_merge_request", ["mergeRequestId"])
+    .index("by_reviewer", ["mergeRequestId", "reviewerId"]),
 };
