@@ -9,6 +9,7 @@ import {
   FolderOpen,
   Home,
   Settings,
+  Shield,
 } from "lucide-react";
 import { useAppContext } from "@/hooks/use-app-context";
 
@@ -22,9 +23,10 @@ interface User {
 
 interface DashboardNavProps {
   user: User;
+  isAdmin?: boolean;
 }
 
-export function DashboardNav({ user: _user }: DashboardNavProps) {
+export function DashboardNav({ user: _user, isAdmin = false }: DashboardNavProps) {
   const pathname = usePathname();
   const t = useTranslations("dashboard.nav");
   const { isMultiTenant } = useAppContext();
@@ -37,6 +39,10 @@ export function DashboardNav({ user: _user }: DashboardNavProps) {
       : []),
     { href: "/settings", label: t("settings"), icon: Settings },
   ];
+
+  const adminItems = isAdmin
+    ? [{ href: "/admin/overview", label: "Admin", icon: Shield }]
+    : [];
 
   return (
     <aside
@@ -79,6 +85,31 @@ export function DashboardNav({ user: _user }: DashboardNavProps) {
           })}
         </div>
       </nav>
+
+      {/* Admin nav — only for admin users */}
+      {adminItems.length > 0 && (
+        <div className="border-t border-[var(--glass-divider)] p-3">
+          <div className="space-y-1">
+            {adminItems.map((item) => {
+              const isActive = pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 rounded-xl border-l-2 px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? "border-l-primary bg-[var(--active-bg)] text-primary"
+                      : "border-l-transparent text-[var(--text-dim)] hover:bg-[var(--glass-hover)] hover:text-[var(--text-medium)]"
+                  }`}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Upgrade CTA — only in core (single-tenant) mode */}
       {!isMultiTenant && (
