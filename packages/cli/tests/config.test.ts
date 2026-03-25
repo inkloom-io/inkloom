@@ -114,7 +114,7 @@ describe("config module", () => {
   describe("resolveConfig", () => {
     it("should return defaults when no sources provide values", async () => {
       const { resolveConfig } = await import("../src/lib/config.ts");
-      const resolved = resolveConfig({});
+      const resolved = await resolveConfig({});
       assert.equal(resolved.token, undefined);
       assert.equal(resolved.orgId, undefined);
       assert.equal(resolved.apiBaseUrl, "https://inkloom.io");
@@ -129,7 +129,7 @@ describe("config module", () => {
         defaultOrgId: "org_file",
         apiBaseUrl: "https://file.example.com",
       });
-      const resolved = resolveConfig({});
+      const resolved = await resolveConfig({});
       assert.equal(resolved.token, "file-token");
       assert.equal(resolved.orgId, "org_file");
       assert.equal(resolved.apiBaseUrl, "https://file.example.com");
@@ -148,7 +148,7 @@ describe("config module", () => {
       process.env.INKLOOM_ORG_ID = "org_env";
       process.env.INKLOOM_API_URL = "https://env.example.com";
 
-      const resolved = resolveConfig({});
+      const resolved = await resolveConfig({});
       assert.equal(resolved.token, "env-token");
       assert.equal(resolved.orgId, "org_env");
       assert.equal(resolved.apiBaseUrl, "https://env.example.com");
@@ -160,7 +160,7 @@ describe("config module", () => {
       process.env.INKLOOM_ORG_ID = "org_env";
       process.env.INKLOOM_API_URL = "https://env.example.com";
 
-      const resolved = resolveConfig({
+      const resolved = await resolveConfig({
         token: "flag-token",
         org: "org_flag",
         apiUrl: "https://flag.example.com",
@@ -181,7 +181,7 @@ describe("config module", () => {
       process.env.INKLOOM_ORG_ID = "org_env";
 
       // Only override token via flag; orgId from env, apiBaseUrl from default
-      const resolved = resolveConfig({ token: "flag-token" });
+      const resolved = await resolveConfig({ token: "flag-token" });
       assert.equal(resolved.token, "flag-token");
       assert.equal(resolved.orgId, "org_env"); // env beats file
       assert.equal(resolved.apiBaseUrl, "https://inkloom.io"); // default
@@ -191,7 +191,7 @@ describe("config module", () => {
       const { resolveConfig } = await import("../src/lib/config.ts");
       process.env.INKLOOM_TOKEN = "";
       // Empty string is still a defined value and should be used
-      const resolved = resolveConfig({});
+      const resolved = await resolveConfig({});
       assert.equal(resolved.token, "");
     });
 
@@ -200,7 +200,7 @@ describe("config module", () => {
         "../src/lib/config.ts"
       );
       writeConfig({ token: "file-token" });
-      const resolved = resolveConfig({
+      const resolved = await resolveConfig({
         token: undefined,
         org: undefined,
         apiUrl: undefined,

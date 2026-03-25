@@ -100,10 +100,10 @@ export async function resolveConfig(flags: {
   let token: string | undefined;
   let tokenSource: TokenSource = null;
 
-  if (flags.token) {
+  if (flags.token !== undefined) {
     token = flags.token;
     tokenSource = "flag";
-  } else if (process.env.INKLOOM_TOKEN) {
+  } else if (process.env.INKLOOM_TOKEN !== undefined) {
     token = process.env.INKLOOM_TOKEN;
     tokenSource = "environment";
   } else {
