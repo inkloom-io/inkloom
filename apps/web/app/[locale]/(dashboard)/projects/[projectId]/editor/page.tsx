@@ -88,6 +88,46 @@ function blocksAreDifferent(a: string, b: string): boolean {
   }
 }
 
+/**
+ * Clear all undo/redo history from a BlockNote editor instance.
+ * Handles both the Yjs UndoManager (collaboration mode) and BlockNote's
+ * internal _stateManager history (non-collaboration mode).
+ *
+ * This prevents initial content loads (replaceBlocks calls) from being
+ * undoable — without this, Cmd+Z can blank the page entirely.
+ */
+function clearEditorHistory(editorInstance: BlockNoteEditor) {
+  // Use requestAnimationFrame to ensure the history is cleared AFTER
+  // the replaceBlocks transaction has been fully processed
+  requestAnimationFrame(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bnEditor = editorInstance as any;
+    const tiptapEditor = bnEditor._tiptapEditor;
+
+    if (tiptapEditor) {
+      // Clear Yjs UndoManager if present (collaboration mode)
+      const state = tiptapEditor.state;
+      for (const plugin of state.plugins) {
+        const pluginState = plugin.getState?.(state);
+        if (pluginState && typeof pluginState === 'object' && 'undoManager' in pluginState) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (pluginState as any).undoManager?.clear();
+          break;
+        }
+      }
+    }
+
+    // Clear BlockNote's _stateManager history (non-collaboration mode)
+    if (bnEditor._stateManager) {
+      const sm = bnEditor._stateManager;
+      if (sm._undoStack) sm._undoStack.length = 0;
+      if (sm._redoStack) sm._redoStack.length = 0;
+      if (sm.undoStack && Array.isArray(sm.undoStack)) sm.undoStack.length = 0;
+      if (sm.redoStack && Array.isArray(sm.redoStack)) sm.redoStack.length = 0;
+    }
+  });
+}
+
 interface EditorPageProps {
   params: Promise<{ projectId: string }>;
 }
@@ -280,6 +320,8 @@ export default function EditorPage({ params }: EditorPageProps) {
         try {
           const blocks = JSON.parse(content);
           editorInstance.replaceBlocks(editorInstance.document, blocks);
+          // Clear undo/redo stacks so the restore isn't undoable
+          clearEditorHistory(editorInstance);
         } catch (e) {
           console.error("Failed to apply pending restore:", e);
         }
@@ -302,6 +344,8 @@ export default function EditorPage({ params }: EditorPageProps) {
           if (blocksAreDifferent(editorBlocks, convexBlocks)) {
             const blocks = JSON.parse(convexBlocks);
             editorInstance.replaceBlocks(editorInstance.document, blocks);
+            // Clear undo/redo stacks so the content correction isn't undoable
+            clearEditorHistory(editorInstance);
           }
         } catch (e) {
           console.error("Failed to sync merged content to collaboration editor:", e);

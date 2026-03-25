@@ -329,6 +329,39 @@ export function BlockEditor({
 
     if (isEffectivelyEmpty) {
       editor.replaceBlocks(editor.document, parsedContent);
+
+      // Clear undo/redo history so the content load isn't undoable.
+      // Without this, Cmd+Z can undo the initial content population and blank the page.
+      requestAnimationFrame(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const bnEditor = editor as any;
+        const tiptapEditor = bnEditor._tiptapEditor;
+        if (tiptapEditor) {
+          // Clear TipTap/ProseMirror history plugin if present
+          const { tr } = tiptapEditor.state;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          tiptapEditor.state.plugins.forEach((plugin: any) => {
+            const pluginState = plugin.getState?.(tiptapEditor.state);
+            if (pluginState && typeof pluginState === 'object' && 'undoManager' in pluginState) {
+              // Yjs UndoManager (collaboration mode — shouldn't reach here but handle defensively)
+              pluginState.undoManager?.clear();
+            }
+          });
+          // Clear BlockNote's internal _stateManager history by dispatching a
+          // setMeta to the history plugin to reset it
+          tr.setMeta("addToHistory", false);
+          tiptapEditor.view.dispatch(tr);
+        }
+        // Clear BlockNote's _stateManager transaction history
+        if (bnEditor._stateManager) {
+          const sm = bnEditor._stateManager;
+          if (sm._undoStack) sm._undoStack.length = 0;
+          if (sm._redoStack) sm._redoStack.length = 0;
+          // Some versions use different property names
+          if (sm.undoStack && Array.isArray(sm.undoStack)) sm.undoStack.length = 0;
+          if (sm.redoStack && Array.isArray(sm.redoStack)) sm.redoStack.length = 0;
+        }
+      });
     }
   }, [editor]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -822,6 +855,77 @@ export function BlockEditor({
         break;
       }
     }
+  }, [editor, collaboration]);
+
+  // Clear the Yjs UndoManager stacks after initial content sync completes.
+  // Without this, the initial content population (from PartyKit sync) is recorded
+  // as an undoable operation, so pressing Cmd+Z enough times blanks the page — a
+  // data-loss bug. We listen for the first `stack-item-added` event (which fires
+  // once the sync transactions have been captured), then clear both stacks so that
+  // undo cannot reach back past the content-load boundary.
+  const initialSyncClearedRef = useRef(false);
+  useEffect(() => {
+    if (!editor || !collaboration) return;
+
+    // Reset the flag when collaboration or editor changes (e.g. branch switch)
+    initialSyncClearedRef.current = false;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bnEditor = editor as any;
+    const tiptapEditor = bnEditor._tiptapEditor;
+    if (!tiptapEditor) return;
+
+    // Find the UndoManager
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let undoManager: any = null;
+    const state = tiptapEditor.state;
+    for (const plugin of state.plugins) {
+      const pluginState = plugin.getState?.(state);
+      if (pluginState && typeof pluginState === 'object' && 'undoManager' in pluginState) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        undoManager = (pluginState as any).undoManager;
+        break;
+      }
+    }
+
+    if (!undoManager) return;
+
+    // Strategy: use a debounced timer after the first stack-item-added event.
+    // The initial sync may produce multiple rapid transactions; we wait for them
+    // to settle (300ms of quiet) before clearing. This avoids clearing too early
+    // (while sync transactions are still arriving) or too late (after user edits).
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const onStackItemAdded = () => {
+      if (initialSyncClearedRef.current) return;
+
+      // Reset the debounce timer on each new stack item during initial sync
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (initialSyncClearedRef.current) return;
+        initialSyncClearedRef.current = true;
+
+        // Clear both undo and redo stacks
+        undoManager.clear();
+      }, 300);
+    };
+
+    undoManager.on('stack-item-added', onStackItemAdded);
+
+    // Fallback: if no stack items are added within 2 seconds (content was already
+    // synced or there's nothing to sync), clear anyway to be safe.
+    const fallbackTimer = setTimeout(() => {
+      if (!initialSyncClearedRef.current) {
+        initialSyncClearedRef.current = true;
+        undoManager.clear();
+      }
+    }, 2000);
+
+    return () => {
+      undoManager.off('stack-item-added', onStackItemAdded);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      clearTimeout(fallbackTimer);
+    };
   }, [editor, collaboration]);
 
   // Handle Cmd+Shift+K for Create Link (and intercept Cmd+K which conflicts with command palette)
