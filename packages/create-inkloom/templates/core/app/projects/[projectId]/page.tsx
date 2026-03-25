@@ -6,57 +6,155 @@ import { Id } from "@/convex/_generated/dataModel";
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { use } from "react";
-import { ArrowLeft, FileText, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  FileText,
+  Eye,
+  Hammer,
+  Settings,
+  Loader2,
+  Check,
+  AlertCircle,
+} from "lucide-react";
 import { SidebarNav } from "@/components/editor/sidebar-nav";
+import { BlockEditor } from "@/components/editor/block-editor";
+import { useAutoSave } from "@/hooks/use-auto-save";
 
-/**
- * Extract plain text from BlockNote JSON blocks.
- */
-function extractTextFromBlocks(blocks: unknown): string {
-  if (!Array.isArray(blocks)) return "";
-  const lines: string[] = [];
-  for (const block of blocks) {
-    if (block && typeof block === "object" && "content" in block) {
-      const content = block.content;
-      if (Array.isArray(content)) {
-        const text = content
-          .filter(
-            (item: unknown): item is { type: string; text: string } =>
-              typeof item === "object" &&
-              item !== null &&
-              "type" in item &&
-              (item as { type: string }).type === "text" &&
-              "text" in item
-          )
-          .map((item) => item.text)
-          .join("");
-        lines.push(text);
-      }
-    }
+// ---------------------------------------------------------------------------
+// Session storage helpers for persisting selected page
+// ---------------------------------------------------------------------------
+
+function getStorageKey(projectId: string) {
+  return `inkloom-selected-page-${projectId}`;
+}
+
+function getPersistedPageId(projectId: string): Id<"pages"> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = sessionStorage.getItem(getStorageKey(projectId));
+    return stored ? (stored as Id<"pages">) : null;
+  } catch {
+    return null;
   }
-  return lines.join("\n");
 }
 
-/**
- * Wrap plain text back into BlockNote JSON paragraph blocks.
- */
-function wrapTextInBlocks(text: string): string {
-  const lines = text.split("\n");
-  const blocks = lines.map((line, i) => ({
-    id: `block-${Date.now()}-${i}`,
-    type: "paragraph",
-    props: {},
-    content: [
-      {
-        type: "text",
-        text: line,
-        styles: {},
-      },
-    ],
-    children: [],
-  }));
-  return JSON.stringify(blocks);
+function persistPageId(projectId: string, pageId: Id<"pages"> | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (pageId) {
+      sessionStorage.setItem(getStorageKey(projectId), pageId);
+    } else {
+      sessionStorage.removeItem(getStorageKey(projectId));
+    }
+  } catch {
+    // sessionStorage may be unavailable
+  }
 }
+
+// ---------------------------------------------------------------------------
+// Save status indicator
+// ---------------------------------------------------------------------------
+
+function SaveStatusIndicator({
+  status,
+}: {
+  status: "idle" | "saving" | "saved";
+}) {
+  if (status === "idle") return null;
+
+  return (
+    <span className="flex items-center gap-1.5 text-xs text-neutral-400">
+      {status === "saving" && (
+        <>
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Saving...
+        </>
+      )}
+      {status === "saved" && (
+        <>
+          <Check className="w-3 h-3 text-emerald-400" />
+          Saved
+        </>
+      )}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Editor content wrapper — loads content and renders BlockEditor with auto-save
+// ---------------------------------------------------------------------------
+
+function EditorContent({
+  pageId,
+  pageTitle,
+}: {
+  pageId: Id<"pages">;
+  pageTitle: string;
+}) {
+  const pageContent = useQuery(api.pages.getContent, { pageId });
+  const updateContent = useMutation(api.pages.updateContent);
+
+  const [content, setContent] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
+
+  // Load content from server when page content arrives
+  useEffect(() => {
+    if (pageContent !== undefined) {
+      setContent(pageContent?.content ?? null);
+      setInitialized(true);
+    }
+  }, [pageContent]);
+
+  const handleSave = useCallback(
+    async (value: string | null) => {
+      if (value === null) return;
+      await updateContent({
+        pageId,
+        content: value,
+      });
+    },
+    [pageId, updateContent]
+  );
+
+  const saveStatus = useAutoSave(content, handleSave, 500, initialized);
+
+  const handleChange = useCallback((newContent: string) => {
+    setContent(newContent);
+  }, []);
+
+  // Loading state
+  if (pageContent === undefined) {
+    return (
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-3 border-b border-neutral-800 shrink-0">
+          <h2 className="font-medium text-lg truncate">{pageTitle}</h2>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="w-6 h-6 text-neutral-500 animate-spin" />
+            <p className="text-sm text-neutral-500">Loading content...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-neutral-800 shrink-0">
+        <h2 className="font-medium text-lg truncate">{pageTitle}</h2>
+        <SaveStatusIndicator status={saveStatus} />
+      </div>
+      <div className="flex-1 overflow-auto">
+        <BlockEditor content={content} onChange={handleChange} />
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main page component
+// ---------------------------------------------------------------------------
 
 export default function ProjectEditorPage({
   params,
@@ -74,58 +172,42 @@ export default function ProjectEditorPage({
     branchId ? { branchId } : "skip"
   );
 
+  // State: selected page — initialize from sessionStorage
   const [selectedPageId, setSelectedPageId] = useState<Id<"pages"> | null>(
-    null
+    () => getPersistedPageId(projectId)
   );
-  const [editorText, setEditorText] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
 
-  const pageContent = useQuery(
-    api.pages.getContent,
-    selectedPageId ? { pageId: selectedPageId } : "skip"
-  );
-  const updateContent = useMutation(api.pages.updateContent);
+  // Preview toggle state (for Task 3.1 — preview panel comes later)
+  const [showPreview, setShowPreview] = useState(false);
 
-  // Load content when a page is selected
-  useEffect(() => {
-    if (pageContent) {
-      try {
-        const blocks = JSON.parse(pageContent.content);
-        setEditorText(extractTextFromBlocks(blocks));
-      } catch {
-        setEditorText(pageContent.content);
-      }
-    }
-  }, [pageContent]);
-
-  const handleSave = useCallback(async () => {
-    if (!selectedPageId) return;
-    setIsSaving(true);
-    try {
-      await updateContent({
-        pageId: selectedPageId,
-        content: wrapTextInBlocks(editorText),
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  }, [selectedPageId, editorText, updateContent]);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-        e.preventDefault();
-        handleSave();
-      }
+  // Persist selected page to sessionStorage
+  const handleSelectPage = useCallback(
+    (pageId: Id<"pages">) => {
+      setSelectedPageId(pageId);
+      persistPageId(projectId, pageId);
     },
-    [handleSave]
+    [projectId]
   );
+
+  // Validate persisted page ID — clear if page no longer exists
+  useEffect(() => {
+    if (pages && selectedPageId) {
+      const exists = pages.some((p) => p._id === selectedPageId);
+      if (!exists) {
+        setSelectedPageId(null);
+        persistPageId(projectId, null);
+      }
+    }
+  }, [pages, selectedPageId, projectId]);
 
   // Loading state
   if (project === undefined) {
     return (
       <main className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center">
-        <p className="text-neutral-500">Loading project...</p>
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-6 h-6 text-neutral-500 animate-spin" />
+          <p className="text-neutral-500">Loading project...</p>
+        </div>
       </main>
     );
   }
@@ -135,6 +217,7 @@ export default function ProjectEditorPage({
     return (
       <main className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center">
         <div className="text-center">
+          <AlertCircle className="w-10 h-10 text-neutral-600 mx-auto mb-3" />
           <p className="text-neutral-400 mb-4">Project not found</p>
           <Link
             href="/"
@@ -151,70 +234,82 @@ export default function ProjectEditorPage({
 
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col">
-      {/* Header */}
-      <header className="flex items-center gap-3 px-4 py-3 border-b border-neutral-800 bg-neutral-950 shrink-0">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-neutral-400 hover:text-neutral-200 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm">Dashboard</span>
-        </Link>
-        <span className="text-neutral-700">/</span>
-        <h1 className="font-semibold truncate">{project.name}</h1>
+      {/* Header bar */}
+      <header className="flex items-center justify-between px-4 py-3 border-b border-neutral-800 bg-neutral-950 shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 text-neutral-400 hover:text-neutral-200 transition-colors shrink-0"
+            title="Back to dashboard"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <span className="text-neutral-700">/</span>
+          <h1 className="font-semibold truncate">{project.name}</h1>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Preview toggle (Task 3.1 — preview panel wired later) */}
+          <button
+            onClick={() => setShowPreview(!showPreview)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
+              showPreview
+                ? "bg-blue-600 text-white hover:bg-blue-500"
+                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
+            }`}
+            title="Toggle preview"
+          >
+            <Eye className="w-4 h-4" />
+            <span className="hidden sm:inline">Preview</span>
+          </button>
+          {/* Build button (Task 5.1 — wired later) */}
+          <button
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-md transition-colors"
+            title="Build project"
+          >
+            <Hammer className="w-4 h-4" />
+            <span className="hidden sm:inline">Build</span>
+          </button>
+          {/* Settings */}
+          <Link
+            href={`/projects/${projectId}/settings`}
+            className="flex items-center p-1.5 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-md transition-colors"
+            title="Project settings"
+          >
+            <Settings className="w-4 h-4" />
+          </Link>
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+        {/* Sidebar (260px) */}
         {branchId && (
           <SidebarNav
             projectId={projectId as Id<"projects">}
             branchId={branchId}
             selectedPageId={selectedPageId}
-            onSelectPage={setSelectedPageId}
+            onSelectPage={handleSelectPage}
           />
         )}
 
-        {/* Editor area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {selectedPage ? (
-            <>
-              <div className="flex items-center justify-between px-6 py-3 border-b border-neutral-800 shrink-0">
-                <h2 className="font-medium text-lg truncate">
-                  {selectedPage.title}
-                </h2>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <Save className="w-4 h-4" />
-                  {isSaving ? "Saving..." : "Save"}
-                </button>
-              </div>
-              <div className="flex-1 p-6 overflow-hidden">
-                <textarea
-                  value={editorText}
-                  onChange={(e) => setEditorText(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="w-full h-full bg-neutral-900 border border-neutral-800 rounded-lg p-4 text-neutral-100 placeholder-neutral-500 resize-none focus:outline-none focus:border-neutral-600 font-mono text-sm leading-relaxed"
-                  placeholder="Start writing..."
-                />
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <FileText className="w-12 h-12 text-neutral-700 mx-auto mb-3" />
-                <p className="text-neutral-500">
-                  {pages && pages.length > 0
-                    ? "Select a page to start editing"
-                    : "Create a page to get started"}
-                </p>
-              </div>
+        {/* Editor area (flex-1) */}
+        {selectedPage ? (
+          <EditorContent
+            key={selectedPage._id}
+            pageId={selectedPage._id}
+            pageTitle={selectedPage.title}
+          />
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <FileText className="w-12 h-12 text-neutral-700 mx-auto mb-3" />
+              <p className="text-neutral-500">
+                {pages && pages.length > 0
+                  ? "Select a page to start editing"
+                  : "Create a page to get started"}
+              </p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </main>
   );
