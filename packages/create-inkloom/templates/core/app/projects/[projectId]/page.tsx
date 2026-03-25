@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { SidebarNav } from "@/components/editor/sidebar-nav";
 import { BlockEditor } from "@/components/editor/block-editor";
+import { PreviewPanel } from "@/components/editor/preview-panel";
 import { useAutoSave } from "@/hooks/use-auto-save";
 
 // ---------------------------------------------------------------------------
@@ -87,9 +88,11 @@ function SaveStatusIndicator({
 function EditorContent({
   pageId,
   pageTitle,
+  showPreview,
 }: {
   pageId: Id<"pages">;
   pageTitle: string;
+  showPreview: boolean;
 }) {
   const pageContent = useQuery(api.pages.getContent, { pageId });
   const updateContent = useMutation(api.pages.updateContent);
@@ -145,8 +148,18 @@ function EditorContent({
         <h2 className="font-medium text-lg truncate">{pageTitle}</h2>
         <SaveStatusIndicator status={saveStatus} />
       </div>
-      <div className="flex-1 overflow-auto">
-        <BlockEditor content={content} onChange={handleChange} />
+      <div className="flex flex-1 overflow-hidden">
+        <div className={`${showPreview ? "w-1/2" : "w-full"} overflow-auto`}>
+          <BlockEditor content={content} onChange={handleChange} />
+        </div>
+        {showPreview && (
+          <div className="w-1/2 border-l border-neutral-800 overflow-hidden">
+            <PreviewPanel
+              content={content}
+              pageTitle={pageTitle}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -177,7 +190,7 @@ export default function ProjectEditorPage({
     () => getPersistedPageId(projectId)
   );
 
-  // Preview toggle state (for Task 3.1 — preview panel comes later)
+  // Preview toggle state
   const [showPreview, setShowPreview] = useState(false);
 
   // Persist selected page to sessionStorage
@@ -248,7 +261,7 @@ export default function ProjectEditorPage({
           <h1 className="font-semibold truncate">{project.name}</h1>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {/* Preview toggle (Task 3.1 — preview panel wired later) */}
+          {/* Preview toggle */}
           <button
             onClick={() => setShowPreview(!showPreview)}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
@@ -297,6 +310,7 @@ export default function ProjectEditorPage({
             key={selectedPage._id}
             pageId={selectedPage._id}
             pageTitle={selectedPage.title}
+            showPreview={showPreview}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center">
