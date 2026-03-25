@@ -2,7 +2,7 @@ import "./ensure-build.js";
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { mkdtempSync, writeFileSync, mkdirSync, rmSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { resolve, dirname } from "node:path";
@@ -249,7 +249,8 @@ describe("auth help", () => {
 describe("index.ts public exports", () => {
   it("should export VERSION", async () => {
     const mod = await import(resolve(__dirname, "../dist/index.js"));
-    assert.equal(mod.VERSION, "0.1.0");
+    const pkg = JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf-8"));
+    assert.equal(mod.VERSION, pkg.version);
   });
 
   it("should export createClient function", async () => {

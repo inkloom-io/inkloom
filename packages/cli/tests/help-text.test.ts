@@ -2,6 +2,7 @@ import "./ensure-build.js";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -417,7 +418,8 @@ describe("version output", () => {
   it("should print version number", () => {
     const { stdout, exitCode } = runCli(["--version"]);
     assert.equal(exitCode, 0);
-    assert.ok(stdout.trim() === "0.1.0", "Should print version 0.1.0");
+    const pkg = JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf-8"));
+    assert.ok(stdout.trim() === pkg.version, `Should print version ${pkg.version}`);
   });
 });
 

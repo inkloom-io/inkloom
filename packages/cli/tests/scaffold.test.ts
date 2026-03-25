@@ -62,7 +62,8 @@ describe("CLI scaffold", () => {
   describe("--version flag", () => {
     it("should print the correct version", () => {
       const output = run("--version");
-      assert.equal(output, "0.1.0");
+      const pkg = JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf-8"));
+      assert.equal(output, pkg.version);
     });
   });
 
@@ -99,7 +100,8 @@ describe("CLI scaffold", () => {
   describe("library export", () => {
     it("should export VERSION from index.js", async () => {
       const mod = await import(resolve(DIST_DIR, "index.js"));
-      assert.equal(mod.VERSION, "0.1.0");
+      const pkg = JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf-8"));
+      assert.equal(mod.VERSION, pkg.version);
     });
   });
 });
