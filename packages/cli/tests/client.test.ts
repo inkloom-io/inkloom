@@ -65,7 +65,7 @@ describe("createClient", () => {
   it("should throw CliError with EXIT_AUTH when no token is available", async () => {
     const { createClient } = await import("../src/lib/client.ts");
     try {
-      createClient({});
+      await createClient({});
       assert.fail("Should have thrown");
     } catch (err: unknown) {
       const { CliError, EXIT_AUTH } = await import("../src/lib/errors.ts");
@@ -77,7 +77,7 @@ describe("createClient", () => {
 
   it("should create client successfully when token is provided via options", async () => {
     const { createClient } = await import("../src/lib/client.ts");
-    const client = createClient({ token: "test-token" });
+    const client = await createClient({ token: "test-token" });
     assert.equal(client.config.token, "test-token");
     assert.equal(client.config.apiBaseUrl, "https://inkloom.io");
   });
@@ -85,13 +85,13 @@ describe("createClient", () => {
   it("should create client with token from env var", async () => {
     process.env.INKLOOM_TOKEN = "env-token";
     const { createClient } = await import("../src/lib/client.ts");
-    const client = createClient({});
+    const client = await createClient({});
     assert.equal(client.config.token, "env-token");
   });
 
   it("should use custom API URL from options", async () => {
     const { createClient } = await import("../src/lib/client.ts");
-    const client = createClient({
+    const client = await createClient({
       token: "test-token",
       apiUrl: "https://custom.example.com",
     });
@@ -106,7 +106,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       const result = await client.get<{ id: string }>("/api/v1/projects");
 
       assert.equal(result.data.id, "123");
@@ -128,7 +128,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       const result = await client.post<{ id: string; name: string }>(
         "/api/v1/projects",
         { name: "Test" }
@@ -151,7 +151,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       await client.put("/api/v1/projects/123/content", {
         content: "# Hello",
       });
@@ -167,7 +167,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       await client.patch("/api/v1/projects/123", { name: "New Name" });
 
       const [, opts] = fetchMock.mock.calls[0].arguments;
@@ -181,7 +181,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       await client.delete("/api/v1/projects/123");
 
       const [, opts] = fetchMock.mock.calls[0].arguments;
@@ -195,7 +195,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       await client.get("/api/v1/projects");
 
       const [, opts] = fetchMock.mock.calls[0].arguments;
@@ -214,7 +214,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       const result = await client.get<unknown[]>("/api/v1/projects");
 
       assert.ok(result.pagination);
@@ -236,7 +236,7 @@ describe("createClient", () => {
       const { CliError, EXIT_NOT_FOUND } = await import(
         "../src/lib/errors.ts"
       );
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
 
       try {
         await client.get("/api/v1/projects/nonexistent");
@@ -260,7 +260,7 @@ describe("createClient", () => {
 
       const { createClient } = await import("../src/lib/client.ts");
       const { CliError, EXIT_AUTH } = await import("../src/lib/errors.ts");
-      const client = createClient({ token: "bad-token" });
+      const client = await createClient({ token: "bad-token" });
 
       try {
         await client.get("/api/v1/projects");
@@ -283,7 +283,7 @@ describe("createClient", () => {
       const { CliError, EXIT_PERMISSION } = await import(
         "../src/lib/errors.ts"
       );
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
 
       try {
         await client.delete("/api/v1/projects/123");
@@ -308,7 +308,7 @@ describe("createClient", () => {
 
       const { createClient } = await import("../src/lib/client.ts");
       const { CliError, EXIT_GENERAL } = await import("../src/lib/errors.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
 
       try {
         await client.post("/api/v1/projects", {});
@@ -333,7 +333,7 @@ describe("createClient", () => {
 
       const { createClient } = await import("../src/lib/client.ts");
       const { CliError } = await import("../src/lib/errors.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
 
       try {
         await client.get("/api/v1/projects");
@@ -352,7 +352,7 @@ describe("createClient", () => {
 
       const { createClient } = await import("../src/lib/client.ts");
       const { CliError } = await import("../src/lib/errors.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
 
       try {
         await client.get("/api/v1/projects");
@@ -372,7 +372,7 @@ describe("createClient", () => {
 
       const { createClient } = await import("../src/lib/client.ts");
       const { CliError } = await import("../src/lib/errors.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
 
       try {
         await client.get("/api/v1/projects");
@@ -397,7 +397,7 @@ describe("createClient", () => {
 
       const { createClient } = await import("../src/lib/client.ts");
       const { CliError, EXIT_AUTH } = await import("../src/lib/errors.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
 
       try {
         await client.get("/api/v1/projects");
@@ -428,7 +428,7 @@ describe("createClient", () => {
 
       try {
         const { createClient } = await import("../src/lib/client.ts");
-        const client = createClient({ token: "my-token", verbose: true });
+        const client = await createClient({ token: "my-token", verbose: true });
         await client.get("/api/v1/projects");
 
         const output = stderrOutput.join("");
@@ -456,7 +456,7 @@ describe("createClient", () => {
 
       try {
         const { createClient } = await import("../src/lib/client.ts");
-        const client = createClient({ token: "my-token", verbose: false });
+        const client = await createClient({ token: "my-token", verbose: false });
         await client.get("/api/v1/projects");
 
         const output = stderrOutput.join("");
@@ -481,7 +481,7 @@ describe("createClient", () => {
 
       try {
         const { createClient } = await import("../src/lib/client.ts");
-        const client = createClient({ token: "my-token", verbose: true });
+        const client = await createClient({ token: "my-token", verbose: true });
         await client.get("/api/v1/projects");
 
         const output = stderrOutput.join("");
@@ -501,7 +501,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({
+      const client = await createClient({
         token: "my-token",
         apiUrl: "https://custom.example.com",
       });
@@ -525,7 +525,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       await client.post("/api/v1/projects", { name: "Test" });
 
       const [, opts] = fetchMock.mock.calls[0].arguments;
@@ -541,7 +541,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       await client.put("/api/v1/projects/123/content", { content: "# Hi" });
 
       const [, opts] = fetchMock.mock.calls[0].arguments;
@@ -557,7 +557,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       await client.patch("/api/v1/projects/123", { name: "New Name" });
 
       const [, opts] = fetchMock.mock.calls[0].arguments;
@@ -573,7 +573,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       await client.get("/api/v1/projects");
 
       const [, opts] = fetchMock.mock.calls[0].arguments;
@@ -588,7 +588,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       await client.delete("/api/v1/projects/123");
 
       const [, opts] = fetchMock.mock.calls[0].arguments;
@@ -603,7 +603,7 @@ describe("createClient", () => {
       globalThis.fetch = fetchMock as typeof fetch;
 
       const { createClient } = await import("../src/lib/client.ts");
-      const client = createClient({ token: "my-token" });
+      const client = await createClient({ token: "my-token" });
       await client.post("/api/v1/projects", { name: "Test1" });
       await client.post("/api/v1/projects", { name: "Test2" });
 
