@@ -3,6 +3,8 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 export default function Home() {
   const projects = useQuery(api.projects.list);
@@ -54,19 +56,24 @@ export default function Home() {
         ) : (
           <ul className="space-y-3">
             {projects.map((project) => (
-              <li
-                key={project._id}
-                className="p-4 bg-neutral-900 border border-neutral-800 rounded-lg hover:border-neutral-700 transition-colors"
-              >
-                <h2 className="font-semibold">{project.name}</h2>
-                {project.description && (
-                  <p className="text-sm text-neutral-400 mt-1">
-                    {project.description}
-                  </p>
-                )}
-                <p className="text-xs text-neutral-500 mt-2">
-                  /{project.slug}
-                </p>
+              <li key={project._id}>
+                <Link
+                  href={`/projects/${project._id}`}
+                  className="flex items-center justify-between p-4 bg-neutral-900 border border-neutral-800 rounded-lg hover:border-neutral-600 hover:bg-neutral-900/80 transition-colors group"
+                >
+                  <div>
+                    <h2 className="font-semibold">{project.name}</h2>
+                    {project.description && (
+                      <p className="text-sm text-neutral-400 mt-1">
+                        {project.description}
+                      </p>
+                    )}
+                    <p className="text-xs text-neutral-500 mt-2">
+                      /{project.slug}
+                    </p>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-neutral-600 group-hover:text-neutral-400 transition-colors shrink-0 ml-4" />
+                </Link>
               </li>
             ))}
           </ul>
