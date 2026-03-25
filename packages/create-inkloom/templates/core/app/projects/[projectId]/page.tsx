@@ -6,7 +6,8 @@ import { Id } from "@/convex/_generated/dataModel";
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { use } from "react";
-import { ArrowLeft, Plus, FileText, Save } from "lucide-react";
+import { ArrowLeft, FileText, Save } from "lucide-react";
+import { SidebarNav } from "@/components/editor/sidebar-nav";
 
 /**
  * Extract plain text from BlockNote JSON blocks.
@@ -78,22 +79,12 @@ export default function ProjectEditorPage({
   );
   const [editorText, setEditorText] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [newPageTitle, setNewPageTitle] = useState("");
-  const [isCreatingPage, setIsCreatingPage] = useState(false);
 
   const pageContent = useQuery(
     api.pages.getContent,
     selectedPageId ? { pageId: selectedPageId } : "skip"
   );
   const updateContent = useMutation(api.pages.updateContent);
-  const createPage = useMutation(api.pages.create);
-
-  // Auto-select first page when pages load
-  useEffect(() => {
-    if (pages && pages.length > 0 && !selectedPageId) {
-      setSelectedPageId(pages[0]._id);
-    }
-  }, [pages, selectedPageId]);
 
   // Load content when a page is selected
   useEffect(() => {
@@ -119,22 +110,6 @@ export default function ProjectEditorPage({
       setIsSaving(false);
     }
   }, [selectedPageId, editorText, updateContent]);
-
-  const handleCreatePage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPageTitle.trim() || !branchId) return;
-    setIsCreatingPage(true);
-    try {
-      const newPageId = await createPage({
-        branchId,
-        title: newPageTitle.trim(),
-      });
-      setNewPageTitle("");
-      setSelectedPageId(newPageId);
-    } finally {
-      setIsCreatingPage(false);
-    }
-  };
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -191,62 +166,14 @@ export default function ProjectEditorPage({
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-64 border-r border-neutral-800 flex flex-col shrink-0 bg-neutral-950">
-          <div className="p-3 border-b border-neutral-800">
-            <form onSubmit={handleCreatePage} className="flex gap-2">
-              <input
-                type="text"
-                value={newPageTitle}
-                onChange={(e) => setNewPageTitle(e.target.value)}
-                placeholder="New page title..."
-                className="flex-1 px-3 py-1.5 text-sm bg-neutral-900 border border-neutral-700 rounded-md text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-blue-500"
-              />
-              <button
-                type="submit"
-                disabled={isCreatingPage || !newPageTitle.trim()}
-                className="p-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Create new page"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
-
-          <nav className="flex-1 overflow-y-auto p-2">
-            {pages === undefined ? (
-              <p className="text-xs text-neutral-500 px-2 py-1">
-                Loading pages...
-              </p>
-            ) : pages.length === 0 ? (
-              <div className="text-center py-8 px-2">
-                <FileText className="w-8 h-8 text-neutral-700 mx-auto mb-2" />
-                <p className="text-xs text-neutral-500">No pages yet</p>
-                <p className="text-xs text-neutral-600 mt-1">
-                  Create your first page above
-                </p>
-              </div>
-            ) : (
-              <ul className="space-y-0.5">
-                {pages
-                  .sort((a, b) => a.position - b.position)
-                  .map((page) => (
-                    <li key={page._id}>
-                      <button
-                        onClick={() => setSelectedPageId(page._id)}
-                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors truncate ${
-                          selectedPageId === page._id
-                            ? "bg-neutral-800 text-neutral-100"
-                            : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900"
-                        }`}
-                      >
-                        {page.title}
-                      </button>
-                    </li>
-                  ))}
-              </ul>
-            )}
-          </nav>
-        </aside>
+        {branchId && (
+          <SidebarNav
+            projectId={projectId as Id<"projects">}
+            branchId={branchId}
+            selectedPageId={selectedPageId}
+            onSelectPage={setSelectedPageId}
+          />
+        )}
 
         {/* Editor area */}
         <div className="flex-1 flex flex-col overflow-hidden">
