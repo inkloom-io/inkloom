@@ -1,0 +1,308 @@
+/* Custom Code Block Styles */
+
+.bn-code-block {
+  width: 100%;
+  margin: 8px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--editor-code-background, #f6f8fa);
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+}
+
+:root.dark .bn-code-block {
+  background: var(--editor-code-background, #1e1e1e);
+}
+
+/* Code blocks in a group - continues the container from CodeGroup above */
+.bn-code-block[data-in-group="true"] {
+  margin: 0;
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  background: var(--editor-code-background, #f6f8fa);
+}
+
+:root.dark .bn-code-block[data-in-group="true"] {
+  background: var(--editor-code-background, #1e1e1e);
+}
+
+.bn-code-block-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--editor-primary) 5%, transparent);
+  border-bottom: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+}
+
+/* Hide the header when in a group - the group provides the tab interface */
+.bn-code-block[data-in-group="true"] .bn-code-block-header {
+  display: none;
+}
+
+.bn-code-block-language-select {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.25));
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-family: var(--editor-font-mono, ui-monospace, monospace);
+  background: var(--editor-code-highlight, rgba(0, 0, 0, 0.08));
+  color: var(--editor-code-foreground, #1a1a2e);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+  text-transform: lowercase;
+}
+
+.bn-code-block-language-select:hover {
+  border-color: var(--editor-primary, #3b82f6);
+}
+
+.bn-code-block-language-select:focus {
+  border-color: var(--editor-primary, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.bn-code-block[data-in-group="true"] .bn-code-block-language-select:hover,
+.bn-code-block[data-in-group="true"] .bn-code-block-language-select:focus {
+  border-color: var(--editor-primary, #6366f1);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--editor-primary) 20%, transparent);
+}
+
+.bn-code-block-language-select option {
+  background: var(--editor-background, #ffffff);
+  color: var(--editor-foreground, #1a1a2e);
+  text-transform: none;
+}
+
+:root.dark .bn-code-block-language-select option {
+  background: #1f2937;
+  color: #f9fafb;
+}
+
+.bn-code-block-title-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--editor-font-mono, ui-monospace, monospace);
+  font-size: 0.7rem;
+  color: var(--editor-foreground, #1a1a2e);
+  outline: none;
+  padding: 4px 8px;
+  min-width: 0;
+}
+
+.bn-code-block-title-input::placeholder {
+  color: var(--editor-muted-foreground, #9ca3af);
+  opacity: 0.6;
+}
+
+:root.dark .bn-code-block-title-input {
+  color: var(--editor-foreground, #f9fafb);
+}
+
+/* Hide non-active code blocks in a group */
+.bn-code-block[data-in-group="true"][data-is-active="false"] {
+  display: none !important;
+}
+
+/* ============================================================================
+   SYNTAX HIGHLIGHTED CODE EDITOR
+   ============================================================================ */
+
+.bn-code-editor {
+  position: relative;
+  min-height: 60px;
+  box-sizing: border-box;
+}
+
+/* Highlighted code layer - positioned behind the textarea */
+.bn-code-highlight-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  background: transparent;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+/* Style Shiki's pre element to match textarea exactly */
+.bn-code-block .bn-code-editor .bn-code-highlight-layer pre,
+.bn-code-block .bn-code-editor .bn-code-highlight-layer pre.shiki,
+.bn-code-highlight-layer pre,
+.bn-code-highlight-layer pre.shiki {
+  margin: 0 !important;
+  padding: 12px 16px !important;
+  background: transparent !important;
+  font-family: var(--editor-font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.6 !important;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  tab-size: 2 !important;
+  -moz-tab-size: 2 !important;
+  letter-spacing: normal !important;
+  word-spacing: normal !important;
+  box-sizing: border-box !important;
+}
+
+.bn-code-highlight-layer code {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  background: transparent !important;
+  padding: 0 !important;
+  white-space: inherit !important;
+}
+
+/* Editable textarea layer - transparent text, visible caret */
+.bn-code-textarea {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-height: 60px;
+  margin: 0;
+  padding: 12px 16px;
+  font-family: var(--editor-font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+
+  /* Light mode: show text directly (highlight layer unreliable in light mode) */
+  color: var(--editor-code-foreground, #24292e);
+  caret-color: var(--editor-foreground, #1a1a2e);
+
+  /* Match highlight layer exactly */
+  tab-size: 2;
+  -moz-tab-size: 2;
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+
+/* Dark mode: make textarea text transparent so Shiki highlight layer shows through */
+:root.dark .bn-code-textarea {
+  color: transparent;
+  caret-color: var(--editor-foreground, #e5e5e5);
+}
+
+/* Selection styling - make selected text visible */
+.bn-code-textarea::selection {
+  background: rgba(59, 130, 246, 0.4);
+  color: transparent;
+}
+
+.bn-code-textarea::-moz-selection {
+  background: rgba(59, 130, 246, 0.4);
+  color: transparent;
+}
+
+.bn-code-textarea::placeholder {
+  color: var(--editor-muted-foreground, #6b7280);
+}
+
+/* ============================================================================
+   RESIZE HANDLE
+   ============================================================================ */
+
+.bn-code-resize-handle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+  background: transparent;
+  transition: background 0.15s ease;
+  z-index: 10;
+}
+
+.bn-code-resize-handle::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: var(--editor-muted-foreground, rgba(128, 128, 128, 0.25));
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.bn-code-resize-handle:hover::before,
+.bn-code-resize-handle-active::before {
+  opacity: 1;
+}
+
+.bn-code-resize-handle:hover,
+.bn-code-resize-handle-active {
+  background: linear-gradient(to top, rgba(59, 130, 246, 0.2), transparent);
+}
+
+.bn-code-block[data-in-group="true"] .bn-code-resize-handle:hover,
+.bn-code-block[data-in-group="true"] .bn-code-resize-handle-active {
+  background: linear-gradient(to top, color-mix(in srgb, var(--editor-primary) 20%, transparent), transparent);
+}
+
+/* ============================================================================
+   SHIKI DUAL THEME - Syntax highlighting for editor code blocks
+   ============================================================================
+
+   Shiki with defaultColor:"light" generates:
+     - inline style="color:<github-light-color>;--shiki-dark:<github-dark-color>"
+     - <pre> gets style="background-color:#fff;--shiki-dark-bg:#24292e"
+
+   Light mode: The inline `color` values ARE the github-light colors (dark text
+   designed for light backgrounds). We let them through as-is for proper syntax
+   highlighting. We only strip per-token backgrounds.
+
+   Dark mode: We override `color` with var(--shiki-dark) to switch to the
+   github-dark color palette.
+   ============================================================================ */
+
+/* Force transparent backgrounds on all syntax tokens in both modes.
+   Shiki themes set per-token background-color via inline styles that look
+   wrong against the code block container background. */
+.bn-code-block .shiki span {
+  background-color: transparent !important;
+}
+
+/* Light mode: FORCE dark text color on all Shiki tokens.
+   Shiki's github-light inline styles are unreliable — they produce
+   near-invisible text on light backgrounds for some content.
+   This sacrifices per-token syntax highlighting colors in light mode
+   for guaranteed readability. */
+.bn-code-block .shiki,
+.bn-code-block .shiki span,
+.bn-code-block .bn-code-highlight-layer pre,
+.bn-code-block .bn-code-highlight-layer code,
+.bn-code-block .bn-code-highlight-layer span {
+  color: var(--editor-code-foreground, #24292e) !important;
+}
+
+/* Also handle the fallback case when Shiki hasn't loaded yet */
+.bn-code-block .bn-code-highlight-layer pre > code {
+  color: var(--editor-code-foreground, #24292e) !important;
+}
+
+/* Dark mode: switch to Shiki's dark variant colors via CSS custom properties */
+:root.dark .bn-code-block .shiki,
+:root.dark .bn-code-block .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: transparent !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}

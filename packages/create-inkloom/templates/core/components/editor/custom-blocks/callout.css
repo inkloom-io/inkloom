@@ -1,0 +1,165 @@
+/* Callout Block Styles
+   Uses CSS variables from the editor theme wrapper for consistent styling.
+
+   ============================================================================
+   VISUAL CONTAINMENT FIX
+   BlockNote renders child blocks (lists, code blocks, etc.) in .bn-block-group,
+   which is a sibling of the block-content wrapper — outside .bn-callout.
+   We move visual container styling (background, border-left, border-radius) to
+   the .bn-block parent element so both .bn-block-content (containing .bn-callout)
+   and .bn-block-group (children) are visually contained within the same area.
+
+   Actual DOM structure:
+     .bn-block[data-node-type="blockContainer"]       ← styled container (NEW)
+       .react-renderer.node-callout
+         .bn-block-content[data-content-type="callout"]
+           .bn-callout[data-callout-type="info"]       ← header + inline content (stripped of border/bg)
+       .bn-block-group                                 ← child blocks — now visually inside
+
+   We use :has() to target .bn-block based on its callout descendant, and
+   data-callout-type for type-specific colors.
+   This follows the same pattern as the accordion block visual containment fix.
+   ============================================================================
+*/
+
+/* Container styling on .bn-block — type-specific backgrounds and borders */
+.bn-block:has(> .node-callout) {
+  border-radius: 8px;
+  margin: 8px 0;
+  border-left: 4px solid;
+  transition: all 0.15s ease;
+  overflow: hidden;
+}
+
+/* Type-specific colors applied to .bn-block via :has() */
+.bn-block:has(> .node-callout [data-callout-type="info"]) {
+  background: rgba(59, 130, 246, 0.1);
+  border-left-color: #3b82f6;
+}
+
+.bn-block:has(> .node-callout [data-callout-type="warning"]) {
+  background: rgba(245, 158, 11, 0.1);
+  border-left-color: #f59e0b;
+}
+
+.bn-block:has(> .node-callout [data-callout-type="danger"]) {
+  background: rgba(239, 68, 68, 0.1);
+  border-left-color: #ef4444;
+}
+
+.bn-block:has(> .node-callout [data-callout-type="success"]) {
+  background: rgba(34, 197, 94, 0.1);
+  border-left-color: #22c55e;
+}
+
+.bn-block:has(> .node-callout [data-callout-type="tip"]) {
+  background: rgba(168, 85, 247, 0.1);
+  border-left-color: #a855f7;
+}
+
+/* Style child blocks (.bn-block-group) to appear as callout content area */
+.bn-block:has(> .node-callout) > .bn-block-group {
+  padding: 0 16px 8px;
+  margin-left: 0;
+}
+
+/* Inner .bn-callout — stripped of container styling (now on .bn-block parent) */
+.bn-callout {
+  width: 100%;
+  padding: 16px;
+  margin: 0;
+  transition: all 0.15s ease;
+}
+
+.bn-callout-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.bn-callout-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+/* Per-type icon colors */
+.bn-callout-info .bn-callout-icon {
+  color: #3b82f6;
+}
+
+.bn-callout-warning .bn-callout-icon {
+  color: hsl(38 92% 40%);
+}
+
+.bn-callout-danger .bn-callout-icon {
+  color: hsl(0 84% 50%);
+}
+
+.bn-callout-success .bn-callout-icon {
+  color: hsl(142 76% 32%);
+}
+
+.bn-callout-tip .bn-callout-icon {
+  color: hsl(280 84% 50%);
+}
+
+.bn-callout-type-select {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--editor-foreground, #1a1a2e);
+  cursor: pointer;
+  outline: none;
+}
+
+.dark .bn-callout-type-select {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--editor-foreground, #f9fafb);
+}
+
+.bn-callout-type-select:focus {
+  border-color: var(--editor-primary, #6366f1);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.bn-callout-title-input {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--editor-foreground, #f9fafb);
+  border: none;
+  background: transparent;
+  padding: 4px 8px;
+  border-radius: 4px;
+  outline: none;
+}
+
+.bn-callout-title-input:hover {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+}
+
+.bn-callout-title-input:focus {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+}
+
+.bn-callout-title-input::placeholder {
+  color: var(--editor-muted-foreground, #9ca3af);
+  font-weight: 400;
+}
+
+.bn-callout-content {
+  font-size: 0.875rem;
+  color: var(--editor-foreground, #f9fafb);
+  line-height: 1.6;
+  min-height: 20px;
+}
+
+.bn-callout-content:empty::before {
+  content: "Callout content...";
+  color: var(--editor-muted-foreground, #6b7280);
+  opacity: 0.6;
+}

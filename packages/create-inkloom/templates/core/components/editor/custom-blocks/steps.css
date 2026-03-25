@@ -1,0 +1,316 @@
+/* Steps Container Block Styles */
+
+/* ============================================================================
+   VISUAL CONTAINMENT FIX — Steps Container
+   The steps container has content: "none", so its child step blocks render
+   in .bn-block-group as a sibling of the header. We move the container border
+   styling to the .bn-block parent so both the header and child steps are
+   visually contained.
+
+   DOM structure:
+     .bn-block[data-node-type="blockContainer"]       ← styled container (NEW)
+       .react-renderer.node-steps
+         .bn-block-content[data-content-type="steps"]
+           .bn-steps-container                        ← header only (stripped of border)
+       .bn-block-group                                ← child step blocks — now visually inside
+   ============================================================================ */
+
+/* Steps container — border/background on .bn-block wrapper */
+.bn-block:has(> .node-steps),
+.bn-block:has(> .bn-block-content[data-content-type="steps"]) {
+  border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-radius: 12px;
+  margin: 8px 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--editor-primary) 8%, transparent),
+    color-mix(in srgb, var(--editor-primary) 2%, transparent)
+  );
+  overflow: hidden;
+}
+
+/* When steps container has children (step blocks follow as siblings),
+   remove bottom radius/border so it connects to the first step block */
+.bn-block:has(> .node-steps .bn-steps-container[data-has-children="true"]),
+.bn-block:has(> .bn-block-content[data-content-type="steps"] .bn-steps-container[data-has-children="true"]) {
+  border-radius: 12px 12px 0 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+/* Inner .bn-steps-container — stripped of border/background (now on .bn-block parent) */
+.bn-steps-container {
+  width: 100%;
+  margin: 0;
+}
+
+.bn-steps-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--editor-primary) 12%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+}
+
+.bn-steps-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--editor-primary, #6366f1);
+}
+
+.bn-steps-add-button {
+  border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  background: color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  color: var(--editor-primary, #6366f1);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+  font-weight: 500;
+}
+
+.bn-steps-add-button:hover {
+  background: var(--editor-primary, #6366f1);
+  color: var(--editor-primary-foreground, #ffffff);
+}
+
+.bn-steps-hint {
+  margin: 0;
+  padding: 16px;
+  font-size: 0.8rem;
+  color: var(--editor-muted-foreground, #6b7280);
+  text-align: center;
+}
+
+/* ============================================================================
+   VISUAL CONTAINMENT FIX — Step Block
+   BlockNote renders child blocks (code blocks, lists, callouts) in
+   .bn-block-group as a sibling of .bn-block-content, outside .bn-step.
+   We move visual container styling to the .bn-block parent so both the
+   step content and child blocks are visually contained.
+
+   DOM structure (nodeView rendering for content: "inline"):
+     .bn-block[data-node-type="blockContainer"]       ← styled container
+       .react-renderer.node-step
+         .bn-block-content[data-content-type="step"]
+           .bn-step                                   ← indicator + inline content
+       .bn-block-group                                ← child blocks — visually inside
+
+   We use :has() with BOTH .node-step (TipTap nodeView class) and
+   [data-content-type="step"] (BlockNote attribute) for robustness.
+   ============================================================================ */
+
+/* Standalone step (not in a group) — container styling on .bn-block */
+.bn-block:has(> .node-step),
+.bn-block:has(> .bn-block-content[data-content-type="step"]) {
+  border: 1px solid var(--editor-border, rgba(128, 128, 128, 0.2));
+  border-left: 3px solid var(--editor-primary, #6366f1);
+  border-radius: 8px;
+  margin: 8px 0;
+  background: var(--editor-background-subtle, rgba(128, 128, 128, 0.04));
+  overflow: hidden;
+  transition: all 0.15s ease;
+}
+
+.bn-block:has(> .node-step):hover,
+.bn-block:has(> .bn-block-content[data-content-type="step"]):hover {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+}
+
+/* Grouped step — override standalone styles when inside a steps group */
+.bn-block:has(> .node-step .bn-step[data-in-group="true"]),
+.bn-block:has(> .bn-block-content[data-content-type="step"] .bn-step[data-in-group="true"]) {
+  border: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-top: none;
+  border-left: 1px solid color-mix(in srgb, var(--editor-primary) 20%, transparent);
+  border-radius: 0;
+  margin: 0;
+}
+
+/* Last step in a group gets bottom border-radius */
+.bn-block:has(> .node-step .bn-step[data-is-last="true"]),
+.bn-block:has(> .bn-block-content[data-content-type="step"] .bn-step[data-is-last="true"]) {
+  border-radius: 0 0 12px 12px;
+}
+
+/* Inner .bn-step — stripped of container styling (now on .bn-block parent) */
+.bn-step {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  transition: all 0.15s ease;
+}
+
+/* Child blocks (.bn-block-group) inside a step — position to the right of indicator.
+   Use padding-left to align with step content (past the indicator column).
+   Also add a left border to visually continue the step indicator line. */
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step) > .bn-block-group,
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group {
+  padding: 0 16px 8px !important;
+  margin-top: 0 !important;
+  /* Continue the step indicator line alongside child blocks.
+     Color uses 40% mix to match .bn-step-line opacity: 0.4 */
+  border-left: 2px solid color-mix(in srgb, var(--editor-primary, #6366f1) 40%, transparent) !important;
+  margin-left: 29px !important; /* Center of step indicator circle: 16px padding + 14px half-width - 1px border */
+  padding-left: 23px !important; /* 52px original - 29px margin = 23px */
+  background: transparent !important;
+}
+
+/* Remove parent .bn-block left border when step has child blocks to avoid double border */
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step):has(> .bn-block-group),
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .bn-block-content[data-content-type="step"]):has(> .bn-block-group) {
+  border-left-color: transparent !important;
+}
+
+/* Eliminate gap between step inline content and child block-group */
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step) > .react-renderer,
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step) > .bn-block-content,
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-content {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Fade the continued line for the last step in a group.
+   Start at 40% opacity to match .bn-step-line, fade to transparent. */
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step .bn-step[data-is-last="true"]) > .bn-block-group,
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .bn-block-content[data-content-type="step"] .bn-step[data-is-last="true"]) > .bn-block-group {
+  border-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--editor-primary, #6366f1) 40%, transparent) 60%,
+    transparent
+  ) 1 !important;
+}
+
+/* Nested block-groups inside step children — no green line or extra indentation.
+   Only the direct child .bn-block-group of a step .bn-block should have the
+   green indicator line; deeper nested block-groups should be plain. */
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step) > .bn-block-group .bn-block-group,
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group .bn-block-group {
+  margin-left: 0 !important;
+  padding-left: 16px !important;
+  border-left: none !important;
+  border-image: none !important;
+}
+
+/* Hide nesting-depth indicator lines inside step child content.
+   The green indicator line already provides visual containment,
+   so the generic ::before left-border indicators are redundant. */
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .node-step) > .bn-block-group .bn-block-outer:not([data-prev-depth-changed])::before,
+.editor-theme-wrapper .bn-block-outer > .bn-block:has(> .bn-block-content[data-content-type="step"]) > .bn-block-group .bn-block-outer:not([data-prev-depth-changed])::before {
+  border-left: none !important;
+  display: none !important;
+}
+
+/* Step indicator (number/icon + line) */
+.bn-step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0 16px 16px;
+  flex-shrink: 0;
+}
+
+.bn-step-number,
+.bn-step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--editor-primary, #6366f1);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.bn-step-icon {
+  font-size: 1rem;
+}
+
+.bn-step-line {
+  flex: 1;
+  width: 2px;
+  min-height: 20px;
+  margin-top: 8px;
+  background: var(--editor-primary, #6366f1);
+  opacity: 0.4;
+}
+
+.bn-step[data-is-last="true"] .bn-step-line {
+  background: linear-gradient(to bottom, var(--editor-primary, #6366f1), transparent);
+  opacity: 0.4;
+}
+
+/* Step content wrapper */
+.bn-step-content-wrapper {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 16px 16px 12px;
+}
+
+.bn-step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+
+.bn-step-title-input {
+  flex: 1;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--editor-foreground, #f9fafb);
+  border: none;
+  background: transparent;
+  padding: 4px 8px;
+  border-radius: 4px;
+  outline: none;
+}
+
+.bn-step-title-input:hover {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+}
+
+.bn-step-title-input:focus {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08));
+}
+
+.bn-step-title-input::placeholder {
+  color: var(--editor-muted-foreground, #9ca3af);
+  font-weight: 400;
+}
+
+.bn-step-content {
+  font-size: 0.875rem;
+  color: var(--editor-foreground, #f9fafb);
+  line-height: 1.6;
+  min-height: 40px;
+}
+
+/* Override shadcn Button styles inside step header for IconPicker.
+   The Button variant="outline" inherits dashboard theme colors which
+   don't match the editor theme. */
+.bn-step-header button {
+  background: var(--editor-background-subtle, rgba(0, 0, 0, 0.06)) !important;
+  border-color: var(--editor-border, rgba(128, 128, 128, 0.2)) !important;
+  color: var(--editor-foreground, #1a1a2e) !important;
+}
+
+.bn-step-header button:hover {
+  background: var(--editor-accent, rgba(128, 128, 128, 0.08)) !important;
+  border-color: var(--editor-primary, #6366f1) !important;
+}
+
+.bn-step-content:empty::before {
+  content: "Step content...";
+  color: var(--editor-muted-foreground, #6b7280);
+  opacity: 0.6;
+}

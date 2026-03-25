@@ -1,0 +1,19 @@
+.bn-inline-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.bn-inline-icon .bn-inline-icon-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Selection highlighting when the icon node is selected */
+.bn-inline-icon.ProseMirror-selectednode,
+.ProseMirror-selectednode .bn-inline-icon {
+  background: color-mix(in srgb, var(--bn-colors-selected-background, #3b82f6) 30%, transparent);
+  border-radius: 3px;
+  outline: 2px solid var(--bn-colors-selected-background, #3b82f6);
+}
