@@ -1,5 +1,27 @@
 # create-inkloom
 
+## 0.4.0
+
+### Minor Changes
+
+- [`712e352`](https://github.com/inkloom-io/inkloom-private/commit/712e352f4138fd2ad121ab4f3b393e43ed77857e) Thanks [@notadamking](https://github.com/notadamking)! - Add static site build/publish pipeline to the core template with build API route, site generator, HTML generator, theme CSS, search index, and editor Build button.
+
+- [`7ddc807`](https://github.com/inkloom-io/inkloom-private/commit/7ddc807eb12b11742d43a312f5bd3824d040b92f) Thanks [@notadamking](https://github.com/notadamking)! - Add Convex functions for folders, deployments, page metadata, and project settings to the core template.
+
+- [`044fbea`](https://github.com/inkloom-io/inkloom-private/commit/044fbeabe18886589f1d5b010a5d20b996751ef9) Thanks [@notadamking](https://github.com/notadamking)! - Add preview panel with live MDX rendering to the template editor. Includes inline docs-renderer components, syntax highlighting via shiki, and a 50/50 split editor/preview layout.
+
+- [`bf4e6bd`](https://github.com/inkloom-io/inkloom-private/commit/bf4e6bd76546023cc2c58d87ccd6c7bbee1cac53) Thanks [@notadamking](https://github.com/notadamking)! - Add project settings page with General, Branding, SEO, and Analytics tabs to the core template.
+
+- [`b613cd0`](https://github.com/inkloom-io/inkloom-private/commit/b613cd01ad8fdc3ab5791c03ef2ccc0929d5463f) Thanks [@notadamking](https://github.com/notadamking)! - Add sidebar page navigation component with folder groups, inline rename, publish toggle, and context menus to the editor template.
+
+- [`232fc9e`](https://github.com/inkloom-io/inkloom-private/commit/232fc9edde1f3244fda253f66792f288077a4699) Thanks [@notadamking](https://github.com/notadamking)! - Add UI primitives library with 15 Radix components (button, input, label, dialog, tabs, select, card, separator, tooltip, popover, dropdown-menu, textarea, scroll-area, badge, alert-dialog) and cn() utility to the core template.
+
+- [`04630ad`](https://github.com/inkloom-io/inkloom-private/commit/04630ad275159291a3522733f89cb41d0ef6fa56) Thanks [@notadamking](https://github.com/notadamking)! - Polish dashboard with project cards showing metadata (page count, last updated, slug), delete confirmation dialog, empty state, theme toggle, responsive grid layout, and staggered card animations.
+
+- [`49c18c8`](https://github.com/inkloom-io/inkloom-private/commit/49c18c839032542c6a59e8afc03673c212952bf8) Thanks [@notadamking](https://github.com/notadamking)! - Replace textarea editor with full BlockEditor layout featuring sidebar navigation, auto-save with status indicator, and header with preview/build/settings controls.
+
+- [`96c03fc`](https://github.com/inkloom-io/inkloom-private/commit/96c03fc7277b208944a0220c3fffb8e746816987) Thanks [@notadamking](https://github.com/notadamking)! - Add block editor, preview panel, project settings, and static site build pipeline to core template
+
 ## 0.3.0
 
 ### Minor Changes
