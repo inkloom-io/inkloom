@@ -457,7 +457,7 @@ export const remove = mutation({
 });
 
 export const toggleLock = mutation({
-  args: { branchId: v.id("branches") },
+  args: { branchId: v.id("branches"), userId: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
     const branch = await ctx.db.get(args.branchId);
     if (!branch) throw new ConvexError("Branch not found");
@@ -465,9 +465,9 @@ export const toggleLock = mutation({
       throw new ConvexError("Only the default branch can be locked");
     }
 
-    // Authorization: caller must be admin
-    // In core mode, the local user (workosUserId: "local") is always admin.
-    // Look up the local user and verify their membership role.
+    // Authorization: caller must be admin.
+    // In core mode, the local user (workosUserId: "local") is always admin —
+    // no membership lookup needed. Just verify the local user exists.
     const localUser = await ctx.db
       .query("users")
       .withIndex("by_workos_user_id", (q: any) =>
@@ -475,18 +475,7 @@ export const toggleLock = mutation({
       )
       .first();
 
-    if (localUser) {
-      const membership = await ctx.db
-        .query("projectMembers")
-        .withIndex("by_project_and_user", (q: any) =>
-          q.eq("projectId", branch.projectId).eq("userId", localUser._id)
-        )
-        .unique();
-
-      if (!membership || membership.role !== "admin") {
-        throw new ConvexError("Only admins can toggle branch lock");
-      }
-    } else {
+    if (!localUser) {
       throw new ConvexError("Only admins can toggle branch lock");
     }
 

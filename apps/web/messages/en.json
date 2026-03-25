@@ -1161,6 +1161,7 @@
       "failedToCreateBranch": "Failed to create branch",
       "failedToRenameBranch": "Failed to rename branch",
       "failedToDeleteBranch": "Failed to delete branch",
+      "failedToToggleLock": "Failed to toggle branch lock",
       "lockDefaultBranch": "Lock default branch (require merge requests)",
       "unlockDefaultBranch": "Unlock default branch",
       "lockPermissionRequired": "Only admins can lock or unlock branches",

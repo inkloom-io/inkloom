@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -108,6 +109,7 @@ export function BranchSwitcher({
   const deleteBranch = useMutation(api.branches.remove);
   const toggleLockMutation = useMutation(api.branches.toggleLock);
   const { canChangeRoles } = usePermissions();
+  const { userId: currentUserId } = useAuth();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
@@ -125,6 +127,7 @@ export function BranchSwitcher({
   const [isCreating, setIsCreating] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isTogglingLock, setIsTogglingLock] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Remote branch state
@@ -427,12 +430,22 @@ export function BranchSwitcher({
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  onClick={() => {
-                    if (canChangeRoles) {
-                      toggleLockMutation({ branchId: currentBranchId });
+                  onClick={async () => {
+                    if (canChangeRoles && !isTogglingLock) {
+                      setIsTogglingLock(true);
+                      setError(null);
+                      try {
+                        await toggleLockMutation({ branchId: currentBranchId, userId: currentUserId });
+                      } catch (e) {
+                        captureException(e, { source: "branch-switcher", action: "toggle-lock", branchId: currentBranchId });
+                        const key = getErrorTranslationKey(e instanceof Error ? e.message : "");
+                        setError(key ? t(key) : (e instanceof Error ? e.message : t("failedToToggleLock")));
+                      } finally {
+                        setIsTogglingLock(false);
+                      }
                     }
                   }}
-                  disabled={!canChangeRoles}
+                  disabled={!canChangeRoles || isTogglingLock}
                   className={`ml-auto flex h-7 w-7 items-center justify-center rounded-md transition-colors ${
                     !canChangeRoles
                       ? "opacity-40 cursor-not-allowed"
