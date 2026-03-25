@@ -1,5 +1,19 @@
 # @inkloom/cli
 
+## 0.3.0
+
+### Minor Changes
+
+- [`abbb8da`](https://github.com/inkloom-io/inkloom-private/commit/abbb8da93440e30b97edcfc11a066fd13135a992) Thanks [@notadamking](https://github.com/notadamking)! - Auto-resolve orgId from API when not configured. The `projects create` command now automatically detects the user's organization from existing projects instead of requiring `--org` or `INKLOOM_ORG_ID`. The resolved orgId is cached in config for subsequent commands.
+
+### Patch Changes
+
+- [`6df9ab8`](https://github.com/inkloom-io/inkloom-private/commit/6df9ab85ca371377cf5649bcf7150e65926d20b9) Thanks [@notadamking](https://github.com/notadamking)! - Add INKLOOM_CREDENTIAL_BACKEND env var to force plaintext credential fallback for testing/CI
+
+- [`0b4f535`](https://github.com/inkloom-io/inkloom-private/commit/0b4f535a634f4d2db776845d52d3a2d87aceafd6) Thanks [@notadamking](https://github.com/notadamking)! - Derive CLI version from package.json at runtime instead of hardcoding, preventing version drift when changesets bump the package version.
+
+- [`4ea41cc`](https://github.com/inkloom-io/inkloom-private/commit/4ea41ccd0894e4b147f57d7436ebff519772ba9b) Thanks [@notadamking](https://github.com/notadamking)! - Fix resolveConfig to correctly handle empty string environment variables as valid values instead of falling through to the next source.
+
 ## 0.2.2
 
 ### Patch Changes
