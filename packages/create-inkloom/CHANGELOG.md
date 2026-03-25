@@ -1,5 +1,11 @@
 # create-inkloom
 
+## 0.3.0
+
+### Minor Changes
+
+- [`61cb4b8`](https://github.com/inkloom-io/inkloom-private/commit/61cb4b80f0d83859c9d1bb8842d93bbc624ab7f2) Thanks [@notadamking](https://github.com/notadamking)! - Add project editor page with page sidebar and content editing to core template. Project cards on the dashboard are now clickable and navigate to the editor. Adds Convex queries and mutations for pages and page content.
+
 ## 0.2.0
 
 ### Minor Changes
