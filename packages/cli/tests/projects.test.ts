@@ -317,6 +317,15 @@ describe("projects create", () => {
     lastRequestBody = {};
     mockServer = await createMockServer([
       {
+        method: "GET",
+        path: "/api/v1/projects",
+        status: 200,
+        body: {
+          data: MOCK_PROJECTS,
+          pagination: { cursor: null, hasMore: false },
+        },
+      },
+      {
         method: "POST",
         path: "/api/v1/projects",
         status: 201,
@@ -441,6 +450,15 @@ describe("projects create", () => {
   it("should handle API conflict error (duplicate name)", async () => {
     const conflictServer = await createMockServer([
       {
+        method: "GET",
+        path: "/api/v1/projects",
+        status: 200,
+        body: {
+          data: MOCK_PROJECTS,
+          pagination: { cursor: null, hasMore: false },
+        },
+      },
+      {
         method: "POST",
         path: "/api/v1/projects",
         status: 409,
@@ -474,6 +492,201 @@ describe("projects create", () => {
       );
     } finally {
       conflictServer.server.close();
+    }
+  });
+});
+
+describe("projects create orgId auto-resolve", () => {
+  let tempHome: string;
+
+  beforeEach(() => {
+    tempHome = mkdtempSync(join(tmpdir(), "inkloom-proj-test-"));
+  });
+
+  afterEach(() => {
+    try {
+      rmSync(tempHome, { recursive: true, force: true });
+    } catch {}
+  });
+
+  it("should auto-resolve orgId from existing projects when --org not set", async () => {
+    let lastRequestBody: Record<string, unknown> = {};
+    const server = await createMockServer([
+      {
+        method: "GET",
+        path: "/api/v1/projects",
+        status: 200,
+        body: {
+          data: MOCK_PROJECTS,
+          pagination: { cursor: null, hasMore: false },
+        },
+      },
+      {
+        method: "POST",
+        path: "/api/v1/projects",
+        status: 201,
+        body: { data: MOCK_PROJECT_DETAIL },
+        handler: (_req, body) => {
+          lastRequestBody = JSON.parse(body);
+          return { status: 201, body: { data: MOCK_PROJECT_DETAIL } };
+        },
+      },
+    ]);
+
+    try {
+      const { stderr, exitCode } = await runCli(
+        [
+          "projects",
+          "create",
+          "--name",
+          "Auto Org Test",
+          "--token",
+          "ik_live_user_testtoken123456789abcdef",
+          "--api-url",
+          server.url,
+        ],
+        { HOME: tempHome }
+      );
+      assert.equal(exitCode, 0, `Should exit 0. stderr: ${stderr}`);
+      assert.equal(
+        lastRequestBody.orgId,
+        "org_01ABC",
+        "Should auto-resolve orgId from projects"
+      );
+    } finally {
+      server.server.close();
+    }
+  });
+
+  it("should error with helpful message when no projects and no --org", async () => {
+    const server = await createMockServer([
+      {
+        method: "GET",
+        path: "/api/v1/projects",
+        status: 200,
+        body: {
+          data: [],
+          pagination: { cursor: null, hasMore: false },
+        },
+      },
+    ]);
+
+    try {
+      const { stderr, exitCode } = await runCli(
+        [
+          "projects",
+          "create",
+          "--name",
+          "No Org Test",
+          "--token",
+          "ik_live_user_testtoken123456789abcdef",
+          "--api-url",
+          server.url,
+        ],
+        { HOME: tempHome }
+      );
+      assert.notEqual(exitCode, 0, "Should fail");
+      assert.ok(
+        stderr.includes("Could not determine organization"),
+        `Should show helpful error. Got: ${stderr}`
+      );
+      assert.ok(
+        stderr.includes("--org") || stderr.includes("INKLOOM_ORG_ID"),
+        "Should mention --org or INKLOOM_ORG_ID"
+      );
+    } finally {
+      server.server.close();
+    }
+  });
+
+  it("should prefer --org flag over auto-resolve", async () => {
+    let lastRequestBody: Record<string, unknown> = {};
+    const server = await createMockServer([
+      {
+        method: "GET",
+        path: "/api/v1/projects",
+        status: 200,
+        body: {
+          data: MOCK_PROJECTS,
+          pagination: { cursor: null, hasMore: false },
+        },
+      },
+      {
+        method: "POST",
+        path: "/api/v1/projects",
+        status: 201,
+        body: { data: MOCK_PROJECT_DETAIL },
+        handler: (_req, body) => {
+          lastRequestBody = JSON.parse(body);
+          return { status: 201, body: { data: MOCK_PROJECT_DETAIL } };
+        },
+      },
+    ]);
+
+    try {
+      await runCli(
+        [
+          "projects",
+          "create",
+          "--name",
+          "Explicit Org Test",
+          "--org",
+          "org_EXPLICIT",
+          "--token",
+          "ik_live_user_testtoken123456789abcdef",
+          "--api-url",
+          server.url,
+        ],
+        { HOME: tempHome }
+      );
+      assert.equal(
+        lastRequestBody.orgId,
+        "org_EXPLICIT",
+        "Should use explicit --org flag"
+      );
+    } finally {
+      server.server.close();
+    }
+  });
+
+  it("should error when multiple orgs found and no --org set", async () => {
+    const multiOrgProjects = [
+      { ...MOCK_PROJECTS[0], workosOrgId: "org_01AAA" },
+      { ...MOCK_PROJECTS[1], workosOrgId: "org_01BBB" },
+    ];
+    const server = await createMockServer([
+      {
+        method: "GET",
+        path: "/api/v1/projects",
+        status: 200,
+        body: {
+          data: multiOrgProjects,
+          pagination: { cursor: null, hasMore: false },
+        },
+      },
+    ]);
+
+    try {
+      const { stderr, exitCode } = await runCli(
+        [
+          "projects",
+          "create",
+          "--name",
+          "Multi Org Test",
+          "--token",
+          "ik_live_user_testtoken123456789abcdef",
+          "--api-url",
+          server.url,
+        ],
+        { HOME: tempHome }
+      );
+      assert.notEqual(exitCode, 0, "Should fail with multiple orgs");
+      assert.ok(
+        stderr.includes("Could not determine organization"),
+        `Should show helpful error. Got: ${stderr}`
+      );
+    } finally {
+      server.server.close();
     }
   });
 });
@@ -814,6 +1027,15 @@ describe("projects API error handling", () => {
 
   it("should handle 403 forbidden error", async () => {
     const server = await createMockServer([
+      {
+        method: "GET",
+        path: "/api/v1/projects",
+        status: 200,
+        body: {
+          data: MOCK_PROJECTS,
+          pagination: { cursor: null, hasMore: false },
+        },
+      },
       {
         method: "POST",
         path: "/api/v1/projects",

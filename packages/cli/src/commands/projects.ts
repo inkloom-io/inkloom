@@ -1,8 +1,32 @@
 import { Command } from "commander";
 import { handleAction, type GlobalOpts } from "../lib/handler.js";
 import type { Client } from "../lib/client.js";
+import { resolveOrgId } from "../lib/client.js";
+import { CliError, EXIT_GENERAL } from "../lib/errors.js";
 import { printData, printSuccess, printWarning } from "../lib/output.js";
 import { confirm } from "../lib/prompt.js";
+
+/**
+ * Resolve the effective orgId from flags, config, or the API.
+ * Throws a helpful error if the org cannot be determined.
+ */
+async function getEffectiveOrgId(
+  client: Client,
+  opts: GlobalOpts
+): Promise<string> {
+  // 1. Explicit --org flag
+  if (opts.org) return opts.org;
+  // 2. Config (env var, config file)
+  if (client.config.orgId) return client.config.orgId;
+  // 3. Auto-resolve from API
+  const resolved = await resolveOrgId(client);
+  if (resolved) return resolved;
+  // 4. Give up with a helpful error
+  throw new CliError(
+    "Could not determine organization. Use --org <orgId> or set INKLOOM_ORG_ID.",
+    EXIT_GENERAL
+  );
+}
 
 /**
  * Register projects commands: list, create, get, delete, settings get/update.
@@ -19,7 +43,8 @@ export function registerProjectsCommands(program: Command): void {
     .action(
       handleAction(async (client: Client, opts: GlobalOpts) => {
         const params = new URLSearchParams();
-        if (opts.org) params.set("orgId", opts.org);
+        const orgId = opts.org ?? client.config.orgId;
+        if (orgId) params.set("orgId", orgId);
         const qs = params.toString();
         const path = `/api/v1/projects${qs ? `?${qs}` : ""}`;
 
@@ -54,10 +79,11 @@ export function registerProjectsCommands(program: Command): void {
           opts: GlobalOpts,
           localOpts: { name: string; description?: string }
         ) => {
+          const orgId = await getEffectiveOrgId(client, opts);
           const body: Record<string, unknown> = {
             name: localOpts.name,
+            orgId,
           };
-          if (opts.org) body.orgId = opts.org;
           if (localOpts.description) body.description = localOpts.description;
 
           const response = await client.post<Record<string, unknown>>(

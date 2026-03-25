@@ -1,4 +1,4 @@
-import { resolveConfig, type ResolvedConfig } from "./config.js";
+import { resolveConfig, writeConfig, readConfig, type ResolvedConfig } from "./config.js";
 import { CliError, exitCodeFromApiError, EXIT_AUTH, EXIT_PERMISSION, EXIT_NOT_FOUND, EXIT_GENERAL, EXIT_BILLING } from "./errors.js";
 
 export interface ClientOptions {
@@ -138,4 +138,48 @@ export async function createClient(opts: ClientOptions): Promise<Client> {
       request<T>("DELETE", path, body),
     config,
   };
+}
+
+/**
+ * Auto-resolve the user's orgId by listing their accessible projects
+ * and extracting the unique organization ID.
+ *
+ * Falls back to undefined if no projects exist or multiple orgs are found.
+ * Caches the resolved orgId in ~/.inkloom/config.json for future use.
+ */
+export async function resolveOrgId(client: Client): Promise<string | undefined> {
+  try {
+    const response = await client.get<Array<Record<string, unknown>>>("/api/v1/projects");
+    const projects = response.data;
+    if (!Array.isArray(projects) || projects.length === 0) {
+      return undefined;
+    }
+
+    const orgIds = new Set<string>();
+    for (const project of projects) {
+      const orgId = project.workosOrgId;
+      if (typeof orgId === "string" && orgId) {
+        orgIds.add(orgId);
+      }
+    }
+
+    if (orgIds.size === 1) {
+      const resolved = [...orgIds][0];
+      // Cache the resolved orgId so subsequent commands don't need the API call
+      try {
+        const cfg = readConfig();
+        if (!cfg.defaultOrgId) {
+          cfg.defaultOrgId = resolved;
+          writeConfig(cfg);
+        }
+      } catch {
+        // Config caching is best-effort — don't fail the command
+      }
+      return resolved;
+    }
+
+    return undefined;
+  } catch {
+    return undefined;
+  }
 }
