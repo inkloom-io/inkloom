@@ -20,6 +20,7 @@ import { SidebarNav } from "@/components/editor/sidebar-nav";
 import { BlockEditor } from "@/components/editor/block-editor";
 import { PreviewPanel } from "@/components/editor/preview-panel";
 import { useAutoSave } from "@/hooks/use-auto-save";
+import { useToast } from "@/components/ui/toast";
 
 // ---------------------------------------------------------------------------
 // Session storage helpers for persisting selected page
@@ -193,6 +194,39 @@ export default function ProjectEditorPage({
   // Preview toggle state
   const [showPreview, setShowPreview] = useState(false);
 
+  // Build state
+  const [buildStatus, setBuildStatus] = useState<"idle" | "building">("idle");
+  const { toast } = useToast();
+
+  const handleBuild = useCallback(async () => {
+    if (buildStatus === "building") return;
+    setBuildStatus("building");
+    try {
+      const res = await fetch("/api/build", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error?.message || "Build failed");
+      }
+      toast({
+        type: "success",
+        title: "Build complete",
+        description: `${json.data.pageCount} pages, ${json.data.fileCount} files written to ${json.data.outDir}/`,
+      });
+    } catch (err) {
+      toast({
+        type: "error",
+        title: "Build failed",
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    } finally {
+      setBuildStatus("idle");
+    }
+  }, [buildStatus, projectId, toast]);
+
   // Persist selected page to sessionStorage
   const handleSelectPage = useCallback(
     (pageId: Id<"pages">) => {
@@ -274,13 +308,25 @@ export default function ProjectEditorPage({
             <Eye className="w-4 h-4" />
             <span className="hidden sm:inline">Preview</span>
           </button>
-          {/* Build button (Task 5.1 — wired later) */}
+          {/* Build button */}
           <button
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-md transition-colors"
+            onClick={handleBuild}
+            disabled={buildStatus === "building"}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
+              buildStatus === "building"
+                ? "text-neutral-500 cursor-not-allowed"
+                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
+            }`}
             title="Build project"
           >
-            <Hammer className="w-4 h-4" />
-            <span className="hidden sm:inline">Build</span>
+            {buildStatus === "building" ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Hammer className="w-4 h-4" />
+            )}
+            <span className="hidden sm:inline">
+              {buildStatus === "building" ? "Building..." : "Build"}
+            </span>
           </button>
           {/* Settings */}
           <Link

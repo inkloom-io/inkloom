@@ -9,6 +9,13 @@ export const create = mutation({
     projectId: v.id("projects"),
     branchId: v.id("branches"),
     target: v.optional(v.union(v.literal("production"), v.literal("preview"))),
+    buildPhase: v.optional(
+      v.union(
+        v.literal("generating"),
+        v.literal("uploading"),
+        v.literal("propagating")
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -17,6 +24,7 @@ export const create = mutation({
       branchId: args.branchId,
       status: "building",
       target: args.target ?? "production",
+      ...(args.buildPhase ? { buildPhase: args.buildPhase } : {}),
       createdAt: now,
       updatedAt: now,
     });
@@ -38,6 +46,7 @@ export const updateStatus = mutation({
     ),
     url: v.optional(v.string()),
     error: v.optional(v.string()),
+    warnings: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const { deploymentId, ...updates } = args;
@@ -53,6 +62,10 @@ export const updateStatus = mutation({
 
     if (updates.error !== undefined) {
       updateData.error = updates.error;
+    }
+
+    if (updates.warnings !== undefined) {
+      updateData.warnings = updates.warnings;
     }
 
     await ctx.db.patch(deploymentId, updateData);

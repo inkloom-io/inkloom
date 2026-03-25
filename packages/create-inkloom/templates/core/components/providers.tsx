@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { ToastProvider } from "@/components/ui/toast";
 
 const convex = new ConvexReactClient(
   process.env.NEXT_PUBLIC_CONVEX_URL as string
@@ -30,7 +31,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <ConvexProvider client={convex}>
         <QueryClientProvider client={queryClient}>
-          <EnsureLocalUser>{children}</EnsureLocalUser>
+          <EnsureLocalUser>
+            <ToastProvider>{children}</ToastProvider>
+          </EnsureLocalUser>
         </QueryClientProvider>
       </ConvexProvider>
     </ThemeProvider>
