@@ -1,5 +1,11 @@
 # @inkloom/cli
 
+## 0.3.1
+
+### Patch Changes
+
+- [`cd0126b`](https://github.com/inkloom-io/inkloom-private/commit/cd0126ba632149b383790c1bb7bfcb70853403d8) Thanks [@notadamking](https://github.com/notadamking)! - Read CLI version from package.json at runtime instead of baking it in at build time, fixing version mismatch after bumps.
+
 ## 0.3.0
 
 ### Minor Changes
