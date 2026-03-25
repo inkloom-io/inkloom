@@ -442,30 +442,35 @@ export function EditorToolbar({
     ? unpublishedChanges[target]
     : undefined;
 
-  // Track when the debounce just finished but the hasChanges query hasn't
-  // caught up yet, so we avoid a brief "Published" flash.
+  // Track when a save just completed so we can hold the "Saving" indicator
+  // briefly while the hasChanges query catches up, avoiding a "Published" flash.
   const [recentlySaved, setRecentlySaved] = useState(false);
+  const wasSavingRef = useRef(false);
 
   useEffect(() => {
     if (isSaving) {
+      wasSavingRef.current = true;
+    } else if (wasSavingRef.current) {
+      // Mutation just resolved — hold recentlySaved briefly for query sync
+      wasSavingRef.current = false;
       setRecentlySaved(true);
     }
   }, [isSaving]);
 
   useEffect(() => {
-    if (recentlySaved && !isSaving && hasChanges === true) {
+    if (recentlySaved && hasChanges === true) {
       setRecentlySaved(false);
     }
-  }, [recentlySaved, isSaving, hasChanges]);
+  }, [recentlySaved, hasChanges]);
 
-  // Fallback: clear recentlySaved after 5s in case the edit didn't
+  // Fallback: clear recentlySaved after 2s in case the edit didn't
   // actually produce a content difference (e.g. type then undo).
   useEffect(() => {
-    if (recentlySaved && !isSaving) {
-      const timeout = setTimeout(() => setRecentlySaved(false), 5000);
+    if (recentlySaved) {
+      const timeout = setTimeout(() => setRecentlySaved(false), 2000);
       return () => clearTimeout(timeout);
     }
-  }, [recentlySaved, isSaving]);
+  }, [recentlySaved]);
 
   const showSaving = isSaving || (recentlySaved && hasChanges !== true);
 

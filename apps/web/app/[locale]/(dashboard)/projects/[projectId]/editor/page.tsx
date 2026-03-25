@@ -642,7 +642,7 @@ export default function EditorPage({ params }: EditorPageProps) {
         clearTimeout(debounceTimerRef.current);
       }
 
-      const debounceMs = collaboration.connected ? 2000 : 500;
+      const debounceMs = collaboration.connected ? 800 : 500;
       debounceTimerRef.current = setTimeout(async () => {
         // Don't overwrite content that was updated externally (e.g., merge,
         // version restore) since our last save. The Convex updatedAt would be
