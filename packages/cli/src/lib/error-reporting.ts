@@ -16,7 +16,7 @@ import os from "node:os";
 const SENTRY_DSN =
   "https://examplePublicKey@o0.ingest.sentry.io/0";
 
-const CLI_VERSION = "0.1.0";
+import { VERSION as CLI_VERSION } from "../version.js";
 
 let initialized = false;
 let disabled = false;

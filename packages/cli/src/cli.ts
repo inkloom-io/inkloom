@@ -21,12 +21,13 @@ import {
   reportError,
   shutdown,
 } from "./lib/error-reporting.js";
+import { VERSION } from "./version.js";
 
 const program = new Command();
 program
   .name("inkloom")
   .description("InkLoom CLI — manage documentation sites from the command line")
-  .version("0.1.0")
+  .version(VERSION)
   .showHelpAfterError(true)
   .option("--json", "Output machine-readable JSON")
   .option("--token <key>", "API key (overrides config/env)")
