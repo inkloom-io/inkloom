@@ -560,9 +560,15 @@ export default function EditorPage({ params }: EditorPageProps) {
   // always reflects the latest state, even before content is persisted to Convex
   const [editorContent, setEditorContent] = useState<string | null>(null);
 
-  // Reset local editor content when switching pages
+  // Reset local editor content and save-guard timestamps when switching pages.
+  // The external-update guard compares lastConvexUpdateRef vs lastLocalSaveRef
+  // to detect external mutations (merges, restores). These timestamps are
+  // per-page, so they must be reset on navigation to avoid stale values from
+  // the previous page blocking saves on the new page.
   useEffect(() => {
     setEditorContent(null);
+    lastConvexUpdateRef.current = 0;
+    lastLocalSaveRef.current = 0;
   }, [selectedPageId]);
 
   // Queue restored content and force editor remount. The pending content is
@@ -703,9 +709,10 @@ export default function EditorPage({ params }: EditorPageProps) {
 
   // Handle branch switching
   const handleBranchSwitch = useCallback(
-    (branchId: Id<"branches">, branchName?: string) => {
-      // Flush (not discard) any pending debounced save so edits aren't lost
-      flushContentSave();
+    async (branchId: Id<"branches">, branchName?: string) => {
+      // Flush (not discard) any pending debounced save so edits aren't lost.
+      // Must await so the save lands before we tear down the page context.
+      await flushContentSave();
 
       // Reset editor state before switching branch
       setEditor(null);
