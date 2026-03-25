@@ -19,7 +19,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
 
   const project = useQuery(api.projects.get, {
-    projectId: projectId as Id<"projects">,
+    id: projectId as Id<"projects">,
   });
 
   if (!project) {

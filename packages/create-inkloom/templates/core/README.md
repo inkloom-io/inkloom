@@ -1,6 +1,15 @@
-# InkLoom Core
+# InkLoom Documentation Platform
 
-A local-first documentation platform with a visual editor, version history, branches, and merge requests.
+Create beautiful documentation with InkLoom's block-based editor.
+
+## Features
+
+- **Block-based WYSIWYG editor** with rich content types
+- **Live preview panel** with MDX rendering
+- **Custom blocks**: callouts, code blocks, tabs, steps, cards, columns
+- **Project settings**: themes, colors, fonts, SEO, analytics
+- **Static site generation**: build & publish your docs
+- **Dark/light theme** support throughout
 
 ## Quick Start
 
@@ -9,10 +18,13 @@ A local-first documentation platform with a visual editor, version history, bran
 Free tier: 1M calls/month, 0.5 GB database + 1 GB file storage, no credit card required.
 
 ```bash
-# 1. Start the Convex backend (creates a free account if needed)
+# 1. Install dependencies
+pnpm install
+
+# 2. Start the Convex backend (creates a free account if needed)
 npx convex dev
 
-# 2. In a new terminal, start the app
+# 3. In a new terminal, start the app
 pnpm dev
 ```
 
@@ -43,21 +55,35 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000). The Convex dashboard is at [http://localhost:6791](http://localhost:6791).
 
-## What's Included
+## Building Your Docs
 
-- **Convex schema** with tables for projects, pages, branches, merge requests, comments, and more
-- **Core Convex functions** for user management and project CRUD
-- **Next.js app** with Convex integration and Tailwind CSS
+1. Create pages and write content in the editor
+2. Mark pages as "Published" (right-click → Toggle published)
+3. Configure branding and SEO in project settings
+4. Click "Build" in the editor toolbar
+5. Serve the output: `npx serve dist/your-project-slug`
 
 ## Project Structure
 
 ```
+app/              # Next.js app routes
+  page.tsx        # Dashboard (project listing)
+  projects/       # Editor and settings pages
+  api/build/      # Static site build endpoint
+components/       # React components
+  editor/         # Block editor, toolbar, sidebar, preview panel
+  settings/       # Project settings tabs
+  docs-renderer/  # MDX rendering components
+  ui/             # Shared UI components (button, card, dialog, etc.)
 convex/           # Convex backend (schema, queries, mutations)
   schema/         # Table definitions
   users.ts        # Local user management
   projects.ts     # Project CRUD
-app/              # Next.js app routes
-components/       # React components
+  pages.ts        # Page content management
+  folders.ts      # Folder management
+  deployments.ts  # Deployment tracking
+hooks/            # React hooks (auto-save, etc.)
+lib/              # Utilities (build pipeline, theme presets, syntax highlighting)
 ```
 
 ## Environment Variables
