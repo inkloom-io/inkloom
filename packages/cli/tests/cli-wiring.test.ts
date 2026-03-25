@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI_PATH = resolve(__dirname, "../dist/cli.js");
+const pkg = JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf-8"));
 
 function runCli(
   args: string[],
@@ -249,7 +250,6 @@ describe("auth help", () => {
 describe("index.ts public exports", () => {
   it("should export VERSION", async () => {
     const mod = await import(resolve(__dirname, "../dist/index.js"));
-    const pkg = JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf-8"));
     assert.equal(mod.VERSION, pkg.version);
   });
 
