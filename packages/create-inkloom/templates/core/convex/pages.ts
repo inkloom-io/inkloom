@@ -9,6 +9,20 @@ function slugify(text: string): string {
 }
 
 /**
+ * Count pages for a given branch.
+ */
+export const countByBranch = query({
+  args: { branchId: v.id("branches") },
+  handler: async (ctx, args) => {
+    const pages = await ctx.db
+      .query("pages")
+      .withIndex("by_branch", (q) => q.eq("branchId", args.branchId))
+      .collect();
+    return pages.length;
+  },
+});
+
+/**
  * List all pages for a given branch.
  */
 export const listByBranch = query({
