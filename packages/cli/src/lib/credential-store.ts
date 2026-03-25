@@ -280,8 +280,15 @@ function createPlaintextFallback(tool?: string): PlaintextFallbackStore {
 /**
  * Creates a CredentialStore backed by the OS keychain when available,
  * falling back to an encrypted-at-rest plaintext file otherwise.
+ *
+ * Set `INKLOOM_CREDENTIAL_BACKEND=plaintext` to force the plaintext fallback
+ * (useful for testing and CI environments without keychain access).
  */
 export async function createCredentialStore(): Promise<CredentialStore> {
+  if (process.env.INKLOOM_CREDENTIAL_BACKEND === "plaintext") {
+    return new PlaintextFallbackStore();
+  }
+
   if (process.platform === "darwin") {
     if (await isToolAvailable("security")) {
       return new MacOSKeychainStore();

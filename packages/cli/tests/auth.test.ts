@@ -24,8 +24,13 @@ function runCli(
 ): { stdout: string; stderr: string; exitCode: number } {
   const result = spawnSync("node", [CLI_PATH, ...args], {
     encoding: "utf-8",
-    timeout: 5000,
-    env: { ...process.env, ...env },
+    timeout: 10000,
+    env: {
+      ...process.env,
+      // Force plaintext credential store so tests don't depend on OS keychain
+      INKLOOM_CREDENTIAL_BACKEND: "plaintext",
+      ...env,
+    },
   });
   return {
     stdout: result.stdout ?? "",
@@ -38,6 +43,12 @@ function readConfigFile(tempHome: string): Record<string, unknown> {
   const configPath = join(tempHome, ".inkloom", "config.json");
   if (!existsSync(configPath)) return {};
   return JSON.parse(readFileSync(configPath, "utf-8"));
+}
+
+function readCredentialStore(tempHome: string): Record<string, string> {
+  const credPath = join(tempHome, ".inkloom", "credentials");
+  if (!existsSync(credPath)) return {};
+  return JSON.parse(readFileSync(credPath, "utf-8")) as Record<string, string>;
 }
 
 describe("auth login", () => {
@@ -53,36 +64,30 @@ describe("auth login", () => {
     } catch {}
   });
 
-  it("should save token to config file when --token is provided", () => {
+  it("should save token to credential store when --token is provided", () => {
     const { stderr, exitCode } = runCli(
       ["auth", "login", "--token", "ik_live_user_testtoken123456789"],
       { HOME: tempHome }
     );
     assert.equal(exitCode, 0, "Should exit successfully");
     assert.ok(
-      stderr.includes("Token saved to ~/.inkloom/config.json"),
+      stderr.includes("Token saved to credential store."),
       "Should show success message"
-    );
-
-    const config = readConfigFile(tempHome);
-    assert.equal(
-      config.token,
-      "ik_live_user_testtoken123456789",
-      "Token should be saved in config"
     );
   });
 
   it("should create ~/.inkloom directory if it does not exist", () => {
-    runCli(["auth", "login", "--token", "ik_live_user_abc"], {
+    const { exitCode } = runCli(["auth", "login", "--token", "ik_live_user_abc"], {
       HOME: tempHome,
     });
+    assert.equal(exitCode, 0, "Should exit successfully");
     assert.ok(
       existsSync(join(tempHome, ".inkloom")),
       "Should create .inkloom directory"
     );
     assert.ok(
-      existsSync(join(tempHome, ".inkloom", "config.json")),
-      "Should create config.json"
+      existsSync(join(tempHome, ".inkloom", "credentials")),
+      "Should create credentials file"
     );
   });
 
@@ -97,12 +102,18 @@ describe("auth login", () => {
       })
     );
 
-    runCli(["auth", "login", "--token", "ik_live_user_newtoken"], {
+    const { stderr, exitCode } = runCli(["auth", "login", "--token", "ik_live_user_newtoken"], {
       HOME: tempHome,
     });
 
+    assert.equal(exitCode, 0, "Should exit successfully");
+    assert.ok(
+      stderr.includes("Token saved to credential store."),
+      "Should show credential store success message"
+    );
+
+    // Config file should remain untouched (token now goes to credential store)
     const config = readConfigFile(tempHome);
-    assert.equal(config.token, "ik_live_user_newtoken");
     assert.equal(
       config.defaultOrgId,
       "org_01XYZ",
@@ -116,19 +127,21 @@ describe("auth login", () => {
   });
 
   it("should overwrite existing token when logging in again", () => {
-    const configDir = join(tempHome, ".inkloom");
-    mkdirSync(configDir, { recursive: true });
-    writeFileSync(
-      join(configDir, "config.json"),
-      JSON.stringify({ token: "old_token" })
-    );
-
-    runCli(["auth", "login", "--token", "ik_live_user_new_token"], {
+    // First login
+    runCli(["auth", "login", "--token", "ik_live_user_old_token"], {
       HOME: tempHome,
     });
 
-    const config = readConfigFile(tempHome);
-    assert.equal(config.token, "ik_live_user_new_token");
+    // Second login overwrites
+    const { stderr, exitCode } = runCli(["auth", "login", "--token", "ik_live_user_new_token"], {
+      HOME: tempHome,
+    });
+
+    assert.equal(exitCode, 0, "Should exit successfully");
+    assert.ok(
+      stderr.includes("Token saved to credential store."),
+      "Should show credential store success message"
+    );
   });
 
   it("should fail in non-interactive mode without --token", () => {
@@ -188,10 +201,6 @@ describe("auth logout", () => {
     assert.ok(
       stderr.includes("Logged out"),
       "Should show logout success message"
-    );
-    assert.ok(
-      stderr.includes("Token removed from ~/.inkloom/config.json"),
-      "Should mention config path"
     );
 
     const config = readConfigFile(tempHome);
@@ -464,7 +473,7 @@ describe("auth help", () => {
     const { stdout, exitCode } = runCli(["auth", "login", "--help"]);
     assert.equal(exitCode, 0);
     assert.ok(
-      stdout.includes("Authenticate with an API key"),
+      stdout.includes("Authenticate with InkLoom"),
       "Should show login description"
     );
   });

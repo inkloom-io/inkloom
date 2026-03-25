@@ -137,7 +137,7 @@ describe("auth login help examples", () => {
   it("should show correct description", () => {
     const { stdout } = runCli(["auth", "login", "--help"]);
     assert.ok(
-      stdout.includes("Authenticate with an API key"),
+      stdout.includes("Authenticate with InkLoom"),
       "Should show correct description"
     );
   });
@@ -252,7 +252,7 @@ describe("command descriptions match CLI spec", () => {
   it("auth subcommands should have correct descriptions", () => {
     const { stdout } = runCli(["auth", "--help"]);
     assert.ok(
-      stdout.includes("Authenticate with an API key"),
+      stdout.includes("Authenticate with InkLoom"),
       "login description"
     );
     assert.ok(
