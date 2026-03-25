@@ -1,5 +1,11 @@
 # create-inkloom
 
+## 0.4.1
+
+### Patch Changes
+
+- [`63fa1c9`](https://github.com/inkloom-io/inkloom-private/commit/63fa1c9cdcafd0654a2ccf69cc14919743942a24) Thanks [@notadamking](https://github.com/notadamking)! - Add missing @source directives to core template globals.css so Tailwind v4 scans app, components, hooks, and lib directories for utility classes.
+
 ## 0.4.0
 
 ### Minor Changes
