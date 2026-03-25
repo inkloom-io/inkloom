@@ -179,3 +179,35 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+/**
+ * Update project settings (theme, branding, SEO, etc.).
+ * Performs a shallow merge; keys set to null are removed.
+ */
+export const updateSettings = mutation({
+  args: {
+    projectId: v.id("projects"),
+    settings: v.any(),
+  },
+  handler: async (ctx, args) => {
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+
+    const currentSettings =
+      (project.settings as Record<string, unknown>) || {};
+    const newSettings = args.settings as Record<string, unknown>;
+
+    const merged = { ...currentSettings, ...newSettings };
+    // Remove keys explicitly set to null
+    for (const key of Object.keys(newSettings)) {
+      if (newSettings[key] === null) {
+        delete merged[key];
+      }
+    }
+
+    await ctx.db.patch(args.projectId, {
+      settings: merged,
+      updatedAt: Date.now(),
+    });
+  },
+});
