@@ -19,6 +19,14 @@ interface OgMeta {
   twitterCard: string;
 }
 
+export interface NavItem {
+  title: string;
+  href: string;
+  icon?: string;
+  method?: string;
+  children?: NavItem[];
+}
+
 interface PageHtmlOptions {
   siteConfig: SiteConfig;
   assetManifest: AssetManifest;
@@ -47,6 +55,10 @@ interface PageHtmlOptions {
   customBodyScripts?: string;
   /** Default theme mode for first-time visitors (light/dark/system). Defaults to "system". */
   defaultThemeMode?: "light" | "dark" | "system";
+  /** Navigation items for static sidebar rendering */
+  navigation?: NavItem[];
+  /** Current page href for active state highlighting */
+  currentPageHref?: string;
 }
 
 interface ShellHtmlOptions {
@@ -66,6 +78,10 @@ interface ShellHtmlOptions {
   customBodyScripts?: string;
   /** Default theme mode for first-time visitors (light/dark/system). Defaults to "system". */
   defaultThemeMode?: "light" | "dark" | "system";
+  /** Navigation items for static sidebar rendering */
+  navigation?: NavItem[];
+  /** First page href for redirect */
+  firstPageHref?: string;
 }
 
 /**
@@ -89,20 +105,52 @@ function stripJsxTags(content: string): string {
 function simpleMarkdownToHtml(markdown: string): string {
   let html = markdown;
 
+  // Fenced code blocks (```lang ... ```)
+  html = html.replace(/```[\w]*\n([\s\S]*?)```/g, (_match, code: string) => {
+    return `<pre><code>${escapeHtml(code.trimEnd())}</code></pre>`;
+  });
+
   // Headings
+  html = html.replace(/^#### (.+)$/gm, "<h4>$1</h4>");
   html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
   html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
   html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
+
+  // Horizontal rules
+  html = html.replace(/^---$/gm, "<hr />");
+
+  // Blockquotes
+  html = html.replace(/^> (.+)$/gm, "<blockquote><p>$1</p></blockquote>");
 
   // Bold and italic
   html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
 
-  // Inline code
+  // Inline code (but not inside <pre> blocks)
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
 
   // Links
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+
+  // Unordered lists
+  html = html.replace(/((?:^[-*] .+\n?)+)/gm, (match) => {
+    const items = match
+      .trim()
+      .split("\n")
+      .map((line) => `<li>${line.replace(/^[-*] /, "")}</li>`)
+      .join("");
+    return `<ul>${items}</ul>`;
+  });
+
+  // Ordered lists
+  html = html.replace(/((?:^\d+\. .+\n?)+)/gm, (match) => {
+    const items = match
+      .trim()
+      .split("\n")
+      .map((line) => `<li>${line.replace(/^\d+\. /, "")}</li>`)
+      .join("");
+    return `<ol>${items}</ol>`;
+  });
 
   // Paragraphs (wrap non-tag lines)
   html = html
@@ -198,6 +246,209 @@ function generateHeadExtras(opts: {
   return parts.join("\n    ");
 }
 
+/**
+ * Render navigation items as static HTML for the sidebar.
+ */
+function renderNavItems(items: NavItem[], currentHref?: string, depth = 0): string {
+  if (!items || items.length === 0) return "";
+
+  const lis = items.map((item) => {
+    const isActive = currentHref === item.href;
+    const hasChildren = item.children && item.children.length > 0;
+    const activeClass = isActive ? ' class="il-nav-active"' : "";
+
+    let li = `<li>`;
+    if (hasChildren) {
+      li += `<span class="il-nav-folder">${escapeHtml(item.title)}</span>`;
+      li += `<ul class="il-nav-list il-nav-nested">`;
+      li += item.children!.map((child) => {
+        const childActive = currentHref === child.href;
+        const childHasChildren = child.children && child.children.length > 0;
+        const childActiveClass = childActive ? ' class="il-nav-active"' : "";
+        if (childHasChildren) {
+          return `<li><span class="il-nav-folder">${escapeHtml(child.title)}</span>${renderNavItems(child.children!, currentHref, depth + 2)}</li>`;
+        }
+        return `<li${childActiveClass}><a href="${child.href}">${escapeHtml(child.title)}</a></li>`;
+      }).join("");
+      li += `</ul>`;
+    } else {
+      li += `<a href="${item.href}"${activeClass ? ' class="il-nav-active"' : ""}>${escapeHtml(item.title)}</a>`;
+    }
+    li += `</li>`;
+    return li;
+  }).join("");
+
+  return `<ul class="il-nav-list${depth === 0 ? " il-nav-root" : " il-nav-nested"}">${lis}</ul>`;
+}
+
+/**
+ * Static layout CSS for server-rendered HTML pages (no JS bundle).
+ */
+const STATIC_LAYOUT_CSS = `
+/* Static layout */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  background: var(--color-background, #fff);
+  color: var(--color-foreground, #1a1a2e);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+.il-layout {
+  display: flex;
+  min-height: 100vh;
+}
+/* Header */
+.il-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  padding: 0 1.5rem;
+  background: var(--color-header-background, var(--color-background, #fff));
+  border-bottom: 1px solid var(--color-header-border, var(--color-border, #e5e7eb));
+  backdrop-filter: var(--header-blur, blur(8px));
+  font-family: var(--font-display, var(--font-sans, system-ui, sans-serif));
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--color-foreground, #1a1a2e);
+}
+.il-header a { color: inherit; text-decoration: none; }
+/* Sidebar */
+.il-sidebar {
+  position: sticky;
+  top: 56px;
+  width: 260px;
+  min-width: 260px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  padding: 1rem 0;
+  background: var(--color-sidebar-background, var(--color-background-subtle, #f9fafb));
+  border-right: 1px solid var(--color-sidebar-border, var(--color-border, #e5e7eb));
+}
+.il-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.il-nav-list li { margin: 0; }
+.il-nav-list a {
+  display: block;
+  padding: 0.35rem 1.25rem;
+  color: var(--color-muted-foreground, #6b7280);
+  text-decoration: none;
+  font-size: 0.875rem;
+  border-radius: var(--radius-sm, 4px);
+  transition: color 0.15s, background 0.15s;
+}
+.il-nav-list a:hover {
+  color: var(--color-foreground, #1a1a2e);
+  background: var(--color-sidebar-active, rgba(0,0,0,0.04));
+}
+.il-nav-list a.il-nav-active {
+  color: var(--color-primary, #3b82f6);
+  background: var(--color-sidebar-active, rgba(59,130,246,0.08));
+  font-weight: 500;
+}
+.il-nav-folder {
+  display: block;
+  padding: 0.5rem 1.25rem 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-muted-foreground, #9ca3af);
+}
+.il-nav-nested {
+  padding-left: 0.75rem;
+}
+/* Main content */
+.il-main {
+  flex: 1;
+  min-width: 0;
+  max-width: 52rem;
+  padding: 2.5rem 3rem;
+}
+/* Title section */
+.il-title-section { margin-bottom: 2rem; }
+.il-title-section h1 {
+  font-family: var(--font-display, var(--font-sans, system-ui, sans-serif));
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-foreground, #1a1a2e);
+}
+.il-title-section .il-subtitle {
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  color: var(--color-muted-foreground, #6b7280);
+}
+/* Prose content styling */
+.il-content h1, .il-content h2, .il-content h3, .il-content h4 {
+  font-family: var(--font-display, var(--font-sans, system-ui, sans-serif));
+  color: var(--color-foreground, #1a1a2e);
+  margin: 1.75em 0 0.75em;
+  line-height: 1.3;
+}
+.il-content h1 { font-size: 1.75rem; font-weight: 700; }
+.il-content h2 { font-size: 1.4rem; font-weight: 600; border-bottom: 1px solid var(--color-border-subtle, #e5e7eb); padding-bottom: 0.4em; }
+.il-content h3 { font-size: 1.15rem; font-weight: 600; }
+.il-content p { margin: 0.75em 0; }
+.il-content a { color: var(--color-link, var(--color-primary, #3b82f6)); text-decoration: underline; text-underline-offset: 2px; }
+.il-content a:hover { opacity: 0.8; }
+.il-content strong { font-weight: 600; }
+.il-content ul, .il-content ol { padding-left: 1.5em; margin: 0.75em 0; }
+.il-content li { margin: 0.25em 0; }
+.il-content code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.875em;
+  background: var(--color-code-background, #f3f4f6);
+  color: var(--color-code-foreground, #1a1a2e);
+  padding: 0.15em 0.35em;
+  border-radius: var(--radius-sm, 4px);
+}
+.il-content pre {
+  background: var(--color-code-background, #1e1e2e);
+  color: var(--color-code-foreground, #cdd6f4);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md, 8px);
+  overflow-x: auto;
+  margin: 1em 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  border-top: 2px solid var(--color-code-accent, var(--color-primary, #3b82f6));
+}
+.il-content pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+.il-content blockquote {
+  border-left: 3px solid var(--color-primary, #3b82f6);
+  padding: 0.5em 1em;
+  margin: 1em 0;
+  color: var(--color-muted-foreground, #6b7280);
+  background: var(--color-background-subtle, #f9fafb);
+  border-radius: 0 var(--radius-sm, 4px) var(--radius-sm, 4px) 0;
+}
+.il-content hr {
+  border: none;
+  border-top: 1px solid var(--color-border-subtle, #e5e7eb);
+  margin: 2em 0;
+}
+.il-content table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+.il-content th, .il-content td { padding: 0.5em 0.75em; border: 1px solid var(--color-border, #e5e7eb); text-align: left; }
+.il-content th { background: var(--color-background-subtle, #f9fafb); font-weight: 600; }
+/* Responsive */
+@media (max-width: 768px) {
+  .il-sidebar { display: none; }
+  .il-main { padding: 1.5rem 1rem; }
+}
+`;
+
 export function generatePageHtml(options: PageHtmlOptions): string {
   const {
     siteConfig,
@@ -225,6 +476,8 @@ export function generatePageHtml(options: PageHtmlOptions): string {
     customHeadScripts,
     customBodyScripts,
     defaultThemeMode,
+    navigation,
+    currentPageHref,
   } = options;
 
   const resolvedDefaultMode = defaultThemeMode || "system";
@@ -279,6 +532,22 @@ export function generatePageHtml(options: PageHtmlOptions): string {
 
   const bodyEnd = customBodyScripts || "";
 
+  // Build the static sidebar navigation HTML
+  const sidebarHtml = navigation && navigation.length > 0
+    ? `<nav class="il-sidebar" aria-label="Documentation navigation">${renderNavItems(navigation, currentPageHref)}</nav>`
+    : "";
+
+  // Build title section
+  const titleHtml = titleSectionHidden
+    ? ""
+    : `<div class="il-title-section">
+        <h1>${pageIcon && !titleIconHidden ? `<span class="il-page-icon">${escapeHtml(pageIcon)}</span> ` : ""}${escapeHtml(pageTitle)}</h1>
+        ${pageSubtitle ? `<p class="il-subtitle">${escapeHtml(pageSubtitle)}</p>` : ""}
+      </div>`;
+
+  // Determine if this is a static-only build (no JS bundles)
+  const isStaticBuild = assetManifest.js.length === 0;
+
   return `<!DOCTYPE html>
 <html lang="en" data-theme="${resolvedDefaultMode}">
   <head>
@@ -290,13 +559,24 @@ export function generatePageHtml(options: PageHtmlOptions): string {
     <link rel="canonical" href="${pagePath}" />
     ${fontsLink}
     ${cssLinks}
-    <style>${themeCss}</style>
-    <style>#root:not(.hydrated){visibility:hidden}</style>
+    <style>${themeCss}</style>${isStaticBuild ? `
+    <style>${STATIC_LAYOUT_CSS}</style>` : `
+    <style>#root:not(.hydrated){visibility:hidden}</style>`}
     ${headExtras}
   </head>
   <body class="antialiased">
-    <div id="root">
-      <article>${preRenderedHtml}</article>
+    <div id="root">${isStaticBuild ? `
+      <header class="il-header"><a href="/">${escapeHtml(siteConfig.title)} Documentation</a></header>
+      <div class="il-layout">
+        ${sidebarHtml}
+        <main class="il-main">
+          ${titleHtml}
+          <div class="il-content">
+            ${preRenderedHtml}
+          </div>
+        </main>
+      </div>` : `
+      <article>${preRenderedHtml}</article>`}
     </div>
     <script type="application/json" id="__INKLOOM_DATA__">${JSON.stringify(siteData)}</script>
     <script type="application/json" id="__PAGE_DATA__">${pageData}</script>
@@ -323,6 +603,8 @@ export function generateShellHtml(options: ShellHtmlOptions): string {
     customHeadScripts,
     customBodyScripts,
     defaultThemeMode,
+    navigation,
+    firstPageHref,
   } = options;
 
   const resolvedDefaultMode = defaultThemeMode || "system";
@@ -352,22 +634,52 @@ export function generateShellHtml(options: ShellHtmlOptions): string {
 
   const bodyEnd = customBodyScripts || "";
 
+  // Determine if this is a static-only build (no JS bundles)
+  const isStaticBuild = assetManifest.js.length === 0;
+
+  // For static builds with a first page, redirect to it
+  const redirectMeta = isStaticBuild && firstPageHref
+    ? `<meta http-equiv="refresh" content="0;url=${firstPageHref}" />`
+    : "";
+
+  // Build the static sidebar navigation HTML
+  const sidebarHtml = isStaticBuild && navigation && navigation.length > 0
+    ? `<nav class="il-sidebar" aria-label="Documentation navigation">${renderNavItems(navigation)}</nav>`
+    : "";
+
+  // Landing page content for static builds
+  const landingContent = isStaticBuild
+    ? `<header class="il-header"><a href="/">${escapeHtml(siteConfig.title)} Documentation</a></header>
+      <div class="il-layout">
+        ${sidebarHtml}
+        <main class="il-main">
+          <div class="il-title-section">
+            <h1>${escapeHtml(siteConfig.title)} Documentation</h1>
+            ${siteConfig.description ? `<p class="il-subtitle">${escapeHtml(siteConfig.description)}</p>` : ""}
+          </div>
+          ${navigation && navigation.length > 0 ? `<div class="il-content"><h2>Pages</h2><ul>${navigation.map((item) => `<li><a href="${item.href}">${escapeHtml(item.title)}</a></li>`).join("")}</ul></div>` : ""}
+        </main>
+      </div>`
+    : "";
+
   return `<!DOCTYPE html>
 <html lang="en" data-theme="${resolvedDefaultMode}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    ${redirectMeta}
     <script>(function(){var t=localStorage.getItem('inkloom-theme');if(!t)t='${resolvedDefaultMode}';if(t==='light'||t==='dark'||t==='system')document.documentElement.setAttribute('data-theme',t)})()</script>
     <title>${escapeHtml(siteConfig.title)} Documentation</title>
     <meta name="description" content="${escapeHtml(siteConfig.description)}" />
     ${fontsLink}
     ${cssLinks}
-    <style>${themeCss}</style>
-    <style>#root:not(.hydrated){visibility:hidden}</style>
+    <style>${themeCss}</style>${isStaticBuild ? `
+    <style>${STATIC_LAYOUT_CSS}</style>` : `
+    <style>#root:not(.hydrated){visibility:hidden}</style>`}
     ${headExtras}
   </head>
   <body class="antialiased">
-    <div id="root"></div>
+    <div id="root">${isStaticBuild ? landingContent : ""}</div>
     <script type="application/json" id="__INKLOOM_DATA__">${JSON.stringify(siteData)}</script>
     ${jsScripts}
     ${bodyEnd}

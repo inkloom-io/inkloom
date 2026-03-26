@@ -1810,6 +1810,7 @@ export async function generateSiteFiles(
     customFontsCss,
     analyticsSnippets: analyticsSnippetsHtml || undefined,
     defaultThemeMode: config.defaultThemeMode,
+    navigation,
   };
 
   // Build folder lookup for breadcrumb trails
@@ -1867,6 +1868,7 @@ export async function generateSiteFiles(
       folderTrail: getFolderTrail(page.path),
       ogMeta,
       jsonLd,
+      currentPageHref: page.path,
     });
 
     // Write as {path}/index.html (e.g., /getting-started → getting-started/index.html)
@@ -1890,10 +1892,17 @@ export async function generateSiteFiles(
   // Only generate a separate 404.html shell if there's a root page already
   // generating index.html
   const hasRootPage = pages.some((p) => p.path === "/");
+  // Find the first navigation page for shell redirect
+  const firstNavHref = navigation.length > 0
+    ? (navigation[0].children && navigation[0].children.length > 0
+      ? navigation[0].children[0].href
+      : navigation[0].href)
+    : undefined;
   if (!hasRootPage) {
     const shellHtml = generateShellHtml({
       ...sharedHtmlOpts,
       ogMeta: shellOgMeta,
+      firstPageHref: firstNavHref,
     });
     files.push({ file: "index.html", data: shellHtml });
   }
