@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
-import { X, CheckCircle, AlertCircle, Info } from "lucide-react";
+import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Toast types
@@ -9,7 +9,7 @@ import { X, CheckCircle, AlertCircle, Info } from "lucide-react";
 
 interface Toast {
   id: string;
-  type: "success" | "error" | "info";
+  type: "success" | "error" | "warning" | "info";
   title: string;
   description?: string;
 }
@@ -77,14 +77,18 @@ function ToastItem({
       ? CheckCircle
       : toast.type === "error"
         ? AlertCircle
-        : Info;
+        : toast.type === "warning"
+          ? AlertTriangle
+          : Info;
 
   const iconColor =
     toast.type === "success"
       ? "text-emerald-400"
       : toast.type === "error"
         ? "text-red-400"
-        : "text-primary";
+        : toast.type === "warning"
+          ? "text-amber-400"
+          : "text-primary";
 
   return (
     <div className="bg-card border border-border rounded-lg shadow-lg p-3 flex items-start gap-3 animate-in slide-in-from-right-5 fade-in duration-200">

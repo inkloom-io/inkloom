@@ -33,6 +33,7 @@ export interface BuildProjectResult {
   pageCount: number;
   fileCount: number;
   outDir: string;
+  warnings?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -132,6 +133,12 @@ export async function buildProject(
       });
     }
 
+    // 7b. Warn if no published pages were found
+    if (pages.length === 0) {
+      console.warn("Warning: No published pages found. Build will be empty.");
+      console.warn("Mark pages as published in the sidebar (right-click → Publish).");
+    }
+
     // 8. Generate site files
     await convex.mutation(api.deployments.updateBuildPhase, {
       deploymentId,
@@ -191,7 +198,15 @@ export async function buildProject(
       analytics: settings?.analytics,
     });
 
+    // Collect all warnings (site-generator warnings + zero-pages warning)
+    const allWarnings: string[] = [];
+    if (pages.length === 0) {
+      allWarnings.push(
+        "No published pages found. Build output will be empty. Right-click pages in the sidebar and select 'Publish' to include them in your build."
+      );
+    }
     if (buildWarnings && buildWarnings.length > 0) {
+      allWarnings.push(...buildWarnings);
       for (const w of buildWarnings) {
         console.warn(`[Build] Warning: ${w}`);
       }
@@ -216,7 +231,7 @@ export async function buildProject(
       deploymentId,
       status: "ready",
       url,
-      ...(buildWarnings && buildWarnings.length > 0 ? { warnings: buildWarnings } : {}),
+      ...(allWarnings.length > 0 ? { warnings: allWarnings } : {}),
     });
 
     return {
@@ -225,6 +240,7 @@ export async function buildProject(
       pageCount: pages.length,
       fileCount,
       outDir,
+      ...(allWarnings.length > 0 ? { warnings: allWarnings } : {}),
     };
   } catch (error) {
     // Mark deployment as failed

@@ -218,11 +218,20 @@ export default function ProjectEditorPage({
       if (!res.ok) {
         throw new Error(json.error?.message || "Build failed");
       }
-      toast({
-        type: "success",
-        title: "Build complete",
-        description: `${json.data.pageCount} pages, ${json.data.fileCount} files written to ${json.data.outDir}/`,
-      });
+      if (json.data.pageCount === 0) {
+        toast({
+          type: "warning",
+          title: "Build completed with no pages",
+          description:
+            "No published pages were found. Right-click pages in the sidebar and select 'Publish' to include them in your build.",
+        });
+      } else {
+        toast({
+          type: "success",
+          title: "Build complete",
+          description: `${json.data.pageCount} pages, ${json.data.fileCount} files written to ${json.data.outDir}/`,
+        });
+      }
     } catch (err) {
       toast({
         type: "error",

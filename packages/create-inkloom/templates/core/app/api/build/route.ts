@@ -49,6 +49,7 @@ export async function POST(request: Request) {
             pageCount: result.pageCount,
             fileCount: result.fileCount,
             outDir: result.outDir,
+            ...(result.warnings ? { warnings: result.warnings } : {}),
           },
         },
         { status: 200 }
