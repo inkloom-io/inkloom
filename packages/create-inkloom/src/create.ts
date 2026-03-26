@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 
 interface CreateOptions {
   template: string;
-  packageManager: "npm" | "yarn" | "pnpm";
+  packageManager: "npm" | "yarn" | "pnpm" | "bun";
   skipInstall?: boolean;
 }
 
@@ -111,6 +111,7 @@ export async function create(
       npm: "npm install",
       yarn: "yarn",
       pnpm: "pnpm install",
+      bun: "bun install",
     }[options.packageManager];
 
     try {
@@ -135,17 +136,35 @@ export async function create(
   }
 }
 
+function getRunCommand(packageManager: string, script: string): string {
+  // yarn and bun don't need "run" for scripts
+  if (packageManager === "yarn" || packageManager === "bun") {
+    return `${packageManager} ${script}`;
+  }
+  return `${packageManager} run ${script}`;
+}
+
+function getExecCommand(packageManager: string): string {
+  if (packageManager === "bun") return "bunx";
+  if (packageManager === "pnpm") return "pnpm dlx";
+  if (packageManager === "yarn") return "yarn dlx";
+  return "npx";
+}
+
 function printCoreInstructions(
   projectName: string,
   packageManager: string
 ) {
+  const execCmd = getExecCommand(packageManager);
+  const devCmd = getRunCommand(packageManager, "dev");
+
   console.log("Get started:");
   console.log();
   console.log(pc.cyan(`  cd ${projectName}`));
   console.log();
   console.log(pc.bold("  Option A: Convex Cloud (free, fastest setup)"));
-  console.log(`  ${pc.bold("1.")} npx convex dev`);
-  console.log(`  ${pc.bold("2.")} ${packageManager} run dev`);
+  console.log(`  ${pc.bold("1.")} ${execCmd} convex dev`);
+  console.log(`  ${pc.bold("2.")} ${devCmd}`);
   console.log();
   console.log(pc.bold("  Option B: Self-hosted (no external dependencies)"));
   console.log(`  ${pc.bold("1.")} docker compose up -d`);
@@ -159,17 +178,20 @@ function printDefaultInstructions(
   projectName: string,
   packageManager: string
 ) {
+  const devCmd = getRunCommand(packageManager, "dev");
+  const buildCmd = getRunCommand(packageManager, "build");
+
   console.log("Inside that directory, you can run:");
   console.log();
-  console.log(pc.cyan(`  ${packageManager} run dev`));
+  console.log(pc.cyan(`  ${devCmd}`));
   console.log("    Starts the development server");
   console.log();
-  console.log(pc.cyan(`  ${packageManager} run build`));
+  console.log(pc.cyan(`  ${buildCmd}`));
   console.log("    Builds the production application");
   console.log();
   console.log("Get started by running:");
   console.log();
   console.log(pc.cyan(`  cd ${projectName}`));
-  console.log(pc.cyan(`  ${packageManager} run dev`));
+  console.log(pc.cyan(`  ${devCmd}`));
   console.log();
 }

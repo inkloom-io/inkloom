@@ -4,6 +4,16 @@ import { Command } from "commander";
 import { create } from "./create";
 import pc from "picocolors";
 
+type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
+
+function detectPackageManager(): PackageManager {
+  const userAgent = process.env.npm_config_user_agent || "";
+  if (userAgent.startsWith("bun")) return "bun";
+  if (userAgent.startsWith("yarn")) return "yarn";
+  if (userAgent.startsWith("pnpm")) return "pnpm";
+  return "npm";
+}
+
 const program = new Command();
 
 program
@@ -19,6 +29,7 @@ program
   .option("--use-npm", "Use npm as package manager")
   .option("--use-yarn", "Use yarn as package manager")
   .option("--use-pnpm", "Use pnpm as package manager")
+  .option("--use-bun", "Use bun as package manager")
   .option("--skip-install", "Skip installing dependencies")
   .action(async (projectName: string | undefined, options) => {
     console.log();
@@ -27,10 +38,11 @@ program
     console.log();
 
     try {
-      let packageManager: "npm" | "yarn" | "pnpm" = "pnpm";
+      let packageManager: PackageManager = detectPackageManager();
       if (options.useNpm) packageManager = "npm";
       if (options.useYarn) packageManager = "yarn";
       if (options.usePnpm) packageManager = "pnpm";
+      if (options.useBun) packageManager = "bun";
 
       await create(projectName, {
         template: options.template,
