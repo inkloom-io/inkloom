@@ -98,11 +98,13 @@ export const create = mutation({
     slug: v.optional(v.string()),
     position: v.optional(v.number()),
     icon: v.optional(v.string()),
+    // Allow server-side sync operations (e.g. GitHub pull) to bypass branch lock
+    skipBranchLock: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     // Lock guard: prevent changes on locked branches
     const branch = await ctx.db.get(args.branchId);
-    if (branch?.isLocked) {
+    if (branch?.isLocked && !args.skipBranchLock) {
       throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
     }
 
@@ -185,16 +187,18 @@ export const update = mutation({
     position: v.optional(v.number()),
     parentId: v.optional(v.union(v.id("folders"), v.null())),
     icon: v.optional(v.union(v.string(), v.null())),
+    // Allow server-side sync operations (e.g. GitHub pull) to bypass branch lock
+    skipBranchLock: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { folderId, ...updates } = args;
+    const { folderId, skipBranchLock, ...updates } = args;
 
     const folder = await ctx.db.get(folderId);
     if (!folder) throw new Error("Folder not found");
 
     // Lock guard: prevent changes on locked branches
     const branch = await ctx.db.get(folder.branchId);
-    if (branch?.isLocked) {
+    if (branch?.isLocked && !skipBranchLock) {
       throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
     }
 

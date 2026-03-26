@@ -211,16 +211,18 @@ export const update = mutation({
     seoDescription: v.optional(v.union(v.string(), v.null())),
     ogImageAssetId: v.optional(v.union(v.id("assets"), v.null())),
     noindex: v.optional(v.boolean()),
+    // Allow server-side sync operations (e.g. GitHub pull) to bypass branch lock
+    skipBranchLock: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { pageId, ...updates } = args;
+    const { pageId, skipBranchLock, ...updates } = args;
 
     const page = await ctx.db.get(pageId);
     if (!page) throw new Error("Page not found");
 
     // Lock guard: prevent changes on locked branches
     const branch = await ctx.db.get(page.branchId);
-    if (branch?.isLocked) {
+    if (branch?.isLocked && !skipBranchLock) {
       throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
     }
 
@@ -301,13 +303,15 @@ export const updateContent = mutation({
     pageId: v.id("pages"),
     content: v.string(),
     updatedBy: v.optional(v.id("users")),
+    // Allow server-side sync operations (e.g. GitHub pull) to bypass branch lock
+    skipBranchLock: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     // Lock guard: prevent changes on locked branches
     const page = await ctx.db.get(args.pageId);
     if (page) {
       const branch = await ctx.db.get(page.branchId);
-      if (branch?.isLocked) {
+      if (branch?.isLocked && !args.skipBranchLock) {
         throw new ConvexError("This branch is locked. Create a feature branch to make changes.");
       }
     }
