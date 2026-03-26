@@ -7,8 +7,8 @@
  *
  * Used by the `/api/build` route (UI "Build" button).
  */
-import { mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync, readdirSync, cpSync } from "node:fs";
+import { join, dirname, resolve } from "node:path";
 import type { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -25,6 +25,81 @@ export interface BuildProjectOptions {
   outDir?: string;
   /** Clean output directory before building. */
   clean?: boolean;
+  /** Path to the default template viewer's dist/ directory. Auto-discovered if not provided. */
+  viewerAssetsDir?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Viewer asset discovery
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the default template viewer's dist/ directory.
+ * Searches known locations in monorepo and standalone setups.
+ */
+function resolveViewerAssetsDir(explicit?: string): string | undefined {
+  if (explicit) {
+    if (existsSync(explicit)) return explicit;
+    console.warn(`[Build] Viewer assets dir not found at ${explicit}, falling back to discovery.`);
+  }
+
+  // Known locations to search for the default template dist
+  const candidates: string[] = [];
+
+  // Try to resolve via Node module resolution (works with pnpm workspaces)
+  try {
+    const createInkloomPkg = require.resolve("create-inkloom/package.json");
+    candidates.push(resolve(dirname(createInkloomPkg), "templates", "default", "dist"));
+  } catch {
+    // create-inkloom not resolvable — continue with other candidates
+  }
+
+  candidates.push(
+    // Monorepo: relative to this file in templates/core/lib/
+    resolve(__dirname, "..", "..", "default", "dist"),
+    // Monorepo: from project root via node_modules (pnpm hoisting)
+    resolve(process.cwd(), "node_modules", "create-inkloom", "templates", "default", "dist"),
+    // Monorepo: walk up from cwd to find node_modules
+    resolve(process.cwd(), "..", "node_modules", "create-inkloom", "templates", "default", "dist"),
+    resolve(process.cwd(), "..", "..", "node_modules", "create-inkloom", "templates", "default", "dist"),
+    // Standalone: viewer assets bundled at setup time
+    resolve(process.cwd(), "viewer-assets"),
+    resolve(process.cwd(), "public", "viewer"),
+  );
+
+  for (const candidate of candidates) {
+    if (existsSync(join(candidate, "assets")) && existsSync(join(candidate, "index.html"))) {
+      return candidate;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Parse the viewer's index.html to extract JS/CSS asset entry points.
+ */
+function parseViewerManifest(viewerDistDir: string): { js: string[]; css: string[] } {
+  const indexHtml = readFileSync(join(viewerDistDir, "index.html"), "utf-8");
+  const jsMatches = [...indexHtml.matchAll(/src="\/([^"]+\.js)"/g)].map((m) => m[1]);
+  const cssMatches = [...indexHtml.matchAll(/href="\/([^"]+\.css)"/g)].map((m) => m[1]);
+  return { js: jsMatches, css: cssMatches };
+}
+
+/**
+ * Count files recursively in a directory.
+ */
+function countFilesRecursive(dir: string): number {
+  if (!existsSync(dir)) return 0;
+  let count = 0;
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      count += countFilesRecursive(join(dir, entry.name));
+    } else {
+      count++;
+    }
+  }
+  return count;
 }
 
 export interface BuildProjectResult {
@@ -176,6 +251,16 @@ export async function buildProject(
         }
       | undefined;
 
+    // 8b. Discover viewer assets (default template SPA)
+    const viewerDistDir = resolveViewerAssetsDir(opts.viewerAssetsDir);
+    let viewerAssets: { js: string[]; css: string[] } | undefined;
+    if (viewerDistDir) {
+      viewerAssets = parseViewerManifest(viewerDistDir);
+      console.log(`[Build] Using viewer assets from ${viewerDistDir}`);
+    } else {
+      console.warn("[Build] Viewer assets not found — generating static-only build.");
+    }
+
     const { files: siteFiles, warnings: buildWarnings } = await generateSiteFiles(pages, folders, {
       name: project.name,
       description: (project as Record<string, unknown>).description as string | undefined,
@@ -196,6 +281,7 @@ export async function buildProject(
       defaultThemeMode: settings?.defaultThemeMode,
       seo: settings?.seo,
       analytics: settings?.analytics,
+      viewerAssets,
     });
 
     // Collect all warnings (site-generator warnings + zero-pages warning)
@@ -223,6 +309,18 @@ export async function buildProject(
       mkdirSync(dirname(filePath), { recursive: true });
       writeFileSync(filePath, file.data, "utf-8");
       fileCount++;
+    }
+
+    // 9b. Copy viewer assets (JS/CSS bundles) into the output directory
+    if (viewerDistDir) {
+      const srcAssetsDir = join(viewerDistDir, "assets");
+      const destAssetsDir = join(outDir, "assets");
+      if (existsSync(srcAssetsDir)) {
+        cpSync(srcAssetsDir, destAssetsDir, { recursive: true });
+        const assetFileCount = countFilesRecursive(destAssetsDir);
+        fileCount += assetFileCount;
+        console.log(`[Build] Copied ${assetFileCount} viewer asset files.`);
+      }
     }
 
     // 10. Update deployment record to ready

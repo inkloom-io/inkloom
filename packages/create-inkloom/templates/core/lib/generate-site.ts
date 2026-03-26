@@ -120,6 +120,8 @@ interface ProjectConfig {
   };
   /** Base URL for the generated site (used in sitemap, canonical URLs) */
   baseUrl?: string;
+  /** Viewer asset manifest (JS/CSS entry points from default template build) */
+  viewerAssets?: { js: string[]; css: string[] };
 }
 
 interface GeneratedFile {
@@ -1742,10 +1744,14 @@ export async function generateSiteFiles(
     });
   }
 
-  // Generate search index
+  // Generate search index (both for Next.js public dir and for built output root)
   const searchIndex = generateSearchIndex(pages);
   files.push({
     file: "public/search-index.json",
+    data: JSON.stringify(searchIndex, null, 2),
+  });
+  files.push({
+    file: "search-index.json",
     data: JSON.stringify(searchIndex, null, 2),
   });
 
@@ -1795,8 +1801,8 @@ export async function generateSiteFiles(
     logo: config.logo,
   };
 
-  // Empty asset manifest for static builds (no bundled JS/CSS)
-  const assetManifest = { js: [] as string[], css: [] as string[] };
+  // Use viewer assets if available, otherwise empty manifest for static-only builds
+  const assetManifest = config.viewerAssets ?? { js: [] as string[], css: [] as string[] };
 
   // Shared HTML options
   const sharedHtmlOpts = {
@@ -1832,10 +1838,15 @@ export async function generateSiteFiles(
     return trail.reverse();
   }
 
-  // Generate per-page HTML files
-  for (const page of pages) {
+  // Pre-compute MDX content for each page (reused for HTML, JSON, and search)
+  const pagesWithMdx = pages.map((page) => {
     const blocks = parseBlockNoteContent(page.content);
     const mdxContent = blockNoteToMDX(blocks);
+    return { ...page, mdxContent };
+  });
+
+  // Generate per-page HTML files
+  for (const page of pagesWithMdx) {
     const pagePath = page.path === "/" ? "" : page.path;
     const canonicalUrl = `${baseUrl}${pagePath || "/"}`;
 
@@ -1859,7 +1870,7 @@ export async function generateSiteFiles(
       ...sharedHtmlOpts,
       pageTitle: page.title,
       pageDescription: page.subtitle || config.description,
-      pageContent: mdxContent,
+      pageContent: page.mdxContent,
       pagePath: canonicalUrl,
       pageIcon: page.icon,
       pageSubtitle: page.subtitle,
@@ -1878,6 +1889,29 @@ export async function generateSiteFiles(
 
     files.push({ file: htmlPath, data: pageHtml });
   }
+
+  // Generate per-page JSON for SPA client-side navigation
+  for (const page of pagesWithMdx) {
+    const pageJson = JSON.stringify({
+      title: page.title,
+      ...(page.subtitle ? { description: page.subtitle } : {}),
+      ...(page.icon ? { icon: page.icon } : {}),
+      ...(page.subtitle ? { subtitle: page.subtitle } : {}),
+      ...(page.titleSectionHidden ? { titleSectionHidden: page.titleSectionHidden } : {}),
+      ...(page.titleIconHidden ? { titleIconHidden: page.titleIconHidden } : {}),
+      content: page.mdxContent,
+    });
+    const jsonPath = page.path === "/"
+      ? "_content/index.json"
+      : `_content${page.path}.json`;
+    files.push({ file: jsonPath, data: pageJson });
+  }
+
+  // Generate _content/site.json for SPA data provider
+  files.push({
+    file: "_content/site.json",
+    data: JSON.stringify(siteData),
+  });
 
   // Generate shell HTML (SPA entry point)
   const shellOgMeta = {

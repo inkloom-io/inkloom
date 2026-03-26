@@ -584,8 +584,10 @@ export function generatePageHtml(options: PageHtmlOptions): string {
         ${pageSubtitle ? `<p class="il-subtitle">${escapeHtml(pageSubtitle)}</p>` : ""}
       </div>`;
 
-  // Determine if this is a static-only build (no JS bundles)
-  const isStaticBuild = assetManifest.js.length === 0;
+  // Determine build mode:
+  // - static: no JS bundles → full static layout only
+  // - hybrid: JS bundles present → static layout as fallback + SPA scripts
+  const hasViewerAssets = assetManifest.js.length > 0;
 
   return `<!DOCTYPE html>
 <html lang="en" data-theme="${resolvedDefaultMode}">
@@ -598,24 +600,25 @@ export function generatePageHtml(options: PageHtmlOptions): string {
     <link rel="canonical" href="${pagePath}" />
     ${fontsLink}
     ${cssLinks}
-    <style>${themeCss}</style>${isStaticBuild ? `
-    <style>${STATIC_LAYOUT_CSS}</style>` : `
-    <style>#root:not(.hydrated){visibility:hidden}</style>`}
+    <style>${themeCss}</style>
+    <style>${STATIC_LAYOUT_CSS}</style>${hasViewerAssets ? `
+    <style>#root.hydrated .il-static-fallback{display:none}</style>` : ""}
     ${headExtras}
   </head>
   <body class="antialiased">
-    <div id="root">${isStaticBuild ? `
-      <header class="il-header"><a href="${rootHref}">${escapeHtml(siteConfig.title)} Documentation</a></header>
-      <div class="il-layout">
-        ${sidebarHtml}
-        <main class="il-main">
-          ${titleHtml}
-          <div class="il-content">
-            ${preRenderedHtml}
-          </div>
-        </main>
-      </div>` : `
-      <article>${preRenderedHtml}</article>`}
+    <div id="root">
+      <div class="il-static-fallback">
+        <header class="il-header"><a href="${rootHref}">${escapeHtml(siteConfig.title)} Documentation</a></header>
+        <div class="il-layout">
+          ${sidebarHtml}
+          <main class="il-main">
+            ${titleHtml}
+            <div class="il-content">
+              ${preRenderedHtml}
+            </div>
+          </main>
+        </div>
+      </div>
     </div>
     <script type="application/json" id="__INKLOOM_DATA__">${JSON.stringify(siteData)}</script>
     <script type="application/json" id="__PAGE_DATA__">${pageData}</script>
@@ -673,11 +676,12 @@ export function generateShellHtml(options: ShellHtmlOptions): string {
 
   const bodyEnd = customBodyScripts || "";
 
-  // Determine if this is a static-only build (no JS bundles)
-  const isStaticBuild = assetManifest.js.length === 0;
+  const hasViewerAssets = assetManifest.js.length > 0;
 
-  // For static builds with a first page, redirect to it (use relative path for file:// support)
-  const relativeFirstPageHref = isStaticBuild && firstPageHref
+  // For static-only builds, redirect to the first page.
+  // For hybrid builds (SPA + static fallback), the SPA handles routing on HTTP servers.
+  // On file:// protocol the SPA won't load, but the landing page shows clickable links.
+  const relativeFirstPageHref = !hasViewerAssets && firstPageHref
     ? makeRelativeHref(firstPageHref, 0)
     : undefined;
   const redirectMeta = relativeFirstPageHref
@@ -686,24 +690,24 @@ export function generateShellHtml(options: ShellHtmlOptions): string {
 
   // Build the static sidebar navigation HTML with relative links (shell is at root, depth 0)
   const relativeShellNav = navigation ? makeNavRelative(navigation, 0) : undefined;
-  const sidebarHtml = isStaticBuild && relativeShellNav && relativeShellNav.length > 0
+  const sidebarHtml = relativeShellNav && relativeShellNav.length > 0
     ? `<nav class="il-sidebar" aria-label="Documentation navigation">${renderNavItems(relativeShellNav)}</nav>`
     : "";
 
-  // Landing page content for static builds
-  const landingContent = isStaticBuild
-    ? `<header class="il-header"><a href="./index.html">${escapeHtml(siteConfig.title)} Documentation</a></header>
-      <div class="il-layout">
-        ${sidebarHtml}
-        <main class="il-main">
-          <div class="il-title-section">
-            <h1>${escapeHtml(siteConfig.title)} Documentation</h1>
-            ${siteConfig.description ? `<p class="il-subtitle">${escapeHtml(siteConfig.description)}</p>` : ""}
-          </div>
-          ${relativeShellNav && relativeShellNav.length > 0 ? `<div class="il-content"><h2>Pages</h2><ul>${relativeShellNav.map((item) => `<li><a href="${item.href}">${escapeHtml(item.title)}</a></li>`).join("")}</ul></div>` : ""}
-        </main>
-      </div>`
-    : "";
+  // Static fallback landing content (always rendered for file:// support)
+  const landingContent = `<div class="il-static-fallback">
+        <header class="il-header"><a href="./index.html">${escapeHtml(siteConfig.title)} Documentation</a></header>
+        <div class="il-layout">
+          ${sidebarHtml}
+          <main class="il-main">
+            <div class="il-title-section">
+              <h1>${escapeHtml(siteConfig.title)} Documentation</h1>
+              ${siteConfig.description ? `<p class="il-subtitle">${escapeHtml(siteConfig.description)}</p>` : ""}
+            </div>
+            ${relativeShellNav && relativeShellNav.length > 0 ? `<div class="il-content"><h2>Pages</h2><ul>${relativeShellNav.map((item) => `<li><a href="${item.href}">${escapeHtml(item.title)}</a></li>`).join("")}</ul></div>` : ""}
+          </main>
+        </div>
+      </div>`;
 
   return `<!DOCTYPE html>
 <html lang="en" data-theme="${resolvedDefaultMode}">
@@ -716,13 +720,13 @@ export function generateShellHtml(options: ShellHtmlOptions): string {
     <meta name="description" content="${escapeHtml(siteConfig.description)}" />
     ${fontsLink}
     ${cssLinks}
-    <style>${themeCss}</style>${isStaticBuild ? `
-    <style>${STATIC_LAYOUT_CSS}</style>` : `
-    <style>#root:not(.hydrated){visibility:hidden}</style>`}
+    <style>${themeCss}</style>
+    <style>${STATIC_LAYOUT_CSS}</style>${hasViewerAssets ? `
+    <style>#root.hydrated .il-static-fallback{display:none}</style>` : ""}
     ${headExtras}
   </head>
   <body class="antialiased">
-    <div id="root">${isStaticBuild ? landingContent : ""}</div>
+    <div id="root">${landingContent}</div>
     <script type="application/json" id="__INKLOOM_DATA__">${JSON.stringify(siteData)}</script>
     ${jsScripts}
     ${bodyEnd}
