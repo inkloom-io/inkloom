@@ -107,7 +107,7 @@ function InlineInput({
         }
       }}
       placeholder={placeholder}
-      className="w-full px-2 py-1 text-sm bg-neutral-800 border border-neutral-600 rounded text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-blue-500"
+      className="w-full px-2 py-1 text-sm bg-muted border border-border rounded text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring"
     />
   );
 }
@@ -157,8 +157,8 @@ function PageItem({
       className={cn(
         "group flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm cursor-pointer transition-colors",
         isSelected
-          ? "bg-neutral-800 text-neutral-100"
-          : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50"
+          ? "bg-accent text-accent-foreground"
+          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
       )}
       onClick={onSelect}
       onContextMenu={(e) => {
@@ -169,18 +169,18 @@ function PageItem({
       {page.icon ? (
         <span className="shrink-0 text-sm">{page.icon}</span>
       ) : (
-        <FileText className="w-4 h-4 shrink-0 text-neutral-500" />
+        <FileText className="w-4 h-4 shrink-0 text-muted-foreground" />
       )}
       <span className="truncate flex-1">{page.title}</span>
       {page.isPublished ? (
         <Eye className="w-3.5 h-3.5 shrink-0 text-emerald-500/70" />
       ) : (
-        <EyeOff className="w-3.5 h-3.5 shrink-0 text-neutral-600" />
+        <EyeOff className="w-3.5 h-3.5 shrink-0 text-muted-foreground/50" />
       )}
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           <button
-            className="shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-neutral-700 transition-opacity"
+            className="shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-accent transition-opacity"
             onClick={(e) => e.stopPropagation()}
           >
             <MoreHorizontal className="w-3.5 h-3.5" />
@@ -278,7 +278,7 @@ function FolderGroup({
         </div>
       ) : (
         <div
-          className="group flex items-center gap-1 px-2 py-1.5 rounded-md text-sm cursor-pointer text-neutral-300 hover:text-neutral-100 hover:bg-neutral-800/50 transition-colors"
+          className="group flex items-center gap-1 px-2 py-1.5 rounded-md text-sm cursor-pointer text-foreground/80 hover:text-foreground hover:bg-accent/50 transition-colors"
           onClick={() => setIsOpen(!isOpen)}
           onContextMenu={(e) => {
             e.preventDefault();
@@ -286,20 +286,20 @@ function FolderGroup({
           }}
         >
           {isOpen ? (
-            <ChevronDown className="w-3.5 h-3.5 shrink-0 text-neutral-500" />
+            <ChevronDown className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
           ) : (
-            <ChevronRight className="w-3.5 h-3.5 shrink-0 text-neutral-500" />
+            <ChevronRight className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
           )}
           {isOpen ? (
-            <FolderOpen className="w-4 h-4 shrink-0 text-neutral-500" />
+            <FolderOpen className="w-4 h-4 shrink-0 text-muted-foreground" />
           ) : (
-            <FolderClosed className="w-4 h-4 shrink-0 text-neutral-500" />
+            <FolderClosed className="w-4 h-4 shrink-0 text-muted-foreground" />
           )}
           <span className="truncate flex-1 font-medium">{folder.name}</span>
           <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
             <DropdownMenuTrigger asChild>
               <button
-                className="shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-neutral-700 transition-opacity"
+                className="shrink-0 p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-accent transition-opacity"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="w-3.5 h-3.5" />
@@ -327,9 +327,9 @@ function FolderGroup({
 
       {/* Folder children */}
       {isOpen && (
-        <div className="ml-3 border-l border-neutral-800 pl-1">
+        <div className="ml-3 border-l border-border pl-1">
           {pages.length === 0 ? (
-            <p className="px-2 py-1 text-xs text-neutral-600 italic">
+            <p className="px-2 py-1 text-xs text-muted-foreground/50 italic">
               No pages
             </p>
           ) : (
@@ -494,19 +494,19 @@ export function SidebarNav({
   const isLoading = pages === undefined || folders === undefined;
 
   return (
-    <aside className="w-[260px] bg-neutral-900 border-r border-neutral-800 flex flex-col shrink-0">
+    <aside className="w-[260px] bg-card border-r border-border flex flex-col shrink-0">
       {/* Sidebar content */}
       <ScrollArea className="flex-1">
         <div className="p-2">
           {isLoading ? (
-            <p className="text-xs text-neutral-500 px-2 py-4 text-center">
+            <p className="text-xs text-muted-foreground px-2 py-4 text-center">
               Loading...
             </p>
           ) : rootPages.length === 0 && sortedFolders.length === 0 ? (
             <div className="text-center py-8 px-2">
-              <FileText className="w-8 h-8 text-neutral-700 mx-auto mb-2" />
-              <p className="text-xs text-neutral-500">No pages yet</p>
-              <p className="text-xs text-neutral-600 mt-1">
+              <FileText className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+              <p className="text-xs text-muted-foreground">No pages yet</p>
+              <p className="text-xs text-muted-foreground/50 mt-1">
                 Create your first page below
               </p>
             </div>
@@ -586,13 +586,13 @@ export function SidebarNav({
       </ScrollArea>
 
       {/* Bottom action bar */}
-      <div className="p-2 border-t border-neutral-800 flex gap-1">
+      <div className="p-2 border-t border-border flex gap-1">
         <button
           onClick={() => {
             setCreatingFolder(false);
             setCreatingPage(true);
           }}
-          className="flex items-center gap-1.5 flex-1 px-2 py-1.5 text-xs text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-md transition-colors"
+          className="flex items-center gap-1.5 flex-1 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           New Page
@@ -602,7 +602,7 @@ export function SidebarNav({
             setCreatingPage(false);
             setCreatingFolder(true);
           }}
-          className="flex items-center gap-1.5 flex-1 px-2 py-1.5 text-xs text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-md transition-colors"
+          className="flex items-center gap-1.5 flex-1 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           New Folder
@@ -616,19 +616,19 @@ export function SidebarNav({
           if (!open) setDeleteTarget(null);
         }}
       >
-        <AlertDialogContent className="bg-neutral-900 border-neutral-700">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-neutral-100">
+            <AlertDialogTitle className="text-foreground">
               Delete {deleteTarget?.type === "folder" ? "folder" : "page"}?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-neutral-400">
+            <AlertDialogDescription className="text-muted-foreground">
               {deleteTarget?.type === "folder"
                 ? `This will delete the folder "${deleteTarget.name}" and move its pages to the root level. This action cannot be undone.`
                 : `This will permanently delete "${deleteTarget?.name}". This action cannot be undone.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-neutral-800 border-neutral-700 text-neutral-300 hover:bg-neutral-700 hover:text-neutral-100">
+            <AlertDialogCancel className="bg-muted border-border text-foreground/80 hover:bg-accent hover:text-foreground">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

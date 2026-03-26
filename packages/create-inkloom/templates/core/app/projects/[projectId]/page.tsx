@@ -15,7 +15,10 @@ import {
   Loader2,
   Check,
   AlertCircle,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { SidebarNav } from "@/components/editor/sidebar-nav";
 import { BlockEditor } from "@/components/editor/block-editor";
 import { PreviewPanel } from "@/components/editor/preview-panel";
@@ -65,7 +68,7 @@ function SaveStatusIndicator({
   if (status === "idle") return null;
 
   return (
-    <span className="flex items-center gap-1.5 text-xs text-neutral-400">
+    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
       {status === "saving" && (
         <>
           <Loader2 className="w-3 h-3 animate-spin" />
@@ -130,13 +133,13 @@ function EditorContent({
   if (pageContent === undefined) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-3 border-b border-neutral-800 shrink-0">
+        <div className="flex items-center justify-between px-6 py-3 border-b border-border shrink-0">
           <h2 className="font-medium text-lg truncate">{pageTitle}</h2>
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-6 h-6 text-neutral-500 animate-spin" />
-            <p className="text-sm text-neutral-500">Loading content...</p>
+            <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
+            <p className="text-sm text-muted-foreground">Loading content...</p>
           </div>
         </div>
       </div>
@@ -145,7 +148,7 @@ function EditorContent({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between px-6 py-3 border-b border-neutral-800 shrink-0">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-border shrink-0">
         <h2 className="font-medium text-lg truncate">{pageTitle}</h2>
         <SaveStatusIndicator status={saveStatus} />
       </div>
@@ -154,7 +157,7 @@ function EditorContent({
           <BlockEditor content={content} onChange={handleChange} />
         </div>
         {showPreview && (
-          <div className="w-1/2 border-l border-neutral-800 overflow-hidden">
+          <div className="w-1/2 border-l border-border overflow-hidden">
             <PreviewPanel
               content={content}
               pageTitle={pageTitle}
@@ -176,6 +179,7 @@ export default function ProjectEditorPage({
   params: Promise<{ projectId: string }>;
 }) {
   const { projectId } = use(params);
+  const { theme, setTheme } = useTheme();
   const project = useQuery(api.projects.get, {
     id: projectId as Id<"projects">,
   });
@@ -250,10 +254,10 @@ export default function ProjectEditorPage({
   // Loading state
   if (project === undefined) {
     return (
-      <main className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center">
+      <main className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-6 h-6 text-neutral-500 animate-spin" />
-          <p className="text-neutral-500">Loading project...</p>
+          <Loader2 className="w-6 h-6 text-muted-foreground animate-spin" />
+          <p className="text-muted-foreground">Loading project...</p>
         </div>
       </main>
     );
@@ -262,13 +266,13 @@ export default function ProjectEditorPage({
   // Project not found
   if (project === null) {
     return (
-      <main className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center">
+      <main className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="text-center">
-          <AlertCircle className="w-10 h-10 text-neutral-600 mx-auto mb-3" />
-          <p className="text-neutral-400 mb-4">Project not found</p>
+          <AlertCircle className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground mb-4">Project not found</p>
           <Link
             href="/"
-            className="text-blue-400 hover:text-blue-300 transition-colors"
+            className="text-primary hover:text-primary/80 transition-colors"
           >
             Back to dashboard
           </Link>
@@ -280,18 +284,18 @@ export default function ProjectEditorPage({
   const selectedPage = pages?.find((p) => p._id === selectedPageId);
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col">
+    <main className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Header bar */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-neutral-800 bg-neutral-950 shrink-0">
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-background shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <Link
             href="/"
-            className="flex items-center gap-1.5 text-neutral-400 hover:text-neutral-200 transition-colors shrink-0"
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors shrink-0"
             title="Back to dashboard"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
-          <span className="text-neutral-700">/</span>
+          <span className="text-muted-foreground">/</span>
           <h1 className="font-semibold truncate">{project.name}</h1>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -300,8 +304,8 @@ export default function ProjectEditorPage({
             onClick={() => setShowPreview(!showPreview)}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
               showPreview
-                ? "bg-blue-600 text-white hover:bg-blue-500"
-                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent"
             }`}
             title="Toggle preview"
           >
@@ -314,8 +318,8 @@ export default function ProjectEditorPage({
             disabled={buildStatus === "building"}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
               buildStatus === "building"
-                ? "text-neutral-500 cursor-not-allowed"
-                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
+                ? "text-muted-foreground cursor-not-allowed"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent"
             }`}
             title="Build project"
           >
@@ -328,10 +332,20 @@ export default function ProjectEditorPage({
               {buildStatus === "building" ? "Building..." : "Build"}
             </span>
           </button>
+          {/* Theme toggle */}
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="flex items-center p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+            title="Toggle theme"
+          >
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </button>
           {/* Settings */}
           <Link
             href={`/projects/${projectId}/settings`}
-            className="flex items-center p-1.5 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-md transition-colors"
+            className="flex items-center p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
             title="Project settings"
           >
             <Settings className="w-4 h-4" />
@@ -361,8 +375,8 @@ export default function ProjectEditorPage({
         ) : (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <FileText className="w-12 h-12 text-neutral-700 mx-auto mb-3" />
-              <p className="text-neutral-500">
+              <FileText className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+              <p className="text-muted-foreground">
                 {pages && pages.length > 0
                   ? "Select a page to start editing"
                   : "Create a page to get started"}
