@@ -6,9 +6,9 @@
  *
  * Usage: pnpm seed (or: npx convex run seed:seed)
  */
+import { v } from "convex/values";
 import { internalMutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import type { MutationCtx } from "./_generated/server";
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -20,42 +20,23 @@ function ts(daysAgo: number, hoursAgo = 0): number {
   return now - daysAgo * day - hoursAgo * hour;
 }
 
-/**
- * Clear all rows from the given tables. Order matters — clear children first
- * to avoid dangling reference issues during intermediate states.
- */
-async function clearAllTables(ctx: MutationCtx) {
-  const tables = [
-    "mrReviewComments",
-    "mrReviewThreads",
-    "mrReviews",
-    "mergeRequestComments",
-    "mergeRequests",
-    "branchSnapshots",
-    "comments",
-    "commentThreads",
-    "pageVersions",
-    "pageContents",
-    "pageFeedback",
-    "searchIndex",
-    "pages",
-    "folders",
-    "deployments",
-    "deploymentConfigs",
-    "assets",
-    "branches",
-    "projectMembers",
-    "projects",
-    "users",
-  ] as const;
-
-  for (const table of tables) {
-    const rows = await ctx.db.query(table).collect();
-    for (const row of rows) {
-      await ctx.db.delete(row._id);
+// Clear a single table — call once per table via: npx convex run seed:clearTable '{"table":"tableName"}'
+export const clearTable = internalMutation({
+  args: { table: v.string() },
+  handler: async (ctx, { table }) => {
+    let hasMore = true;
+    while (hasMore) {
+      const rows = await ctx.db.query(table as any).take(50);
+      if (rows.length === 0) {
+        hasMore = false;
+      } else {
+        for (const row of rows) {
+          await ctx.db.delete(row._id);
+        }
+      }
     }
-  }
-}
+  },
+});
 
 // ── BlockNote Content Helpers ────────────────────────────────────────
 
@@ -309,10 +290,10 @@ const migrationGuideContent = toContent([
 export const seed = internalMutation({
   args: {},
   handler: async (ctx) => {
-    // 1. Clear all existing data
-    await clearAllTables(ctx);
+    // NOTE: Call seed:clearTable for each table before running this.
+    // The old clearAllTables function hit Convex's byte-read limit.
 
-    // 2. Create users (team members with different roles)
+    // Create users (team members with different roles)
     const alexId = await ctx.db.insert("users", {
       workosUserId: "seed_user_alex",
       email: "alex.chen@acme.dev",
@@ -349,7 +330,7 @@ export const seed = internalMutation({
     // ── Project 1: Acme Platform Docs (published, main project) ──────
 
     const acmeProjectId = await ctx.db.insert("projects", {
-      workosOrgId: "local",
+      workosOrgId: "test_org_01",
       name: "Acme Platform Docs",
       slug: "acme-platform-docs",
       description: "Comprehensive documentation for the Acme developer platform — APIs, SDKs, guides, and references.",
@@ -1101,7 +1082,7 @@ export const seed = internalMutation({
     // ── Project 2: Acme SDK Reference (published, building) ──────────
 
     const sdkProjectId = await ctx.db.insert("projects", {
-      workosOrgId: "local",
+      workosOrgId: "test_org_01",
       name: "Acme SDK Reference",
       slug: "acme-sdk-reference",
       description: "Auto-generated SDK reference documentation for all Acme client libraries.",
@@ -1247,7 +1228,7 @@ export const seed = internalMutation({
     // ── Project 3: Internal Engineering Handbook (draft, private) ────
 
     const handbookProjectId = await ctx.db.insert("projects", {
-      workosOrgId: "local",
+      workosOrgId: "test_org_01",
       name: "Engineering Handbook",
       slug: "engineering-handbook",
       description: "Internal engineering standards, runbooks, and onboarding materials for the Acme team.",
@@ -1363,7 +1344,7 @@ export const seed = internalMutation({
     // ── Project 4: Acme Blog (published, free tier) ──────────────────
 
     const blogProjectId = await ctx.db.insert("projects", {
-      workosOrgId: "local",
+      workosOrgId: "test_org_01",
       name: "Acme Developer Blog",
       slug: "acme-dev-blog",
       description: "Engineering blog with technical deep-dives, launch announcements, and tutorials.",
