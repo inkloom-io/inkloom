@@ -452,7 +452,9 @@ export function BranchSwitcher({
                       : "hover:bg-[var(--surface-active)]"
                   }`}
                 >
-                  {currentBranch.isLocked ? (
+                  {isTogglingLock ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--text-dim)]" />
+                  ) : currentBranch.isLocked ? (
                     <Lock className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400" />
                   ) : (
                     <LockOpen className="h-3.5 w-3.5 text-[var(--text-dim)]" />
@@ -460,11 +462,13 @@ export function BranchSwitcher({
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                {!canChangeRoles
-                  ? t("lockPermissionRequired")
-                  : currentBranch.isLocked
-                    ? t("unlockDefaultBranch")
-                    : t("lockDefaultBranch")}
+                {error
+                  ? error
+                  : !canChangeRoles
+                    ? t("lockPermissionRequired")
+                    : currentBranch.isLocked
+                      ? t("unlockDefaultBranch")
+                      : t("lockDefaultBranch")}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
