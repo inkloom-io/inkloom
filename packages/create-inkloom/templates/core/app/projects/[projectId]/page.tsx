@@ -22,8 +22,8 @@ import { useTheme } from "next-themes";
 import { SidebarNav } from "@/components/editor/sidebar-nav";
 import { BlockEditor } from "@/components/editor/block-editor";
 import { PreviewPanel } from "@/components/editor/preview-panel";
+import { PublishModal } from "@/components/editor/publish-modal";
 import { useAutoSave } from "@/hooks/use-auto-save";
-import { useToast } from "@/components/ui/toast";
 
 // ---------------------------------------------------------------------------
 // Session storage helpers for persisting selected page
@@ -201,47 +201,8 @@ export default function ProjectEditorPage({
   // Preview toggle state
   const [showPreview, setShowPreview] = useState(false);
 
-  // Build state
-  const [buildStatus, setBuildStatus] = useState<"idle" | "building">("idle");
-  const { toast } = useToast();
-
-  const handleBuild = useCallback(async () => {
-    if (buildStatus === "building") return;
-    setBuildStatus("building");
-    try {
-      const res = await fetch("/api/build", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.error?.message || "Build failed");
-      }
-      if (json.data.pageCount === 0) {
-        toast({
-          type: "warning",
-          title: "Build completed with no pages",
-          description:
-            "No published pages were found. Right-click pages in the sidebar and select 'Publish' to include them in your build.",
-        });
-      } else {
-        toast({
-          type: "success",
-          title: "Build complete",
-          description: `${json.data.pageCount} pages, ${json.data.fileCount} files written to ${json.data.outDir}/`,
-        });
-      }
-    } catch (err) {
-      toast({
-        type: "error",
-        title: "Build failed",
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
-    } finally {
-      setBuildStatus("idle");
-    }
-  }, [buildStatus, projectId, toast]);
+  // Publish modal state
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
 
   // Persist selected page to sessionStorage
   const handleSelectPage = useCallback(
@@ -324,25 +285,14 @@ export default function ProjectEditorPage({
             <Eye className="w-4 h-4" />
             <span className="hidden sm:inline">Preview</span>
           </button>
-          {/* Build button */}
+          {/* Build button — opens publish confirmation modal */}
           <button
-            onClick={handleBuild}
-            disabled={buildStatus === "building"}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
-              buildStatus === "building"
-                ? "text-muted-foreground cursor-not-allowed"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent"
-            }`}
+            onClick={() => setPublishModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-accent"
             title="Build project"
           >
-            {buildStatus === "building" ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Hammer className="w-4 h-4" />
-            )}
-            <span className="hidden sm:inline">
-              {buildStatus === "building" ? "Building..." : "Build"}
-            </span>
+            <Hammer className="w-4 h-4" />
+            <span className="hidden sm:inline">Build</span>
           </button>
           {/* Theme toggle */}
           <button
@@ -397,6 +347,14 @@ export default function ProjectEditorPage({
           </div>
         )}
       </div>
+
+      {/* Publish confirmation modal */}
+      <PublishModal
+        open={publishModalOpen}
+        onOpenChange={setPublishModalOpen}
+        pages={pages}
+        projectId={projectId}
+      />
     </main>
   );
 }
