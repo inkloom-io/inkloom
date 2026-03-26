@@ -1,5 +1,19 @@
 # create-inkloom
 
+## 0.7.0
+
+### Minor Changes
+
+- [`55cf788`](https://github.com/inkloom-io/inkloom-private/commit/55cf788b1461bdcd1993de434324a138b9ccecfb) Thanks [@notadamking](https://github.com/notadamking)! - Add TitleSection component to the editor with icon picker, subtitle input, and visibility toggles. Extend preview panel to render title section state.
+
+- [`3b88e1b`](https://github.com/inkloom-io/inkloom-private/commit/3b88e1b40af8448eb8869f0a428423d1db2f96d4) Thanks [@notadamking](https://github.com/notadamking)! - Use default template viewer for build output. Published sites now use the React SPA viewer with sidebar, header, search, theming, and client-side navigation instead of basic static HTML. Static HTML fallback is preserved for file:// protocol support.
+
+- [`1d04f8e`](https://github.com/inkloom-io/inkloom-private/commit/1d04f8ea0381cbafa2d1a83c3ea9a715baf4cc20) Thanks [@notadamking](https://github.com/notadamking)! - Wire theme system to editor and preview panel so selecting a theme in Branding settings visually updates the block editor, preview panel, and published output.
+
+### Patch Changes
+
+- [`24b3130`](https://github.com/inkloom-io/inkloom-private/commit/24b3130f274bda78af250c0059d11bf8c8c05f51) Thanks [@notadamking](https://github.com/notadamking)! - Remove project slug field from General settings tab since create-inkloom projects don't use slugs for routing.
+
 ## 0.6.0
 
 ### Minor Changes
