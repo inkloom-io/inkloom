@@ -909,28 +909,6 @@ export default function EditorPage({ params }: EditorPageProps) {
                 />
               ) : selectedPageId && pageContent ? (
                 <div className="relative h-full animate-in fade-in duration-200">
-                  {selectedPage && (
-                    <TitleSection
-                      pageId={selectedPageId}
-                      title={selectedPage.title}
-                      icon={selectedPage.icon}
-                      subtitle={selectedPage.subtitle}
-                      titleSectionHidden={selectedPage.titleSectionHidden}
-                      titleIconHidden={selectedPage.titleIconHidden}
-                      themePreset={
-                        (project.settings?.theme as ThemePreset) || "default"
-                      }
-                      customFonts={project.settings?.fonts}
-                    />
-                  )}
-                  {/* Edit lock banner for non-Ultimate plans */}
-                  {isEditLocked && editLock.lockedBy && editLock.expiresAt && (
-                    <EditLockBanner
-                      lockedBy={editLock.lockedBy}
-                      expiresAt={editLock.expiresAt}
-                      onForceTake={editLock.forceTake}
-                    />
-                  )}
                   {/* Branch lock banner when default branch is locked */}
                   {isBranchLocked && (
                     <div
@@ -953,6 +931,28 @@ export default function EditorPage({ params }: EditorPageProps) {
                         {t("createBranch")}
                       </Button>
                     </div>
+                  )}
+                  {selectedPage && (
+                    <TitleSection
+                      pageId={selectedPageId}
+                      title={selectedPage.title}
+                      icon={selectedPage.icon}
+                      subtitle={selectedPage.subtitle}
+                      titleSectionHidden={selectedPage.titleSectionHidden}
+                      titleIconHidden={selectedPage.titleIconHidden}
+                      themePreset={
+                        (project.settings?.theme as ThemePreset) || "default"
+                      }
+                      customFonts={project.settings?.fonts}
+                    />
+                  )}
+                  {/* Edit lock banner for non-Ultimate plans */}
+                  {isEditLocked && editLock.lockedBy && editLock.expiresAt && (
+                    <EditLockBanner
+                      lockedBy={editLock.lockedBy}
+                      expiresAt={editLock.expiresAt}
+                      onForceTake={editLock.forceTake}
+                    />
                   )}
                   <BlockEditor
                     key={editorKey}
