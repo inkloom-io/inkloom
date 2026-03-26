@@ -1,18 +1,11 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
+import prompts from "prompts";
 import { create } from "./create";
 import pc from "picocolors";
 
 type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
-
-function detectPackageManager(): PackageManager {
-  const userAgent = process.env.npm_config_user_agent || "";
-  if (userAgent.startsWith("bun")) return "bun";
-  if (userAgent.startsWith("yarn")) return "yarn";
-  if (userAgent.startsWith("pnpm")) return "pnpm";
-  return "npm";
-}
 
 const program = new Command();
 
@@ -23,8 +16,7 @@ program
   .argument("[project-name]", "Name of the project directory")
   .option(
     "-t, --template <name>",
-    'Template to use: "core" (Next.js + Convex editor) or "default" (static site viewer)',
-    "core"
+    'Template to use: "core" (Next.js + Convex editor) or "default" (static site viewer)'
   )
   .option("--use-npm", "Use npm as package manager")
   .option("--use-yarn", "Use yarn as package manager")
@@ -38,14 +30,59 @@ program
     console.log();
 
     try {
-      let packageManager: PackageManager = detectPackageManager();
+      // Determine template: use flag if provided, otherwise prompt interactively
+      let template: string = options.template;
+      if (!template) {
+        const response = await prompts({
+          type: "select",
+          name: "template",
+          message: "Which template do you want to use?",
+          choices: [
+            { title: "Core (Next.js + Convex editor)", value: "core" },
+            { title: "Default (Static Vite viewer)", value: "default" },
+          ],
+          initial: 0,
+        });
+
+        if (!response.template) {
+          console.log(pc.yellow("Cancelled"));
+          process.exit(0);
+        }
+
+        template = response.template;
+      }
+
+      // Determine package manager: use flag if provided, otherwise prompt interactively
+      let packageManager: PackageManager | undefined;
       if (options.useNpm) packageManager = "npm";
       if (options.useYarn) packageManager = "yarn";
       if (options.usePnpm) packageManager = "pnpm";
       if (options.useBun) packageManager = "bun";
 
+      if (!packageManager) {
+        const response = await prompts({
+          type: "select",
+          name: "packageManager",
+          message: "Which package manager do you want to use?",
+          choices: [
+            { title: "npm", value: "npm" },
+            { title: "pnpm", value: "pnpm" },
+            { title: "yarn", value: "yarn" },
+            { title: "bun", value: "bun" },
+          ],
+          initial: 0,
+        });
+
+        if (!response.packageManager) {
+          console.log(pc.yellow("Cancelled"));
+          process.exit(0);
+        }
+
+        packageManager = response.packageManager as PackageManager;
+      }
+
       await create(projectName, {
-        template: options.template,
+        template,
         packageManager,
         skipInstall: options.skipInstall,
       });
