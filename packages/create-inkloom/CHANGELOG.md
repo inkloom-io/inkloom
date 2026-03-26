@@ -1,5 +1,15 @@
 # create-inkloom
 
+## 0.6.0
+
+### Minor Changes
+
+- [`524f4f1`](https://github.com/inkloom-io/inkloom-private/commit/524f4f17b7c48ff4dba8bb7109bb153193779b69) Thanks [@notadamking](https://github.com/notadamking)! - Add publish confirmation modal that shows unpublished pages before building, with options to publish individual or all pages.
+
+### Patch Changes
+
+- [`8ee993e`](https://github.com/inkloom-io/inkloom-private/commit/8ee993e3e1b7b4e51e7f4200a7beac3b383d8925) Thanks [@notadamking](https://github.com/notadamking)! - Add build warning when no published pages are found and UI feedback via warning toast. Pages remain unpublished by default; a separate publish modal will guide users.
+
 ## 0.5.2
 
 ### Patch Changes
