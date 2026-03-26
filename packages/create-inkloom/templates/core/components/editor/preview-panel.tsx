@@ -8,6 +8,7 @@ import { DocsRendererProvider } from "@/components/docs-renderer";
 import "@/components/docs-renderer/styles/index.css";
 import { highlightCode } from "@/lib/syntax-highlighter";
 import { ChevronRight, Home, Sun, Moon } from "lucide-react";
+import { IconDisplay } from "./icon-picker";
 import { THEME_PRESETS, type ThemePreset } from "@/lib/theme-presets";
 import { generateThemeSpecificCss } from "@/lib/generate-site";
 import "./preview-styles.css";
@@ -21,6 +22,14 @@ interface PreviewPanelProps {
   themePreset?: ThemePreset;
   /** Custom primary color override */
   customPrimaryColor?: string;
+  /** Page icon (emoji or lucide:name) */
+  icon?: string;
+  /** Page subtitle */
+  subtitle?: string;
+  /** Whether the title section is hidden */
+  titleSectionHidden?: boolean;
+  /** Whether the icon is hidden */
+  titleIconHidden?: boolean;
 }
 
 /** Simple link wrapper for preview — links don't navigate in preview mode */
@@ -89,6 +98,10 @@ export function PreviewPanel({
   pageTitle,
   themePreset = "default",
   customPrimaryColor,
+  icon,
+  subtitle,
+  titleSectionHidden,
+  titleIconHidden,
 }: PreviewPanelProps) {
   const { resolvedTheme } = useTheme();
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">(
@@ -237,21 +250,45 @@ export function PreviewPanel({
               {pageTitle}
             </span>
           </nav>
-          <h1
-            className="text-3xl font-bold tracking-tight"
-            style={{
-              fontFamily: "var(--font-display)",
-              letterSpacing: "-0.03em",
-              lineHeight: 1.2,
-              color: "var(--color-foreground)",
-            }}
-          >
-            {pageTitle}
-          </h1>
-          <hr
-            className="mt-4 mb-6"
-            style={{ borderColor: "var(--color-border)" }}
-          />
+          {!titleSectionHidden && (
+            <>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-3">
+                  {icon && !titleIconHidden && (
+                    <div className="mt-0.5 shrink-0">
+                      <IconDisplay
+                        icon={icon}
+                        className="h-7 w-7 text-[1.5rem]"
+                      />
+                    </div>
+                  )}
+                  <h1
+                    className="text-3xl font-bold tracking-tight"
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      letterSpacing: "-0.03em",
+                      lineHeight: 1.2,
+                      color: "var(--color-foreground)",
+                    }}
+                  >
+                    {pageTitle}
+                  </h1>
+                </div>
+                {subtitle && (
+                  <p
+                    className="mt-2 text-base"
+                    style={{ color: "var(--color-muted-foreground)" }}
+                  >
+                    {subtitle}
+                  </p>
+                )}
+              </div>
+              <hr
+                className="mt-4 mb-6"
+                style={{ borderColor: "var(--color-border)" }}
+              />
+            </>
+          )}
           <article className="prose mx-auto">
             {markdown ? (
               <MDXPreviewRenderer content={markdown} />

@@ -100,7 +100,10 @@ export const updateMeta = mutation({
     title: v.optional(v.string()),
     slug: v.optional(v.string()),
     icon: v.optional(v.string()),
+    subtitle: v.optional(v.string()),
     isPublished: v.optional(v.boolean()),
+    titleSectionHidden: v.optional(v.boolean()),
+    titleIconHidden: v.optional(v.boolean()),
     seoTitle: v.optional(v.string()),
     seoDescription: v.optional(v.string()),
   },
@@ -112,7 +115,12 @@ export const updateMeta = mutation({
 
     if (args.title !== undefined) updateData.title = args.title;
     if (args.icon !== undefined) updateData.icon = args.icon;
+    if (args.subtitle !== undefined) updateData.subtitle = args.subtitle;
     if (args.isPublished !== undefined) updateData.isPublished = args.isPublished;
+    if (args.titleSectionHidden !== undefined)
+      updateData.titleSectionHidden = args.titleSectionHidden;
+    if (args.titleIconHidden !== undefined)
+      updateData.titleIconHidden = args.titleIconHidden;
     if (args.seoTitle !== undefined) updateData.seoTitle = args.seoTitle;
     if (args.seoDescription !== undefined)
       updateData.seoDescription = args.seoDescription;

@@ -22,8 +22,10 @@ import { useTheme } from "next-themes";
 import { SidebarNav } from "@/components/editor/sidebar-nav";
 import { BlockEditor } from "@/components/editor/block-editor";
 import { PreviewPanel } from "@/components/editor/preview-panel";
+import { TitleSection } from "@/components/editor/title-section";
 import { PublishModal } from "@/components/editor/publish-modal";
 import { useAutoSave } from "@/hooks/use-auto-save";
+import type { ThemePreset } from "@/lib/theme-presets";
 
 // ---------------------------------------------------------------------------
 // Session storage helpers for persisting selected page
@@ -96,6 +98,10 @@ function EditorContent({
   themePreset,
   customPrimaryColor,
   customFonts,
+  icon,
+  subtitle,
+  titleSectionHidden,
+  titleIconHidden,
 }: {
   pageId: Id<"pages">;
   pageTitle: string;
@@ -103,6 +109,10 @@ function EditorContent({
   themePreset: string;
   customPrimaryColor?: string;
   customFonts?: { heading?: string; body?: string; code?: string };
+  icon?: string;
+  subtitle?: string;
+  titleSectionHidden?: boolean;
+  titleIconHidden?: boolean;
 }) {
   const pageContent = useQuery(api.pages.getContent, { pageId });
   const updateContent = useMutation(api.pages.updateContent);
@@ -163,6 +173,16 @@ function EditorContent({
       </div>
       <div className="flex flex-1 overflow-hidden">
         <div className={`${showPreview ? "w-1/2" : "w-full"} overflow-auto`}>
+          <TitleSection
+            pageId={pageId}
+            title={pageTitle}
+            icon={icon}
+            subtitle={subtitle}
+            titleSectionHidden={titleSectionHidden}
+            titleIconHidden={titleIconHidden}
+            themePreset={(themePreset as ThemePreset) ?? "default"}
+            customFonts={customFonts}
+          />
           <BlockEditor
             content={content}
             onChange={handleChange}
@@ -178,6 +198,10 @@ function EditorContent({
               pageTitle={pageTitle}
               themePreset={themePreset as import("@/lib/theme-presets").ThemePreset}
               customPrimaryColor={customPrimaryColor}
+              icon={icon}
+              subtitle={subtitle}
+              titleSectionHidden={titleSectionHidden}
+              titleIconHidden={titleIconHidden}
             />
           </div>
         )}
@@ -350,6 +374,10 @@ export default function ProjectEditorPage({
             themePreset={(project.settings as Record<string, unknown> | undefined)?.theme as string || "default"}
             customPrimaryColor={(project.settings as Record<string, unknown> | undefined)?.primaryColor as string | undefined}
             customFonts={(project.settings as Record<string, unknown> | undefined)?.fonts as { heading?: string; body?: string; code?: string } | undefined}
+            icon={selectedPage.icon}
+            subtitle={selectedPage.subtitle}
+            titleSectionHidden={selectedPage.titleSectionHidden}
+            titleIconHidden={selectedPage.titleIconHidden}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center">
