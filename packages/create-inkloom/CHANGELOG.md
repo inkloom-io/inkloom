@@ -1,5 +1,11 @@
 # create-inkloom
 
+## 0.5.2
+
+### Patch Changes
+
+- [`a5166c5`](https://github.com/inkloom-io/inkloom-private/commit/a5166c5bba899a822c7c1feff3511a9bd381401b) Thanks [@notadamking](https://github.com/notadamking)! - Fix auto-save race condition where Convex query overwrites local editor content after save. The useEffect that syncs server data to local state now only runs on initial load, preventing content loss during editing.
+
 ## 0.5.1
 
 ### Patch Changes
