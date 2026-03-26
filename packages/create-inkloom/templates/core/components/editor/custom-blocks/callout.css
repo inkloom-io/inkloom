@@ -57,6 +57,32 @@
   border-left-color: #a855f7;
 }
 
+/* Dark mode callout backgrounds — slightly stronger to remain visible on dark bg */
+.dark .bn-block:has(> .node-callout [data-callout-type="info"]),
+:root.dark .bn-block:has(> .node-callout [data-callout-type="info"]) {
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.dark .bn-block:has(> .node-callout [data-callout-type="warning"]),
+:root.dark .bn-block:has(> .node-callout [data-callout-type="warning"]) {
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.dark .bn-block:has(> .node-callout [data-callout-type="danger"]),
+:root.dark .bn-block:has(> .node-callout [data-callout-type="danger"]) {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.dark .bn-block:has(> .node-callout [data-callout-type="success"]),
+:root.dark .bn-block:has(> .node-callout [data-callout-type="success"]) {
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.dark .bn-block:has(> .node-callout [data-callout-type="tip"]),
+:root.dark .bn-block:has(> .node-callout [data-callout-type="tip"]) {
+  background: rgba(168, 85, 247, 0.15);
+}
+
 /* Style child blocks (.bn-block-group) to appear as callout content area */
 .bn-block:has(> .node-callout) > .bn-block-group {
   padding: 0 16px 8px;
@@ -93,12 +119,22 @@
   color: hsl(38 92% 40%);
 }
 
+.dark .bn-callout-warning .bn-callout-icon,
+:root.dark .bn-callout-warning .bn-callout-icon {
+  color: hsl(38 92% 55%);
+}
+
 .bn-callout-danger .bn-callout-icon {
   color: hsl(0 84% 50%);
 }
 
 .bn-callout-success .bn-callout-icon {
-  color: hsl(142 76% 32%);
+  color: hsl(142 71% 40%);
+}
+
+.dark .bn-callout-success .bn-callout-icon,
+:root.dark .bn-callout-success .bn-callout-icon {
+  color: hsl(142 71% 50%);
 }
 
 .bn-callout-tip .bn-callout-icon {

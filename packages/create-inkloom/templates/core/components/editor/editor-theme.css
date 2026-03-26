@@ -11,6 +11,31 @@
    ============================================================================ */
 
 .editor-theme-wrapper {
+  /* Default editor theme variables (light mode) */
+  --editor-primary: hsl(238 84% 67%);
+  --editor-primary-foreground: hsl(0 0% 100%);
+  --editor-background: hsl(240 24% 97%);
+  --editor-foreground: hsl(240 24% 10%);
+  --editor-background-subtle: hsl(240 20% 93%);
+  --editor-muted: hsl(240 16% 90%);
+  --editor-muted-foreground: hsl(240 10% 46%);
+  --editor-border: hsl(240 14% 86%);
+  --editor-border-subtle: hsl(240 14% 91%);
+  --editor-accent: hsl(238 84% 67% / 0.1);
+  --editor-accent-foreground: hsl(238 84% 50%);
+  --editor-code-background: hsl(240 20% 96%);
+  --editor-code-foreground: hsl(240 24% 10%);
+  --editor-code-highlight: hsl(240 18% 92%);
+  --editor-font-sans: ui-sans-serif, system-ui, sans-serif;
+  --editor-font-mono: ui-monospace, SFMono-Regular, monospace;
+  --editor-font-display: ui-sans-serif, system-ui, sans-serif;
+  --editor-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05), 0 1px 3px 0 rgb(0 0 0 / 0.04);
+  --editor-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --editor-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.03);
+  --editor-radius-sm: 0.375rem;
+  --editor-radius-md: 0.5rem;
+  --editor-radius-lg: 0.75rem;
+
   /* Map editor theme variables to BlockNote CSS variables */
   --bn-colors-editor-background: transparent;
   --bn-colors-editor-text: var(--editor-foreground);
@@ -37,6 +62,25 @@
   font-family: var(--editor-font-sans);
   line-height: 1.6;
   color: var(--editor-foreground);
+}
+
+/* Dark mode overrides for editor theme variables */
+.dark .editor-theme-wrapper,
+:root.dark .editor-theme-wrapper {
+  --editor-primary: hsl(238 80% 72%);
+  --editor-primary-foreground: hsl(240 24% 10%);
+  --editor-background: hsl(240 10% 4%);
+  --editor-foreground: hsl(210 22% 95%);
+  --editor-background-subtle: hsl(240 8% 8%);
+  --editor-muted: hsl(240 6% 14%);
+  --editor-muted-foreground: hsl(240 10% 56%);
+  --editor-border: hsl(240 6% 18%);
+  --editor-border-subtle: hsl(240 6% 12%);
+  --editor-accent: hsl(238 80% 72% / 0.15);
+  --editor-accent-foreground: hsl(210 22% 95%);
+  --editor-code-background: hsl(240 12% 6%);
+  --editor-code-foreground: hsl(220 16% 89%);
+  --editor-code-highlight: hsl(240 6% 12%);
 }
 
 /* ============================================================================
