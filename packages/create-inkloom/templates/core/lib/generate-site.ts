@@ -1892,12 +1892,20 @@ export async function generateSiteFiles(
   // Only generate a separate 404.html shell if there's a root page already
   // generating index.html
   const hasRootPage = pages.some((p) => p.path === "/");
-  // Find the first navigation page for shell redirect
-  const firstNavHref = navigation.length > 0
-    ? (navigation[0].children && navigation[0].children.length > 0
-      ? navigation[0].children[0].href
-      : navigation[0].href)
-    : undefined;
+  // Recursively find the first leaf page (not folder) in the navigation tree
+  function findFirstPageHref(items: NavItem[]): string | undefined {
+    for (const item of items) {
+      if (item.children && item.children.length > 0) {
+        const childHref = findFirstPageHref(item.children);
+        if (childHref) return childHref;
+      } else if (item.href) {
+        return item.href; // This is a page, not a folder
+      }
+    }
+    return undefined;
+  }
+
+  const firstNavHref = findFirstPageHref(navigation);
   if (!hasRootPage) {
     const shellHtml = generateShellHtml({
       ...sharedHtmlOpts,

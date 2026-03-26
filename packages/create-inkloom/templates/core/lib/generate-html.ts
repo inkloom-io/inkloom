@@ -85,6 +85,41 @@ interface ShellHtmlOptions {
 }
 
 /**
+ * Convert an absolute href (e.g. "/folder/page") to a relative path
+ * suitable for file:// protocol, given the depth of the current page.
+ * Pages are served as {path}/index.html, so depth is the number of
+ * path segments in the current page's href.
+ */
+function makeRelativeHref(targetHref: string, currentDepth: number): string {
+  const targetPath = targetHref.replace(/^\//, "");
+  const prefix = currentDepth === 0 ? "./" : "../".repeat(currentDepth);
+  if (!targetPath) {
+    // Target is root "/"
+    return `${prefix}index.html`;
+  }
+  return `${prefix}${targetPath}/index.html`;
+}
+
+/**
+ * Create a copy of navigation items with all hrefs made relative
+ * to a page at the given depth.
+ */
+function makeNavRelative(items: NavItem[], pageDepth: number): NavItem[] {
+  return items.map((item) => ({
+    ...item,
+    href: makeRelativeHref(item.href, pageDepth),
+    children: item.children ? makeNavRelative(item.children, pageDepth) : undefined,
+  }));
+}
+
+/**
+ * Compute the depth (number of path segments) for a given page href.
+ */
+function getPageDepth(href: string): number {
+  return href.replace(/^\//, "").split("/").filter(Boolean).length;
+}
+
+/**
  * Strip JSX component tags from MDX content, leaving plain markdown
  * for pre-rendering in HTML (SEO purposes).
  */
@@ -532,10 +567,14 @@ export function generatePageHtml(options: PageHtmlOptions): string {
 
   const bodyEnd = customBodyScripts || "";
 
-  // Build the static sidebar navigation HTML
-  const sidebarHtml = navigation && navigation.length > 0
-    ? `<nav class="il-sidebar" aria-label="Documentation navigation">${renderNavItems(navigation, currentPageHref)}</nav>`
+  // Build the static sidebar navigation HTML with relative links
+  const pageDepth = currentPageHref ? getPageDepth(currentPageHref) : 0;
+  const relativeNav = navigation ? makeNavRelative(navigation, pageDepth) : undefined;
+  const relativeCurrentHref = currentPageHref ? makeRelativeHref(currentPageHref, pageDepth) : undefined;
+  const sidebarHtml = relativeNav && relativeNav.length > 0
+    ? `<nav class="il-sidebar" aria-label="Documentation navigation">${renderNavItems(relativeNav, relativeCurrentHref)}</nav>`
     : "";
+  const rootHref = makeRelativeHref("/", pageDepth);
 
   // Build title section
   const titleHtml = titleSectionHidden
@@ -566,7 +605,7 @@ export function generatePageHtml(options: PageHtmlOptions): string {
   </head>
   <body class="antialiased">
     <div id="root">${isStaticBuild ? `
-      <header class="il-header"><a href="/">${escapeHtml(siteConfig.title)} Documentation</a></header>
+      <header class="il-header"><a href="${rootHref}">${escapeHtml(siteConfig.title)} Documentation</a></header>
       <div class="il-layout">
         ${sidebarHtml}
         <main class="il-main">
@@ -637,19 +676,23 @@ export function generateShellHtml(options: ShellHtmlOptions): string {
   // Determine if this is a static-only build (no JS bundles)
   const isStaticBuild = assetManifest.js.length === 0;
 
-  // For static builds with a first page, redirect to it
-  const redirectMeta = isStaticBuild && firstPageHref
-    ? `<meta http-equiv="refresh" content="0;url=${firstPageHref}" />`
+  // For static builds with a first page, redirect to it (use relative path for file:// support)
+  const relativeFirstPageHref = isStaticBuild && firstPageHref
+    ? makeRelativeHref(firstPageHref, 0)
+    : undefined;
+  const redirectMeta = relativeFirstPageHref
+    ? `<meta http-equiv="refresh" content="0;url=${relativeFirstPageHref}" />`
     : "";
 
-  // Build the static sidebar navigation HTML
-  const sidebarHtml = isStaticBuild && navigation && navigation.length > 0
-    ? `<nav class="il-sidebar" aria-label="Documentation navigation">${renderNavItems(navigation)}</nav>`
+  // Build the static sidebar navigation HTML with relative links (shell is at root, depth 0)
+  const relativeShellNav = navigation ? makeNavRelative(navigation, 0) : undefined;
+  const sidebarHtml = isStaticBuild && relativeShellNav && relativeShellNav.length > 0
+    ? `<nav class="il-sidebar" aria-label="Documentation navigation">${renderNavItems(relativeShellNav)}</nav>`
     : "";
 
   // Landing page content for static builds
   const landingContent = isStaticBuild
-    ? `<header class="il-header"><a href="/">${escapeHtml(siteConfig.title)} Documentation</a></header>
+    ? `<header class="il-header"><a href="./index.html">${escapeHtml(siteConfig.title)} Documentation</a></header>
       <div class="il-layout">
         ${sidebarHtml}
         <main class="il-main">
@@ -657,7 +700,7 @@ export function generateShellHtml(options: ShellHtmlOptions): string {
             <h1>${escapeHtml(siteConfig.title)} Documentation</h1>
             ${siteConfig.description ? `<p class="il-subtitle">${escapeHtml(siteConfig.description)}</p>` : ""}
           </div>
-          ${navigation && navigation.length > 0 ? `<div class="il-content"><h2>Pages</h2><ul>${navigation.map((item) => `<li><a href="${item.href}">${escapeHtml(item.title)}</a></li>`).join("")}</ul></div>` : ""}
+          ${relativeShellNav && relativeShellNav.length > 0 ? `<div class="il-content"><h2>Pages</h2><ul>${relativeShellNav.map((item) => `<li><a href="${item.href}">${escapeHtml(item.title)}</a></li>`).join("")}</ul></div>` : ""}
         </main>
       </div>`
     : "";
