@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { use } from "react";
 import {
@@ -103,12 +103,15 @@ function EditorContent({
 
   const [content, setContent] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const initialLoadRef = useRef(false);
 
-  // Load content from server when page content arrives
+  // Load content from server only on initial load — never overwrite local
+  // edits when the Convex query re-fires after a mutation.
   useEffect(() => {
-    if (pageContent !== undefined) {
+    if (pageContent !== undefined && !initialLoadRef.current) {
       setContent(pageContent?.content ?? null);
       setInitialized(true);
+      initialLoadRef.current = true;
     }
   }, [pageContent]);
 
