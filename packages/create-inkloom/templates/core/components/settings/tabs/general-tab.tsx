@@ -25,7 +25,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Globe, Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { useAutoSave } from "@/hooks/use-auto-save";
 import { SaveStatus } from "@/components/settings/save-status";
 
@@ -43,7 +43,6 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
   // General settings
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [slug, setSlug] = useState("");
   const [generalInitialized, setGeneralInitialized] = useState(false);
 
   // Delete dialog
@@ -56,26 +55,24 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
     if (project && !generalInitialized) {
       setName(project.name);
       setDescription(project.description || "");
-      setSlug(project.slug || "");
       setGeneralInitialized(true);
     }
   }, [project, generalInitialized]);
 
   // Auto-save callback
   const saveGeneral = useCallback(
-    async ({ name, description, slug }: { name: string; description: string; slug: string }) => {
+    async ({ name, description }: { name: string; description: string }) => {
       await updateProject({
         projectId: projectId as Id<"projects">,
         name,
         description,
-        slug,
       });
     },
     [updateProject, projectId]
   );
 
   const generalStatus = useAutoSave(
-    { name, description, slug },
+    { name, description },
     saveGeneral,
     800,
     generalInitialized
@@ -102,7 +99,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
             <div>
               <CardTitle>General Settings</CardTitle>
               <CardDescription>
-                Manage your project name, description, and slug.
+                Manage your project name and description.
               </CardDescription>
             </div>
             <SaveStatus status={generalStatus} />
@@ -126,38 +123,6 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
               rows={3}
             />
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Project Slug */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Project Slug</CardTitle>
-              <CardDescription>
-                The URL-friendly identifier for your project.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <Label htmlFor="slug">Slug</Label>
-          <div className="flex items-center gap-2 max-w-md">
-            <div className="relative flex-1">
-              <Input
-                id="slug"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                placeholder="my-project"
-                maxLength={40}
-              />
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <Globe className="h-3 w-3" />
-            URL preview: /docs/{slug || "my-project"}
-          </p>
         </CardContent>
       </Card>
 
