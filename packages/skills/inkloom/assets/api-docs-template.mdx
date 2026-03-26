@@ -1,0 +1,99 @@
+---
+title: User Endpoints
+description: Create, retrieve, update, and delete users via the REST API
+icon: users
+slug: user-endpoints
+position: 1
+isPublished: true
+---
+
+# User Endpoints
+
+Manage users in your organization through the REST API.
+
+## Create a User
+
+### `POST /v1/users`
+
+Create a new user account.
+
+<ParamField name="org_id" type="string" location="path" required>
+The unique identifier of the organization.
+</ParamField>
+
+<ParamField name="include" type="string" location="query">
+Comma-separated list of related resources to include. One of: `roles`, `teams`.
+</ParamField>
+
+<ParamField name="name" type="string" location="body" required>
+Full name of the user. Must be between 1 and 200 characters.
+</ParamField>
+
+<ParamField name="email" type="string" location="body" required>
+Email address for the user. Must be unique within the organization.
+</ParamField>
+
+<ParamField name="role" type="string" location="body">
+Role to assign. One of: `admin`, `editor`, `viewer`. Defaults to `viewer`.
+</ParamField>
+
+### Response
+
+<ResponseField name="id" type="string">
+Unique identifier for the created user.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+Full name of the user.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+Email address of the user.
+</ResponseField>
+
+<ResponseField name="metadata" type="object">
+Additional metadata about the user.
+
+<Expandable title="metadata fields">
+
+- `created_at` (string) — ISO 8601 timestamp of when the user was created
+- `updated_at` (string) — ISO 8601 timestamp of the last update
+- `last_login` (string) — ISO 8601 timestamp of the most recent login
+
+</Expandable>
+
+</ResponseField>
+
+### Examples
+
+<CodeGroup>
+```bash title="cURL"
+curl -X POST https://api.example.com/v1/users \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Jane Doe", "email": "jane@example.com", "role": "editor"}'
+```
+
+```python title="Python"
+import requests
+
+resp = requests.post(
+    "https://api.example.com/v1/users",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    json={"name": "Jane Doe", "email": "jane@example.com", "role": "editor"},
+)
+print(resp.json())
+```
+
+```typescript title="Node.js"
+const resp = await fetch("https://api.example.com/v1/users", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ name: "Jane Doe", email: "jane@example.com", role: "editor" }),
+});
+const data = await resp.json();
+```
+</CodeGroup>

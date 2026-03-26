@@ -1,0 +1,25 @@
+---
+title: Authentication
+description: Learn how to authenticate with the API using API keys and tokens
+icon: lock
+slug: authentication
+position: 0
+isPublished: true
+---
+
+# Authentication
+
+All API requests require authentication via an API key. You can generate keys from the dashboard under **Settings → API Keys**.
+
+<Callout type="info">
+
+API keys are scoped to your organization. Keep them secure and never commit them to version control.
+
+</Callout>
+
+Include your API key in the `Authorization` header of every request:
+
+```bash title="Example request"
+curl -X GET https://api.example.com/v1/users \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
