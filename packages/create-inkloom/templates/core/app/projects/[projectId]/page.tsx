@@ -148,8 +148,11 @@ function EditorContent({
     setContent(newContent);
   }, []);
 
-  // Loading state
-  if (pageContent === undefined) {
+  // Loading state — wait for both the Convex query AND the content state to be
+  // populated via useEffect. Without the `initialized` check the BlockEditor
+  // renders with `content === null` (useEffect hasn't fired yet), which causes
+  // useCreateBlockNote to create an empty editor that never updates.
+  if (pageContent === undefined || !initialized) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-6 py-3 border-b border-border shrink-0">

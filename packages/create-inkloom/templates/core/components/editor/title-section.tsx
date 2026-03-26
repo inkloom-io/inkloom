@@ -11,6 +11,8 @@ import {
   Image as ImageIcon,
   ImageOff,
   SmilePlus,
+  Loader2,
+  Check,
 } from "lucide-react";
 import type { ThemePreset } from "@/lib/theme-presets";
 import { THEME_PRESETS } from "@/lib/theme-presets";
@@ -20,6 +22,51 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+// ---------------------------------------------------------------------------
+// Save status type and indicator
+// ---------------------------------------------------------------------------
+
+type SaveStatus = "idle" | "saving" | "saved";
+
+function TitleSaveIndicator({ status }: { status: SaveStatus }) {
+  if (status === "idle") return null;
+
+  return (
+    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      {status === "saving" && (
+        <>
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Saving...
+        </>
+      )}
+      {status === "saved" && (
+        <>
+          <Check className="w-3 h-3 text-emerald-400" />
+          Saved
+        </>
+      )}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Slug helper — derive a URL slug from a title string
+// ---------------------------------------------------------------------------
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    || "untitled";
+}
+
+// ---------------------------------------------------------------------------
+// TitleSection component
+// ---------------------------------------------------------------------------
 
 interface TitleSectionProps {
   pageId: Id<"pages">;
@@ -43,8 +90,18 @@ export function TitleSection({
   customFonts,
 }: TitleSectionProps) {
   const updatePage = useMutation(api.pages.updateMeta);
+
+  // Local state for editable title and subtitle
+  const [localTitle, setLocalTitle] = useState(title);
   const [localSubtitle, setLocalSubtitle] = useState(subtitle ?? "");
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Save status tracking
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const savedTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounce refs
+  const titleDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const subtitleDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Resolve the display font from custom fonts or theme preset
   const themeConfig = useMemo(
@@ -65,36 +122,94 @@ export function TitleSection({
     return themeConfig.typography.googleFontsUrl;
   }, [customFonts?.heading, themeConfig]);
 
-  // Sync local subtitle when page changes
+  // Sync local title/subtitle when page changes (e.g. switching pages)
+  useEffect(() => {
+    setLocalTitle(title);
+  }, [title, pageId]);
+
   useEffect(() => {
     setLocalSubtitle(subtitle ?? "");
   }, [subtitle, pageId]);
 
+  // Helper to show saving indicator and transition to saved
+  const showSaving = useCallback(() => {
+    setSaveStatus("saving");
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+  }, []);
+
+  const showSaved = useCallback(() => {
+    setSaveStatus("saved");
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => {
+      setSaveStatus("idle");
+    }, 1500);
+  }, []);
+
+  // Debounced title change — updates title + slug
+  const handleTitleChange = useCallback(
+    (value: string) => {
+      setLocalTitle(value);
+      if (titleDebounceRef.current) clearTimeout(titleDebounceRef.current);
+      showSaving();
+      titleDebounceRef.current = setTimeout(async () => {
+        const trimmed = value.trim();
+        if (!trimmed) return;
+        try {
+          await updatePage({
+            pageId,
+            title: trimmed,
+            slug: slugify(trimmed),
+          });
+          showSaved();
+        } catch {
+          setSaveStatus("idle");
+        }
+      }, 300);
+    },
+    [pageId, updatePage, showSaving, showSaved]
+  );
+
+  // Debounced subtitle change
   const handleSubtitleChange = useCallback(
     (value: string) => {
       setLocalSubtitle(value);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        updatePage({
-          pageId,
-          subtitle: value || undefined,
-        });
+      if (subtitleDebounceRef.current)
+        clearTimeout(subtitleDebounceRef.current);
+      showSaving();
+      subtitleDebounceRef.current = setTimeout(async () => {
+        try {
+          await updatePage({
+            pageId,
+            subtitle: value || undefined,
+          });
+          showSaved();
+        } catch {
+          setSaveStatus("idle");
+        }
       }, 300);
     },
-    [pageId, updatePage]
+    [pageId, updatePage, showSaving, showSaved]
   );
 
+  // Cleanup timers on unmount
   useEffect(() => {
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (titleDebounceRef.current) clearTimeout(titleDebounceRef.current);
+      if (subtitleDebounceRef.current)
+        clearTimeout(subtitleDebounceRef.current);
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
     };
   }, []);
 
   const handleIconChange = useCallback(
     (newIcon: string | null) => {
-      updatePage({ pageId, icon: newIcon ?? undefined });
+      showSaving();
+      updatePage({ pageId, icon: newIcon ?? undefined }).then(
+        () => showSaved(),
+        () => setSaveStatus("idle")
+      );
     },
-    [pageId, updatePage]
+    [pageId, updatePage, showSaving, showSaved]
   );
 
   const handleToggleHidden = useCallback(() => {
@@ -141,6 +256,8 @@ export function TitleSection({
       <div className="mx-auto w-full max-w-4xl px-[3rem]">
         {/* Controls row */}
         <div className="mb-3 flex items-center justify-end gap-1">
+          <TitleSaveIndicator status={saveStatus} />
+          <div className="flex-1" />
           {icon && (
             <TooltipProvider delayDuration={200}>
               <Tooltip>
@@ -197,16 +314,18 @@ export function TitleSection({
               />
             </div>
           )}
-          <h1
-            className="text-3xl font-bold tracking-tight text-foreground"
+          <input
+            type="text"
+            value={localTitle}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            className="w-full border-none bg-transparent text-3xl font-bold tracking-tight text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
             style={{
               fontFamily: displayFontFamily,
               letterSpacing: "-0.03em",
               lineHeight: 1.2,
             }}
-          >
-            {title}
-          </h1>
+            placeholder="Untitled"
+          />
         </div>
 
         {/* Add icon button (only shown when no icon set at all) */}
