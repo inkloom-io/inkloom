@@ -87,7 +87,7 @@ export const create = mutation({
       slug: "welcome",
       path: "/welcome",
       position: 0,
-      isPublished: true,
+      isPublished: false,
       createdAt: now,
       updatedAt: now,
     });

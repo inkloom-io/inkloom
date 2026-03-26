@@ -215,7 +215,7 @@ export const create = mutation({
       slug,
       path: `/${slug}`,
       position,
-      isPublished: true,
+      isPublished: false,
       createdAt: now,
       updatedAt: now,
     });
