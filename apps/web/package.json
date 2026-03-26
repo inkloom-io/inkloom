@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "generate-convex-types": "tsx scripts/generate-convex-types.ts",
     "type-check": "tsx scripts/generate-convex-types.ts && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "seed": "npx convex run seed:seed"
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^12.1.0",
