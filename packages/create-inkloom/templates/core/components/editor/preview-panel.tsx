@@ -8,6 +8,8 @@ import { DocsRendererProvider } from "@/components/docs-renderer";
 import "@/components/docs-renderer/styles/index.css";
 import { highlightCode } from "@/lib/syntax-highlighter";
 import { ChevronRight, Home, Sun, Moon } from "lucide-react";
+import { THEME_PRESETS, type ThemePreset } from "@/lib/theme-presets";
+import { generateThemeSpecificCss } from "@/lib/generate-site";
 import "./preview-styles.css";
 
 interface PreviewPanelProps {
@@ -15,6 +17,10 @@ interface PreviewPanelProps {
   content: string | null;
   /** Page title to display */
   pageTitle: string;
+  /** Theme preset to apply */
+  themePreset?: ThemePreset;
+  /** Custom primary color override */
+  customPrimaryColor?: string;
 }
 
 /** Simple link wrapper for preview — links don't navigate in preview mode */
@@ -44,9 +50,45 @@ async function highlightCodeForRenderer(
   return highlightCode(code, language);
 }
 
+/**
+ * Build background style for a specific theme preset
+ */
+function getBackgroundStyles(
+  themePreset: ThemePreset,
+  isDark: boolean,
+  colors: { background: string; backgroundSubtle: string; border: string }
+): string {
+  if (themePreset === "forest") {
+    return `background-color: ${colors.background};
+      background-image: radial-gradient(circle, ${colors.border} 0.5px, transparent 0.5px);
+      background-size: 24px 24px;`;
+  }
+  if (themePreset === "midnight" && isDark) {
+    return `background-color: ${colors.background};
+      background-image:
+        radial-gradient(at 0% 0%, hsl(210 90% 60% / 0.04) 0%, transparent 50%),
+        radial-gradient(at 100% 100%, hsl(210 90% 60% / 0.03) 0%, transparent 50%);`;
+  }
+  if (themePreset === "vapor") {
+    return `background-color: ${colors.background};
+      background-image:
+        radial-gradient(at 20% 30%, hsl(174 ${isDark ? "75" : "72"}% ${isDark ? "52" : "40"}% / 0.06) 0%, transparent 50%),
+        radial-gradient(at 80% 70%, hsl(190 60% 50% / ${isDark ? "0.04" : "0.05"}) 0%, transparent 50%);`;
+  }
+  if (themePreset === "aubergine" && isDark) {
+    return `background-color: ${colors.background};
+      background-image:
+        radial-gradient(at 50% 0%, hsl(275 30% 14%) 0%, transparent 60%),
+        radial-gradient(at 100% 50%, hsl(42 50% 50% / 0.03) 0%, transparent 40%);`;
+  }
+  return `background: linear-gradient(180deg, ${colors.background} 0%, ${colors.backgroundSubtle} 100%);`;
+}
+
 export function PreviewPanel({
   content,
   pageTitle,
+  themePreset = "default",
+  customPrimaryColor,
 }: PreviewPanelProps) {
   const { resolvedTheme } = useTheme();
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">(
@@ -65,39 +107,64 @@ export function PreviewPanel({
 
   const isDark = previewTheme === "dark";
 
-  // Basic theme CSS variables for the preview container
+  // Resolve theme config from preset
+  const theme = THEME_PRESETS[themePreset] || THEME_PRESETS.default;
+  const colors = isDark ? theme.colors.dark : theme.colors.light;
+  const typography = theme.typography;
+  const effects = theme.effects;
+
+  const primaryColor = customPrimaryColor || colors.primary;
+
+  // Build CSS variables from the theme config
   const containerStyle: React.CSSProperties = {
-    "--color-background": isDark ? "#0a0a0a" : "#ffffff",
-    "--color-foreground": isDark ? "#fafafa" : "#0a0a0a",
-    "--color-background-subtle": isDark ? "#171717" : "#f5f5f5",
-    "--color-muted": isDark ? "#262626" : "#f5f5f5",
-    "--color-muted-foreground": isDark ? "#a3a3a3" : "#737373",
-    "--color-border": isDark ? "#262626" : "#e5e5e5",
-    "--color-border-subtle": isDark ? "#1a1a1a" : "#f0f0f0",
-    "--color-primary": isDark ? "#3b82f6" : "#2563eb",
-    "--color-primary-foreground": "#ffffff",
-    "--color-accent": isDark ? "#1e3a5f" : "#eff6ff",
-    "--color-accent-foreground": isDark ? "#93c5fd" : "#1d4ed8",
-    "--color-code-background": isDark ? "#1a1a1a" : "#f8f8f8",
-    "--color-code-foreground": isDark ? "#e5e5e5" : "#24292e",
-    "--color-code-highlight": isDark ? "#262626" : "#f0f0f0",
-    "--color-header-background": isDark ? "rgba(10, 10, 10, 0.8)" : "rgba(255, 255, 255, 0.8)",
-    "--color-header-border": isDark ? "#262626" : "#e5e5e5",
-    "--header-blur": "12px",
-    "--font-sans": "system-ui, -apple-system, sans-serif",
-    "--font-mono": "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace",
-    "--font-display": "system-ui, -apple-system, sans-serif",
-    "--shadow-sm": isDark ? "0 1px 2px rgba(0,0,0,0.3)" : "0 1px 2px rgba(0,0,0,0.05)",
-    "--shadow-md": isDark ? "0 4px 6px rgba(0,0,0,0.3)" : "0 4px 6px rgba(0,0,0,0.07)",
-    "--radius-sm": "4px",
-    "--radius-md": "6px",
-    "--radius-lg": "8px",
-    background: isDark
-      ? "linear-gradient(180deg, #0a0a0a 0%, #171717 100%)"
-      : "linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%)",
-    color: isDark ? "#fafafa" : "#0a0a0a",
-    fontFamily: "system-ui, -apple-system, sans-serif",
+    "--color-background": colors.background,
+    "--color-foreground": colors.foreground,
+    "--color-background-subtle": colors.backgroundSubtle,
+    "--color-muted": colors.muted,
+    "--color-muted-foreground": colors.mutedForeground,
+    "--color-border": colors.border,
+    "--color-border-subtle": colors.borderSubtle,
+    "--color-primary": primaryColor,
+    "--color-primary-foreground": colors.primaryForeground,
+    "--color-accent": colors.accent,
+    "--color-accent-foreground": colors.accentForeground,
+    "--color-code-background": colors.codeBackground,
+    "--color-code-foreground": colors.codeForeground,
+    "--color-code-highlight": colors.codeHighlight,
+    "--color-header-background": colors.headerBackground,
+    "--color-header-border": colors.headerBorder,
+    "--header-blur": effects.headerBlur,
+    "--font-sans": typography.fontSans,
+    "--font-mono": typography.fontMono,
+    "--font-display": typography.fontDisplay,
+    "--shadow-sm": effects.shadowSm,
+    "--shadow-md": effects.shadowMd,
+    "--radius-sm": effects.radiusSm,
+    "--radius-md": effects.radiusMd,
+    "--radius-lg": effects.radiusLg,
+    color: colors.foreground,
+    fontFamily: typography.fontSans,
   } as React.CSSProperties;
+
+  // Generate theme-specific CSS (background patterns, prose styles, etc.)
+  const themeSpecificCss = useMemo(
+    () => generateThemeSpecificCss(themePreset),
+    [themePreset]
+  );
+
+  // Generate background CSS from theme
+  const backgroundCss = useMemo(
+    () =>
+      getBackgroundStyles(themePreset, isDark, {
+        background: colors.background,
+        backgroundSubtle: colors.backgroundSubtle,
+        border: colors.border,
+      }),
+    [themePreset, isDark, colors.background, colors.backgroundSubtle, colors.border]
+  );
+
+  // Google Fonts link for the theme
+  const fontUrl = typography.googleFontsUrl;
 
   return (
     <DocsRendererProvider
@@ -105,6 +172,20 @@ export function PreviewPanel({
       highlightCode={highlightCodeForRenderer}
       resolvedTheme={previewTheme}
     >
+      {/* Load theme-specific fonts */}
+      {fontUrl && (
+        // eslint-disable-next-line @next/next/no-page-custom-font
+        <link rel="stylesheet" href={fontUrl} />
+      )}
+      {/* Inject theme-specific CSS (prose styles, background patterns, etc.) */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            .preview-container { ${backgroundCss} }
+            ${themeSpecificCss}
+          `,
+        }}
+      />
       <div
         className="preview-container flex h-full flex-col"
         data-preview-theme={previewTheme}

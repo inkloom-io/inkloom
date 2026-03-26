@@ -93,10 +93,16 @@ function EditorContent({
   pageId,
   pageTitle,
   showPreview,
+  themePreset,
+  customPrimaryColor,
+  customFonts,
 }: {
   pageId: Id<"pages">;
   pageTitle: string;
   showPreview: boolean;
+  themePreset: string;
+  customPrimaryColor?: string;
+  customFonts?: { heading?: string; body?: string; code?: string };
 }) {
   const pageContent = useQuery(api.pages.getContent, { pageId });
   const updateContent = useMutation(api.pages.updateContent);
@@ -157,13 +163,21 @@ function EditorContent({
       </div>
       <div className="flex flex-1 overflow-hidden">
         <div className={`${showPreview ? "w-1/2" : "w-full"} overflow-auto`}>
-          <BlockEditor content={content} onChange={handleChange} />
+          <BlockEditor
+            content={content}
+            onChange={handleChange}
+            themePreset={themePreset as import("@/lib/theme-presets").ThemePreset}
+            customPrimaryColor={customPrimaryColor}
+            customFonts={customFonts}
+          />
         </div>
         {showPreview && (
           <div className="w-1/2 border-l border-border overflow-hidden">
             <PreviewPanel
               content={content}
               pageTitle={pageTitle}
+              themePreset={themePreset as import("@/lib/theme-presets").ThemePreset}
+              customPrimaryColor={customPrimaryColor}
             />
           </div>
         )}
@@ -333,6 +347,9 @@ export default function ProjectEditorPage({
             pageId={selectedPage._id}
             pageTitle={selectedPage.title}
             showPreview={showPreview}
+            themePreset={(project.settings as Record<string, unknown> | undefined)?.theme as string || "default"}
+            customPrimaryColor={(project.settings as Record<string, unknown> | undefined)?.primaryColor as string | undefined}
+            customFonts={(project.settings as Record<string, unknown> | undefined)?.fonts as { heading?: string; body?: string; code?: string } | undefined}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center">

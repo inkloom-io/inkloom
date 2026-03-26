@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useEffect } from "react";
+import { useCallback, useMemo, useEffect, useRef } from "react";
+import { generateEditorThemeCSS, getEditorFontUrl } from "@/lib/generate-editor-theme";
+import type { ThemePreset } from "@/lib/theme-presets";
 import { BlockNoteView } from "./custom-blocknote-view";
 import "@blocknote/mantine/style.css";
 import "./editor-theme.css";
@@ -72,13 +74,48 @@ interface BlockEditorProps {
   content: string | null;
   onChange: (content: string) => void;
   editable?: boolean;
+  themePreset?: ThemePreset;
+  customPrimaryColor?: string;
+  customFonts?: { heading?: string; body?: string; code?: string };
 }
 
 export function BlockEditor({
   content,
   onChange,
   editable = true,
+  themePreset = "default",
+  customPrimaryColor,
+  customFonts,
 }: BlockEditorProps) {
+  // Generate theme CSS for the editor wrapper
+  const themeCSS = useMemo(
+    () => generateEditorThemeCSS("editor-theme-wrapper", themePreset, customPrimaryColor),
+    [themePreset, customPrimaryColor]
+  );
+
+  const fontUrl = useMemo(() => getEditorFontUrl(themePreset), [themePreset]);
+
+  // Inject the font link tag — avoid duplicates by tracking via a ref
+  const fontLinkRef = useRef<HTMLLinkElement | null>(null);
+  useEffect(() => {
+    if (!fontUrl) return;
+    // Remove previous link if font URL changed
+    if (fontLinkRef.current) {
+      fontLinkRef.current.remove();
+      fontLinkRef.current = null;
+    }
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = fontUrl;
+    document.head.appendChild(link);
+    fontLinkRef.current = link;
+    return () => {
+      if (fontLinkRef.current) {
+        fontLinkRef.current.remove();
+        fontLinkRef.current = null;
+      }
+    };
+  }, [fontUrl]);
   const parsedContent = useMemo(() => {
     if (!content) {
       return undefined;
@@ -641,6 +678,8 @@ export function BlockEditor({
 
   return (
     <div className="editor-theme-wrapper min-h-full">
+      {/* Inject theme CSS variables for the editor */}
+      <style dangerouslySetInnerHTML={{ __html: themeCSS }} />
       <BlockNoteView
         editor={editor}
         editable={editable}
