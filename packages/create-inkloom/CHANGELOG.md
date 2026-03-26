@@ -1,5 +1,11 @@
 # create-inkloom
 
+## 0.5.1
+
+### Patch Changes
+
+- [`86980cc`](https://github.com/inkloom-io/inkloom-private/commit/86980ccfbd8cd9e250b246dcc6cb934c78b0b5f7) Thanks [@notadamking](https://github.com/notadamking)! - Fix static site routing: index.html now correctly redirects to the first leaf page (not a folder path), and all generated HTML links use relative paths for file:// protocol compatibility.
+
 ## 0.5.0
 
 ### Minor Changes
