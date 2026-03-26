@@ -1,5 +1,17 @@
 # create-inkloom
 
+## 0.5.0
+
+### Minor Changes
+
+- [`56976bf`](https://github.com/inkloom-io/inkloom-private/commit/56976bfe0154fb86c871a2f2dbd6077ce49b87e0) Thanks [@notadamking](https://github.com/notadamking)! - Add bun support and interactive package manager/template selection. When no `--use-*` or `--template` flag is provided, the CLI now prompts users with an interactive arrow-key selector to choose their package manager and template. CLI flags remain as non-interactive overrides for CI/scripting use cases.
+
+- [`a4c87cb`](https://github.com/inkloom-io/inkloom-private/commit/a4c87cbae755f67e9912cbb958245f7af88df2a2) Thanks [@notadamking](https://github.com/notadamking)! - Replace template sidebar with react-arborist page tree supporting drag-and-drop reordering, nested folders, and context menus.
+
+### Patch Changes
+
+- [`87e76be`](https://github.com/inkloom-io/inkloom-private/commit/87e76be039f5c0dd51570a8349019151f95256ce) Thanks [@notadamking](https://github.com/notadamking)! - Fix blank published HTML output by removing hydration gate for static builds and rendering full page layout with sidebar navigation, header, and styled content.
+
 ## 0.4.1
 
 ### Patch Changes
