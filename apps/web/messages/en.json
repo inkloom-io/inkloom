@@ -593,6 +593,12 @@
       "description": "Deploy from your terminal, script doc updates, and integrate into any CI/CD pipeline.",
       "why": "Automate documentation workflows however you want."
     },
+    "agentSkill": {
+      "name": "Agent Skill",
+      "description": "Install one skill file and your coding agent instantly knows how to create InkLoom projects, write MDX documentation, and deploy — no manual setup or copy-pasting commands.",
+      "why": "Your agent becomes an InkLoom expert in one step.",
+      "link": "Learn about the Agent Skill →"
+    },
     "themes": {
       "name": "Themes & Customization",
       "description": "Custom domains, brand colors, design tokens, and layout options to make your docs site feel like home.",
@@ -3835,7 +3841,9 @@
       "q3": "Is GitHub required?",
       "a3": "GitHub is the primary integration today, with full support for GitHub Actions, PR-based workflows, and repository syncing. Support for GitLab and Bitbucket is planned.",
       "q4": "Can I self-host InkLoom?",
-      "a4": "Yes. InkLoom is open source under the Apache 2.0 license. You can self-host the entire platform on your own infrastructure. See docs.inkloom.io for the self-hosting guide."
+      "a4": "Yes. InkLoom is open source under the Apache 2.0 license. You can self-host the entire platform on your own infrastructure. See docs.inkloom.io for the self-hosting guide.",
+      "q5": "Can my coding agent set up and manage InkLoom for me?",
+      "a5": "Yes. InkLoom offers a provider-agnostic agent skill that you can install in any supported coding agent. Once installed, the agent can create InkLoom projects, write MDX documentation using all 24 built-in components, push pages via the CLI, set up CI/CD pipelines, and deploy to production — all from natural language prompts. Install the skill from docs.inkloom.io/ai/agent-skill."
     }
   }
 }
