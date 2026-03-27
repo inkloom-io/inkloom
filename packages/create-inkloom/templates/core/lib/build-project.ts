@@ -8,7 +8,7 @@
  * Used by the `/api/build` route (UI "Build" button).
  */
 import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync, readdirSync, cpSync } from "node:fs";
-import { join, dirname, resolve } from "node:path";
+import { join, resolve } from "node:path";
 import type { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -43,29 +43,19 @@ function resolveViewerAssetsDir(explicit?: string): string | undefined {
     console.warn(`[Build] Viewer assets dir not found at ${explicit}, falling back to discovery.`);
   }
 
-  // Known locations to search for the default template dist
-  const candidates: string[] = [];
-
-  // Try to resolve via Node module resolution (works with pnpm workspaces)
-  try {
-    const createInkloomPkg = require.resolve("create-inkloom/package.json");
-    candidates.push(resolve(dirname(createInkloomPkg), "templates", "default", "dist"));
-  } catch {
-    // create-inkloom not resolvable — continue with other candidates
-  }
-
-  candidates.push(
-    // Monorepo: relative to this file in templates/core/lib/
-    resolve(__dirname, "..", "..", "default", "dist"),
-    // Monorepo: from project root via node_modules (pnpm hoisting)
-    resolve(process.cwd(), "node_modules", "create-inkloom", "templates", "default", "dist"),
-    // Monorepo: walk up from cwd to find node_modules
-    resolve(process.cwd(), "..", "node_modules", "create-inkloom", "templates", "default", "dist"),
-    resolve(process.cwd(), "..", "..", "node_modules", "create-inkloom", "templates", "default", "dist"),
-    // Standalone: viewer assets bundled at setup time
-    resolve(process.cwd(), "viewer-assets"),
+  // Known locations to search for the default template viewer build.
+  // The primary location is public/viewer/ which is populated by the
+  // build:viewer script (copies templates/default/dist/ at build time).
+  const candidates: string[] = [
+    // 1. Bundled viewer assets in public/viewer/ (primary — set up by build:viewer)
     resolve(process.cwd(), "public", "viewer"),
-  );
+    // 2. Adjacent default template dist (monorepo dev: templates/core/ and templates/default/)
+    resolve(__dirname, "..", "..", "default", "dist"),
+    // 3. Fallback: .inkloom/viewer in project root
+    resolve(process.cwd(), ".inkloom", "viewer"),
+    // 4. Standalone: viewer-assets directory
+    resolve(process.cwd(), "viewer-assets"),
+  ];
 
   for (const candidate of candidates) {
     if (existsSync(join(candidate, "assets")) && existsSync(join(candidate, "index.html"))) {
@@ -253,13 +243,14 @@ export async function buildProject(
 
     // 8b. Discover viewer assets (default template SPA)
     const viewerDistDir = resolveViewerAssetsDir(opts.viewerAssetsDir);
-    let viewerAssets: { js: string[]; css: string[] } | undefined;
-    if (viewerDistDir) {
-      viewerAssets = parseViewerManifest(viewerDistDir);
-      console.log(`[Build] Using viewer assets from ${viewerDistDir}`);
-    } else {
-      console.warn("[Build] Viewer assets not found — generating static-only build.");
+    if (!viewerDistDir) {
+      throw new Error(
+        "[Build] Viewer assets not found. Run `pnpm run build:viewer` in the create-inkloom package first, " +
+        "or ensure public/viewer/ contains the built default template assets (index.html + assets/)."
+      );
     }
+    const viewerAssets = parseViewerManifest(viewerDistDir);
+    console.log(`[Build] Using viewer assets from ${viewerDistDir}`);
 
     const { files: siteFiles, warnings: buildWarnings } = await generateSiteFiles(pages, folders, {
       name: project.name,

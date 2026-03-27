@@ -11,6 +11,9 @@ out/
 build/
 dist/
 
+# viewer assets (copied from default template build)
+public/viewer/
+
 # misc
 .DS_Store
 *.pem

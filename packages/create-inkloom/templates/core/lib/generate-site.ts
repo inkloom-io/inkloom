@@ -121,7 +121,7 @@ interface ProjectConfig {
   /** Base URL for the generated site (used in sitemap, canonical URLs) */
   baseUrl?: string;
   /** Viewer asset manifest (JS/CSS entry points from default template build) */
-  viewerAssets?: { js: string[]; css: string[] };
+  viewerAssets: { js: string[]; css: string[] };
 }
 
 interface GeneratedFile {
@@ -1802,7 +1802,7 @@ export async function generateSiteFiles(
   };
 
   // Use viewer assets if available, otherwise empty manifest for static-only builds
-  const assetManifest = config.viewerAssets ?? { js: [] as string[], css: [] as string[] };
+  const assetManifest = config.viewerAssets;
 
   // Shared HTML options
   const sharedHtmlOpts = {
