@@ -1,5 +1,13 @@
 # create-inkloom
 
+## 0.7.1
+
+### Patch Changes
+
+- [`790a171`](https://github.com/inkloom-io/inkloom-private/commit/790a17195a57eda90e8a2766820b046530e46996) Thanks [@notadamking](https://github.com/notadamking)! - Add error boundary for project routes to gracefully handle Convex table ID mismatches after schema changes, and fix settings page to show a not-found message instead of an infinite spinner for invalid project IDs.
+
+- [`10e31f4`](https://github.com/inkloom-io/inkloom-private/commit/10e31f4a3fc193c46dace0731116d02c25462ebb) Thanks [@notadamking](https://github.com/notadamking)! - Fix editor content not loading on page refresh by adding `initialized` check to the loading gate, preventing BlockEditor from rendering before content state is populated. Also makes the page title editable in the title section with a save status indicator.
+
 ## 0.7.0
 
 ### Minor Changes
