@@ -1,5 +1,11 @@
 # create-inkloom
 
+## 0.8.1
+
+### Patch Changes
+
+- [`09ed13b`](https://github.com/inkloom-io/inkloom-private/commit/09ed13ba41d78d2f367f4f28a0375b6e580438f5) Thanks [@notadamking](https://github.com/notadamking)! - Fix build crash caused by **dirname usage in ESM module. Replace CJS-only **dirname reference in viewer asset discovery with process.cwd()-based path and add missing dirname import.
+
 ## 0.8.0
 
 ### Minor Changes
