@@ -1,5 +1,13 @@
 # create-inkloom
 
+## 0.8.0
+
+### Minor Changes
+
+- [`481452f`](https://github.com/inkloom-io/inkloom-private/commit/481452fe74971a9e35171317d9399bfee6e3c223) Thanks [@notadamking](https://github.com/notadamking)! - Bundle default template viewer assets into core template at build time, ensuring the platform-style SPA layout (sidebar, header, search, theming) is always available when building docs sites. Previously the viewer asset discovery never found assets, resulting in bare unstyled HTML output.
+
+- [`6fbc5b5`](https://github.com/inkloom-io/inkloom-private/commit/6fbc5b5d42326fb5fe8cd5d464c301fdc0b489fb) Thanks [@notadamking](https://github.com/notadamking)! - Match published site layout to platform by using the default template's React SPA viewer instead of custom static HTML. Built sites now render with the full viewer experience (sidebar, header, search, TOC, breadcrumbs, theming) identical to platform-published sites.
+
 ## 0.7.1
 
 ### Patch Changes
