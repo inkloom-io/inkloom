@@ -1816,7 +1816,6 @@ export async function generateSiteFiles(
     customFontsCss,
     analyticsSnippets: analyticsSnippetsHtml || undefined,
     defaultThemeMode: config.defaultThemeMode,
-    navigation,
   };
 
   // Build folder lookup for breadcrumb trails
@@ -1879,7 +1878,6 @@ export async function generateSiteFiles(
       folderTrail: getFolderTrail(page.path),
       ogMeta,
       jsonLd,
-      currentPageHref: page.path,
     });
 
     // Write as {path}/index.html (e.g., /getting-started → getting-started/index.html)
@@ -1926,25 +1924,10 @@ export async function generateSiteFiles(
   // Only generate a separate 404.html shell if there's a root page already
   // generating index.html
   const hasRootPage = pages.some((p) => p.path === "/");
-  // Recursively find the first leaf page (not folder) in the navigation tree
-  function findFirstPageHref(items: NavItem[]): string | undefined {
-    for (const item of items) {
-      if (item.children && item.children.length > 0) {
-        const childHref = findFirstPageHref(item.children);
-        if (childHref) return childHref;
-      } else if (item.href) {
-        return item.href; // This is a page, not a folder
-      }
-    }
-    return undefined;
-  }
-
-  const firstNavHref = findFirstPageHref(navigation);
   if (!hasRootPage) {
     const shellHtml = generateShellHtml({
       ...sharedHtmlOpts,
       ogMeta: shellOgMeta,
-      firstPageHref: firstNavHref,
     });
     files.push({ file: "index.html", data: shellHtml });
   }
