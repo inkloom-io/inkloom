@@ -198,6 +198,7 @@ export const update = mutation({
   args: {
     pageId: v.id("pages"),
     title: v.optional(v.string()),
+    slug: v.optional(v.string()),
     isPublished: v.optional(v.boolean()),
     position: v.optional(v.number()),
     folderId: v.optional(v.union(v.id("folders"), v.null())),
@@ -230,7 +231,7 @@ export const update = mutation({
 
     if (updates.title !== undefined) {
       updateData.title = updates.title;
-      const slug = slugify(updates.title);
+      const slug = updates.slug || slugify(updates.title);
       updateData.slug = slug;
 
       // Recalculate path
