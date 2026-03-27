@@ -47,6 +47,8 @@ interface PageHtmlOptions {
   customBodyScripts?: string;
   /** Default theme mode for first-time visitors (light/dark/system). Defaults to "system". */
   defaultThemeMode?: "light" | "dark" | "system";
+  /** Relative base href for resolving asset paths (e.g., "./" for root, "../" for one level deep) */
+  baseHref?: string;
 }
 
 interface ShellHtmlOptions {
@@ -66,6 +68,8 @@ interface ShellHtmlOptions {
   customBodyScripts?: string;
   /** Default theme mode for first-time visitors (light/dark/system). Defaults to "system". */
   defaultThemeMode?: "light" | "dark" | "system";
+  /** Relative base href for resolving asset paths (e.g., "./" for root, "../" for one level deep) */
+  baseHref?: string;
 }
 
 /**
@@ -257,9 +261,11 @@ export function generatePageHtml(options: PageHtmlOptions): string {
     customHeadScripts,
     customBodyScripts,
     defaultThemeMode,
+    baseHref,
   } = options;
 
   const resolvedDefaultMode = defaultThemeMode || "system";
+  const resolvedBaseHref = baseHref || "./";
 
   // Title format: pageTitle | innerFolder | ... | outerFolder | projectName Documentation
   let fullTitle: string;
@@ -276,11 +282,11 @@ export function generatePageHtml(options: PageHtmlOptions): string {
   const preRenderedHtml = simpleMarkdownToHtml(strippedContent);
 
   const cssLinks = assetManifest.css
-    .map((href) => `<link rel="stylesheet" href="/${href}" />`)
+    .map((href) => `<link rel="stylesheet" href="./${href}" />`)
     .join("\n    ");
 
   const jsScripts = assetManifest.js
-    .map((src) => `<script type="module" src="/${src}"></script>`)
+    .map((src) => `<script type="module" src="./${src}"></script>`)
     .join("\n    ");
 
   const pageData = JSON.stringify({
@@ -316,6 +322,7 @@ export function generatePageHtml(options: PageHtmlOptions): string {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="${resolvedBaseHref}" />
     <script>(function(){var t=localStorage.getItem('inkloom-theme');if(!t)t='${resolvedDefaultMode}';if(t==='light'||t==='dark'||t==='system')document.documentElement.setAttribute('data-theme',t)})()</script>
     <title>${escapeHtml(fullTitle)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
@@ -323,12 +330,11 @@ export function generatePageHtml(options: PageHtmlOptions): string {
     ${fontsLink}
     ${cssLinks}
     <style>${themeCss}</style>
-    <style>#root:not(.hydrated){visibility:hidden}</style>
     ${headExtras}
   </head>
   <body class="antialiased">
     <div id="root">
-      <article>${preRenderedHtml}</article>
+      <article class="il-fallback">${preRenderedHtml}</article>
     </div>
     <script type="application/json" id="__INKLOOM_DATA__">${JSON.stringify(siteData)}</script>
     <script type="application/json" id="__PAGE_DATA__">${pageData}</script>
@@ -355,16 +361,18 @@ export function generateShellHtml(options: ShellHtmlOptions): string {
     customHeadScripts,
     customBodyScripts,
     defaultThemeMode,
+    baseHref,
   } = options;
 
   const resolvedDefaultMode = defaultThemeMode || "system";
+  const resolvedBaseHref = baseHref || "./";
 
   const cssLinks = assetManifest.css
-    .map((href) => `<link rel="stylesheet" href="/${href}" />`)
+    .map((href) => `<link rel="stylesheet" href="./${href}" />`)
     .join("\n    ");
 
   const jsScripts = assetManifest.js
-    .map((src) => `<script type="module" src="/${src}"></script>`)
+    .map((src) => `<script type="module" src="./${src}"></script>`)
     .join("\n    ");
 
   const fontsLink = themeFontsUrl
@@ -389,13 +397,13 @@ export function generateShellHtml(options: ShellHtmlOptions): string {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="${resolvedBaseHref}" />
     <script>(function(){var t=localStorage.getItem('inkloom-theme');if(!t)t='${resolvedDefaultMode}';if(t==='light'||t==='dark'||t==='system')document.documentElement.setAttribute('data-theme',t)})()</script>
     <title>${escapeHtml(siteConfig.title)} Documentation</title>
     <meta name="description" content="${escapeHtml(siteConfig.description)}" />
     ${fontsLink}
     ${cssLinks}
     <style>${themeCss}</style>
-    <style>#root:not(.hydrated){visibility:hidden}</style>
     ${headExtras}
   </head>
   <body class="antialiased">

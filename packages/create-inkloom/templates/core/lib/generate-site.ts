@@ -153,7 +153,7 @@ function generateNavigation(pages: Page[], folders: Folder[]): NavItem[] {
   for (const page of rootPages) {
     const navItem: NavItem = {
       title: page.title,
-      href: `${page.path}`,
+      href: `.${page.path}`,
     };
     if (page.icon) {
       navItem.icon = page.icon;
@@ -166,7 +166,7 @@ function generateNavigation(pages: Page[], folders: Folder[]): NavItem[] {
     const children = buildFolderChildren(folder, pages, folders);
     const navItem: NavItem = {
       title: folder.name,
-      href: `${folder.path}`,
+      href: `.${folder.path}`,
       children,
     };
     if (folder.icon) {
@@ -232,7 +232,7 @@ function buildFolderChildren(
     const grandChildren = buildFolderChildren(childFolder, pages, folders);
     const navItem: NavItem = {
       title: childFolder.name,
-      href: `${childFolder.path}`,
+      href: `.${childFolder.path}`,
       children: grandChildren,
     };
     if (childFolder.icon) {
@@ -245,7 +245,7 @@ function buildFolderChildren(
   for (const page of childPages) {
     const navItem: NavItem = {
       title: page.title,
-      href: `${page.path}`,
+      href: `.${page.path}`,
     };
     if (page.icon) {
       navItem.icon = page.icon;
@@ -1865,6 +1865,13 @@ export async function generateSiteFiles(
       siteName: config.name,
     });
 
+    // Compute relative base href for nested pages.
+    // Root page (/) → index.html → baseHref "./"
+    // /getting-started → getting-started/index.html → baseHref "../"
+    // /folder/page → folder/page/index.html → baseHref "../../"
+    const depth = page.path === "/" ? 0 : page.path.split("/").filter(Boolean).length;
+    const baseHref = depth === 0 ? "./" : "../".repeat(depth);
+
     const pageHtml = generatePageHtml({
       ...sharedHtmlOpts,
       pageTitle: page.title,
@@ -1878,6 +1885,7 @@ export async function generateSiteFiles(
       folderTrail: getFolderTrail(page.path),
       ogMeta,
       jsonLd,
+      baseHref,
     });
 
     // Write as {path}/index.html (e.g., /getting-started → getting-started/index.html)
