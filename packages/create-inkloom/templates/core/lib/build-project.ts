@@ -8,7 +8,7 @@
  * Used by the `/api/build` route (UI "Build" button).
  */
 import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync, readdirSync, cpSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import type { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -49,8 +49,8 @@ function resolveViewerAssetsDir(explicit?: string): string | undefined {
   const candidates: string[] = [
     // 1. Bundled viewer assets in public/viewer/ (primary — set up by build:viewer)
     resolve(process.cwd(), "public", "viewer"),
-    // 2. Adjacent default template dist (monorepo dev: templates/core/ and templates/default/)
-    resolve(__dirname, "..", "..", "default", "dist"),
+    // 2. Monorepo: from project root via node_modules (pnpm hoisting)
+    resolve(process.cwd(), "node_modules", "create-inkloom", "templates", "default", "dist"),
     // 3. Fallback: .inkloom/viewer in project root
     resolve(process.cwd(), ".inkloom", "viewer"),
     // 4. Standalone: viewer-assets directory
