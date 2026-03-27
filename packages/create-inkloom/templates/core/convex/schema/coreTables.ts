@@ -5,11 +5,11 @@ import { v } from "convex/values";
  * Core tables — shipped in both the OSS core and the SaaS platform.
  *
  * IMPORTANT: These table definitions must NOT contain v.id() references to
- * platform-only tables because the core standalone schema does not include
- * those tables.
+ * platform-only tables (organizations, generationJobs, etc.) because the
+ * core standalone schema does not include those tables.
  *
  * For fields that reference platform-only tables (e.g. aiGenerationJobId),
- * use v.optional(v.string()) instead of v.optional(v.id(...)).
+ * use v.optional(v.string()) instead of v.optional(v.id("tableName")).
  * Convex IDs are strings at runtime, so data portability is preserved.
  */
 export const coreTables = {
@@ -34,8 +34,8 @@ export const coreTables = {
   // Projects
   projects: defineTable({
     // NOTE: orgId is deprecated — kept for migration compatibility.
-    // Uses v.string() because the organizations table only exists in
-    // the platform schema.
+    // Uses v.string() instead of v.id("organizations") because the
+    // organizations table only exists in the platform schema.
     orgId: v.optional(v.string()),
     workosOrgId: v.optional(v.string()),
     name: v.string(),
@@ -276,7 +276,7 @@ export const coreTables = {
     position: v.number(),
     path: v.string(),
     icon: v.optional(v.string()),
-    // Uses v.string() — generationJobs is a platform-only table
+    // Uses v.string() instead of v.id("generationJobs") — platform-only table
     aiGenerationJobId: v.optional(v.string()),
     aiPendingReview: v.optional(v.boolean()),
     createdAt: v.number(),
@@ -302,7 +302,7 @@ export const coreTables = {
     titleSectionHidden: v.optional(v.boolean()),
     titleIconHidden: v.optional(v.boolean()),
     aiGenerated: v.optional(v.boolean()),
-    // Uses v.string() — generationJobs is a platform-only table
+    // Uses v.string() instead of v.id("generationJobs") — platform-only table
     aiGenerationJobId: v.optional(v.string()),
     aiPendingReview: v.optional(v.boolean()),
     aiFolderSlug: v.optional(v.string()),
