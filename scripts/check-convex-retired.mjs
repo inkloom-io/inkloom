@@ -36,6 +36,8 @@ const checkerPaths = new Set([
   "scripts/check-convex-retired.test.mjs",
   "core/scripts/check-convex-retired.mjs",
   "core/scripts/check-convex-retired.test.mjs",
+  "scripts/lib/data-platform-infra.ts",
+  "scripts/__tests__/data-platform-infra.test.ts",
 ]);
 
 const forbiddenContent = [
