@@ -6,7 +6,8 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
-    "test": "turbo test"
+    "test": "pnpm verify:retired-backend && turbo test",
+    "verify:retired-backend": "node --test scripts/check-convex-retired.test.mjs && node scripts/check-convex-retired.mjs"
   },
   "devDependencies": {
     "turbo": "^2.3.0",

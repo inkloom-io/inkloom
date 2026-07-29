@@ -196,6 +196,7 @@ pnpm type-check    # Type-check all packages
 pnpm build         # Build all packages
 pnpm test          # Run all tests
 pnpm lint          # Lint all packages
+pnpm verify:retired-backend # Reject retired backend code and dependencies
 ```
 
 ## License
