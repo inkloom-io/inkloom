@@ -1,8 +1,8 @@
 "use client";
 
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id, Doc } from "@/convex/_generated/dataModel";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
+import type { Project } from "@/db/schema";
 import {
   Card,
   CardContent,
@@ -24,19 +24,19 @@ interface FolderInfo {
 
 interface ContentTabProps {
   projectId: string;
-  project: Doc<"projects">;
+  project: Project;
   folders: FolderInfo[];
 }
 
 export function ContentTab({ projectId, project, folders }: ContentTabProps) {
-  const updateSettings = useMutation(api.projects.updateSettings);
+  const updateSettings = useDataMutation(api.projects.updateSettings);
   const t = useTranslations("settings.content");
 
   return (
     <div className="space-y-6">
       <GatedSection
         feature="navigation_tabs"
-        projectId={projectId as Id<"projects">}
+        projectId={projectId}
         title={t("navigationTabs")}
         description={t("navigationTabsDescription")}
         icon={Layers}
@@ -61,7 +61,7 @@ export function ContentTab({ projectId, project, folders }: ContentTabProps) {
                 initialTabs={project.settings?.navTabs ?? []}
                 onSave={async (tabs) => {
                   await updateSettings({
-                    projectId: projectId as Id<"projects">,
+                    projectId: projectId,
                     settings: { navTabs: tabs },
                   });
                 }}
@@ -77,9 +77,7 @@ export function ContentTab({ projectId, project, folders }: ContentTabProps) {
             <Code className="h-5 w-5" />
             <div>
               <CardTitle>{t("apiReference")}</CardTitle>
-              <CardDescription>
-                {t("apiReferenceDescription")}
-              </CardDescription>
+              <CardDescription>{t("apiReferenceDescription")}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -89,9 +87,11 @@ export function ContentTab({ projectId, project, folders }: ContentTabProps) {
             initialConfig={project.settings?.openapi}
             folders={folders}
             navTabs={project.settings?.navTabs ?? []}
-            onSave={async (openapiConfig: NonNullable<typeof project.settings>["openapi"]) => {
+            onSave={async (
+              openapiConfig: NonNullable<typeof project.settings>["openapi"]
+            ) => {
               await updateSettings({
-                projectId: projectId as Id<"projects">,
+                projectId: projectId,
                 settings: { openapi: openapiConfig ?? null },
               });
             }}

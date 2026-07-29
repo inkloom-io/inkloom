@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
+import { useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
+import type { Deployment, Project } from "@/db/schema";
 // Import from the deploy switchpoint — NOT from the main barrel (@/lib/adapters).
 // The main barrel re-exports authAdapter which transitively imports lib/auth.ts
 // (uses next/headers), breaking client component builds. The deploy switchpoint
@@ -31,8 +31,8 @@ export interface DeploymentState {
 }
 
 export interface UsePublishOptions {
-  project: Doc<"projects">;
-  branchId?: Id<"branches">;
+  project: Project;
+  branchId?: string;
 }
 
 export interface UsePublishReturn {
@@ -49,21 +49,26 @@ export interface UsePublishReturn {
   /** Whether a deploy is currently in-flight. */
   isPublishing: boolean;
   /** The latest deployment record for the project. */
-  latestDeployment: Doc<"deployments"> | undefined;
+  latestDeployment: Deployment | undefined;
   /** The most recent deployment with status "ready" (for view-site links). */
-  lastSuccessfulDeployment: Doc<"deployments"> | undefined;
+  lastSuccessfulDeployment: Deployment | undefined;
   /** The tracked in-progress deployment (for progress UI). */
   trackedDeployment:
     | { buildPhase?: string; status?: string; url?: string }
     | undefined;
   /** Per-target unpublished changes state. */
-  unpublishedChanges:
-    | { preview: boolean; production: boolean }
-    | undefined;
+  unpublishedChanges: { preview: boolean; production: boolean } | undefined;
   /** Human-readable label for the deploy action (e.g., "Build" or "Deploy"). */
   actionLabel: string;
   /** Get a URL for a given project slug (mode-aware). */
   getDeployUrl: (projectSlug: string) => string;
+}
+
+export function getDeploymentRefetchInterval(
+  status: DeploymentStatus,
+  intervalMs: number
+): number | false {
+  return status === "publishing" || status === "polling" ? intervalMs : false;
 }
 
 // ---------------------------------------------------------------------------
@@ -76,7 +81,7 @@ export interface UsePublishReturn {
  * Handles:
  * - Deploy target selection (preview/production)
  * - Triggering the deploy via the API
- * - Polling Convex for real-time deployment progress
+ * - Polling the D1 data service for deployment progress
  * - Resuming tracking after page refresh
  * - Mode-aware action labels ("Build" vs "Deploy")
  */
@@ -90,7 +95,7 @@ export function usePublish({
   });
 
   // After a successful deploy, locally override `hasChanges` to `false` for
-  // the deployed target until the Convex query re-evaluates with the new
+  // the deployed target until the D1 query re-evaluates with the new
   // content hashes. This closes the race window where the button briefly
   // shows "Publish" (enabled) between deploy success and query confirmation.
   // We also track the deploymentId so we can clear the override when the
@@ -107,27 +112,40 @@ export function usePublish({
   const justResetRef = useRef(false);
 
   // ---------------------------------------------------------------------------
-  // Convex subscriptions
+  // D1-backed queries
   // ---------------------------------------------------------------------------
 
-  const deployments = useQuery(api.deployments.listByProject, {
-    projectId: project._id,
-  });
+  const deployments = useDataQuery(
+    api.deployments.listByProject,
+    { projectId: project.id },
+    {
+      refetchInterval: getDeploymentRefetchInterval(deployment.status, 1_500),
+    }
+  );
 
   const latestDeployment = deployments?.[0];
   const lastSuccessfulDeployment = deployments?.find(
     (d) => d.status === "ready"
   );
 
-  const inProgressDeployment = useQuery(
+  const inProgressDeployment = useDataQuery(
     api.deployments.getInProgressDeployment,
-    { projectId: project._id }
+    { projectId: project.id },
+    {
+      refetchInterval: getDeploymentRefetchInterval(deployment.status, 1_500),
+    }
   );
 
-  const unpublishedChanges = useQuery(api.deployments.hasUnpublishedChanges, {
-    projectId: project._id,
-    ...(branchId && { branchId }),
-  });
+  const unpublishedChanges = useDataQuery(
+    api.deployments.hasUnpublishedChanges,
+    {
+      projectId: project.id,
+      ...(branchId && { branchId }),
+    },
+    {
+      refetchInterval: getDeploymentRefetchInterval(deployment.status, 5_000),
+    }
+  );
 
   // ---------------------------------------------------------------------------
   // Resume tracking after page refresh
@@ -144,8 +162,8 @@ export function usePublish({
       }
       setDeployment({
         status: "polling",
-        deploymentId: inProgressDeployment._id,
-        url: inProgressDeployment.url,
+        deploymentId: inProgressDeployment.id,
+        url: inProgressDeployment.url ?? undefined,
       });
     } else if (
       inProgressDeployment &&
@@ -153,11 +171,11 @@ export function usePublish({
       !deployment.deploymentId
     ) {
       // POST is still in-flight but the early-created record appeared —
-      // capture the ID so the Convex watcher can track progress
+      // capture the ID so the data query can track progress
       setDeployment({
         status: "publishing",
-        deploymentId: inProgressDeployment._id,
-        url: inProgressDeployment.url,
+        deploymentId: inProgressDeployment.id,
+        url: inProgressDeployment.url ?? undefined,
       });
     } else if (
       inProgressDeployment === null &&
@@ -170,7 +188,7 @@ export function usePublish({
   }, [inProgressDeployment, deployment.status, deployment.deploymentId]);
 
   // ---------------------------------------------------------------------------
-  // Watch Convex subscription for deployment status changes
+  // Watch D1 polling results for deployment status changes
   // ---------------------------------------------------------------------------
 
   useEffect(() => {
@@ -180,25 +198,29 @@ export function usePublish({
       deployments
     ) {
       const current = deployments.find(
-        (d: { _id: string }) => d._id === deployment.deploymentId
+        (candidate) => candidate.id === deployment.deploymentId
       );
       if (current?.status === "ready") {
         trackEvent("deployment_completed", {
-          projectId: project._id,
+          projectId: project.id,
           success: true,
         });
         setDeployment({
           status: "success",
           deploymentId: deployment.deploymentId,
-          url: current.url,
+          url: current.url ?? undefined,
         });
-        setDeployedTarget({ target, deploymentId: deployment.deploymentId, setAt: Date.now() });
+        setDeployedTarget({
+          target,
+          deploymentId: deployment.deploymentId,
+          setAt: Date.now(),
+        });
       } else if (
         current?.status === "error" ||
         current?.status === "canceled"
       ) {
         trackEvent("deployment_completed", {
-          projectId: project._id,
+          projectId: project.id,
           success: false,
         });
         setDeployment({
@@ -215,7 +237,7 @@ export function usePublish({
   // ---------------------------------------------------------------------------
 
   // Clear the deployed-target override when either:
-  // 1. The Convex query confirms no unpublished changes (query caught up), OR
+  // 1. The D1 query confirms no unpublished changes (query caught up), OR
   // 2. The specific deployment reached "ready" status — this guarantees the
   //    override is temporary even if the user edited content during the deploy
   //    window, which would otherwise prevent condition 1 from ever being met.
@@ -231,7 +253,7 @@ export function usePublish({
       return;
     }
 
-    // Condition 1: Convex query caught up — no unpublished changes for target.
+    // Condition 1: D1 query caught up — no unpublished changes for target.
     const targetKey = deployedTarget.target as "preview" | "production";
     if (unpublishedChanges?.[targetKey] === false) {
       setDeployedTarget(null);
@@ -243,7 +265,7 @@ export function usePublish({
     // correctly reflect whether there are unpublished changes.
     if (deployments) {
       const tracked = deployments.find(
-        (d: { _id: string }) => d._id === deployedTarget.deploymentId
+        (candidate) => candidate.id === deployedTarget.deploymentId
       );
       if (tracked && tracked.status === "ready") {
         setDeployedTarget(null);
@@ -254,7 +276,7 @@ export function usePublish({
     const remaining = 30_000 - elapsed;
     const timer = setTimeout(() => {
       // Force a state update to trigger re-evaluation of this effect
-      setDeployedTarget((prev) => prev ? { ...prev } : null);
+      setDeployedTarget((prev) => (prev ? { ...prev } : null));
     }, remaining + 100);
     return () => clearTimeout(timer);
   }, [deployedTarget, unpublishedChanges, deployments]);
@@ -262,7 +284,7 @@ export function usePublish({
   const isPublishing =
     deployment.status === "publishing" || deployment.status === "polling";
 
-  const trackedDeployment = (() => {
+  const trackedDeploymentRecord = (() => {
     if (deployment.status === "publishing") {
       return inProgressDeployment ?? undefined;
     }
@@ -272,11 +294,18 @@ export function usePublish({
       deployments
     ) {
       return deployments.find(
-        (d: { _id: string }) => d._id === deployment.deploymentId
+        (candidate) => candidate.id === deployment.deploymentId
       );
     }
     return undefined;
   })();
+  const trackedDeployment = trackedDeploymentRecord
+    ? {
+        buildPhase: trackedDeploymentRecord.buildPhase ?? undefined,
+        status: trackedDeploymentRecord.status,
+        url: trackedDeploymentRecord.url ?? undefined,
+      }
+    : undefined;
 
   // ---------------------------------------------------------------------------
   // Actions
@@ -285,17 +314,17 @@ export function usePublish({
   const handlePublish = useCallback(async () => {
     setDeployment({ status: "publishing" });
     trackEvent("deployment_triggered", {
-      projectId: project._id,
+      projectId: project.id,
       trigger: "manual",
     });
 
     try {
-      const endpoint = deployAdapter.getPublishEndpoint(project._id);
+      const endpoint = deployAdapter.getPublishEndpoint(project.id);
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          projectId: project._id,
+          projectId: project.id,
           ...(branchId && { branchId }),
           ...(target === "production" && { target: "production" }),
         }),
@@ -304,8 +333,15 @@ export function usePublish({
       const result = await response.json();
 
       if (!response.ok) {
-        const apiError = new Error(result.error?.message || "Failed to publish");
-        captureException(apiError, { source: "use-publish", action: "publish", projectId: project._id, target });
+        const apiError = new Error(
+          result.error?.message || "Failed to publish"
+        );
+        captureException(apiError, {
+          source: "use-publish",
+          action: "publish",
+          projectId: project.id,
+          target,
+        });
         setDeployment({
           status: "error",
           error: result.error?.message || "Failed to publish",
@@ -319,13 +355,18 @@ export function usePublish({
         url: result.data.url,
       });
     } catch (error) {
-      captureException(error, { source: "use-publish", action: "publish", projectId: project._id, target });
+      captureException(error, {
+        source: "use-publish",
+        action: "publish",
+        projectId: project.id,
+        target,
+      });
       setDeployment({
         status: "error",
         error: "Failed to publish",
       });
     }
-  }, [project._id, branchId, target]);
+  }, [project.id, branchId, target]);
 
   const resetDeployment = useCallback(() => {
     justResetRef.current = true;
@@ -335,13 +376,11 @@ export function usePublish({
 
   // Override unpublished-changes for the just-deployed target so downstream
   // consumers (e.g. the toolbar button) immediately see `false` after a
-  // successful deploy, even before the Convex query re-evaluates.
+  // successful deploy, even before the D1 query re-evaluates.
   const effectiveUnpublishedChanges = unpublishedChanges
     ? {
         ...unpublishedChanges,
-        ...(deployedTarget
-          ? { [deployedTarget.target]: false as const }
-          : {}),
+        ...(deployedTarget ? { [deployedTarget.target]: false as const } : {}),
       }
     : undefined;
 

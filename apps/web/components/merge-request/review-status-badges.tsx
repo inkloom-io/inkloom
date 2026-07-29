@@ -1,8 +1,7 @@
 "use client";
 
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Badge } from "@inkloom/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@inkloom/ui/avatar";
 import {
@@ -18,7 +17,7 @@ import { useTranslations } from "next-intl";
 // ── Types ─────────────────────────────────────────────────────────────
 
 interface ReviewStatusBadgesProps {
-  mergeRequestId: Id<"mergeRequests">;
+  mergeRequestId: string;
   reviewStatus?: string;
 }
 
@@ -29,7 +28,7 @@ interface ReviewerInfo {
 }
 
 interface ReviewEntry {
-  _id: string;
+  id: string;
   reviewerId: string;
   status: "approved" | "changes_requested" | "commented";
   createdAt: number;
@@ -70,19 +69,17 @@ export function ReviewStatusBadges({
 }: ReviewStatusBadgesProps) {
   const t = useTranslations("mergeRequests.review");
 
-  const reviews = useQuery(api.mrReviews.listReviews, {
+  const reviews = useDataQuery(api.mrReviews.listReviews, {
     mergeRequestId,
   });
 
-  const reviewSummary = useQuery(api.mrReviews.getReviewSummary, {
+  const reviewSummary = useDataQuery(api.mrReviews.getReviewSummary, {
     mergeRequestId,
   });
 
   if (!reviews || reviews.length === 0) return null;
 
-  const latestByReviewer = getLatestReviewPerReviewer(
-    reviews as ReviewEntry[]
-  );
+  const latestByReviewer = getLatestReviewPerReviewer(reviews as ReviewEntry[]);
   const latestStatuses = Array.from(latestByReviewer.values());
 
   const approvalCount = latestStatuses.filter(
@@ -185,11 +182,11 @@ export function ReviewStatusBadges({
 export function MergeReviewWarning({
   mergeRequestId,
 }: {
-  mergeRequestId: Id<"mergeRequests">;
+  mergeRequestId: string;
 }) {
   const t = useTranslations("mergeRequests.review");
 
-  const reviewSummary = useQuery(api.mrReviews.getReviewSummary, {
+  const reviewSummary = useDataQuery(api.mrReviews.getReviewSummary, {
     mergeRequestId,
   });
 

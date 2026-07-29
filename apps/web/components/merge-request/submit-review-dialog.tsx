@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Button } from "@inkloom/ui/button";
 import {
   Dialog,
@@ -34,8 +33,8 @@ import { useTranslations } from "next-intl";
 type ReviewStatus = "approved" | "changes_requested" | "commented";
 
 interface SubmitReviewDialogProps {
-  mergeRequestId: Id<"mergeRequests">;
-  userId: Id<"users">;
+  mergeRequestId: string;
+  userId: string;
   mrStatus: string;
 }
 
@@ -51,7 +50,7 @@ export function SubmitReviewDialog({
   const [body, setBody] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const submitReview = useMutation(api.mrReviews.submitReview);
+  const submitReview = useDataMutation(api.mrReviews.submitReview);
 
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true);
@@ -144,11 +143,7 @@ export function SubmitReviewDialog({
           <div className="space-y-4">
             <div className="flex gap-2">
               {(
-                [
-                  "commented",
-                  "approved",
-                  "changes_requested",
-                ] as ReviewStatus[]
+                ["commented", "approved", "changes_requested"] as ReviewStatus[]
               ).map((type) => (
                 <button
                   key={type}
@@ -216,8 +211,7 @@ export function SubmitReviewDialog({
               ) : null}
               {reviewType === "commented" && t("submitComment")}
               {reviewType === "approved" && t("submitApprove")}
-              {reviewType === "changes_requested" &&
-                t("submitRequestChanges")}
+              {reviewType === "changes_requested" && t("submitRequestChanges")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parseFrontmatter, type PageFrontmatter } from "./frontmatter.js";
 import type { Client } from "./client.js";
-import type { ConvexCliClient } from "./convex-client.js";
+import type { CoreDataClient } from "./data-client.js";
 import { mdxToBlockNote } from "@inkloom/mdx-parser";
 
 /**
@@ -633,19 +633,19 @@ export function formatDiffSummary(diff: DiffResult): string {
 }
 
 // ---------------------------------------------------------------------------
-// Apply diff via Convex (core / OSS mode) — uses ConvexCliClient directly
+// Apply diff via the data API (core / OSS mode) — uses CoreDataClient directly
 // ---------------------------------------------------------------------------
 
-export interface ApplyDiffConvexOptions {
+export interface ApplyDiffDataOptions {
   branchId: string;
   publish?: boolean;
 }
 
 /**
- * Apply a computed diff directly via Convex mutations (core / OSS mode).
+ * Apply a computed diff directly via the data API mutations (core / OSS mode).
  *
  * Unlike `applyDiff()` which uses the REST API bulk endpoint, this function
- * calls ConvexCliClient methods (create/update/remove) one at a time.
+ * calls CoreDataClient methods (create/update/remove) one at a time.
  * MDX content is converted to BlockNote JSON before storing.
  *
  * Steps:
@@ -655,11 +655,11 @@ export interface ApplyDiffConvexOptions {
  * 4. Delete pages
  * 5. Delete folders bottom-up (children first)
  */
-export async function applyDiffConvex(
-  client: ConvexCliClient,
+export async function applyDiffData(
+  client: CoreDataClient,
   diff: DiffResult,
   remoteFolders: RemoteFolder[],
-  opts: ApplyDiffConvexOptions
+  opts: ApplyDiffDataOptions
 ): Promise<ApplyDiffSummary> {
   const summary: ApplyDiffSummary = {
     foldersCreated: 0,

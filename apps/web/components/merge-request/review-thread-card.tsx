@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Avatar, AvatarImage, AvatarFallback } from "@inkloom/ui/avatar";
 import { Badge } from "@inkloom/ui/badge";
 import { Button } from "@inkloom/ui/button";
@@ -25,7 +24,7 @@ import { SuggestionDiff } from "./review-thread";
 // ── Types ─────────────────────────────────────────────────────────────────
 
 export interface ReviewThreadComment {
-  _id: string;
+  id: string;
   content: string;
   createdAt: number;
   isEdited: boolean;
@@ -37,8 +36,8 @@ export interface ReviewThreadComment {
 }
 
 export interface ReviewThread {
-  _id: Id<"mrReviewThreads">;
-  mergeRequestId: Id<"mergeRequests">;
+  id: string;
+  mergeRequestId: string;
   pagePath: string;
   blockId: string;
   blockIndex: number;
@@ -47,9 +46,9 @@ export interface ReviewThread {
   suggestedContent?: string;
   suggestionStatus?: "pending" | "accepted" | "dismissed";
   status: "open" | "resolved";
-  resolvedBy?: Id<"users">;
+  resolvedBy?: string;
   resolvedAt?: number;
-  createdBy: Id<"users">;
+  createdBy: string;
   createdAt: number;
   updatedAt: number;
   creator: {
@@ -63,7 +62,7 @@ export interface ReviewThread {
 
 interface ReviewThreadCardProps {
   thread: ReviewThread;
-  userId: Id<"users"> | undefined;
+  userId: string | undefined;
   relTime: (ts: number) => string;
   onNavigateToThread?: (thread: ReviewThread) => void;
 }
@@ -101,11 +100,15 @@ export function ReviewThreadCard({
   const [isAccepting, setIsAccepting] = useState(false);
   const [isDismissing, setIsDismissing] = useState(false);
 
-  const addCommentMutation = useMutation(api.mrReviews.addComment);
-  const resolveThreadMutation = useMutation(api.mrReviews.resolveThread);
-  const unresolveThreadMutation = useMutation(api.mrReviews.unresolveThread);
-  const acceptSuggestionMutation = useMutation(api.mrReviews.acceptSuggestion);
-  const dismissSuggestionMutation = useMutation(
+  const addCommentMutation = useDataMutation(api.mrReviews.addComment);
+  const resolveThreadMutation = useDataMutation(api.mrReviews.resolveThread);
+  const unresolveThreadMutation = useDataMutation(
+    api.mrReviews.unresolveThread
+  );
+  const acceptSuggestionMutation = useDataMutation(
+    api.mrReviews.acceptSuggestion
+  );
+  const dismissSuggestionMutation = useDataMutation(
     api.mrReviews.dismissSuggestion
   );
 
@@ -114,7 +117,7 @@ export function ReviewThreadCard({
     setIsReplying(true);
     try {
       await addCommentMutation({
-        threadId: thread._id,
+        threadId: thread.id,
         content: replyText.trim(),
         userId,
       });
@@ -125,16 +128,16 @@ export function ReviewThreadCard({
     } finally {
       setIsReplying(false);
     }
-  }, [replyText, userId, addCommentMutation, thread._id]);
+  }, [replyText, userId, addCommentMutation, thread.id]);
 
   const handleResolve = useCallback(async () => {
     if (!userId) return;
     setIsResolving(true);
     try {
       if (thread.status === "resolved") {
-        await unresolveThreadMutation({ threadId: thread._id });
+        await unresolveThreadMutation({ threadId: thread.id });
       } else {
-        await resolveThreadMutation({ threadId: thread._id, userId });
+        await resolveThreadMutation({ threadId: thread.id, userId });
       }
     } catch (error) {
       console.error("Failed to resolve/unresolve thread:", error);
@@ -143,7 +146,7 @@ export function ReviewThreadCard({
     }
   }, [
     userId,
-    thread._id,
+    thread.id,
     thread.status,
     resolveThreadMutation,
     unresolveThreadMutation,
@@ -153,25 +156,25 @@ export function ReviewThreadCard({
     if (!userId) return;
     setIsAccepting(true);
     try {
-      await acceptSuggestionMutation({ threadId: thread._id, userId });
+      await acceptSuggestionMutation({ threadId: thread.id, userId });
     } catch (error) {
       console.error("Failed to accept suggestion:", error);
     } finally {
       setIsAccepting(false);
     }
-  }, [userId, thread._id, acceptSuggestionMutation]);
+  }, [userId, thread.id, acceptSuggestionMutation]);
 
   const handleDismissSuggestion = useCallback(async () => {
     if (!userId) return;
     setIsDismissing(true);
     try {
-      await dismissSuggestionMutation({ threadId: thread._id, userId });
+      await dismissSuggestionMutation({ threadId: thread.id, userId });
     } catch (error) {
       console.error("Failed to dismiss suggestion:", error);
     } finally {
       setIsDismissing(false);
     }
-  }, [userId, thread._id, dismissSuggestionMutation]);
+  }, [userId, thread.id, dismissSuggestionMutation]);
 
   const isSuggestion = thread.threadType === "suggestion";
   const isResolved = thread.status === "resolved";
@@ -328,7 +331,7 @@ export function ReviewThreadCard({
         <div className="border-t border-inherit">
           {replies.map((reply) => (
             <div
-              key={reply._id}
+              key={reply.id}
               className="flex gap-3 px-4 py-3 border-b border-inherit last:border-b-0"
             >
               <CornerDownRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-1" />
@@ -432,9 +435,7 @@ export function ReviewThreadCard({
               onClick={handleReply}
               disabled={!replyText.trim() || isReplying}
             >
-              {isReplying && (
-                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-              )}
+              {isReplying && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
               Reply
             </Button>
           </div>

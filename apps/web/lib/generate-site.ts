@@ -56,7 +56,7 @@ export function buildSiteData(
 }
 
 interface Page {
-  id?: string; // Convex page ID for tab matching
+  id?: string; // Persisted page ID for tab matching
   title: string;
   slug: string;
   path: string;
@@ -69,7 +69,7 @@ interface Page {
 }
 
 interface Folder {
-  id?: string; // Convex folder ID for tab matching
+  id?: string; // Persisted folder ID for tab matching
   name: string;
   slug: string;
   path: string;

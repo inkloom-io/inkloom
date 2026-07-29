@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation as useMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
+import type { Id } from "@/data/types";
 import { IconPicker, IconDisplay } from "./icon-picker";
 import {
   Eye,

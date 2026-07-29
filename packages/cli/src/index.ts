@@ -8,20 +8,20 @@ export type { CliConfig, ResolvedConfig, TokenSource } from "./lib/config.js";
 export { createClient } from "./lib/client.js";
 export type { Client, ClientOptions, ApiResponse } from "./lib/client.js";
 
-// Client (Convex direct — core/OSS mode)
-export { ConvexCliClient, createConvexClient } from "./lib/convex-client.js";
+// Client (D1 data API — core/OSS mode)
+export { CoreDataClient, createCoreDataClient } from "./lib/data-client.js";
 export type {
-  ConvexCliClientOptions,
-  ConvexProject,
-  ConvexBranch,
-  ConvexPage,
-  ConvexPageContent,
-  ConvexFolder,
-  ConvexAsset,
-  ConvexDeployment,
-  ConvexMergeRequest,
+  CoreDataClientOptions,
+  DataProject,
+  DataBranch,
+  DataPage,
+  DataPageContent,
+  DataFolder,
+  DataAsset,
+  DataDeployment,
+  DataMergeRequest,
   ExportData,
-} from "./lib/convex-client.js";
+} from "./lib/data-client.js";
 
 // Error reporting (Sentry)
 export {

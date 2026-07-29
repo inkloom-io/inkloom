@@ -1,14 +1,9 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { makeFunctionReference } from "convex/server";
 import { AuthProvider, type AuthUser } from "@/hooks/use-auth";
-
-// Core-only Convex function references (not present in platform's users.ts override).
-// Use makeFunctionReference so this file type-checks in both core and apps/dev contexts.
-const ensureLocalUserRef = makeFunctionReference<"mutation">("users:ensureLocalUser");
-const currentLocalRef = makeFunctionReference<"query">("users:currentLocal");
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 
 /**
  * Core-mode context provider.
@@ -16,18 +11,18 @@ const currentLocalRef = makeFunctionReference<"query">("users:currentLocal");
  * Replaces `WorkOSProvider + PlatformAuthBridge + PlatformAppContextBridge`
  * in core standalone mode. Provides:
  *
- * - **Auth context:** Calls `ensureLocalUser` on mount, then queries the
- *   local user document and populates `AuthProvider`.
+ * - **Auth context:** Calls the idempotent D1 local-user endpoint on mount,
+ *   then populates `AuthProvider` from the data service.
  * - **App context:** Not explicitly provided — `useAppContext()` falls back
  *   to `CORE_DEFAULTS` (tenantId: "local", isMultiTenant: false).
  */
 export function CoreContextProvider({ children }: { children: ReactNode }) {
-  const ensureUser = useMutation(ensureLocalUserRef);
-  const localUser = useQuery(currentLocalRef);
+  const ensureUser = useDataMutation(api.users.ensureLocalUser);
+  const localUser = useDataQuery(api.users.current, undefined);
 
   // Ensure the local user exists on mount (idempotent)
   useEffect(() => {
-    void ensureUser();
+    void ensureUser(undefined);
   }, [ensureUser]);
 
   const isLoading = localUser === undefined;
@@ -35,8 +30,14 @@ export function CoreContextProvider({ children }: { children: ReactNode }) {
   return (
     <AuthProvider
       value={{
-        user: localUser ? (localUser as AuthUser) : null,
-        userId: localUser?._id,
+        user: localUser
+          ? ({
+              ...localUser,
+              _id: localUser.id,
+              _creationTime: localUser.createdAt,
+            } as AuthUser)
+          : null,
+        userId: localUser?.id,
         isLoading,
         signOut: () => {
           // No-op in core mode — no authentication to sign out of

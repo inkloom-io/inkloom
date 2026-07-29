@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useAction, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataAction, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import type { BranchDiff, PageDiff, DiffResult } from "@/lib/diff-engine";
 import { computeCharCounts } from "@/lib/diff-engine";
 import { useAuth } from "@/hooks/use-auth";
@@ -33,9 +32,9 @@ const LARGE_DIFF_THRESHOLD = 50;
 // ── Types ─────────────────────────────────────────────────────────────────
 
 interface DiffViewProps {
-  sourceBranchId: Id<"branches">;
-  targetBranchId: Id<"branches">;
-  mergeRequestId: Id<"mergeRequests">;
+  sourceBranchId: string;
+  targetBranchId: string;
+  mergeRequestId: string;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -151,9 +150,7 @@ function ViewedCheckbox({
       >
         {checked && <Check className="h-3 w-3" />}
       </span>
-      {label && (
-        <span className="text-xs text-[var(--text-dim)]">{label}</span>
-      )}
+      {label && <span className="text-xs text-[var(--text-dim)]">{label}</span>}
     </label>
   );
 }
@@ -272,13 +269,16 @@ function PageDiffSection({
   isViewed: boolean;
   charCounts: { added: number; removed: number } | null;
   resolutions: Record<number, "source" | "target">;
-  mergeRequestId: Id<"mergeRequests">;
+  mergeRequestId: string;
   threadsByBlock?: Map<string, ReviewThreadData[]>;
   canManageThreads?: boolean;
   onToggleExpand: () => void;
   onToggleViewed: () => void;
   onLoadLargeDiff: () => void;
-  onResolutionChange: (blockIndex: number, resolution: "source" | "target") => void;
+  onResolutionChange: (
+    blockIndex: number,
+    resolution: "source" | "target"
+  ) => void;
 }) {
   const t = useTranslations("mergeRequests.diffView");
   const pageId = encodePageId(pageDiff.path);
@@ -403,7 +403,6 @@ function PageDiffSection({
                   {t("noBlockChanges")}
                 </div>
               )}
-
             </div>
           ) : (
             <div className="text-sm text-[var(--text-dim)]">
@@ -471,13 +470,13 @@ export function DiffView({
 }: DiffViewProps) {
   const t = useTranslations("mergeRequests.diffView");
   const { userId } = useAuth();
-  const computeDiff = useAction(api.mergeRequestDiff.computeDiff);
-  const computePageDiffAction = useAction(
+  const computeDiff = useDataAction(api.mergeRequestDiff.computeDiff);
+  const computePageDiffAction = useDataAction(
     api.mergeRequestDiff.computePageDiffAction
   );
 
   // ── Review threads ──────────────────────────────────────────────────
-  const allThreads = useQuery(api.mrReviews.listThreadsByMR, {
+  const allThreads = useDataQuery(api.mrReviews.listThreadsByMR, {
     mergeRequestId,
   });
 
@@ -676,9 +675,9 @@ export function DiffView({
     for (const thread of allThreads as ReviewThreadData[]) {
       if (
         thread.suggestionStatus === "accepted" &&
-        !processedAcceptedThreadsRef.current.has(thread._id)
+        !processedAcceptedThreadsRef.current.has(thread.id)
       ) {
-        processedAcceptedThreadsRef.current.add(thread._id);
+        processedAcceptedThreadsRef.current.add(thread.id);
         const cachedDiff = pageDiffsMap.get(thread.pagePath);
         if (cachedDiff) {
           loadPageDiff(thread.pagePath);
@@ -920,13 +919,9 @@ export function DiffView({
               const loadedDiff = pageDiffsMap.get(pageDiff.path) ?? null;
               const isLoading = loadingPages.has(pageDiff.path);
               const isExpanded = expandedPages.has(pageDiff.path);
-              const changedCount = countChangedBlocks(
-                pageDiff.blockDiffs
-              );
+              const changedCount = countChangedBlocks(pageDiff.blockDiffs);
               const isLargeDiff = changedCount > LARGE_DIFF_THRESHOLD;
-              const isLargeDiffLoaded = largeDiffLoadedPages.has(
-                pageDiff.path
-              );
+              const isLargeDiffLoaded = largeDiffLoadedPages.has(pageDiff.path);
               const isViewed = viewedPages.has(pageDiff.path);
               const charCounts = charCountsMap.get(pageDiff.path) ?? null;
 
@@ -949,7 +944,11 @@ export function DiffView({
                   onToggleViewed={() => handleToggleViewed(pageDiff.path)}
                   onLoadLargeDiff={() => handleLoadLargeDiff(pageDiff.path)}
                   onResolutionChange={(blockIndex, resolution) =>
-                    handleResolutionChange(pageDiff.path, blockIndex, resolution)
+                    handleResolutionChange(
+                      pageDiff.path,
+                      blockIndex,
+                      resolution
+                    )
                   }
                 />
               );

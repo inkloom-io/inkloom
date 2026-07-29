@@ -1,157 +1,60 @@
 # Contributing to InkLoom
 
-Thank you for your interest in contributing to InkLoom! This guide will help you get started.
-
-## Architecture Overview
-
-InkLoom Core is the open-source foundation of the InkLoom documentation platform. It includes:
-
-- **`apps/web/`** — Next.js application with the BlockNote editor, dashboard, and Convex backend
-- **`packages/ui/`** — Shared UI component library (`@inkloom/ui`)
-- **`packages/mdx-parser/`** — MDX to BlockNote conversion (`@inkloom/mdx-parser`)
-- **`packages/cli/`** — CLI tool for building, pushing, and pulling docs (`@inkloom/cli`)
-- **`packages/create-inkloom/`** — Project scaffolding tool
-
-The core app is a single-tenant documentation editor that stores data in Convex and generates static sites via `inkloom build`.
+InkLoom Core contains the Next.js editor, typed data client, Cloudflare Worker,
+D1 schema/migrations, shared UI, CLI, parser, and project generator.
 
 ## Prerequisites
 
-- **Node.js** >= 20
-- **pnpm** >= 9
-- A free [Convex](https://www.convex.dev/) account
+- Node.js 20 or newer
+- pnpm 9 or newer
 
-## Development Setup
+Local development uses Wrangler's local D1 implementation and does not require
+a Cloudflare account.
 
 ```bash
-# Clone the repository
-git clone https://github.com/inkloom/inkloom.git
-cd inkloom
-
-# Install dependencies
 pnpm install
-
-# Start the Convex dev server (requires a Convex account)
-npx convex dev
-
-# In a separate terminal, start the Next.js dev server
 cd apps/web
-pnpm dev
+pnpm data:migrate:local
 ```
 
-Open http://localhost:3000 to see the dashboard. No authentication is required — InkLoom Core runs as a local single-tenant tool.
+Run `pnpm data:dev` and `pnpm dev` in separate terminals, then open
+http://localhost:3000.
 
-## Project Structure
+## Structure
 
-```
+```text
 apps/web/
-  app/[locale]/(dashboard)/   # Dashboard routes
-  components/                  # React components (editor, settings, merge-request)
-  convex/                      # Convex backend functions
-    schema/coreTables.ts      # Database table definitions
-    schema.ts                  # Schema entry point
-    projects.ts                # Project CRUD (workosOrgId: "local")
-    users.ts                   # Local user management (ensureLocalUser)
-    pages.ts, branches.ts, ... # Content CRUD
-  lib/
-    adapters/                  # Adapter interfaces and core implementations
-    generate-site.ts           # Static site generation
-    diff-engine.ts             # LCS-based block diff for merge requests
-  hooks/                       # React hooks (use-auth, use-app-context, use-publish)
-  messages/en.json             # i18n translations
-
+  app/             Next.js routes
+  components/      Editor, settings, reviews, dashboard
+  data/            Typed client, operations, React Query hooks
+  db/              Drizzle schema and D1 migrations
+  worker/          Hono data API
+  lib/             Utilities and adapters
 packages/
-  ui/                          # Shared UI components
-  mdx-parser/                  # MDX <-> BlockNote conversion
-  cli/                         # CLI tool
-  create-inkloom/              # Scaffolding tool
+  ui/              Shared UI
+  mdx-parser/      MDX and BlockNote conversion
+  cli/             Command-line client
+  create-inkloom/  Starter generator
 ```
 
-## Making Changes
+## Data changes
 
-### Before You Start
+Add tables under `apps/web/db/schema/`, generate and review a migration, add a
+validated route under `apps/web/worker/routes/`, then expose it through
+`apps/web/data/client.ts` and `apps/web/data/operations.ts`.
 
-1. Check existing [issues](https://github.com/inkloom/inkloom/issues) to avoid duplicate work
-2. For significant changes, open an issue first to discuss your approach
-3. Fork the repository and create a branch from `main`
+Core uses the sentinel tenant/user values documented in `AGENTS.md`. Keep
+operations scoped by project or branch. Use D1 batches for transactional
+multi-row changes and update the FTS index whenever searchable content
+changes.
 
-### Code Guidelines
-
-- **TypeScript** — all code must be TypeScript with strict mode
-- **Formatting** — follow existing code style; run `pnpm lint` before submitting
-- **Tests** — add tests for new functionality; run `pnpm test` to verify
-- **i18n** — user-facing strings go in `apps/web/messages/en.json`; use `useTranslations()` in components
-- **No platform imports** — core files must never import from platform-specific code. This is enforced by ESLint and CI.
-
-### Building and Testing
+## Pull requests
 
 ```bash
-# Type-check the entire project
 pnpm type-check
-
-# Build the project
-pnpm build
-
-# Run tests
 pnpm test
-
-# Lint
-pnpm lint
+pnpm build
 ```
 
-### Adapter Pattern
-
-InkLoom uses an adapter pattern to decouple core behavior from the proprietary SaaS platform. The three adapters are:
-
-| Adapter | Interface | Core Implementation |
-|---------|-----------|---------------------|
-| **auth** | `getUser()`, `requireUser()`, `signOut()` | Static local user, no-op signout |
-| **context** | `getTenantId()`, `getOrgName()`, `isMultiTenant()` | Fixed `tenantId: "local"` |
-| **deploy** | `publish(projectId, opts)`, `getDeployUrl()` | Static build to `dist/` |
-
-Adapter interfaces are defined in `apps/web/lib/adapters/types.ts`. Core implementations are in `apps/web/lib/adapters/*.core.ts`. Consumer code imports from the barrel at `apps/web/lib/adapters.ts`.
-
-If your change involves authentication, tenant context, or deployment behavior, work through the adapter interfaces rather than implementing directly.
-
-### Convex Functions
-
-Core Convex functions use `workosOrgId: "local"` as a sentinel value for single-tenant mode. When adding new Convex functions:
-
-- Add table definitions to `apps/web/convex/schema/coreTables.ts`
-- Keep functions scoped by `projectId` or `branchId` (not org) where possible
-- The `users.ensureLocalUser` mutation creates a fixed local user on first load
-
-## Submitting a Pull Request
-
-1. Ensure all checks pass: `pnpm type-check && pnpm build && pnpm test && pnpm lint`
-2. Write a clear PR description explaining what changed and why
-3. Keep PRs focused — one logical change per PR
-4. Update documentation if your change affects user-facing behavior
-
-### What We Accept
-
-- Bug fixes
-- Performance improvements
-- New editor blocks or components
-- CLI improvements
-- Documentation improvements
-- i18n translations
-- Accessibility improvements
-
-### What We Don't Accept
-
-- Changes that introduce SaaS-specific dependencies (WorkOS, Stripe, Cloudflare, etc.)
-- Features that require multi-tenant infrastructure
-- Changes that break the single-tenant local-first model
-
-## Contributor License Agreement
-
-By submitting a pull request, you agree that your contributions are licensed under the [Apache License 2.0](./LICENSE) and that you have the right to submit them.
-
-## Getting Help
-
-- Open a [GitHub issue](https://github.com/inkloom/inkloom/issues) for bugs or feature requests
-- Start a [GitHub Discussion](https://github.com/inkloom/inkloom/discussions) for questions
-
-## Code of Conduct
-
-Be respectful, constructive, and inclusive. We follow the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) code of conduct.
+Include tests for behavior changes and migrations for schema changes. Never
+commit secrets or local `.wrangler/` state.

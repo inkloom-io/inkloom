@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataQuery as useQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
+import type { Id } from "@/data/types";
 import { AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { SettingsSidebar, type SettingsTab } from "@/components/settings/settings-sidebar";

@@ -4,7 +4,7 @@
  * Core-mode stubs for ActiveUsers and ConnectionStatus.
  *
  * Same exported interface as the platform active-users.tsx but renders
- * nothing.  Real-time collaboration requires PartyKit infrastructure
+ * nothing.  Real-time collaboration requires PartyServer infrastructure
  * that is only available in platform mode.
  *
  * During the Phase 1 restructure, core/apps/web/ will use this file as

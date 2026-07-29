@@ -4,9 +4,8 @@ import { use, useState, useCallback, lazy, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@inkloom/ui/button";
 import { Badge } from "@inkloom/ui/badge";
@@ -88,24 +87,27 @@ export default function MergeRequestDetailPage(
     return tc(key, params);
   }
 
-  const mr = useQuery(api.mergeRequests.get, {
-    mergeRequestId: mrId as Id<"mergeRequests">,
+  const mr = useDataQuery(api.mergeRequests.get, {
+    mergeRequestId: mrId as string,
   });
 
-  const comments = useQuery(api.mergeRequests.listComments, {
-    mergeRequestId: mrId as Id<"mergeRequests">,
+  const comments = useDataQuery(api.mergeRequests.listComments, {
+    mergeRequestId: mrId as string,
   });
 
-  const mergeMutation = useMutation(api.mergeRequests.merge);
-  const closeMutation = useMutation(api.mergeRequests.close);
-  const reopenMutation = useMutation(api.mergeRequests.reopen);
-  const updateMutation = useMutation(api.mergeRequests.update);
-  const addCommentMutation = useMutation(api.mergeRequests.addComment);
+  const mergeMutation = useDataMutation(api.mergeRequests.merge);
+  const closeMutation = useDataMutation(api.mergeRequests.close);
+  const reopenMutation = useDataMutation(api.mergeRequests.reopen);
+  const updateMutation = useDataMutation(api.mergeRequests.update);
+  const addCommentMutation = useDataMutation(api.mergeRequests.addComment);
 
   // Tab state — persisted in URL query parameter
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get("tab") === "changes" ? "changes" : "overview";
-  const [activeTab, setActiveTabState] = useState<"overview" | "changes">(initialTab);
+  const initialTab =
+    searchParams.get("tab") === "changes" ? "changes" : "overview";
+  const [activeTab, setActiveTabState] = useState<"overview" | "changes">(
+    initialTab
+  );
 
   const setActiveTab = useCallback((tab: "overview" | "changes") => {
     setActiveTabState(tab);
@@ -142,7 +144,7 @@ export default function MergeRequestDetailPage(
     setIsMerging(true);
     try {
       await mergeMutation({
-        mergeRequestId: mrId as Id<"mergeRequests">,
+        mergeRequestId: mrId as string,
         mergedBy: userId,
         deleteSourceBranch,
       });
@@ -160,7 +162,7 @@ export default function MergeRequestDetailPage(
     setIsClosing(true);
     try {
       await closeMutation({
-        mergeRequestId: mrId as Id<"mergeRequests">,
+        mergeRequestId: mrId as string,
         closedBy: userId,
       });
     } catch (error) {
@@ -174,7 +176,7 @@ export default function MergeRequestDetailPage(
     setIsReopening(true);
     try {
       await reopenMutation({
-        mergeRequestId: mrId as Id<"mergeRequests">,
+        mergeRequestId: mrId as string,
       });
     } catch (error) {
       console.error("Failed to reopen:", error);
@@ -190,7 +192,7 @@ export default function MergeRequestDetailPage(
     }
     try {
       await updateMutation({
-        mergeRequestId: mrId as Id<"mergeRequests">,
+        mergeRequestId: mrId as string,
         title: editedTitle.trim(),
       });
     } catch (error) {
@@ -204,7 +206,7 @@ export default function MergeRequestDetailPage(
     setIsSubmittingComment(true);
     try {
       await addCommentMutation({
-        mergeRequestId: mrId as Id<"mergeRequests">,
+        mergeRequestId: mrId as string,
         content: commentText.trim(),
         createdBy: userId,
       });
@@ -291,15 +293,17 @@ export default function MergeRequestDetailPage(
                       setIsEditingTitle(true);
                     }
                   }}
-                  title={mr.status === "open" ? t("clickToEditTitle") : undefined}
+                  title={
+                    mr.status === "open" ? t("clickToEditTitle") : undefined
+                  }
                 >
                   {mr.title}
                 </h1>
               )}
               <StatusBadge status={mr.status} />
               <ReviewStatusBadges
-                mergeRequestId={mrId as Id<"mergeRequests">}
-                reviewStatus={mr.reviewStatus}
+                mergeRequestId={mrId as string}
+                reviewStatus={mr.reviewStatus ?? undefined}
               />
             </div>
 
@@ -317,17 +321,34 @@ export default function MergeRequestDetailPage(
 
             {/* Meta line */}
             <p className="text-sm text-muted-foreground">
-              {t("openedBy", { name: mr.creator?.name ?? mr.creator?.email ?? t("unknownUser"), timeAgo: relTime(mr.createdAt) })}
+              {t("openedBy", {
+                name: mr.creator?.name ?? mr.creator?.email ?? t("unknownUser"),
+                timeAgo: relTime(mr.createdAt),
+              })}
               {mr.status === "merged" && mr.mergedAt && (
                 <span>
                   {" "}
-                  &middot; {t("mergedBy", { name: mr.mergedByUser?.name ?? mr.mergedByUser?.email ?? t("unknownUser"), timeAgo: relTime(mr.mergedAt) })}
+                  &middot;{" "}
+                  {t("mergedBy", {
+                    name:
+                      mr.mergedByUser?.name ??
+                      mr.mergedByUser?.email ??
+                      t("unknownUser"),
+                    timeAgo: relTime(mr.mergedAt),
+                  })}
                 </span>
               )}
               {mr.status === "closed" && mr.closedAt && (
                 <span>
                   {" "}
-                  &middot; {t("closedBy", { name: mr.closedByUser?.name ?? mr.closedByUser?.email ?? t("unknownUser"), timeAgo: relTime(mr.closedAt) })}
+                  &middot;{" "}
+                  {t("closedBy", {
+                    name:
+                      mr.closedByUser?.name ??
+                      mr.closedByUser?.email ??
+                      t("unknownUser"),
+                    timeAgo: relTime(mr.closedAt),
+                  })}
                 </span>
               )}
             </p>
@@ -354,7 +375,7 @@ export default function MergeRequestDetailPage(
             {mr.status === "open" && userId && (
               <>
                 <SubmitReviewDialog
-                  mergeRequestId={mrId as Id<"mergeRequests">}
+                  mergeRequestId={mrId as string}
                   userId={userId}
                   mrStatus={mr.status}
                 />
@@ -444,7 +465,7 @@ export default function MergeRequestDetailPage(
         <div className="pt-6">
           {activeTab === "overview" && (
             <OverviewTab
-              mergeRequestId={mrId as Id<"mergeRequests">}
+              mergeRequestId={mrId as string}
               mr={mr}
               comments={comments ?? []}
               commentText={commentText}
@@ -452,7 +473,9 @@ export default function MergeRequestDetailPage(
               onSubmitComment={handleAddComment}
               isSubmittingComment={isSubmittingComment}
               userId={userId}
-              onSwitchToChangesTab={(_thread: ReviewThread) => setActiveTab("changes")}
+              onSwitchToChangesTab={(_thread: ReviewThread) =>
+                setActiveTab("changes")
+              }
             />
           )}
 
@@ -460,7 +483,7 @@ export default function MergeRequestDetailPage(
             <ChangesTab
               sourceBranchId={mr.sourceBranchId}
               targetBranchId={mr.targetBranchId}
-              mergeRequestId={mrId as Id<"mergeRequests">}
+              mergeRequestId={mrId as string}
             />
           )}
         </div>
@@ -472,11 +495,14 @@ export default function MergeRequestDetailPage(
           <DialogHeader>
             <DialogTitle>{t("confirmMergeTitle")}</DialogTitle>
             <DialogDescription>
-              {t("confirmMergeDescription", { source: mr.sourceBranchName, target: mr.targetBranchName })}
+              {t("confirmMergeDescription", {
+                source: mr.sourceBranchName,
+                target: mr.targetBranchName,
+              })}
             </DialogDescription>
           </DialogHeader>
 
-          <MergeReviewWarning mergeRequestId={mrId as Id<"mergeRequests">} />
+          <MergeReviewWarning mergeRequestId={mrId as string} />
 
           <div className="py-4">
             <label className="flex items-center gap-3 cursor-pointer">
@@ -486,9 +512,7 @@ export default function MergeRequestDetailPage(
                 onChange={(e) => setDeleteSourceBranch(e.target.checked)}
                 className="h-4 w-4 rounded border-input accent-primary"
               />
-              <span className="text-sm">
-                {t("deleteSourceBranch")}
-              </span>
+              <span className="text-sm">{t("deleteSourceBranch")}</span>
             </label>
           </div>
 
@@ -523,28 +547,34 @@ export default function MergeRequestDetailPage(
 // ── Overview Tab ─────────────────────────────────────────────────────────
 
 interface OverviewTabProps {
-  mergeRequestId: Id<"mergeRequests">;
+  mergeRequestId: string;
   mr: {
-    description?: string;
+    description?: string | null;
     createdAt: number;
     status: string;
-    mergedAt?: number;
-    closedAt?: number;
-    creator: { name?: string; avatarUrl?: string } | null;
-    mergedByUser?: { name?: string; avatarUrl?: string } | null;
-    closedByUser?: { name?: string; avatarUrl?: string } | null;
+    mergedAt?: number | null;
+    closedAt?: number | null;
+    creator: { name?: string | null; avatarUrl?: string | null } | null;
+    mergedByUser?: {
+      name?: string | null;
+      avatarUrl?: string | null;
+    } | null;
+    closedByUser?: {
+      name?: string | null;
+      avatarUrl?: string | null;
+    } | null;
   };
   comments: Array<{
-    _id: Id<"mergeRequestComments">;
+    id: string;
     content: string;
     createdAt: number;
-    creator: { name?: string; avatarUrl?: string } | null;
+    creator: { name?: string | null; avatarUrl?: string | null } | null;
   }>;
   commentText: string;
   onCommentTextChange: (text: string) => void;
   onSubmitComment: () => void;
   isSubmittingComment: boolean;
-  userId: Id<"users"> | undefined;
+  userId: string | undefined;
   onSwitchToChangesTab?: (thread: ReviewThread) => void;
 }
 
@@ -632,9 +662,9 @@ const LazyDiffView = lazy(() =>
 ) as React.LazyExoticComponent<React.ComponentType<any>>;
 
 interface ChangesTabProps {
-  sourceBranchId: Id<"branches">;
-  targetBranchId: Id<"branches">;
-  mergeRequestId: Id<"mergeRequests">;
+  sourceBranchId: string;
+  targetBranchId: string;
+  mergeRequestId: string;
 }
 
 function ChangesTab({

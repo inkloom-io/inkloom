@@ -4,7 +4,14 @@
 // This prevents the "already initialized" warning
 import "@/lib/linkify-init";
 
-import { useCallback, useMemo, useId, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useMemo,
+  useId,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useTranslations } from "next-intl";
 import { en as defaultDictionary } from "@blocknote/core/locales";
 // Use custom BlockNoteView with portal fix for link creation popover
@@ -29,7 +36,8 @@ import {
 } from "@blocknote/react";
 import { CustomFilePanel } from "./custom-file-panel";
 import { StickyHoverSideMenu } from "./custom-side-menu";
-import { useMutation } from "convex/react";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
 import type * as Y from "yjs";
 import { Tag, Smile } from "lucide-react";
 import {
@@ -50,18 +58,26 @@ import {
   RiCodeBoxLine,
 } from "react-icons/ri";
 import { CommentToolbarButton } from "./toolbar/comment-toolbar-button";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
 import type { ThemePreset } from "@/lib/theme-presets";
 import {
   generateEditorThemeCSS,
   getEditorFontUrl,
 } from "@/lib/generate-editor-theme";
-import { schema, type CustomBlockNoteEditor, type CustomPartialBlock } from "./schema";
+import {
+  schema,
+  type CustomBlockNoteEditor,
+  type CustomPartialBlock,
+} from "./schema";
 import { CommentHoverTooltip } from "./comments/comment-hover-tooltip";
 import { BadgeToolbarButton } from "./toolbar/badge-toolbar-button";
 import { IconToolbarButton } from "./toolbar/icon-toolbar-button";
-import { isGroupChildType, isContainerType, GROUP_MAPPINGS, getGroupContainer, getGroupChildren } from "./custom-blocks/group-utils";
+import {
+  isGroupChildType,
+  isContainerType,
+  GROUP_MAPPINGS,
+  getGroupContainer,
+  getGroupChildren,
+} from "./custom-blocks/group-utils";
 
 // Collaboration configuration for real-time editing
 export interface CollaborationConfig {
@@ -144,12 +160,12 @@ interface BlockEditorProps {
   customBackgroundColorDark?: string;
   customBackgroundSubtleColorLight?: string;
   customBackgroundSubtleColorDark?: string;
-  projectId?: Id<"projects">;
+  projectId?: string;
   // Optional collaboration configuration for real-time editing
   collaboration?: CollaborationConfig | null;
   // Comment functionality
-  pageId?: Id<"pages">;
-  currentUserId?: Id<"users">;
+  pageId?: string;
+  currentUserId?: string;
   onAddComment?: (selection: {
     blockId: string;
     quotedText?: string;
@@ -183,7 +199,7 @@ export function BlockEditor({
   const t = useTranslations("editor.blockEditor");
   const editorId = useId();
 
-  const createAsset = useMutation(api.assets.createAsset);
+  const createAsset = useDataMutation(api.assets.createAsset);
 
   const uploadFile = useCallback(
     async (file: File): Promise<string> => {
@@ -292,13 +308,14 @@ export function BlockEditor({
 
   // Create editor with optional collaboration support
   // When collaborating, Yjs manages state so we skip initialContent
-  const collaborationConfig = collaboration && collaboration.user
-    ? {
-        fragment: collaboration.fragment,
-        user: collaboration.user,
-        provider: collaboration.provider as any,
-      }
-    : undefined;
+  const collaborationConfig =
+    collaboration && collaboration.user
+      ? {
+          fragment: collaboration.fragment,
+          user: collaboration.user,
+          provider: collaboration.provider as any,
+        }
+      : undefined;
 
   const editor = useCreateBlockNote({
     schema,
@@ -325,7 +342,9 @@ export function BlockEditor({
     const isEffectivelyEmpty =
       docBlocks.length <= 1 &&
       docBlocks[0]?.type === "paragraph" &&
-      (!docBlocks[0]?.content || (Array.isArray(docBlocks[0].content) && docBlocks[0].content.length === 0));
+      (!docBlocks[0]?.content ||
+        (Array.isArray(docBlocks[0].content) &&
+          docBlocks[0].content.length === 0));
 
     if (isEffectivelyEmpty) {
       editor.replaceBlocks(editor.document, parsedContent);
@@ -342,7 +361,11 @@ export function BlockEditor({
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           tiptapEditor.state.plugins.forEach((plugin: any) => {
             const pluginState = plugin.getState?.(tiptapEditor.state);
-            if (pluginState && typeof pluginState === 'object' && 'undoManager' in pluginState) {
+            if (
+              pluginState &&
+              typeof pluginState === "object" &&
+              "undoManager" in pluginState
+            ) {
               // Yjs UndoManager (collaboration mode — shouldn't reach here but handle defensively)
               pluginState.undoManager?.clear();
             }
@@ -358,8 +381,10 @@ export function BlockEditor({
           if (sm._undoStack) sm._undoStack.length = 0;
           if (sm._redoStack) sm._redoStack.length = 0;
           // Some versions use different property names
-          if (sm.undoStack && Array.isArray(sm.undoStack)) sm.undoStack.length = 0;
-          if (sm.redoStack && Array.isArray(sm.redoStack)) sm.redoStack.length = 0;
+          if (sm.undoStack && Array.isArray(sm.undoStack))
+            sm.undoStack.length = 0;
+          if (sm.redoStack && Array.isArray(sm.redoStack))
+            sm.redoStack.length = 0;
         }
       });
     }
@@ -389,12 +414,13 @@ export function BlockEditor({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       blockToUpdate: any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      update: any,
+      update: any
     ) => {
       // Get the actual block object
-      const block = typeof blockToUpdate === "string"
-        ? bnEditor.getBlock(blockToUpdate)
-        : blockToUpdate;
+      const block =
+        typeof blockToUpdate === "string"
+          ? bnEditor.getBlock(blockToUpdate)
+          : blockToUpdate;
 
       // If the update changes the type AND the current block is a group child,
       // insert the new block as a child instead of converting the type
@@ -414,7 +440,11 @@ export function BlockEditor({
 
           // Get the freshly created child block and set cursor to it
           const refreshed = bnEditor.getBlock(block.id);
-          if (refreshed && refreshed.children && refreshed.children.length > 0) {
+          if (
+            refreshed &&
+            refreshed.children &&
+            refreshed.children.length > 0
+          ) {
             const lastChild = refreshed.children[refreshed.children.length - 1];
             if (lastChild) {
               try {
@@ -433,11 +463,7 @@ export function BlockEditor({
           } catch {
             // Ignore errors from content clearing
           }
-          const insertedBlocks = originalInsertBlocks(
-            [update],
-            block,
-            "after",
-          );
+          const insertedBlocks = originalInsertBlocks([update], block, "after");
           const newBlock = insertedBlocks?.[0];
           if (newBlock) {
             try {
@@ -469,11 +495,12 @@ export function BlockEditor({
       blocksToInsert: any[],
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       referenceBlock: any,
-      placement: "before" | "after",
+      placement: "before" | "after"
     ) => {
-      const ref = typeof referenceBlock === "string"
-        ? bnEditor.getBlock(referenceBlock)
-        : referenceBlock;
+      const ref =
+        typeof referenceBlock === "string"
+          ? bnEditor.getBlock(referenceBlock)
+          : referenceBlock;
 
       // Only redirect to children when inserting "content" blocks (headings,
       // images, paragraphs, etc.) after a group child. Do NOT intercept
@@ -496,7 +523,8 @@ export function BlockEditor({
           });
 
           const refreshed = bnEditor.getBlock(ref.id);
-          const newChildren = refreshed?.children?.slice(-blocksToInsert.length) || [];
+          const newChildren =
+            refreshed?.children?.slice(-blocksToInsert.length) || [];
 
           // Set cursor to the first inserted child that has content
           if (newChildren.length > 0) {
@@ -530,7 +558,12 @@ export function BlockEditor({
         subtext: t("slashMenu.cardSubtext"),
         onItemClick: () => {
           editorInstance.insertBlocks(
-            [{ type: "card" as const, props: { title: t("slashMenu.cardDefaultTitle") } }],
+            [
+              {
+                type: "card" as const,
+                props: { title: t("slashMenu.cardDefaultTitle") },
+              },
+            ],
             editorInstance.getTextCursorPosition().block,
             "after"
           );
@@ -575,8 +608,14 @@ export function BlockEditor({
           editorInstance.insertBlocks(
             [
               { type: "tabs" as const },
-              { type: "tab" as const, props: { title: t("slashMenu.tabDefault", { number: 1 }) } },
-              { type: "tab" as const, props: { title: t("slashMenu.tabDefault", { number: 2 }) } },
+              {
+                type: "tab" as const,
+                props: { title: t("slashMenu.tabDefault", { number: 1 }) },
+              },
+              {
+                type: "tab" as const,
+                props: { title: t("slashMenu.tabDefault", { number: 2 }) },
+              },
             ],
             cursorBlock,
             "after"
@@ -594,8 +633,14 @@ export function BlockEditor({
           editorInstance.insertBlocks(
             [
               { type: "steps" as const },
-              { type: "step" as const, props: { title: t("slashMenu.stepDefault", { number: 1 }) } },
-              { type: "step" as const, props: { title: t("slashMenu.stepDefault", { number: 2 }) } },
+              {
+                type: "step" as const,
+                props: { title: t("slashMenu.stepDefault", { number: 1 }) },
+              },
+              {
+                type: "step" as const,
+                props: { title: t("slashMenu.stepDefault", { number: 2 }) },
+              },
             ],
             cursorBlock,
             "after"
@@ -624,7 +669,12 @@ export function BlockEditor({
         subtext: t("slashMenu.accordionSubtext"),
         onItemClick: () => {
           editorInstance.insertBlocks(
-            [{ type: "accordion" as const, props: { title: t("slashMenu.accordionDefaultTitle") } }],
+            [
+              {
+                type: "accordion" as const,
+                props: { title: t("slashMenu.accordionDefaultTitle") },
+              },
+            ],
             editorInstance.getTextCursorPosition().block,
             "after"
           );
@@ -641,8 +691,18 @@ export function BlockEditor({
           editorInstance.insertBlocks(
             [
               { type: "accordionGroup" as const },
-              { type: "accordion" as const, props: { title: t("slashMenu.accordionDefault", { number: 1 }) } },
-              { type: "accordion" as const, props: { title: t("slashMenu.accordionDefault", { number: 2 }) } },
+              {
+                type: "accordion" as const,
+                props: {
+                  title: t("slashMenu.accordionDefault", { number: 1 }),
+                },
+              },
+              {
+                type: "accordion" as const,
+                props: {
+                  title: t("slashMenu.accordionDefault", { number: 2 }),
+                },
+              },
             ],
             cursorBlock,
             "after"
@@ -657,7 +717,12 @@ export function BlockEditor({
         subtext: t("slashMenu.responseFieldSubtext"),
         onItemClick: () => {
           editorInstance.insertBlocks(
-            [{ type: "responseField" as const, props: { name: "", type: "", required: "false" } }],
+            [
+              {
+                type: "responseField" as const,
+                props: { name: "", type: "", required: "false" },
+              },
+            ],
             editorInstance.getTextCursorPosition().block,
             "after"
           );
@@ -671,7 +736,12 @@ export function BlockEditor({
         subtext: t("slashMenu.expandableSubtext"),
         onItemClick: () => {
           editorInstance.insertBlocks(
-            [{ type: "expandable" as const, props: { title: "Details", type: "" } }],
+            [
+              {
+                type: "expandable" as const,
+                props: { title: "Details", type: "" },
+              },
+            ],
             editorInstance.getTextCursorPosition().block,
             "after"
           );
@@ -705,10 +775,7 @@ export function BlockEditor({
         onItemClick: () => {
           const cursorBlock = editorInstance.getTextCursorPosition().block;
           editorInstance.insertBlocks(
-            [
-              { type: "frame" as const },
-              { type: "frameContent" as const },
-            ],
+            [{ type: "frame" as const }, { type: "frameContent" as const }],
             cursorBlock,
             "after"
           );
@@ -818,7 +885,11 @@ export function BlockEditor({
     const state = tiptapEditor.state;
     for (const plugin of state.plugins) {
       const pluginState = plugin.getState?.(state);
-      if (pluginState && typeof pluginState === 'object' && 'undoManager' in pluginState) {
+      if (
+        pluginState &&
+        typeof pluginState === "object" &&
+        "undoManager" in pluginState
+      ) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const undoManager = (pluginState as any).undoManager;
         if (!undoManager) break;
@@ -831,8 +902,8 @@ export function BlockEditor({
         // when collaboration is enabled. Re-registering fixes it.
         const handler = undoManager.afterTransactionHandler;
         if (handler) {
-          yDoc.off('afterTransaction', handler);
-          yDoc.on('afterTransaction', handler);
+          yDoc.off("afterTransaction", handler);
+          yDoc.on("afterTransaction", handler);
         }
 
         // Ensure the UndoManager itself is in trackedOrigins (for undo/redo to work)
@@ -843,7 +914,7 @@ export function BlockEditor({
 
         // Also ensure the actual ySyncPluginKey from the plugin is in trackedOrigins
         for (const p of state.plugins) {
-          if (p.key?.includes('y-sync')) {
+          if (p.key?.includes("y-sync")) {
             const syncKey = p.spec?.key;
             if (syncKey && !undoManager.trackedOrigins.has(syncKey)) {
               undoManager.trackedOrigins.add(syncKey);
@@ -858,7 +929,7 @@ export function BlockEditor({
   }, [editor, collaboration]);
 
   // Clear the Yjs UndoManager stacks after initial content sync completes.
-  // Without this, the initial content population (from PartyKit sync) is recorded
+  // Without this, the initial content population (from PartyServer sync) is recorded
   // as an undoable operation, so pressing Cmd+Z enough times blanks the page — a
   // data-loss bug. We listen for the first `stack-item-added` event (which fires
   // once the sync transactions have been captured), then clear both stacks so that
@@ -881,7 +952,11 @@ export function BlockEditor({
     const state = tiptapEditor.state;
     for (const plugin of state.plugins) {
       const pluginState = plugin.getState?.(state);
-      if (pluginState && typeof pluginState === 'object' && 'undoManager' in pluginState) {
+      if (
+        pluginState &&
+        typeof pluginState === "object" &&
+        "undoManager" in pluginState
+      ) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         undoManager = (pluginState as any).undoManager;
         break;
@@ -910,7 +985,7 @@ export function BlockEditor({
       }, 300);
     };
 
-    undoManager.on('stack-item-added', onStackItemAdded);
+    undoManager.on("stack-item-added", onStackItemAdded);
 
     // Fallback: if no stack items are added within 2 seconds (content was already
     // synced or there's nothing to sync), clear anyway to be safe.
@@ -922,7 +997,7 @@ export function BlockEditor({
     }, 2000);
 
     return () => {
-      undoManager.off('stack-item-added', onStackItemAdded);
+      undoManager.off("stack-item-added", onStackItemAdded);
       if (debounceTimer) clearTimeout(debounceTimer);
       clearTimeout(fallbackTimer);
     };
@@ -950,7 +1025,9 @@ export function BlockEditor({
         e.preventDefault();
         e.stopPropagation();
         // Find and click the Create Link button
-        const linkButton = document.querySelector('[data-test="createLink"]') as HTMLElement;
+        const linkButton = document.querySelector(
+          '[data-test="createLink"]'
+        ) as HTMLElement;
         if (linkButton) {
           linkButton.click();
         }
@@ -998,8 +1075,12 @@ export function BlockEditor({
 
       // Helper: check if a block type is a deletable custom block
       const isDeletableCustomBlock = (blockType: string): boolean => {
-        return isGroupChildType(blockType) || isContainerType(blockType) ||
-          blockType === "callout" || blockType === "expandable";
+        return (
+          isGroupChildType(blockType) ||
+          isContainerType(blockType) ||
+          blockType === "callout" ||
+          blockType === "expandable"
+        );
       };
 
       // Helper: remove a block, moving its children out first, and also
@@ -1009,7 +1090,7 @@ export function BlockEditor({
         blockToRemove: any,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         adjacentBlock: any,
-        insertDirection: "before" | "after",
+        insertDirection: "before" | "after"
       ) => {
         // Move children of the block being deleted to be siblings
         const children = blockToRemove.children || [];
@@ -1020,7 +1101,7 @@ export function BlockEditor({
               (editor as any).insertBlocks(
                 [{ ...child, id: undefined }],
                 adjacentBlock,
-                "before",
+                "before"
               );
             }
           } else {
@@ -1030,7 +1111,7 @@ export function BlockEditor({
               (editor as any).insertBlocks(
                 [{ ...children[i], id: undefined }],
                 adjacentBlock,
-                "after",
+                "after"
               );
             }
           }
@@ -1084,10 +1165,13 @@ export function BlockEditor({
         // Also handle: cursor at start of a custom block with empty inline content
         if (atStart && isDeletableCustomBlock(block.type)) {
           const blockContent = block.content;
-          const isEmpty = !blockContent || (Array.isArray(blockContent) &&
-            (blockContent.length === 0 ||
-              (blockContent.length === 1 && blockContent[0]?.type === "text" &&
-                (!blockContent[0]?.text || blockContent[0]?.text === ""))));
+          const isEmpty =
+            !blockContent ||
+            (Array.isArray(blockContent) &&
+              (blockContent.length === 0 ||
+                (blockContent.length === 1 &&
+                  blockContent[0]?.type === "text" &&
+                  (!blockContent[0]?.text || blockContent[0]?.text === ""))));
 
           if (isEmpty) {
             // Protect group children: if this block is part of a group,
@@ -1123,7 +1207,7 @@ export function BlockEditor({
                   (editor as any).insertBlocks(
                     [{ ...child, id: undefined }],
                     insertRef,
-                    "before",
+                    "before"
                   );
                 }
               } else {
@@ -1132,7 +1216,7 @@ export function BlockEditor({
                   (editor as any).insertBlocks(
                     [{ ...children[i], id: undefined }],
                     insertRef,
-                    "after",
+                    "after"
                   );
                 }
               }
@@ -1153,11 +1237,15 @@ export function BlockEditor({
             if (nextBlock) {
               try {
                 editor.setTextCursorPosition(nextBlock, "start");
-              } catch { /* block may not accept cursor */ }
+              } catch {
+                /* block may not accept cursor */
+              }
             } else if (prevBlock) {
               try {
                 editor.setTextCursorPosition(prevBlock, "end");
-              } catch { /* block may not accept cursor */ }
+              } catch {
+                /* block may not accept cursor */
+              }
             }
             return;
           }
@@ -1195,9 +1283,17 @@ export function BlockEditor({
     };
 
     // Use capturing phase to intercept before BlockNote's handler
-    editor.domElement.addEventListener("keydown", handleCustomBlockDeletion, true);
+    editor.domElement.addEventListener(
+      "keydown",
+      handleCustomBlockDeletion,
+      true
+    );
     return () => {
-      editor.domElement?.removeEventListener("keydown", handleCustomBlockDeletion, true);
+      editor.domElement?.removeEventListener(
+        "keydown",
+        handleCustomBlockDeletion,
+        true
+      );
     };
   }, [editor?.domElement]);
 
@@ -1252,15 +1348,34 @@ export function BlockEditor({
 
   // Generate theme-specific CSS with dark mode support
   const themeCSS = useMemo(
-    () => generateEditorThemeCSS(wrapperClass, themePreset, customPrimaryColor, customBackgroundColorLight, customBackgroundColorDark, customBackgroundSubtleColorLight, customBackgroundSubtleColorDark),
-    [wrapperClass, themePreset, customPrimaryColor, customBackgroundColorLight, customBackgroundColorDark, customBackgroundSubtleColorLight, customBackgroundSubtleColorDark]
+    () =>
+      generateEditorThemeCSS(
+        wrapperClass,
+        themePreset,
+        customPrimaryColor,
+        customBackgroundColorLight,
+        customBackgroundColorDark,
+        customBackgroundSubtleColorLight,
+        customBackgroundSubtleColorDark
+      ),
+    [
+      wrapperClass,
+      themePreset,
+      customPrimaryColor,
+      customBackgroundColorLight,
+      customBackgroundColorDark,
+      customBackgroundSubtleColorLight,
+      customBackgroundSubtleColorDark,
+    ]
   );
 
   // Get the font URL for the theme
   const fontUrl = useMemo(() => getEditorFontUrl(themePreset), [themePreset]);
 
   // Store highlighted ranges for click/hover detection
-  const highlightedRangesRef = useRef<Map<string, { range: Range; threadId: string }>>(new Map());
+  const highlightedRangesRef = useRef<
+    Map<string, { range: Range; threadId: string }>
+  >(new Map());
 
   // Tooltip state for comment hover preview
   const [tooltipData, setTooltipData] = useState<{
@@ -1273,7 +1388,10 @@ export function BlockEditor({
     commentCount?: number;
     createdAt?: number;
   } | null>(null);
-  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Apply comment highlights using CSS Custom Highlight API (modern approach)
@@ -1284,7 +1402,7 @@ export function BlockEditor({
       return;
     }
 
-    const threadsWithQuotedText = commentThreads.filter(t => t.quotedText);
+    const threadsWithQuotedText = commentThreads.filter((t) => t.quotedText);
     if (threadsWithQuotedText.length === 0) {
       highlightedRangesRef.current.clear();
       return;
@@ -1292,7 +1410,8 @@ export function BlockEditor({
 
     // Check if CSS Custom Highlight API is supported
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const CSS_HIGHLIGHT_SUPPORTED = typeof (CSS as any).highlights !== "undefined" &&
+    const CSS_HIGHLIGHT_SUPPORTED =
+      typeof (CSS as any).highlights !== "undefined" &&
       typeof (window as any).Highlight !== "undefined";
 
     if (CSS_HIGHLIGHT_SUPPORTED) {
@@ -1320,18 +1439,25 @@ export function BlockEditor({
 
       // Use CSS Custom Highlight API (Chrome 105+, Safari 17.2+, Firefox 130+)
       const applyHighlights = () => {
-        const editorContainer = document.querySelector(`.${wrapperClass} .bn-editor`);
+        const editorContainer = document.querySelector(
+          `.${wrapperClass} .bn-editor`
+        );
         if (!editorContainer) return;
 
         const openRanges: Range[] = [];
         const resolvedRanges: Range[] = [];
-        const newRangeMap = new Map<string, { range: Range; threadId: string }>();
+        const newRangeMap = new Map<
+          string,
+          { range: Range; threadId: string }
+        >();
 
-        threadsWithQuotedText.forEach(thread => {
+        threadsWithQuotedText.forEach((thread) => {
           if (!thread.quotedText) return;
 
           // Find the specific block by blockId using BlockNote's data-id attribute
-          const blockElement = editorContainer.querySelector(`[data-id="${thread.blockId}"]`);
+          const blockElement = editorContainer.querySelector(
+            `[data-id="${thread.blockId}"]`
+          );
           const searchRoot = blockElement || editorContainer;
 
           // Collect all text nodes and their positions within the block
@@ -1343,11 +1469,15 @@ export function BlockEditor({
             NodeFilter.SHOW_TEXT,
             {
               acceptNode: (node) => {
-                if (!node.parentElement?.closest(".bn-inline-content, .bn-block-content")) {
+                if (
+                  !node.parentElement?.closest(
+                    ".bn-inline-content, .bn-block-content"
+                  )
+                ) {
                   return NodeFilter.FILTER_REJECT;
                 }
                 return NodeFilter.FILTER_ACCEPT;
-              }
+              },
             }
           );
 
@@ -1358,7 +1488,9 @@ export function BlockEditor({
           }
 
           // Get full text content of the block
-          const fullText = textNodes.map(t => t.node.textContent || "").join("");
+          const fullText = textNodes
+            .map((t) => t.node.textContent || "")
+            .join("");
 
           // Find all occurrences of the quoted text
           const quotedText = thread.quotedText;
@@ -1443,11 +1575,17 @@ export function BlockEditor({
 
         if (openRanges.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (CSS as any).highlights.set("comment-open", new (window as any).Highlight(...openRanges));
+          (CSS as any).highlights.set(
+            "comment-open",
+            new (window as any).Highlight(...openRanges)
+          );
         }
         if (resolvedRanges.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (CSS as any).highlights.set("comment-resolved", new (window as any).Highlight(...resolvedRanges));
+          (CSS as any).highlights.set(
+            "comment-resolved",
+            new (window as any).Highlight(...resolvedRanges)
+          );
         }
       };
 
@@ -1468,22 +1606,27 @@ export function BlockEditor({
       // Fallback: Use interval-based DOM manipulation
       // This isn't ideal but ensures highlights stay visible
       const applyHighlights = () => {
-        const editorContainer = document.querySelector(`.${wrapperClass} .bn-editor`);
+        const editorContainer = document.querySelector(
+          `.${wrapperClass} .bn-editor`
+        );
         if (!editorContainer) return;
 
         // Track which threads already have highlights
         const existingHighlights = new Set(
-          Array.from(editorContainer.querySelectorAll("mark.comment-highlight"))
-            .map(m => m.getAttribute("data-thread-id"))
+          Array.from(
+            editorContainer.querySelectorAll("mark.comment-highlight")
+          ).map((m) => m.getAttribute("data-thread-id"))
         );
 
-        threadsWithQuotedText.forEach(thread => {
+        threadsWithQuotedText.forEach((thread) => {
           if (existingHighlights.has(thread._id) || !thread.quotedText) {
             return;
           }
 
           // Find the specific block by blockId using BlockNote's data-id attribute
-          const blockElement = editorContainer.querySelector(`[data-id="${thread.blockId}"]`);
+          const blockElement = editorContainer.querySelector(
+            `[data-id="${thread.blockId}"]`
+          );
           const searchRoot = blockElement || editorContainer;
 
           // Collect all text nodes and their positions within the block
@@ -1498,11 +1641,15 @@ export function BlockEditor({
                 if (node.parentElement?.closest("mark.comment-highlight")) {
                   return NodeFilter.FILTER_REJECT;
                 }
-                if (!node.parentElement?.closest(".bn-inline-content, .bn-block-content")) {
+                if (
+                  !node.parentElement?.closest(
+                    ".bn-inline-content, .bn-block-content"
+                  )
+                ) {
                   return NodeFilter.FILTER_REJECT;
                 }
                 return NodeFilter.FILTER_ACCEPT;
-              }
+              },
             }
           );
 
@@ -1513,7 +1660,9 @@ export function BlockEditor({
           }
 
           // Get full text content of the block
-          const fullText = textNodes.map(t => t.node.textContent || "").join("");
+          const fullText = textNodes
+            .map((t) => t.node.textContent || "")
+            .join("");
 
           // Find all occurrences of the quoted text
           const quotedText = thread.quotedText;
@@ -1610,7 +1759,8 @@ export function BlockEditor({
       // Check for CSS Custom Highlight API ranges
       if (highlightedRangesRef.current.size > 0 && onThreadClick) {
         // Get the clicked position
-        const selection = document.caretPositionFromPoint?.(e.clientX, e.clientY) ||
+        const selection =
+          document.caretPositionFromPoint?.(e.clientX, e.clientY) ||
           // Fallback for browsers that don't support caretPositionFromPoint
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (document as any).caretRangeFromPoint?.(e.clientX, e.clientY);
@@ -1623,9 +1773,11 @@ export function BlockEditor({
           for (const [, { range, threadId }] of highlightedRangesRef.current) {
             try {
               // Check if the click position is within this range
-              if (range.startContainer === clickedNode &&
-                  clickedOffset >= range.startOffset &&
-                  clickedOffset <= range.endOffset) {
+              if (
+                range.startContainer === clickedNode &&
+                clickedOffset >= range.startOffset &&
+                clickedOffset <= range.endOffset
+              ) {
                 onThreadClick(threadId);
                 return;
               }
@@ -1635,8 +1787,11 @@ export function BlockEditor({
               clickRange.setStart(clickedNode, clickedOffset);
               clickRange.setEnd(clickedNode, clickedOffset);
 
-              if (range.compareBoundaryPoints(Range.START_TO_START, clickRange) <= 0 &&
-                  range.compareBoundaryPoints(Range.END_TO_END, clickRange) >= 0) {
+              if (
+                range.compareBoundaryPoints(Range.START_TO_START, clickRange) <=
+                  0 &&
+                range.compareBoundaryPoints(Range.END_TO_END, clickRange) >= 0
+              ) {
                 onThreadClick(threadId);
                 return;
               }
@@ -1654,12 +1809,14 @@ export function BlockEditor({
 
   // Handle hover on comment highlights to show tooltip
   useEffect(() => {
-    const editorContainer = document.querySelector(`.${wrapperClass} .bn-editor`);
+    const editorContainer = document.querySelector(
+      `.${wrapperClass} .bn-editor`
+    );
     if (!editorContainer || !commentThreads || commentThreads.length === 0) {
       return;
     }
 
-    const threadsWithQuotedText = commentThreads.filter(t => t.quotedText);
+    const threadsWithQuotedText = commentThreads.filter((t) => t.quotedText);
     if (threadsWithQuotedText.length === 0) {
       return;
     }
@@ -1675,7 +1832,7 @@ export function BlockEditor({
       if (target.classList.contains("comment-highlight")) {
         const threadId = target.getAttribute("data-thread-id");
         if (threadId) {
-          const thread = commentThreads.find(t => t._id === threadId);
+          const thread = commentThreads.find((t) => t._id === threadId);
           if (thread) {
             hoverTimeoutRef.current = setTimeout(() => {
               setTooltipData({
@@ -1698,7 +1855,8 @@ export function BlockEditor({
       // For CSS Custom Highlight API: check if we're hovering over highlighted text
       // Use the stored highlighted ranges for accurate detection
       if (highlightedRangesRef.current.size > 0) {
-        const caretPos = document.caretPositionFromPoint?.(e.clientX, e.clientY) ||
+        const caretPos =
+          document.caretPositionFromPoint?.(e.clientX, e.clientY) ||
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (document as any).caretRangeFromPoint?.(e.clientX, e.clientY);
 
@@ -1710,10 +1868,12 @@ export function BlockEditor({
           for (const [, { range, threadId }] of highlightedRangesRef.current) {
             try {
               // Check if the hover position is within this range
-              if (range.startContainer === hoveredNode &&
-                  hoveredOffset >= range.startOffset &&
-                  hoveredOffset <= range.endOffset) {
-                const thread = commentThreads.find(t => t._id === threadId);
+              if (
+                range.startContainer === hoveredNode &&
+                hoveredOffset >= range.startOffset &&
+                hoveredOffset <= range.endOffset
+              ) {
+                const thread = commentThreads.find((t) => t._id === threadId);
                 if (thread) {
                   hoverTimeoutRef.current = setTimeout(() => {
                     setTooltipData({
@@ -1726,7 +1886,10 @@ export function BlockEditor({
                       commentCount: thread.commentCount,
                       createdAt: thread.createdAt,
                     });
-                    setTooltipPosition({ x: e.clientX + 10, y: e.clientY + 10 });
+                    setTooltipPosition({
+                      x: e.clientX + 10,
+                      y: e.clientY + 10,
+                    });
                   }, 300);
                   return;
                 }
@@ -1753,11 +1916,17 @@ export function BlockEditor({
       setTooltipPosition(null);
     };
 
-    editorContainer.addEventListener("mousemove", handleMouseMove as EventListener);
+    editorContainer.addEventListener(
+      "mousemove",
+      handleMouseMove as EventListener
+    );
     editorContainer.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
-      editorContainer.removeEventListener("mousemove", handleMouseMove as EventListener);
+      editorContainer.removeEventListener(
+        "mousemove",
+        handleMouseMove as EventListener
+      );
       editorContainer.removeEventListener("mouseleave", handleMouseLeave);
       if (hoverTimeoutRef.current) {
         clearTimeout(hoverTimeoutRef.current);
@@ -1772,13 +1941,16 @@ export function BlockEditor({
   }, []);
 
   // Callback when tooltip is clicked
-  const handleTooltipClick = useCallback((threadId: string) => {
-    setTooltipData(null);
-    setTooltipPosition(null);
-    if (onThreadClick) {
-      onThreadClick(threadId);
-    }
-  }, [onThreadClick]);
+  const handleTooltipClick = useCallback(
+    (threadId: string) => {
+      setTooltipData(null);
+      setTooltipPosition(null);
+      if (onThreadClick) {
+        onThreadClick(threadId);
+      }
+    },
+    [onThreadClick]
+  );
 
   // Handle adding a comment on the current block/selection
   const handleAddComment = useCallback(() => {
@@ -1812,11 +1984,15 @@ export function BlockEditor({
           NodeFilter.SHOW_TEXT,
           {
             acceptNode: (node) => {
-              if (!node.parentElement?.closest(".bn-inline-content, .bn-block-content")) {
+              if (
+                !node.parentElement?.closest(
+                  ".bn-inline-content, .bn-block-content"
+                )
+              ) {
                 return NodeFilter.FILTER_REJECT;
               }
               return NodeFilter.FILTER_ACCEPT;
-            }
+            },
           }
         );
 
@@ -1842,7 +2018,6 @@ export function BlockEditor({
       inlineEnd,
     });
   }, [editor, onAddComment]);
-
 
   return (
     <>
@@ -1872,7 +2047,9 @@ export function BlockEditor({
             triggerCharacter="/"
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             getItems={async (query: string) => {
-              const items = getCustomSlashMenuItems(editor as unknown as CustomBlockNoteEditor);
+              const items = getCustomSlashMenuItems(
+                editor as unknown as CustomBlockNoteEditor
+              );
               return items.filter(
                 (item: { title: string; aliases?: string[] }) =>
                   item.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -1890,14 +2067,38 @@ export function BlockEditor({
             formattingToolbar={() => (
               <FormattingToolbar>
                 <BlockTypeSelect key="blockTypeSelect" />
-                <BasicTextStyleButton basicTextStyle="bold" key="boldStyleButton" />
-                <BasicTextStyleButton basicTextStyle="italic" key="italicStyleButton" />
-                <BasicTextStyleButton basicTextStyle="underline" key="underlineStyleButton" />
-                <BasicTextStyleButton basicTextStyle="strike" key="strikeStyleButton" />
-                <BasicTextStyleButton basicTextStyle="code" key="codeStyleButton" />
-                <TextAlignButton textAlignment="left" key="textAlignLeftButton" />
-                <TextAlignButton textAlignment="center" key="textAlignCenterButton" />
-                <TextAlignButton textAlignment="right" key="textAlignRightButton" />
+                <BasicTextStyleButton
+                  basicTextStyle="bold"
+                  key="boldStyleButton"
+                />
+                <BasicTextStyleButton
+                  basicTextStyle="italic"
+                  key="italicStyleButton"
+                />
+                <BasicTextStyleButton
+                  basicTextStyle="underline"
+                  key="underlineStyleButton"
+                />
+                <BasicTextStyleButton
+                  basicTextStyle="strike"
+                  key="strikeStyleButton"
+                />
+                <BasicTextStyleButton
+                  basicTextStyle="code"
+                  key="codeStyleButton"
+                />
+                <TextAlignButton
+                  textAlignment="left"
+                  key="textAlignLeftButton"
+                />
+                <TextAlignButton
+                  textAlignment="center"
+                  key="textAlignCenterButton"
+                />
+                <TextAlignButton
+                  textAlignment="right"
+                  key="textAlignRightButton"
+                />
                 <ColorStyleButton key="colorStyleButton" />
                 <NestBlockButton key="nestBlockButton" />
                 <UnnestBlockButton key="unnestBlockButton" />

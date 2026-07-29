@@ -1,17 +1,16 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { Id } from "@/convex/_generated/dataModel";
 import { Label } from "@inkloom/ui/label";
 import { LogoUpload } from "./logo-upload";
 
 interface LogoVariantsProps {
-  projectId: Id<"projects">;
-  lightAssetId?: Id<"assets">;
-  darkAssetId?: Id<"assets">;
-  onLightUpload: (assetId: Id<"assets">) => void;
+  projectId: string;
+  lightAssetId?: string;
+  darkAssetId?: string;
+  onLightUpload: (assetId: string) => void;
   onLightRemove: () => void;
-  onDarkUpload: (assetId: Id<"assets">) => void;
+  onDarkUpload: (assetId: string) => void;
   onDarkRemove: () => void;
 }
 
@@ -37,26 +36,30 @@ export function LogoVariants({
         {/* Light preview: force light-theme CSS variables so all child components render correctly */}
         <div
           className="rounded-lg border border-gray-200 dark:border-gray-200 p-4 bg-white dark:bg-white text-gray-900 dark:text-gray-900"
-          style={{
-            color: "#171717",
-            "--color-foreground": "#171717",
-            "--color-background": "#ffffff",
-            "--color-muted": "#f5f5f5",
-            "--color-muted-foreground": "#737373",
-            "--color-border": "#e5e5e5",
-            "--color-input": "#e5e5e5",
-            "--color-ring": "#14b8a6",
-            "--color-primary": "#14b8a6",
-            "--color-primary-foreground": "#ffffff",
-            "--color-secondary": "#f5f5f5",
-            "--color-secondary-foreground": "#171717",
-            "--color-accent": "#f5f5f5",
-            "--color-accent-foreground": "#171717",
-            "--color-destructive": "#ef4444",
-            "--color-destructive-foreground": "#ffffff",
-          } as React.CSSProperties}
+          style={
+            {
+              color: "#171717",
+              "--color-foreground": "#171717",
+              "--color-background": "#ffffff",
+              "--color-muted": "#f5f5f5",
+              "--color-muted-foreground": "#737373",
+              "--color-border": "#e5e5e5",
+              "--color-input": "#e5e5e5",
+              "--color-ring": "#14b8a6",
+              "--color-primary": "#14b8a6",
+              "--color-primary-foreground": "#ffffff",
+              "--color-secondary": "#f5f5f5",
+              "--color-secondary-foreground": "#171717",
+              "--color-accent": "#f5f5f5",
+              "--color-accent-foreground": "#171717",
+              "--color-destructive": "#ef4444",
+              "--color-destructive-foreground": "#ffffff",
+            } as React.CSSProperties
+          }
         >
-          <p className="text-xs font-medium text-gray-700 dark:text-gray-700 mb-3">{t("logoVariants.lightModeLogo")}</p>
+          <p className="text-xs font-medium text-gray-700 dark:text-gray-700 mb-3">
+            {t("logoVariants.lightModeLogo")}
+          </p>
           <LogoUpload
             projectId={projectId}
             assetId={lightAssetId}
@@ -67,26 +70,30 @@ export function LogoVariants({
         {/* Dark preview: force dark-theme CSS variables so all child components render correctly */}
         <div
           className="rounded-lg border border-gray-700 dark:border-gray-700 p-4 bg-gray-900 dark:bg-gray-900 text-gray-100 dark:text-gray-100"
-          style={{
-            color: "#f0f0f0",
-            "--color-foreground": "#f0f0f0",
-            "--color-background": "#09090b",
-            "--color-muted": "#131316",
-            "--color-muted-foreground": "#737380",
-            "--color-border": "#1e1e24",
-            "--color-input": "#1e1e24",
-            "--color-ring": "#14b8a6",
-            "--color-primary": "#14b8a6",
-            "--color-primary-foreground": "#000000",
-            "--color-secondary": "#161619",
-            "--color-secondary-foreground": "#e0e0e0",
-            "--color-accent": "#1a1a1f",
-            "--color-accent-foreground": "#f0f0f0",
-            "--color-destructive": "#ef4444",
-            "--color-destructive-foreground": "#f0f0f0",
-          } as React.CSSProperties}
+          style={
+            {
+              color: "#f0f0f0",
+              "--color-foreground": "#f0f0f0",
+              "--color-background": "#09090b",
+              "--color-muted": "#131316",
+              "--color-muted-foreground": "#737380",
+              "--color-border": "#1e1e24",
+              "--color-input": "#1e1e24",
+              "--color-ring": "#14b8a6",
+              "--color-primary": "#14b8a6",
+              "--color-primary-foreground": "#000000",
+              "--color-secondary": "#161619",
+              "--color-secondary-foreground": "#e0e0e0",
+              "--color-accent": "#1a1a1f",
+              "--color-accent-foreground": "#f0f0f0",
+              "--color-destructive": "#ef4444",
+              "--color-destructive-foreground": "#f0f0f0",
+            } as React.CSSProperties
+          }
         >
-          <p className="text-xs font-medium text-gray-300 dark:text-gray-300 mb-3">{t("logoVariants.darkModeLogo")}</p>
+          <p className="text-xs font-medium text-gray-300 dark:text-gray-300 mb-3">
+            {t("logoVariants.darkModeLogo")}
+          </p>
           <LogoUpload
             projectId={projectId}
             assetId={darkAssetId}

@@ -20,7 +20,6 @@ const nextConfig: NextConfig = {
     "@blocknote/mantine",
     "@mantine/core",
     "@mantine/hooks",
-    "convex",
   ],
   images: {
     remotePatterns: [

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation as useMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
+import { Id } from "@/data/types";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,7 @@ import {
 // ---------------------------------------------------------------------------
 
 interface Page {
-  _id: Id<"pages">;
+  id: Id<"pages">;
   title: string;
   path: string;
   isPublished: boolean;
@@ -87,7 +87,7 @@ export function PublishModal({
 
   // ---- Publish all unpublished pages ----
   const handlePublishAll = useCallback(async () => {
-    const ids = unpublishedPages.map((p) => p._id);
+    const ids = unpublishedPages.map((p) => p.id);
     setPublishingPageIds(new Set(ids));
     try {
       await Promise.all(
@@ -186,7 +186,7 @@ export function PublishModal({
           <div className="max-h-48 overflow-y-auto border-t border-amber-500/10">
             {unpublishedPages.map((page) => (
               <div
-                key={page._id}
+                key={page.id}
                 className="flex items-center justify-between gap-3 px-3 py-2 hover:bg-amber-500/5"
               >
                 <div className="flex items-center gap-2 min-w-0">
@@ -202,10 +202,10 @@ export function PublishModal({
                   variant="ghost"
                   size="sm"
                   className="h-7 text-xs shrink-0"
-                  onClick={() => handlePublishPage(page._id)}
-                  disabled={publishingPageIds.has(page._id)}
+                  onClick={() => handlePublishPage(page.id)}
+                  disabled={publishingPageIds.has(page.id)}
                 >
-                  {publishingPageIds.has(page._id) ? (
+                  {publishingPageIds.has(page.id) ? (
                     <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                   ) : (
                     <Eye className="mr-1 h-3 w-3" />

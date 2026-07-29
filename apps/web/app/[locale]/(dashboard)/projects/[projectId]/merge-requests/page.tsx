@@ -3,17 +3,13 @@
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { useAuth } from "@/hooks/use-auth";
 import { getRelativeTimeKeyAndParams } from "@/lib/date-utils";
 import { Button } from "@inkloom/ui/button";
 import { Badge } from "@inkloom/ui/badge";
-import {
-  Card,
-  CardContent,
-} from "@inkloom/ui/card";
+import { Card, CardContent } from "@inkloom/ui/card";
 import { Input } from "@inkloom/ui/input";
 import { Label } from "@inkloom/ui/label";
 import { Textarea } from "@inkloom/ui/textarea";
@@ -61,14 +57,14 @@ function CreateMergeRequestDialog({
   open,
   onOpenChange,
 }: {
-  projectId: Id<"projects">;
-  currentUserId: Id<"users"> | undefined;
+  projectId: string;
+  currentUserId: string | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations("mergeRequests.list");
-  const branches = useQuery(api.branches.list, { projectId });
-  const createMR = useMutation(api.mergeRequests.create);
+  const branches = useDataQuery(api.branches.list, { projectId });
+  const createMR = useDataMutation(api.mergeRequests.create);
 
   const [sourceBranchId, setSourceBranchId] = useState<string>("");
   const [targetBranchId, setTargetBranchId] = useState<string>("");
@@ -80,8 +76,8 @@ function CreateMergeRequestDialog({
   // Auto-populate title when source/target branches change
   useEffect(() => {
     if (sourceBranchId && targetBranchId && branches) {
-      const source = branches.find((b: any) => b._id === sourceBranchId);
-      const target = branches.find((b: any) => b._id === targetBranchId);
+      const source = branches.find((b: any) => b.id === sourceBranchId);
+      const target = branches.find((b: any) => b.id === targetBranchId);
       if (source && target) {
         setTitle(t("mergeInto", { source: source.name, target: target.name }));
       }
@@ -93,7 +89,7 @@ function CreateMergeRequestDialog({
     if (branches && !targetBranchId) {
       const defaultBranch = branches.find((b: any) => b.isDefault);
       if (defaultBranch) {
-        setTargetBranchId(defaultBranch._id);
+        setTargetBranchId(defaultBranch.id);
       }
     }
   }, [branches, targetBranchId]);
@@ -109,8 +105,8 @@ function CreateMergeRequestDialog({
     try {
       await createMR({
         projectId,
-        sourceBranchId: sourceBranchId as Id<"branches">,
-        targetBranchId: targetBranchId as Id<"branches">,
+        sourceBranchId: sourceBranchId as string,
+        targetBranchId: targetBranchId as string,
         title: title.trim(),
         description: description.trim() || undefined,
         createdBy: currentUserId,
@@ -122,7 +118,11 @@ function CreateMergeRequestDialog({
       setDescription("");
       onOpenChange(false);
     } catch (err) {
-      captureException(err, { source: "merge-requests-page", action: "create-merge-request", projectId });
+      captureException(err, {
+        source: "merge-requests-page",
+        action: "create-merge-request",
+        projectId,
+      });
       setError(t("failedToCreate"));
     } finally {
       setIsSubmitting(false);
@@ -142,9 +142,7 @@ function CreateMergeRequestDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("createDialogTitle")}</DialogTitle>
-          <DialogDescription>
-            {t("createDialogDescription")}
-          </DialogDescription>
+          <DialogDescription>{t("createDialogDescription")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
@@ -157,12 +155,14 @@ function CreateMergeRequestDialog({
               </SelectTrigger>
               <SelectContent>
                 {branches?.map((branch: any) => (
-                  <SelectItem key={branch._id} value={branch._id}>
+                  <SelectItem key={branch.id} value={branch.id}>
                     <span className="flex items-center gap-2">
                       <GitBranch className="h-3.5 w-3.5 text-muted-foreground" />
                       {branch.name}
                       {branch.isDefault && (
-                        <span className="text-xs text-muted-foreground">{t("defaultBadge")}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {t("defaultBadge")}
+                        </span>
                       )}
                     </span>
                   </SelectItem>
@@ -180,12 +180,14 @@ function CreateMergeRequestDialog({
               </SelectTrigger>
               <SelectContent>
                 {branches?.map((branch: any) => (
-                  <SelectItem key={branch._id} value={branch._id}>
+                  <SelectItem key={branch.id} value={branch.id}>
                     <span className="flex items-center gap-2">
                       <GitBranch className="h-3.5 w-3.5 text-muted-foreground" />
                       {branch.name}
                       {branch.isDefault && (
-                        <span className="text-xs text-muted-foreground">{t("defaultBadge")}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {t("defaultBadge")}
+                        </span>
                       )}
                     </span>
                   </SelectItem>
@@ -194,11 +196,13 @@ function CreateMergeRequestDialog({
             </Select>
           </div>
 
-          {sourceBranchId && targetBranchId && sourceBranchId === targetBranchId && (
-            <p className="text-xs text-destructive">
-              {t("branchesMustDiffer")}
-            </p>
-          )}
+          {sourceBranchId &&
+            targetBranchId &&
+            sourceBranchId === targetBranchId && (
+              <p className="text-xs text-destructive">
+                {t("branchesMustDiffer")}
+              </p>
+            )}
 
           {/* Title */}
           <div className="space-y-2">
@@ -223,9 +227,7 @@ function CreateMergeRequestDialog({
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
         <DialogFooter>
@@ -296,7 +298,12 @@ function DiffSummaryBadges({
   const t = useTranslations("mergeRequests.list");
   if (!diffSummary) return null;
 
-  const items: { icon: React.ReactNode; label: string; count: number; color: string }[] = [];
+  const items: {
+    icon: React.ReactNode;
+    label: string;
+    count: number;
+    color: string;
+  }[] = [];
 
   if (diffSummary.pagesAdded > 0) {
     items.push({
@@ -372,13 +379,13 @@ export default function MergeRequestsPage(props: MergeRequestsPageProps) {
   const [activeFilter, setActiveFilter] = useState<MRStatus>("open");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-  const mergeRequests = useQuery(api.mergeRequests.list, {
-    projectId: projectId as Id<"projects">,
+  const mergeRequests = useDataQuery(api.mergeRequests.list, {
+    projectId: projectId as string,
     status: activeFilter,
   });
 
-  const counts = useQuery(api.mergeRequests.countByStatus, {
-    projectId: projectId as Id<"projects">,
+  const counts = useDataQuery(api.mergeRequests.countByStatus, {
+    projectId: projectId as string,
   });
 
   function relTime(ts: number) {
@@ -386,7 +393,11 @@ export default function MergeRequestsPage(props: MergeRequestsPageProps) {
     return tc(key, params);
   }
 
-  const filterTabs: { status: MRStatus; label: string; icon: React.ReactNode }[] = [
+  const filterTabs: {
+    status: MRStatus;
+    label: string;
+    icon: React.ReactNode;
+  }[] = [
     {
       status: "open",
       label: t("statusOpen"),
@@ -418,9 +429,7 @@ export default function MergeRequestsPage(props: MergeRequestsPageProps) {
             <h1 className="text-2xl font-bold text-[var(--text-bright)]">
               {t("heading")}
             </h1>
-            <p className="text-sm text-muted-foreground">
-              {t("subtitle")}
-            </p>
+            <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
           </div>
         </div>
 
@@ -513,8 +522,8 @@ export default function MergeRequestsPage(props: MergeRequestsPageProps) {
           // MR cards
           mergeRequests.map((mr: any) => (
             <Link
-              key={mr._id}
-              href={`/projects/${projectId}/merge-requests/${mr._id}`}
+              key={mr.id}
+              href={`/projects/${projectId}/merge-requests/${mr.id}`}
               className="block"
             >
               <Card
@@ -564,13 +573,21 @@ export default function MergeRequestsPage(props: MergeRequestsPageProps) {
                               />
                             ) : (
                               <div className="flex h-4 w-4 items-center justify-center rounded-full bg-muted text-[8px] font-medium">
-                                {(mr.creator.name ?? mr.creator.email ?? "?")[0]?.toUpperCase()}
+                                {(mr.creator.name ??
+                                  mr.creator.email ??
+                                  "?")[0]?.toUpperCase()}
                               </div>
                             )}
-                            <span>{mr.creator.name ?? mr.creator.email ?? t("unknownUser")}</span>
+                            <span>
+                              {mr.creator.name ??
+                                mr.creator.email ??
+                                t("unknownUser")}
+                            </span>
                           </div>
                         )}
-                        <span>{t("opened", { timeAgo: relTime(mr.createdAt) })}</span>
+                        <span>
+                          {t("opened", { timeAgo: relTime(mr.createdAt) })}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -583,7 +600,7 @@ export default function MergeRequestsPage(props: MergeRequestsPageProps) {
 
       {/* Create Dialog */}
       <CreateMergeRequestDialog
-        projectId={projectId as Id<"projects">}
+        projectId={projectId as string}
         currentUserId={currentUserId}
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}

@@ -7,8 +7,7 @@ import { AlertCircle, RotateCcw } from "lucide-react";
 /**
  * Error boundary for project routes.
  *
- * Catches runtime errors such as Convex `ArgumentValidationError` when a
- * project ID from an outdated database schema maps to the wrong table.
+ * Catches runtime errors such as stale IDs after a database schema change.
  * Instead of crashing the whole app, this shows a friendly recovery message.
  */
 export default function ProjectError({
@@ -24,8 +23,8 @@ export default function ProjectError({
 
   const isTableMismatch =
     error.message?.includes("which does not match") ||
-    error.message?.includes("ArgumentValidationError") ||
-    error.message?.includes("Found ID from table");
+    error.message?.includes("constraint failed") ||
+    error.message?.includes("foreign key");
 
   return (
     <main className="min-h-screen bg-background text-foreground flex items-center justify-center">
@@ -38,7 +37,7 @@ export default function ProjectError({
         </h2>
         <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
           {isTableMismatch
-            ? "This can happen if the database schema changed after this project was created. Try creating a new project, or clear your Convex database by running: npx convex dev --once"
+            ? "This can happen if the database schema changed after this project was created. Apply the latest D1 migrations, or remove .wrangler/state and run the local migration again."
             : error.message || "An unexpected error occurred while loading this project."}
         </p>
         <div className="flex items-center justify-center gap-3">

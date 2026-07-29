@@ -3,12 +3,10 @@
  *
  * Called from published docs sites via the proxyUrl. Accepts
  * { projectId, pageSlug, reaction, sessionId? } and writes to the
- * pageFeedback Convex table.
+ * D1 page_feedback table.
  */
 import { NextResponse } from "next/server";
-import { ConvexHttpClient } from "convex/browser";
-import type { Id } from "@/convex/_generated/dataModel";
-import { api } from "@/convex/_generated/api";
+import { createDataClient } from "@/data/client";
 
 export const runtime = "nodejs";
 
@@ -16,7 +14,9 @@ const VALID_REACTIONS = ["positive", "neutral", "negative"] as const;
 type Reaction = (typeof VALID_REACTIONS)[number];
 
 function isValidReaction(value: unknown): value is Reaction {
-  return typeof value === "string" && VALID_REACTIONS.includes(value as Reaction);
+  return (
+    typeof value === "string" && VALID_REACTIONS.includes(value as Reaction)
+  );
 }
 
 export async function POST(request: Request) {
@@ -40,32 +40,30 @@ export async function POST(request: Request) {
 
     if (!isValidReaction(body.reaction)) {
       return NextResponse.json(
-        { error: { message: "reaction must be one of: positive, neutral, negative" } },
+        {
+          error: {
+            message: "reaction must be one of: positive, neutral, negative",
+          },
+        },
         { status: 400 }
       );
     }
 
-    // Create Convex client
-    const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-    if (!convexUrl) {
-      return NextResponse.json(
-        { error: { message: "NEXT_PUBLIC_CONVEX_URL is not configured" } },
-        { status: 500 }
-      );
-    }
-
-    const convex = new ConvexHttpClient(convexUrl);
-
-    const result = await convex.mutation(api.pageFeedback.submit, {
-      projectId: body.projectId as Id<"projects">,
+    const data = createDataClient({
+      baseUrl: process.env.DATA_API_URL ?? "http://127.0.0.1:8787",
+      token: process.env.DATA_API_TOKEN,
+    });
+    const result = await data.pageFeedback.submit({
+      projectId: body.projectId,
       pageSlug: body.pageSlug,
       reaction: body.reaction,
-      sessionId: body.sessionId && typeof body.sessionId === "string"
-        ? body.sessionId
-        : undefined,
+      sessionId:
+        body.sessionId && typeof body.sessionId === "string"
+          ? body.sessionId
+          : undefined,
     });
 
-    return NextResponse.json({ success: true, id: result });
+    return NextResponse.json({ success: true, id: result.id });
   } catch (error) {
     console.error("[page-feedback] Error:", error);
     return NextResponse.json(

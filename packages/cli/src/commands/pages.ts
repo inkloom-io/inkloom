@@ -11,7 +11,7 @@ import {
   walkMdxFiles,
   computeDiff,
   applyDiff,
-  applyDiffConvex,
+  applyDiffData,
   formatDiffLines,
   formatDiffSummary,
   formatSummary,
@@ -19,7 +19,7 @@ import {
   type RemoteFolder as PushRemoteFolder,
   type ApplyDiffSummary,
 } from "../lib/push.js";
-import { createConvexClient } from "../lib/convex-client.js";
+import { createCoreDataClient } from "../lib/data-client.js";
 import {
   readDocsConfig,
   resolveNavTabs,
@@ -29,15 +29,15 @@ import {
 import fse from "fs-extra";
 
 /**
- * Detect if we should use core (Convex direct) mode.
- * Core mode is active when --convex-url is set, or when Convex env vars exist
+ * Detect if we should use core (D1 data API) mode.
+ * Core mode is active when --data-api-url is set, or when data API env vars exist
  * and no API token is configured.
  */
-function isCoreMode(localOpts: { convexUrl?: string }, globalOpts: GlobalOpts): boolean {
-  if (localOpts.convexUrl) return true;
-  const hasConvexUrl = !!(process.env.NEXT_PUBLIC_CONVEX_URL || process.env.CONVEX_URL);
+function isCoreMode(localOpts: { dataApiUrl?: string }, globalOpts: GlobalOpts): boolean {
+  if (localOpts.dataApiUrl) return true;
+  const hasDataApiUrl = !!(process.env.INKLOOM_DATA_API_URL || process.env.DATA_API_URL);
   const hasToken = !!(globalOpts.token || process.env.INKLOOM_TOKEN);
-  return hasConvexUrl && !hasToken;
+  return hasDataApiUrl && !hasToken;
 }
 
 /**
@@ -368,8 +368,8 @@ export function registerPagesCommands(program: Command): void {
     .option("--overwrite", "Overwrite existing files without prompting")
     .option("--published-only", "Only export published pages")
     .option(
-      "--convex-url <url>",
-      "Convex deployment URL for core mode (overrides NEXT_PUBLIC_CONVEX_URL)"
+      "--data-api-url <url>",
+      "data Worker URL for core mode (overrides INKLOOM_DATA_API_URL)"
     )
     .addHelpText(
       "after",
@@ -378,7 +378,7 @@ Examples:
   $ inkloom pages pull proj_abc --dir ./docs                     Export all pages (platform)
   $ inkloom pages pull proj_abc --dir ./docs --overwrite         Overwrite existing files
   $ inkloom pages pull proj_abc --dir ./docs --published-only    Only published pages
-  $ inkloom pages pull proj_abc --dir ./docs --convex-url <url>  Core mode (direct Convex)`
+  $ inkloom pages pull proj_abc --dir ./docs --data-api-url <url>  Core mode (direct data API)`
     )
     .action(async (...args: unknown[]) => {
       const cmd = args[args.length - 1] as Command;
@@ -389,7 +389,7 @@ Examples:
         branch?: string;
         overwrite?: boolean;
         publishedOnly?: boolean;
-        convexUrl?: string;
+        dataApiUrl?: string;
       };
 
       try {
@@ -425,8 +425,8 @@ Examples:
       "Automatically publish all created/updated pages"
     )
     .option(
-      "--convex-url <url>",
-      "Convex deployment URL for core mode (overrides NEXT_PUBLIC_CONVEX_URL)"
+      "--data-api-url <url>",
+      "data Worker URL for core mode (overrides INKLOOM_DATA_API_URL)"
     )
     .option("--no-config", "Skip docs.json processing")
     .addHelpText(
@@ -436,7 +436,7 @@ Examples:
   $ inkloom pages push proj_abc --dir ./docs --dry-run            Preview changes
   $ inkloom pages push proj_abc --dir ./docs --publish --delete   Full sync & publish
   $ INKLOOM_TOKEN=$TOKEN inkloom pages push $PROJECT --dir ./docs CI usage
-  $ inkloom pages push proj_abc --dir ./docs --convex-url <url>   Core mode (direct Convex)
+  $ inkloom pages push proj_abc --dir ./docs --data-api-url <url>   Core mode (direct data API)
   $ inkloom pages push proj_abc --dir ./docs --no-config          Skip docs.json`
     )
     .action(async (...args: unknown[]) => {
@@ -449,7 +449,7 @@ Examples:
         delete?: boolean;
         dryRun?: boolean;
         publish?: boolean;
-        convexUrl?: string;
+        dataApiUrl?: string;
         config?: boolean;
       };
 
@@ -472,7 +472,7 @@ Examples:
 }
 
 // ---------------------------------------------------------------------------
-// Pull: Core mode (direct Convex)
+// Pull: Core mode (direct data API)
 // ---------------------------------------------------------------------------
 
 async function pullCoreMode(
@@ -483,11 +483,11 @@ async function pullCoreMode(
     branch?: string;
     overwrite?: boolean;
     publishedOnly?: boolean;
-    convexUrl?: string;
+    dataApiUrl?: string;
   }
 ): Promise<void> {
-  const client = createConvexClient({
-    convexUrl: localOpts.convexUrl,
+  const client = createCoreDataClient({
+    dataApiUrl: localOpts.dataApiUrl,
     verbose: opts.verbose,
   });
 
@@ -498,8 +498,8 @@ async function pullCoreMode(
     const branchId = await resolveBranchId(client, projectId, localOpts.branch);
 
     // Fetch folders
-    const convexFolders = await client.listFoldersByBranch(branchId);
-    const folders: RemoteFolder[] = convexFolders.map((f) => ({
+    const dataFolders = await client.listFoldersByBranch(branchId);
+    const folders: RemoteFolder[] = dataFolders.map((f) => ({
       _id: f._id,
       name: f.name,
       slug: f.slug,
@@ -507,8 +507,8 @@ async function pullCoreMode(
     }));
 
     // Fetch pages with MDX content (BlockNote → MDX conversion handled by client)
-    const convexPages = await client.listPagesWithMdxContent(branchId);
-    let pages: RemotePullPage[] = convexPages.map((p) => ({
+    const dataPages = await client.listPagesWithMdxContent(branchId);
+    let pages: RemotePullPage[] = dataPages.map((p) => ({
       _id: p._id,
       title: p.title,
       slug: p.slug,
@@ -662,7 +662,7 @@ async function writePullOutput(
 }
 
 // ---------------------------------------------------------------------------
-// Push: Core mode (direct Convex)
+// Push: Core mode (direct data API)
 // ---------------------------------------------------------------------------
 
 async function pushCoreMode(
@@ -674,12 +674,12 @@ async function pushCoreMode(
     delete?: boolean;
     dryRun?: boolean;
     publish?: boolean;
-    convexUrl?: string;
+    dataApiUrl?: string;
     config?: boolean;
   }
 ): Promise<void> {
-  const client = createConvexClient({
-    convexUrl: localOpts.convexUrl,
+  const client = createCoreDataClient({
+    dataApiUrl: localOpts.dataApiUrl,
     verbose: opts.verbose,
   });
 
@@ -699,8 +699,8 @@ async function pushCoreMode(
     const branchId = await resolveBranchId(client, projectId, localOpts.branch);
 
     // Fetch remote folders
-    const convexFolders = await client.listFoldersByBranch(branchId);
-    const remoteFolders: PushRemoteFolder[] = convexFolders.map((f) => ({
+    const dataFolders = await client.listFoldersByBranch(branchId);
+    const remoteFolders: PushRemoteFolder[] = dataFolders.map((f) => ({
       id: f._id,
       name: f.name,
       slug: f.slug,
@@ -708,8 +708,8 @@ async function pushCoreMode(
     }));
 
     // Fetch remote pages with content (convert BlockNote → MDX for diff comparison)
-    const convexPages = await client.listPagesWithMdxContent(branchId);
-    const remotePages: RemotePage[] = convexPages.map((p) => ({
+    const dataPages = await client.listPagesWithMdxContent(branchId);
+    const remotePages: RemotePage[] = dataPages.map((p) => ({
       id: p._id,
       title: p.title,
       slug: p.slug,
@@ -740,8 +740,8 @@ async function pushCoreMode(
       return;
     }
 
-    // Apply via Convex mutations
-    const summary = await applyDiffConvex(client, diff, remoteFolders, {
+    // Apply via the data API mutations
+    const summary = await applyDiffData(client, diff, remoteFolders, {
       branchId,
       publish: localOpts.publish,
     });
@@ -752,7 +752,7 @@ async function pushCoreMode(
     if (localOpts.config !== false) {
       const config = readDocsConfig(dir);
       if (config) {
-        await applyDocsConfigConvex(client, config, projectId, branchId, dir);
+        await applyDocsConfigData(client, config, projectId, branchId, dir);
       }
     }
   } finally {
@@ -992,27 +992,27 @@ async function applyDocsConfigPlatform(
 }
 
 /**
- * Apply docs.json config via Convex mutations (core mode).
+ * Apply docs.json config via the data API mutations (core mode).
  */
-async function applyDocsConfigConvex(
-  client: ReturnType<typeof createConvexClient>,
+async function applyDocsConfigData(
+  client: ReturnType<typeof createCoreDataClient>,
   config: DocsConfig,
   projectId: string,
   branchId: string,
   dir: string
 ): Promise<void> {
   try {
-    // 1. Re-fetch remote folders and pages (they may have been created by applyDiffConvex)
-    const convexFolders = await client.listFoldersByBranch(branchId);
-    const remoteFolders = convexFolders.map((f) => ({
+    // 1. Re-fetch remote folders and pages (they may have been created by applyDiffData)
+    const dataFolders = await client.listFoldersByBranch(branchId);
+    const remoteFolders = dataFolders.map((f) => ({
       id: f._id,
       name: f.name,
       slug: f.slug,
       parentId: f.parentId,
     }));
 
-    const convexPages = await client.listPagesByBranch(branchId);
-    const remotePages = convexPages.map((p) => ({
+    const dataPages = await client.listPagesByBranch(branchId);
+    const remotePages = dataPages.map((p) => ({
       id: p._id,
       slug: p.slug,
       folderId: p.folderId,
@@ -1235,11 +1235,11 @@ function printPushResult(
 }
 
 // ---------------------------------------------------------------------------
-// Shared: Resolve branch ID from ConvexCliClient
+// Shared: Resolve branch ID from CoreDataClient
 // ---------------------------------------------------------------------------
 
 async function resolveBranchId(
-  client: ReturnType<typeof createConvexClient>,
+  client: ReturnType<typeof createCoreDataClient>,
   projectId: string,
   branchId?: string
 ): Promise<string> {

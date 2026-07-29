@@ -1,11 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@inkloom/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@inkloom/ui/tooltip";
 import { cn } from "@inkloom/ui/lib/utils";
 
 interface BlockGutterProps {

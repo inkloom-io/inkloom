@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Input } from "@inkloom/ui/input";
 import { Label } from "@inkloom/ui/label";
 import { Textarea } from "@inkloom/ui/textarea";
@@ -14,12 +13,12 @@ import { X, Search, Check, Loader2 } from "lucide-react";
 interface PageSeoData {
   seoTitle?: string;
   seoDescription?: string;
-  ogImageAssetId?: Id<"assets">;
+  ogImageAssetId?: string;
   noindex?: boolean;
 }
 
 interface PageSeoPanelProps {
-  pageId: Id<"pages">;
+  pageId: string;
   initialData: PageSeoData;
   pageTitle: string;
   onClose: () => void;
@@ -32,18 +31,26 @@ export function PageSeoPanel({
   onClose,
 }: PageSeoPanelProps) {
   const t = useTranslations("editor.pageSeo");
-  const updatePage = useMutation(api.pages.update);
+  const updatePage = useDataMutation(api.pages.update);
 
   const [seoTitle, setSeoTitle] = useState(initialData.seoTitle || "");
-  const [seoDescription, setSeoDescription] = useState(initialData.seoDescription || "");
+  const [seoDescription, setSeoDescription] = useState(
+    initialData.seoDescription || ""
+  );
   const [noindex, setNoindex] = useState(initialData.noindex || false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
+    "idle"
+  );
 
   const debounceRef = useRef<NodeJS.Timeout>();
   const savedRef = useRef<NodeJS.Timeout>();
 
   const save = useCallback(
-    async (data: { seoTitle: string; seoDescription: string; noindex: boolean }) => {
+    async (data: {
+      seoTitle: string;
+      seoDescription: string;
+      noindex: boolean;
+    }) => {
       setSaveStatus("saving");
       try {
         await updatePage({
@@ -88,7 +95,12 @@ export function PageSeoPanel({
           {saveStatus === "saved" && (
             <Check className="h-3 w-3 text-green-500" />
           )}
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-7 w-7"
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -96,7 +108,9 @@ export function PageSeoPanel({
 
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="seoTitle" className="text-xs">{t("seoTitle")}</Label>
+          <Label htmlFor="seoTitle" className="text-xs">
+            {t("seoTitle")}
+          </Label>
           <Input
             id="seoTitle"
             value={seoTitle}
@@ -107,14 +121,17 @@ export function PageSeoPanel({
             {t("seoTitleDescription")}
             {seoTitle.length > 0 && (
               <span className={seoTitle.length > 60 ? " text-amber-500" : ""}>
-                {" "}{seoTitle.length}/60
+                {" "}
+                {seoTitle.length}/60
               </span>
             )}
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="seoDescription" className="text-xs">{t("metaDescription")}</Label>
+          <Label htmlFor="seoDescription" className="text-xs">
+            {t("metaDescription")}
+          </Label>
           <Textarea
             id="seoDescription"
             value={seoDescription}
@@ -125,8 +142,11 @@ export function PageSeoPanel({
           <p className="text-[10px] text-muted-foreground">
             {t("metaDescriptionHint")}
             {seoDescription.length > 0 && (
-              <span className={seoDescription.length > 160 ? " text-amber-500" : ""}>
-                {" "}{seoDescription.length}/160
+              <span
+                className={seoDescription.length > 160 ? " text-amber-500" : ""}
+              >
+                {" "}
+                {seoDescription.length}/160
               </span>
             )}
           </p>
@@ -152,7 +172,9 @@ export function PageSeoPanel({
 
         {/* Search preview */}
         <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground">{t("searchPreview")}</p>
+          <p className="text-xs font-medium text-muted-foreground">
+            {t("searchPreview")}
+          </p>
           <div className="rounded-lg border p-3 space-y-1">
             <p className="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">
               {seoTitle || pageTitle || t("pageTitle")}

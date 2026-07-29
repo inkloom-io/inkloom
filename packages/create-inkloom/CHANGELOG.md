@@ -18,7 +18,7 @@
 
 ### Patch Changes
 
-- [`790a171`](https://github.com/inkloom-io/inkloom-private/commit/790a17195a57eda90e8a2766820b046530e46996) Thanks [@notadamking](https://github.com/notadamking)! - Add error boundary for project routes to gracefully handle Convex table ID mismatches after schema changes, and fix settings page to show a not-found message instead of an infinite spinner for invalid project IDs.
+- [`790a171`](https://github.com/inkloom-io/inkloom-private/commit/790a17195a57eda90e8a2766820b046530e46996) Thanks [@notadamking](https://github.com/notadamking)! - Add error boundary for project routes to gracefully handle Cloudflare D1 table ID mismatches after schema changes, and fix settings page to show a not-found message instead of an infinite spinner for invalid project IDs.
 
 - [`10e31f4`](https://github.com/inkloom-io/inkloom-private/commit/10e31f4a3fc193c46dace0731116d02c25462ebb) Thanks [@notadamking](https://github.com/notadamking)! - Fix editor content not loading on page refresh by adding `initialized` check to the loading gate, preventing BlockEditor from rendering before content state is populated. Also makes the page title editable in the title section with a save status indicator.
 
@@ -50,7 +50,7 @@
 
 ### Patch Changes
 
-- [`a5166c5`](https://github.com/inkloom-io/inkloom-private/commit/a5166c5bba899a822c7c1feff3511a9bd381401b) Thanks [@notadamking](https://github.com/notadamking)! - Fix auto-save race condition where Convex query overwrites local editor content after save. The useEffect that syncs server data to local state now only runs on initial load, preventing content loss during editing.
+- [`a5166c5`](https://github.com/inkloom-io/inkloom-private/commit/a5166c5bba899a822c7c1feff3511a9bd381401b) Thanks [@notadamking](https://github.com/notadamking)! - Fix auto-save race condition where Cloudflare D1 query overwrites local editor content after save. The useEffect that syncs server data to local state now only runs on initial load, preventing content loss during editing.
 
 ## 0.5.1
 
@@ -82,7 +82,7 @@
 
 - [`712e352`](https://github.com/inkloom-io/inkloom-private/commit/712e352f4138fd2ad121ab4f3b393e43ed77857e) Thanks [@notadamking](https://github.com/notadamking)! - Add static site build/publish pipeline to the core template with build API route, site generator, HTML generator, theme CSS, search index, and editor Build button.
 
-- [`7ddc807`](https://github.com/inkloom-io/inkloom-private/commit/7ddc807eb12b11742d43a312f5bd3824d040b92f) Thanks [@notadamking](https://github.com/notadamking)! - Add Convex functions for folders, deployments, page metadata, and project settings to the core template.
+- [`7ddc807`](https://github.com/inkloom-io/inkloom-private/commit/7ddc807eb12b11742d43a312f5bd3824d040b92f) Thanks [@notadamking](https://github.com/notadamking)! - Add Cloudflare D1 functions for folders, deployments, page metadata, and project settings to the core template.
 
 - [`044fbea`](https://github.com/inkloom-io/inkloom-private/commit/044fbeabe18886589f1d5b010a5d20b996751ef9) Thanks [@notadamking](https://github.com/notadamking)! - Add preview panel with live MDX rendering to the template editor. Includes inline docs-renderer components, syntax highlighting via shiki, and a 50/50 split editor/preview layout.
 
@@ -102,7 +102,7 @@
 
 ### Minor Changes
 
-- [`61cb4b8`](https://github.com/inkloom-io/inkloom-private/commit/61cb4b80f0d83859c9d1bb8842d93bbc624ab7f2) Thanks [@notadamking](https://github.com/notadamking)! - Add project editor page with page sidebar and content editing to core template. Project cards on the dashboard are now clickable and navigate to the editor. Adds Convex queries and mutations for pages and page content.
+- [`61cb4b8`](https://github.com/inkloom-io/inkloom-private/commit/61cb4b80f0d83859c9d1bb8842d93bbc624ab7f2) Thanks [@notadamking](https://github.com/notadamking)! - Add project editor page with page sidebar and content editing to core template. Project cards on the dashboard are now clickable and navigate to the editor. Adds Cloudflare D1 queries and mutations for pages and page content.
 
 ## 0.2.0
 
@@ -124,7 +124,7 @@
 
 - [`5f0c36f`](https://github.com/inkloom-io/inkloom-private/commit/5f0c36f638b0f3f34bc85b2a39435fd4513f35ec) Thanks [@notadamking](https://github.com/notadamking)! - Add MermaidDiagram component that renders fenced mermaid code blocks as interactive SVG diagrams in published documentation sites. Includes lazy-loaded mermaid.js, dark/light theme support, ElkJS renderer support, and error fallback for malformed diagrams.
 
-- [`496a42b`](https://github.com/inkloom-io/inkloom-private/commit/496a42b9645ccbf02bdcb54a786f2703c0b1f288) Thanks [@notadamking](https://github.com/notadamking)! - Add "Was this helpful?" page feedback widget with emoji reactions to published docs. Reactions are stored in Convex via a new pageFeedback table and API route.
+- [`496a42b`](https://github.com/inkloom-io/inkloom-private/commit/496a42b9645ccbf02bdcb54a786f2703c0b1f288) Thanks [@notadamking](https://github.com/notadamking)! - Add "Was this helpful?" page feedback widget with emoji reactions to published docs. Reactions are stored in Cloudflare D1 via a new pageFeedback table and API route.
 
 - [`fba339d`](https://github.com/inkloom-io/inkloom-private/commit/fba339d569a85871b156937ffa533dd2974af67c) Thanks [@notadamking](https://github.com/notadamking)! - Add previous/next page navigation links at the bottom of docs pages, following sidebar ordering with hover effects and responsive layout.
 
@@ -218,6 +218,6 @@
 
 - [`2bb75bd`](https://github.com/inkloom-io/inkloom-private/commit/2bb75bd29e3449e770ee2f15b34035dac8ce0dd8) Thanks [@notadamking](https://github.com/notadamking)! - Add process.cwd() fallback for template path resolution in monorepo workspaces.
 
-- [`1c75287`](https://github.com/inkloom-io/inkloom-private/commit/1c75287c3a259c3246016412851d8fb4eaa4358d) Thanks [@notadamking](https://github.com/notadamking)! - Fix Convex deployment error caused by hyphenated schema filenames. Renamed `schema/core-tables.ts` to `schema/coreTables.ts` in the scaffolded template, since Convex rejects hyphens in module paths.
+- [`1c75287`](https://github.com/inkloom-io/inkloom-private/commit/1c75287c3a259c3246016412851d8fb4eaa4358d) Thanks [@notadamking](https://github.com/notadamking)! - Fix Cloudflare D1 deployment error caused by hyphenated schema filenames. Renamed `schema/core-tables.ts` to `schema/coreTables.ts` in the scaffolded template, since Cloudflare D1 rejects hyphens in module paths.
 
 - [`02f28a7`](https://github.com/inkloom-io/inkloom-private/commit/02f28a79702efde5c544baf8a556eceac6cb2008) Thanks [@notadamking](https://github.com/notadamking)! - Fix template path resolution when code is bundled by Next.js. Template functions now accept an optional `templateDir` parameter for callers running inside bundlers where `import.meta.url` points to the wrong location.

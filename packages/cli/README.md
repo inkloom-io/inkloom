@@ -163,9 +163,9 @@ Options: `--production`, `--branch <id>`, `--wait`, `--timeout <ms>`
 
 | Command | Description |
 |---------|-------------|
-| `inkloom build <projectId>` | Generate a static site from Convex data |
+| `inkloom build <projectId>` | Generate a static site from Cloudflare D1 data |
 
-Options: `--output <dir>`, `--branch <id>`, `--clean`, `--convex-url <url>`
+Options: `--output <dir>`, `--branch <id>`, `--clean`, `--data-api-url <url>`
 
 ### Export
 
@@ -173,7 +173,7 @@ Options: `--output <dir>`, `--branch <id>`, `--clean`, `--convex-url <url>`
 |---------|-------------|
 | `inkloom export` | Export all project data to a JSON file |
 
-Options: `--output <file>`, `--project <id>`, `--convex-url <url>`, `--pretty`
+Options: `--output <file>`, `--project <id>`, `--data-api-url <url>`, `--pretty`
 
 ### Migrate
 

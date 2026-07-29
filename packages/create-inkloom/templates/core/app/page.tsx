@@ -1,7 +1,7 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useDataQuery as useQuery, useDataMutation as useMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { useState } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
@@ -40,7 +40,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Id } from "@/convex/_generated/dataModel";
+import type { Id } from "@/data/types";
 
 function formatRelativeTime(timestamp: number): string {
   const now = Date.now();
@@ -103,11 +103,11 @@ function ProjectCard({
   onDelete,
 }: {
   project: {
-    _id: Id<"projects">;
+    id: Id<"projects">;
     name: string;
     slug: string;
-    description?: string;
-    defaultBranchId?: Id<"branches">;
+    description?: string | null;
+    defaultBranchId?: Id<"branches"> | null;
     updatedAt: number;
   };
   index: number;
@@ -119,7 +119,7 @@ function ProjectCard({
       style={{ animationDelay: `${index * 75}ms`, animationDuration: "400ms" }}
     >
       <Card className="group relative border-border bg-card transition-all duration-200 hover:border-ring/40 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5">
-        <Link href={`/projects/${project._id}`} className="block">
+        <Link href={`/projects/${project.id}`} className="block">
           <CardHeader className="pb-2">
             <div className="flex items-start justify-between">
               <CardTitle className="text-base font-semibold leading-snug">
@@ -134,7 +134,9 @@ function ProjectCard({
           </CardHeader>
           <CardContent className="pb-3">
             <div className="flex items-center gap-3">
-              <ProjectCardPageCount branchId={project.defaultBranchId} />
+              <ProjectCardPageCount
+                branchId={project.defaultBranchId ?? undefined}
+              />
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Globe className="h-3 w-3" />
                 /{project.slug}
@@ -165,7 +167,7 @@ function ProjectCard({
                 className="text-destructive focus:text-destructive cursor-pointer"
                 onClick={(e) => {
                   e.preventDefault();
-                  onDelete(project._id, project.name);
+                  onDelete(project.id, project.name);
                 }}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -288,7 +290,7 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map((project, index) => (
               <ProjectCard
-                key={project._id}
+                key={project.id}
                 project={project}
                 index={index}
                 onDelete={(id, name) => setDeleteTarget({ id, name })}

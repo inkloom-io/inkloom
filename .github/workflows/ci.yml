@@ -37,8 +37,7 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          NEXT_PUBLIC_CONVEX_URL: "https://placeholder.convex.cloud"
-          CONVEX_DEPLOYMENT: "placeholder"
+          DATA_API_URL: "http://127.0.0.1:8787"
 
       - name: Test
         run: pnpm test

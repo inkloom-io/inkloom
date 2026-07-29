@@ -2,17 +2,13 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
+import type { HydratedCommentThread } from "@/data/client";
 import { formatDistanceToNow, formatDateTime } from "@/lib/date-utils";
 import { getUserInitials } from "@/lib/collaboration-utils";
 import { Button } from "@inkloom/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@inkloom/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@inkloom/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,22 +25,9 @@ import {
 } from "lucide-react";
 import { CommentInput } from "./comment-input";
 
-interface CommentUser {
-  id: Id<"users">;
-  name: string;
-  avatarUrl?: string | null;
-}
-
-interface Comment extends Doc<"comments"> {
-  user: CommentUser | null;
-}
-
 interface CommentThreadDetailProps {
-  thread: Doc<"commentThreads"> & {
-    creator: CommentUser | null;
-    comments: Comment[];
-  };
-  currentUserId: Id<"users">;
+  thread: HydratedCommentThread;
+  currentUserId: string;
   onBack: () => void;
   onScrollToBlock?: (blockId: string) => void;
   isAdmin?: boolean;
@@ -59,26 +42,24 @@ export function CommentThreadDetail({
 }: CommentThreadDetailProps) {
   const t = useTranslations("editor.comments");
   const tc = useTranslations("common");
-  const [editingCommentId, setEditingCommentId] = useState<Id<"comments"> | null>(
-    null
-  );
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
 
-  const addComment = useMutation(api.comments.addComment);
-  const updateComment = useMutation(api.comments.updateComment);
-  const deleteComment = useMutation(api.comments.deleteComment);
-  const deleteThread = useMutation(api.comments.deleteThread);
-  const resolveThread = useMutation(api.comments.resolveThread);
-  const reopenThread = useMutation(api.comments.reopenThread);
+  const addComment = useDataMutation(api.comments.addComment);
+  const updateComment = useDataMutation(api.comments.updateComment);
+  const deleteComment = useDataMutation(api.comments.deleteComment);
+  const deleteThread = useDataMutation(api.comments.deleteThread);
+  const resolveThread = useDataMutation(api.comments.resolveThread);
+  const reopenThread = useDataMutation(api.comments.reopenThread);
 
   const handleAddReply = async (content: string) => {
     await addComment({
-      threadId: thread._id,
+      threadId: thread.id,
       content,
       userId: currentUserId,
     });
   };
 
-  const handleUpdateComment = async (commentId: Id<"comments">, content: string) => {
+  const handleUpdateComment = async (commentId: string, content: string) => {
     await updateComment({
       commentId,
       content,
@@ -87,7 +68,7 @@ export function CommentThreadDetail({
     setEditingCommentId(null);
   };
 
-  const handleDeleteComment = async (commentId: Id<"comments">) => {
+  const handleDeleteComment = async (commentId: string) => {
     const result = await deleteComment({
       commentId,
       userId: currentUserId,
@@ -100,17 +81,17 @@ export function CommentThreadDetail({
   };
 
   const handleResolve = async () => {
-    await resolveThread({ threadId: thread._id });
+    await resolveThread({ threadId: thread.id });
   };
 
   const handleReopen = async () => {
-    await reopenThread({ threadId: thread._id });
+    await reopenThread({ threadId: thread.id });
   };
 
   const handleDeleteThread = async () => {
     if (window.confirm(t("deleteThreadConfirmation"))) {
       await deleteThread({
-        threadId: thread._id,
+        threadId: thread.id,
         userId: currentUserId,
         isAdmin,
       });
@@ -177,8 +158,8 @@ export function CommentThreadDetail({
       {/* Comments list */}
       <div className="flex-1 overflow-auto p-4">
         <div className="space-y-4">
-          {thread.comments.map((comment: any) => (
-            <div key={comment._id} className="group">
+          {thread.comments.map((comment) => (
+            <div key={comment.id} className="group">
               <div className="flex items-start gap-3">
                 {/* Avatar */}
                 {comment.user?.avatarUrl ? (
@@ -189,9 +170,7 @@ export function CommentThreadDetail({
                   />
                 ) : (
                   <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                    {comment.user
-                      ? getUserInitials(comment.user.name)
-                      : "?"}
+                    {comment.user ? getUserInitials(comment.user.name) : "?"}
                   </div>
                 )}
 
@@ -219,12 +198,12 @@ export function CommentThreadDetail({
                   </div>
 
                   {/* Content */}
-                  {editingCommentId === comment._id ? (
+                  {editingCommentId === comment.id ? (
                     <div className="mt-2">
                       <CommentInput
                         initialValue={comment.content}
                         onSubmit={(content) =>
-                          handleUpdateComment(comment._id, content)
+                          handleUpdateComment(comment.id, content)
                         }
                         onCancel={() => setEditingCommentId(null)}
                         submitLabel={tc("save")}
@@ -240,7 +219,7 @@ export function CommentThreadDetail({
 
                 {/* Actions (own comments can edit/delete, admins can delete any) */}
                 {(comment.user?.id === currentUserId || isAdmin) &&
-                  editingCommentId !== comment._id && (
+                  editingCommentId !== comment.id && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -255,14 +234,14 @@ export function CommentThreadDetail({
                         {/* Edit only available for own comments */}
                         {comment.user?.id === currentUserId && (
                           <DropdownMenuItem
-                            onClick={() => setEditingCommentId(comment._id)}
+                            onClick={() => setEditingCommentId(comment.id)}
                           >
                             <Pencil className="mr-2 h-4 w-4" />
                             {tc("edit")}
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
-                          onClick={() => handleDeleteComment(comment._id)}
+                          onClick={() => handleDeleteComment(comment.id)}
                           className="text-destructive"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />

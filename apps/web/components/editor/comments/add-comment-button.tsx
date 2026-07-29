@@ -2,29 +2,24 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Button } from "@inkloom/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@inkloom/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@inkloom/ui/popover";
 import { MessageSquarePlus } from "lucide-react";
 import { CommentInput } from "./comment-input";
 import { trackEvent } from "@/lib/analytics";
 
 interface AddCommentButtonProps {
-  pageId: Id<"pages">;
+  pageId: string;
   blockId: string;
-  currentUserId: Id<"users">;
+  currentUserId: string;
   // For inline comments - character range
   anchorType: "block" | "inline";
   inlineStart?: number;
   inlineEnd?: number;
   // Callback when comment is created
-  onCommentCreated?: (threadId: Id<"commentThreads">) => void;
+  onCommentCreated?: (threadId: string) => void;
   // Visual variant
   variant?: "default" | "toolbar";
 }
@@ -43,7 +38,7 @@ export function AddCommentButton({
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const createThread = useMutation(api.comments.createThread);
+  const createThread = useDataMutation(api.comments.createThread);
 
   const handleSubmit = async (content: string) => {
     if (isSubmitting) return;

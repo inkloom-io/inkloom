@@ -4,8 +4,8 @@ import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { getRelativeTimeKeyAndParams } from "@/lib/date-utils";
 import {
   Dialog,
@@ -60,12 +60,12 @@ function ProjectsPageContent() {
   const searchParams = useSearchParams();
 
   const { tenantId } = useAppContext();
-  const projects = useQuery(
+  const projects = useDataQuery(
     api.projects.listByOrg,
     tenantId ? { workosOrgId: tenantId } : "skip"
   );
 
-  const createProject = useMutation(api.projects.create);
+  const createProject = useDataMutation(api.projects.create);
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>("blank");
@@ -97,10 +97,10 @@ function ProjectsPageContent() {
     setCreateError(null);
     try {
       // Pass workosOrgId for platform mode compatibility (core mode ignores it)
-      const projectId = await (createProject as unknown as (args: Record<string, unknown>) => Promise<string>)({
+      const { id: projectId } = await createProject({
         name: name.trim(),
         templateId: selectedTemplate,
-        workosOrgId: tenantId,
+        workosOrgId: tenantId ?? undefined,
       });
 
       setName("");
@@ -248,10 +248,10 @@ function ProjectsPageContent() {
         </div>
       ) : projects && projects.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project: any, index: any) => (
+          {projects.map((project, index) => (
             <Link
-              key={project._id}
-              href={`/projects/${project._id}/editor`}
+              key={project.id}
+              href={`/projects/${project.id}/editor`}
               className="group relative rounded-2xl p-6 transition-all duration-300"
               style={{
                 backgroundColor: "var(--surface-bg)",

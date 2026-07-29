@@ -6,13 +6,13 @@ import { handleAction } from "../lib/handler.js";
 import { printData, printSuccess } from "../lib/output.js";
 import { CliError, EXIT_GENERAL } from "../lib/errors.js";
 import { trackEvent } from "../lib/telemetry.js";
-import type { ExportData } from "../lib/convex-client.js";
+import type { ExportData } from "../lib/data-client.js";
 
 /**
  * Register the `migrate` command for importing data into InkLoom Cloud.
  *
  * This is the OSS → SaaS conversion funnel:
- * 1. User runs `inkloom export` to dump their local Convex data
+ * 1. User runs `inkloom export` to dump their local D1 data
  * 2. User runs `inkloom migrate --to-cloud --file inkloom-export.json`
  * 3. CLI uploads the export file to POST /api/import on InkLoom Cloud
  * 4. SaaS creates the project(s) under the user's organization

@@ -206,7 +206,7 @@ export interface ImportReadyPage {
 
 /**
  * A navigation tab in the InkLoom schema shape.
- * Matches core/apps/web/convex/schema/coreTables.ts navTabs structure.
+ * Matches the core Drizzle project settings `navTabs` structure.
  */
 export interface InkLoomNavTab {
   /** Unique tab identifier. */

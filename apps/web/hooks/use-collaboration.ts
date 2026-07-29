@@ -3,7 +3,7 @@
 /**
  * Core-mode collaboration stub.
  *
- * Real-time collaboration (PartyKit/Yjs) is a platform-only feature.
+ * Real-time collaboration (PartyServer/Yjs) is a platform-only feature.
  * In core mode, the editor always runs in solo mode.
  */
 

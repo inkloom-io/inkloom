@@ -110,7 +110,7 @@ describe("contextAdapter (core mode)", () => {
       expect(contextAdapter.getTenantId()).toBe("local");
     });
 
-    it("matches the Convex projects LOCAL_ORG_ID sentinel", () => {
+    it("matches the D1 projects LOCAL_ORG_ID sentinel", () => {
       // This is critical for data portability — core data uses
       // workosOrgId: "local" which must match the context adapter
       expect(contextAdapter.getTenantId()).toBe("local");
@@ -265,8 +265,8 @@ describe("cross-adapter consistency", () => {
     expect(user!.email).toMatch(/@inkloom\./);
   });
 
-  it("context tenant ID matches Convex sentinel pattern", () => {
-    // Critical: this must stay in sync with core/apps/web/convex/projects.ts LOCAL_ORG_ID
+  it("context tenant ID matches D1 sentinel pattern", () => {
+    // Critical: this must stay in sync with core/apps/web/worker/routes/projects.ts LOCAL_ORG_ID
     expect(contextAdapter.getTenantId()).toBe("local");
   });
 

@@ -68,7 +68,7 @@ Syncs a local directory of `.mdx` files to an InkLoom project. Subdirectories ma
 | `--dry-run` | Preview changes without applying them | `false` |
 | `--publish` | Auto-publish all created/updated pages | `false` |
 | `--no-config` | Skip docs.json processing | `false` |
-| `--convex-url <url>` | Convex URL for self-hosted mode | `NEXT_PUBLIC_CONVEX_URL` |
+| `--data-api-url <url>` | Cloudflare D1 URL for self-hosted mode | `INKLOOM_DATA_API_URL` |
 
 ```bash
 inkloom pages push proj_abc --dir ./docs --dry-run
@@ -85,7 +85,7 @@ Exports all pages from a project as `.mdx` files with frontmatter.
 | `--branch <branchId>` | Source branch | project default |
 | `--overwrite` | Overwrite existing files without prompting | `false` |
 | `--published-only` | Only export published pages | `false` |
-| `--convex-url <url>` | Convex URL for self-hosted mode | `NEXT_PUBLIC_CONVEX_URL` |
+| `--data-api-url <url>` | Cloudflare D1 URL for self-hosted mode | `INKLOOM_DATA_API_URL` |
 
 ```bash
 inkloom pages pull proj_abc --dir ./docs --overwrite
@@ -176,7 +176,7 @@ Rollback creates a new deployment; the previous one remains in history.
 
 ## build
 
-Generate a static site from Convex data. Requires `NEXT_PUBLIC_CONVEX_URL` or `--convex-url`.
+Generate a static site from Cloudflare D1 data. Requires `INKLOOM_DATA_API_URL` or `--data-api-url`.
 
 `inkloom build <projectId> [options]`
 
@@ -185,11 +185,11 @@ Generate a static site from Convex data. Requires `NEXT_PUBLIC_CONVEX_URL` or `-
 | `-o, --output <dir>` | Output directory | `dist` |
 | `--branch <branchId>` | Branch to build | project default |
 | `--clean` / `--no-clean` | Remove output directory before building | `true` |
-| `--convex-url <url>` | Convex deployment URL | `NEXT_PUBLIC_CONVEX_URL` |
+| `--data-api-url <url>` | Cloudflare D1 deployment URL | `INKLOOM_DATA_API_URL` |
 
 ## export
 
-Export project data to JSON. Requires `NEXT_PUBLIC_CONVEX_URL` or `--convex-url`.
+Export project data to JSON. Requires `INKLOOM_DATA_API_URL` or `--data-api-url`.
 
 `inkloom export [options]`
 
@@ -197,7 +197,7 @@ Export project data to JSON. Requires `NEXT_PUBLIC_CONVEX_URL` or `--convex-url`
 |------|-------------|---------|
 | `-o, --output <file>` | Output file path | `inkloom-export.json` |
 | `--project <projectId>` | Export a single project (otherwise all) | — |
-| `--convex-url <url>` | Convex deployment URL | `NEXT_PUBLIC_CONVEX_URL` |
+| `--data-api-url <url>` | Cloudflare D1 deployment URL | `INKLOOM_DATA_API_URL` |
 | `--pretty` / `--no-pretty` | Pretty-print JSON output | `true` |
 
 ## migrate
@@ -333,8 +333,8 @@ Manage the llms.txt file for a project's published site. Auto-generated mode kee
 | `INKLOOM_ORG_ID` | Organization ID |
 | `INKLOOM_API_URL` | API base URL (default: `https://inkloom.io`) |
 | `INKLOOM_TELEMETRY_DISABLED` | Set to `1` to disable telemetry |
-| `NEXT_PUBLIC_CONVEX_URL` | Convex deployment URL (for build/export/push/pull) |
-| `CONVEX_URL` | Alternative Convex URL variable |
+| `INKLOOM_DATA_API_URL` | Cloudflare D1 deployment URL (for build/export/push/pull) |
+| `DATA_API_URL` | Alternative Cloudflare D1 URL variable |
 
 **Credential resolution order:** CLI flags > environment variables > OS keychain > config file
 

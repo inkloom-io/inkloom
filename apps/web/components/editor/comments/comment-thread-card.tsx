@@ -1,8 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
+import type { HydratedCommentThread } from "@/data/client";
 import { formatDistanceToNow } from "@/lib/date-utils";
 import { getUserInitials } from "@/lib/collaboration-utils";
 import { Badge } from "@inkloom/ui/badge";
@@ -13,27 +14,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@inkloom/ui/dropdown-menu";
-import { MessageSquare, CheckCircle, Quote, MoreVertical, Trash2 } from "lucide-react";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
-
-interface CommentUser {
-  id: Id<"users">;
-  name: string;
-  avatarUrl?: string | null;
-}
+import {
+  MessageSquare,
+  CheckCircle,
+  Quote,
+  MoreVertical,
+  Trash2,
+} from "lucide-react";
 
 interface CommentThreadCardProps {
-  thread: Doc<"commentThreads"> & {
-    creator: CommentUser | null;
-    commentCount: number;
-    comments: Array<{
-      content: string;
-      user: CommentUser | null;
-    }>;
-  };
+  thread: HydratedCommentThread;
   onClick: () => void;
   isSelected?: boolean;
-  currentUserId?: Id<"users">;
+  currentUserId?: string;
   isAdmin?: boolean;
 }
 
@@ -45,7 +38,7 @@ export function CommentThreadCard({
   isAdmin = false,
 }: CommentThreadCardProps) {
   const t = useTranslations("editor.comments");
-  const deleteThread = useMutation(api.comments.deleteThread);
+  const deleteThread = useDataMutation(api.comments.deleteThread);
 
   // Get the first comment as preview
   const firstComment = thread.comments[0];
@@ -56,7 +49,7 @@ export function CommentThreadCard({
 
     if (window.confirm("Are you sure you want to delete this entire thread?")) {
       await deleteThread({
-        threadId: thread._id,
+        threadId: thread.id,
         userId: currentUserId,
         isAdmin,
       });
@@ -64,7 +57,8 @@ export function CommentThreadCard({
   };
 
   // Admins can delete any thread, creators can delete their own
-  const canDelete = currentUserId && (thread.createdBy === currentUserId || isAdmin);
+  const canDelete =
+    currentUserId && (thread.createdBy === currentUserId || isAdmin);
 
   return (
     <div
@@ -103,71 +97,69 @@ export function CommentThreadCard({
         <div className="flex items-start gap-3">
           {/* Avatar */}
           <div className="flex-shrink-0">
-          {thread.creator?.avatarUrl ? (
-            <img
-              src={thread.creator.avatarUrl}
-              alt={thread.creator.name}
-              className="h-8 w-8 rounded-full object-cover"
-            />
-          ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs font-medium">
-              {thread.creator
-                ? getUserInitials(thread.creator.name)
-                : "?"}
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="min-w-0 flex-1">
-          {/* Header */}
-          <div className="mb-1 flex items-center gap-2">
-            <span className="truncate text-sm font-medium">
-              {thread.creator?.name || t("unknownUser")}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(thread.createdAt)}
-            </span>
-            {thread.status === "resolved" && (
-              <Badge
-                variant="secondary"
-                className="flex items-center gap-1 text-xs"
-              >
-                <CheckCircle className="h-3 w-3" />
-                {t("resolved")}
-              </Badge>
+            {thread.creator?.avatarUrl ? (
+              <img
+                src={thread.creator.avatarUrl}
+                alt={thread.creator.name}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs font-medium">
+                {thread.creator ? getUserInitials(thread.creator.name) : "?"}
+              </div>
             )}
           </div>
 
-          {/* Quoted text */}
-          {thread.quotedText && (
-            <div className="mb-2 flex gap-1.5 rounded bg-muted/50 px-2 py-1">
-              <Quote className="h-3 w-3 flex-shrink-0 text-muted-foreground mt-0.5" />
-              <p className="line-clamp-1 text-xs italic text-muted-foreground">
-                &ldquo;{thread.quotedText}&rdquo;
-              </p>
+          {/* Content */}
+          <div className="min-w-0 flex-1">
+            {/* Header */}
+            <div className="mb-1 flex items-center gap-2">
+              <span className="truncate text-sm font-medium">
+                {thread.creator?.name || t("unknownUser")}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {formatDistanceToNow(thread.createdAt)}
+              </span>
+              {thread.status === "resolved" && (
+                <Badge
+                  variant="secondary"
+                  className="flex items-center gap-1 text-xs"
+                >
+                  <CheckCircle className="h-3 w-3" />
+                  {t("resolved")}
+                </Badge>
+              )}
             </div>
-          )}
 
-          {/* Preview text */}
-          <p className="line-clamp-2 text-sm text-muted-foreground">
-            {firstComment?.content || t("noContent")}
-          </p>
-
-          {/* Footer */}
-          <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <MessageSquare className="h-3 w-3" />
-              {t("replyCount", { count: thread.commentCount })}
-            </span>
-            {thread.anchorType === "inline" && (
-              <Badge variant="outline" className="text-xs">
-                {t("inline")}
-              </Badge>
+            {/* Quoted text */}
+            {thread.quotedText && (
+              <div className="mb-2 flex gap-1.5 rounded bg-muted/50 px-2 py-1">
+                <Quote className="h-3 w-3 flex-shrink-0 text-muted-foreground mt-0.5" />
+                <p className="line-clamp-1 text-xs italic text-muted-foreground">
+                  &ldquo;{thread.quotedText}&rdquo;
+                </p>
+              </div>
             )}
+
+            {/* Preview text */}
+            <p className="line-clamp-2 text-sm text-muted-foreground">
+              {firstComment?.content || t("noContent")}
+            </p>
+
+            {/* Footer */}
+            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <MessageSquare className="h-3 w-3" />
+                {t("replyCount", { count: thread.commentCount })}
+              </span>
+              {thread.anchorType === "inline" && (
+                <Badge variant="outline" className="text-xs">
+                  {t("inline")}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </button>
     </div>
   );

@@ -8,11 +8,11 @@
  * merge in generate-dev-app.ts.
  */
 
-import type { Doc } from "@/convex/_generated/dataModel";
+import type { Project } from "@/db/schema";
 
 interface DeveloperTabProps {
   projectId: string;
-  project: Doc<"projects">;
+  project: Project;
 }
 
 export function DeveloperTab(_props: DeveloperTabProps) {

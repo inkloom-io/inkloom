@@ -154,6 +154,7 @@
       "features": "Features",
       "pricing": "Pricing",
       "docs": "Docs",
+      "changelog": "Changelog",
       "signIn": "Sign in",
       "getStartedFree": "Get started free",
       "dashboard": "Dashboard"
@@ -3299,7 +3300,7 @@
       },
       "realtimeCollab": {
         "title": "Real-time collaboration",
-        "description": "Edit pages simultaneously with your team using real-time cursors and live updates powered by PartyKit. No more conflicting edits or stale copies."
+        "description": "Edit pages simultaneously with your team using real-time cursors and live updates powered by PartyServer. No more conflicting edits or stale copies."
       },
       "fullTextSearch": {
         "title": "Full-text search",

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id, Doc } from "@/convex/_generated/dataModel";
+import type { Project } from "@/db/schema";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import {
   Card,
   CardContent,
@@ -21,19 +21,21 @@ import { useTranslations } from "next-intl";
 
 interface SeoTabProps {
   projectId: string;
-  project: Doc<"projects">;
+  project: Project;
 }
 
 export function SeoTab({ projectId, project }: SeoTabProps) {
-  const updateSettings = useMutation(api.projects.updateSettings);
+  const updateSettings = useDataMutation(api.projects.updateSettings);
   const t = useTranslations("settings.seo");
 
   // SEO settings
   const [ogTitle, setOgTitle] = useState("");
   const [ogDescription, setOgDescription] = useState("");
-  const [twitterCard, setTwitterCard] = useState<"summary" | "summary_large_image">("summary_large_image");
+  const [twitterCard, setTwitterCard] = useState<
+    "summary" | "summary_large_image"
+  >("summary_large_image");
   const [robotsTxtCustom, setRobotsTxtCustom] = useState("");
-  const [ogImageAssetId, setOgImageAssetId] = useState<Id<"assets"> | undefined>();
+  const [ogImageAssetId, setOgImageAssetId] = useState<string | undefined>();
   const [seoInitialized, setSeoInitialized] = useState(false);
 
   // Initialize SEO
@@ -41,7 +43,9 @@ export function SeoTab({ projectId, project }: SeoTabProps) {
     if (project && !seoInitialized) {
       setOgTitle(project.settings?.seo?.ogTitle || "");
       setOgDescription(project.settings?.seo?.ogDescription || "");
-      setTwitterCard(project.settings?.seo?.twitterCard || "summary_large_image");
+      setTwitterCard(
+        project.settings?.seo?.twitterCard || "summary_large_image"
+      );
       setRobotsTxtCustom(project.settings?.seo?.robotsTxtCustom || "");
       setOgImageAssetId(project.settings?.seo?.ogImageAssetId);
       setSeoInitialized(true);
@@ -50,9 +54,15 @@ export function SeoTab({ projectId, project }: SeoTabProps) {
 
   // Auto-save callbacks
   const saveSeo = useCallback(
-    async (data: { ogTitle: string; ogDescription: string; twitterCard: "summary" | "summary_large_image"; robotsTxtCustom: string; ogImageAssetId?: Id<"assets"> }) => {
+    async (data: {
+      ogTitle: string;
+      ogDescription: string;
+      twitterCard: "summary" | "summary_large_image";
+      robotsTxtCustom: string;
+      ogImageAssetId?: string;
+    }) => {
       await updateSettings({
-        projectId: projectId as Id<"projects">,
+        projectId,
         settings: {
           seo: {
             ogTitle: data.ogTitle || undefined,
@@ -77,11 +87,11 @@ export function SeoTab({ projectId, project }: SeoTabProps) {
 
   // Resolve asset URLs for the social preview
   const logoAssetId = project.settings?.logoAssetId;
-  const logoAsset = useQuery(
+  const logoAsset = useDataQuery(
     api.assets.getAsset,
     logoAssetId ? { assetId: logoAssetId } : "skip"
   );
-  const ogImageAsset = useQuery(
+  const ogImageAsset = useDataQuery(
     api.assets.getAsset,
     ogImageAssetId ? { assetId: ogImageAssetId } : "skip"
   );
@@ -95,9 +105,7 @@ export function SeoTab({ projectId, project }: SeoTabProps) {
               <Search className="h-5 w-5" />
               <div>
                 <CardTitle>{t("seoSettings")}</CardTitle>
-                <CardDescription>
-                  {t("seoSettingsDescription")}
-                </CardDescription>
+                <CardDescription>{t("seoSettingsDescription")}</CardDescription>
               </div>
             </div>
             <SaveStatus status={seoStatus} />
@@ -123,7 +131,7 @@ export function SeoTab({ projectId, project }: SeoTabProps) {
 
       <GatedSection
         feature="custom_og_image"
-        projectId={projectId as Id<"projects">}
+        projectId={projectId}
         title={t("customOgImage")}
         description={t("customOgImageDescription")}
         icon={Image}
@@ -143,7 +151,7 @@ export function SeoTab({ projectId, project }: SeoTabProps) {
           </CardHeader>
           <CardContent>
             <OgImageUpload
-              projectId={projectId as Id<"projects">}
+              projectId={projectId}
               assetId={ogImageAssetId}
               onUpload={(id) => setOgImageAssetId(id)}
               onRemove={() => setOgImageAssetId(undefined)}

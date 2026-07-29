@@ -1,17 +1,16 @@
 /**
  * Server-side static site builder for core mode.
  *
- * Fetches project data from Convex via ConvexHttpClient, generates
+ * Fetches project data from the local D1 data Worker, generates
  * static site files using `generateSiteFiles()`, writes them to
- * the `dist/` directory, and creates a deployment record in Convex.
+ * the `dist/` directory, and creates a deployment record in D1.
  *
  * Used by the `/api/build` route (UI "Build" button).
  */
 import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync, readdirSync, cpSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import type { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import type { DataClient } from "@/data/client";
+import type { Id } from "@/data/types";
 import { generateSiteFiles } from "./generate-site";
 
 // ---------------------------------------------------------------------------
@@ -106,15 +105,13 @@ export interface BuildProjectResult {
 // ---------------------------------------------------------------------------
 
 export async function buildProject(
-  convex: ConvexHttpClient,
+  data: DataClient,
   opts: BuildProjectOptions
 ): Promise<BuildProjectResult> {
   const outDir = opts.outDir ?? "dist";
 
   // 1. Fetch project
-  const project = await convex.query(api.projects.get, {
-    id: opts.projectId,
-  });
+  const project = await data.projects.get(opts.projectId);
   if (!project) {
     throw new Error(`Project not found: ${opts.projectId}`);
   }
@@ -129,7 +126,7 @@ export async function buildProject(
   }
 
   // 3. Create deployment record (status: building)
-  const deploymentId = await convex.mutation(api.deployments.create, {
+  const { id: deploymentId } = await data.deployments.create({
     projectId: opts.projectId,
     branchId,
     target: "preview",
@@ -139,13 +136,13 @@ export async function buildProject(
   try {
     // 4. Fetch pages and folders
     const [rawPages, rawFolders] = await Promise.all([
-      convex.query(api.pages.listByBranch, { branchId }),
-      convex.query(api.folders.listByBranch, { branchId }),
+      data.pages.listByBranch(branchId),
+      data.folders.listByBranch(branchId),
     ]);
 
     // 5. Recompute folder paths from parent chain
-    const folderMap = new Map(rawFolders.map((f: any) => [f._id, f]));
-    function computePath(folder: { _id: string; slug: string; parentId?: string }): string {
+    const folderMap = new Map(rawFolders.map((f: any) => [f.id, f]));
+    function computePath(folder: { id: string; slug: string; parentId: string | null }): string {
       if (!folder.parentId) {
         return `/${folder.slug}`;
       }
@@ -157,7 +154,7 @@ export async function buildProject(
     }
 
     const folders = rawFolders.map((f: any) => ({
-      id: f._id,
+      id: f.id,
       name: f.name,
       slug: f.slug,
       path: computePath(f),
@@ -182,12 +179,10 @@ export async function buildProject(
     const pages = [];
     for (const page of pagesWithFixedPaths) {
       if (!page.isPublished) continue;
-      const contentDoc = await convex.query(api.pages.getContent, {
-        pageId: page._id,
-      });
+      const contentDoc = await data.pages.getContent(page.id);
       if (!contentDoc?.content) continue;
       pages.push({
-        id: page._id,
+        id: page.id,
         title: page.title,
         slug: page.slug,
         path: page.path || `/${page.slug}`,
@@ -205,8 +200,7 @@ export async function buildProject(
     }
 
     // 8. Generate site files
-    await convex.mutation(api.deployments.updateBuildPhase, {
-      deploymentId,
+    await data.deployments.updateBuildPhase(deploymentId, {
       buildPhase: "generating",
     });
 
@@ -316,8 +310,7 @@ export async function buildProject(
 
     // 10. Update deployment record to ready
     const url = `file://${join(process.cwd(), outDir)}`;
-    await convex.mutation(api.deployments.updateStatus, {
-      deploymentId,
+    await data.deployments.updateStatus(deploymentId, {
       status: "ready",
       url,
       ...(allWarnings.length > 0 ? { warnings: allWarnings } : {}),
@@ -333,8 +326,7 @@ export async function buildProject(
     };
   } catch (error) {
     // Mark deployment as failed
-    await convex.mutation(api.deployments.updateStatus, {
-      deploymentId,
+    await data.deployments.updateStatus(deploymentId, {
       status: "error",
       error: error instanceof Error ? error.message : "Build failed",
     });

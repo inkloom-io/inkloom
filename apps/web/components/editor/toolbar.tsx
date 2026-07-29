@@ -1,13 +1,20 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  type ReactNode,
+} from "react";
 import { useTranslations } from "next-intl";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
+import type { Page, Project } from "@/db/schema";
 import type { BlockNoteEditor } from "@blocknote/core";
 import { Button } from "@inkloom/ui/button";
 import { usePublish } from "@/hooks/use-publish";
+import { useGitHubConnection } from "@/hooks/use-github-connection";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@inkloom/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@inkloom/ui/popover";
 import {
@@ -61,8 +68,8 @@ import { getProductionUrl, toVanityUrl } from "@/lib/domain-utils";
 import { ReaderReactionsModal } from "./reader-reactions-modal";
 
 interface EditorToolbarProps {
-  project: Doc<"projects">;
-  page?: Doc<"pages"> | null;
+  project: Project;
+  page?: Page | null;
   isPreviewOpen?: boolean;
   onTogglePreview?: () => void;
   editor?: BlockNoteEditor | null;
@@ -73,15 +80,15 @@ interface EditorToolbarProps {
   onToggleComments?: () => void;
   commentCount?: number;
   isSaving?: boolean;
-  branchId?: Id<"branches">;
+  branchId?: string;
   branchName?: string;
   isDefaultBranch?: boolean;
   isVersionHistoryOpen?: boolean;
   onToggleVersionHistory?: () => void;
   isPageSeoOpen?: boolean;
   onTogglePageSeo?: () => void;
-  pageId?: Id<"pages">;
-  currentUserId?: Id<"users">;
+  pageId?: string;
+  currentUserId?: string;
   onDisableCollaboration?: () => void;
   onEnableCollaboration?: () => void;
   collaborationDisabled?: boolean;
@@ -131,7 +138,13 @@ function deriveSteps(
   ];
 }
 
-function DeploySteps({ steps, t }: { steps: StepInfo[]; t: (key: string) => string }) {
+function DeploySteps({
+  steps,
+  t,
+}: {
+  steps: StepInfo[];
+  t: (key: string) => string;
+}) {
   return (
     <div className="flex flex-col gap-3 py-6 px-2">
       {steps.map((step: any, i: number) => (
@@ -225,7 +238,7 @@ export function EditorToolbar({
   const [publishedHoverOpen, setPublishedHoverOpen] = useState(false);
   const publishedHoverTimer = useRef<NodeJS.Timeout | null>(null);
   const [isSavingVersion, setIsSavingVersion] = useState(false);
-  const createVersion = useMutation(api.pages.createVersion);
+  const createVersion = useDataMutation(api.pages.createVersion);
 
   // Publish/deploy state machine (extracted to hook)
   const {
@@ -363,23 +376,15 @@ export function EditorToolbar({
   }, [pageId, currentUserId, versionMessage, createVersion]);
 
   // Custom domains — used to show custom domain in publish success modal
-  const customDomains = useQuery(api.customDomains.listByProject, {
-    projectId: project._id,
-  });
-  const activeCustomDomain = (customDomains as Array<{ status: string; hostname: string }> | undefined)
-    ?.find((d) => d.status === "active")?.hostname;
+  const activeCustomDomain = project.settings?.customDomain;
 
   // Merge request count
-  const openMRCount = useQuery(api.mergeRequests.getOpenCountForProject, {
-    projectId: project._id,
+  const openMRCount = useDataQuery(api.mergeRequests.getOpenCountForProject, {
+    projectId: project.id,
   });
 
   // GitHub connection state (github module is platform-only, may not exist in core)
-  const githubApi = (api as Record<string, any>).github;
-  const githubConnection = useQuery(
-    githubApi?.getConnection ?? ("skip" as any),
-    githubApi ? { projectId: project._id } : "skip",
-  );
+  const githubConnection = useGitHubConnection(project.id);
   const [isSyncingGitHub, setIsSyncingGitHub] = useState(false);
 
   const handleSyncToGitHub = useCallback(async () => {
@@ -389,7 +394,7 @@ export function EditorToolbar({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          projectId: project._id,
+          projectId: project.id,
           ...(branchId && { branchId }),
         }),
       });
@@ -398,21 +403,21 @@ export function EditorToolbar({
     } finally {
       setIsSyncingGitHub(false);
     }
-  }, [project._id, branchId]);
+  }, [project.id, branchId]);
 
   // Query all pages for the current branch to find unpublished (draft) pages
   const effectiveBranchId = branchId || project.defaultBranchId;
-  const allPages = useQuery(
+  const allPages = useDataQuery(
     api.pages.listByBranch,
     effectiveBranchId ? { branchId: effectiveBranchId } : "skip"
   );
-  const unpublishedPages = allPages?.filter((p: any) => !p.isPublished) ?? [];
-  const updatePage = useMutation(api.pages.update);
+  const unpublishedPages = allPages?.filter((page) => !page.isPublished) ?? [];
+  const updatePage = useDataMutation(api.pages.update);
   const [publishingPageIds, setPublishingPageIds] = useState<Set<string>>(
     new Set()
   );
 
-  const handlePublishPage = async (pageId: Id<"pages">) => {
+  const handlePublishPage = async (pageId: string) => {
     setPublishingPageIds((prev) => new Set(prev).add(pageId));
     try {
       await updatePage({ pageId, isPublished: true });
@@ -426,11 +431,11 @@ export function EditorToolbar({
   };
 
   const handlePublishAll = async () => {
-    const ids = unpublishedPages.map((p: any) => p._id);
+    const ids = unpublishedPages.map((draft) => draft.id);
     setPublishingPageIds(new Set(ids));
     try {
       await Promise.all(
-        ids.map((id: any) => updatePage({ pageId: id, isPublished: true }))
+        ids.map((id) => updatePage({ pageId: id, isPublished: true }))
       );
     } finally {
       setPublishingPageIds(new Set());
@@ -516,7 +521,9 @@ export function EditorToolbar({
                   src="/mascot-success.svg"
                   alt=""
                   className="h-24 w-24"
-                  style={{ filter: "drop-shadow(0 4px 12px rgba(20,184,166,0.15))" }}
+                  style={{
+                    filter: "drop-shadow(0 4px 12px rgba(20,184,166,0.15))",
+                  }}
                 />
               </div>
               <DialogTitle className="flex items-center justify-center gap-2 text-teal-500">
@@ -660,7 +667,7 @@ export function EditorToolbar({
                   <div className="max-h-[160px] overflow-y-auto border-t border-amber-500/10">
                     {unpublishedPages.map((draftPage: any) => (
                       <div
-                        key={draftPage._id}
+                        key={draftPage.id}
                         className="flex items-center justify-between gap-3 px-3 py-2 transition-colors hover:bg-amber-500/5"
                       >
                         <div className="flex items-center gap-2 min-w-0">
@@ -675,11 +682,13 @@ export function EditorToolbar({
                           </div>
                         </div>
                         <button
-                          onClick={() => handlePublishPage(draftPage._id)}
-                          disabled={publishingPageIds.has(draftPage._id)}
+                          onClick={() =>
+                            handlePublishPage(draftPage.id as string)
+                          }
+                          disabled={publishingPageIds.has(draftPage.id)}
                           className="shrink-0 flex items-center gap-1 rounded-md border border-primary/20 bg-primary/10 px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
                         >
-                          {publishingPageIds.has(draftPage._id) ? (
+                          {publishingPageIds.has(draftPage.id) ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
                           ) : (
                             <Eye className="h-3 w-3" />
@@ -712,7 +721,9 @@ export function EditorToolbar({
     : undefined;
   const deploymentUrl = lastSuccessfulDeployment?.url;
   const viewSiteUrl = target === "production" ? productionUrl : deploymentUrl;
-  const hasDeployedSite = lastSuccessfulDeployment && (target === "production" ? productionUrl : deploymentUrl);
+  const hasDeployedSite =
+    lastSuccessfulDeployment &&
+    (target === "production" ? productionUrl : deploymentUrl);
 
   return (
     <div className="relative z-10 flex h-12 items-center justify-between border-b border-[var(--glass-divider)] bg-[var(--surface-bg)] px-3">
@@ -724,12 +735,13 @@ export function EditorToolbar({
         >
           {project.name}
         </span>
-        {project.settings?.accessControl?.mode && project.settings.accessControl.mode !== "public" && (
-          <span className="shrink-0 inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
-            <Shield className="h-2.5 w-2.5" />
-            {t("protected")}
-          </span>
-        )}
+        {project.settings?.accessControl?.mode &&
+          project.settings.accessControl.mode !== "public" && (
+            <span className="shrink-0 inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+              <Shield className="h-2.5 w-2.5" />
+              {t("protected")}
+            </span>
+          )}
         {!isDefaultBranch && branchName && (
           <>
             <span className="text-xs text-[var(--glass-border)]">/</span>
@@ -875,7 +887,9 @@ export function EditorToolbar({
               </button>
             </TooltipTrigger>
             <TooltipContent>
-              {commentCount ? t("commentsCount", { count: commentCount }) : t("commentsTooltip")}
+              {commentCount
+                ? t("commentsCount", { count: commentCount })
+                : t("commentsTooltip")}
             </TooltipContent>
           </Tooltip>
         )}
@@ -971,7 +985,7 @@ export function EditorToolbar({
             )}
             <DropdownMenuItem asChild>
               <Link
-                href={`/projects/${project._id}/generate`}
+                href={`/projects/${project.id}/generate`}
                 className="flex items-center gap-2"
               >
                 <Sparkles className="h-4 w-4" />
@@ -981,7 +995,7 @@ export function EditorToolbar({
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link
-                href={`/projects/${project._id}/merge-requests`}
+                href={`/projects/${project.id}/merge-requests`}
                 className="flex items-center gap-2"
               >
                 <GitPullRequest className="h-4 w-4" />
@@ -1020,7 +1034,7 @@ export function EditorToolbar({
             )}
             <DropdownMenuItem asChild>
               <Link
-                href={`/projects/${project._id}/settings`}
+                href={`/projects/${project.id}/settings`}
                 className="flex items-center gap-2"
               >
                 <Settings className="h-4 w-4" />
@@ -1065,11 +1079,11 @@ export function EditorToolbar({
               )}
           </button>
         </div>
-        <Dialog
-          open={publishOpen}
-          onOpenChange={setPublishOpen}
-        >
-          <Popover open={publishedHoverOpen} onOpenChange={setPublishedHoverOpen}>
+        <Dialog open={publishOpen} onOpenChange={setPublishOpen}>
+          <Popover
+            open={publishedHoverOpen}
+            onOpenChange={setPublishedHoverOpen}
+          >
             <PopoverTrigger asChild>
               <span
                 className="inline-flex"
@@ -1083,7 +1097,10 @@ export function EditorToolbar({
                   }
                 }}
                 onMouseLeave={() => {
-                  publishedHoverTimer.current = setTimeout(() => setPublishedHoverOpen(false), 200);
+                  publishedHoverTimer.current = setTimeout(
+                    () => setPublishedHoverOpen(false),
+                    200
+                  );
                 }}
               >
                 <DialogTrigger asChild>
@@ -1093,7 +1110,9 @@ export function EditorToolbar({
                         ? "bg-primary/15 text-primary/60"
                         : "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(20,184,166,0.2)]"
                     }`}
-                    disabled={hasChanges === false || showSaving || isPublishing}
+                    disabled={
+                      hasChanges === false || showSaving || isPublishing
+                    }
                     onClick={() => {
                       // Reset deployment state to idle before the dialog opens so the
                       // user always sees the target-selector view instead of a stale
@@ -1161,7 +1180,7 @@ export function EditorToolbar({
         <ReaderReactionsModal
           open={reactionsOpen}
           onOpenChange={setReactionsOpen}
-          projectId={project._id}
+          projectId={project.id as string}
           pageSlug={page.slug}
           pageTitle={page.title}
         />
@@ -1178,9 +1197,7 @@ export function EditorToolbar({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("saveVersionTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("saveVersionDescription")}
-            </DialogDescription>
+            <DialogDescription>{t("saveVersionDescription")}</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Label htmlFor="version-message" className="text-sm font-medium">

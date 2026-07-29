@@ -2,9 +2,9 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id, Doc } from "@/convex/_generated/dataModel";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
+import type { Folder, Page } from "@/db/schema";
 import { cn } from "@inkloom/ui/lib/utils";
 import { Button } from "@inkloom/ui/button";
 import { Input } from "@inkloom/ui/input";
@@ -59,20 +59,20 @@ type TreeNodeData = {
   type: "folder" | "page";
   icon?: string;
   // Original data references
-  pageData?: Doc<"pages">;
-  folderData?: Doc<"folders">;
+  pageData?: Page;
+  folderData?: Folder;
   children?: TreeNodeData[];
 };
 
 interface EditorSidebarProps {
-  projectId: Id<"projects">;
-  branchId: Id<"branches">;
-  pages: Doc<"pages">[];
-  folders: Doc<"folders">[];
-  selectedPageId: Id<"pages"> | null;
-  onSelectPage: (pageId: Id<"pages">) => void;
-  currentBranchId?: Id<"branches">;
-  onSwitchBranch?: (branchId: Id<"branches">, branchName?: string) => void;
+  projectId: string;
+  branchId: string;
+  pages: Page[];
+  folders: Folder[];
+  selectedPageId: string | null;
+  onSelectPage: (pageId: string) => void;
+  currentBranchId?: string;
+  onSwitchBranch?: (branchId: string, branchName?: string) => void;
   onFlushContent?: () => Promise<void>;
   /** When true, the default branch is locked — disables add page/folder and DnD */
   isBranchLocked?: boolean;
@@ -117,7 +117,8 @@ function NodeRenderer({
     }
   }, [isFolder, node.willReceiveDrop, node.isOpen, node]);
 
-  const isSelected = isPage && data.pageData && selectedPageId === data.pageData._id;
+  const isSelected =
+    isPage && data.pageData && selectedPageId === data.pageData.id;
 
   // Render icon or default
   const renderIcon = () => {
@@ -145,14 +146,19 @@ function NodeRenderer({
     <div
       style={
         node.state.willReceiveDrop
-          ? { ...style, backgroundColor: "var(--active-bg)", outline: "1px solid rgba(20,184,166,0.3)", borderRadius: "8px" }
+          ? {
+              ...style,
+              backgroundColor: "var(--active-bg)",
+              outline: "1px solid rgba(20,184,166,0.3)",
+              borderRadius: "8px",
+            }
           : style
       }
       className="group flex items-center rounded-lg"
       data-testid={isFolder ? "folder-item" : "page-item"}
-      data-folder-id={isFolder ? data.folderData?._id : undefined}
+      data-folder-id={isFolder ? data.folderData?.id : undefined}
       data-folder-name={isFolder ? data.folderData?.name : undefined}
-      data-page-id={isPage ? data.pageData?._id : undefined}
+      data-page-id={isPage ? data.pageData?.id : undefined}
       data-page-title={isPage ? data.pageData?.title : undefined}
     >
       {/* Drag handle */}
@@ -188,9 +194,7 @@ function NodeRenderer({
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md opacity-0 transition-all group-hover:opacity-100 text-[var(--text-dim)] hover:bg-[var(--glass-hover)]"
-              >
+              <button className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md opacity-0 transition-all group-hover:opacity-100 text-[var(--text-dim)] hover:bg-[var(--glass-hover)]">
                 <MoreHorizontal className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
@@ -203,7 +207,9 @@ function NodeRenderer({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => data.folderData && onDeleteFolder(data.folderData)}
+                onClick={() =>
+                  data.folderData && onDeleteFolder(data.folderData)
+                }
                 className="text-destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -223,16 +229,16 @@ function NodeRenderer({
                 ? "bg-[var(--active-bg)] text-primary border-l-primary"
                 : "text-[var(--text-dim)] border-l-transparent hover:bg-[var(--surface-active)] hover:text-[var(--text-medium)]"
             )}
-            onClick={() => data.pageData && onSelectPage(data.pageData._id)}
+            onClick={() =>
+              data.pageData && onSelectPage(data.pageData.id as string)
+            }
           >
             {renderIcon()}
             <span className="truncate">{data.name}</span>
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md opacity-0 transition-all group-hover:opacity-100 text-[var(--text-dim)] hover:bg-[var(--glass-hover)]"
-              >
+              <button className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md opacity-0 transition-all group-hover:opacity-100 text-[var(--text-dim)] hover:bg-[var(--glass-hover)]">
                 <MoreHorizontal className="h-3.5 w-3.5" />
               </button>
             </DropdownMenuTrigger>
@@ -246,7 +252,11 @@ function NodeRenderer({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() =>
-                  data.pageData && onTogglePublish(data.pageData._id, data.pageData.isPublished)
+                  data.pageData &&
+                  onTogglePublish(
+                    data.pageData.id as string,
+                    data.pageData.isPublished
+                  )
                 }
               >
                 {data.pageData?.isPublished ? (
@@ -329,8 +339,8 @@ export function EditorSidebar({
   // Edit dialog state
   const [editFolderOpen, setEditFolderOpen] = useState(false);
   const [editPageOpen, setEditPageOpen] = useState(false);
-  const [editingFolder, setEditingFolder] = useState<Doc<"folders"> | null>(null);
-  const [editingPage, setEditingPage] = useState<Doc<"pages"> | null>(null);
+  const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
+  const [editingPage, setEditingPage] = useState<Page | null>(null);
   const [editFolderName, setEditFolderName] = useState("");
   const [editFolderIcon, setEditFolderIcon] = useState<string | null>(null);
   const [editPageTitle, setEditPageTitle] = useState("");
@@ -339,24 +349,24 @@ export function EditorSidebar({
   // Delete confirmation state
   const [deletePageOpen, setDeletePageOpen] = useState(false);
   const [deleteFolderOpen, setDeleteFolderOpen] = useState(false);
-  const [pageToDelete, setPageToDelete] = useState<Doc<"pages"> | null>(null);
-  const [folderToDelete, setFolderToDelete] = useState<Doc<"folders"> | null>(null);
+  const [pageToDelete, setPageToDelete] = useState<Page | null>(null);
+  const [folderToDelete, setFolderToDelete] = useState<Folder | null>(null);
 
   // Ref for scoping react-dnd to the sidebar only (prevents conflict with BlockNote editor)
   const sidebarRef = useRef<HTMLDivElement | null>(null);
 
-  const createPage = useMutation(api.pages.create);
-  const createFolder = useMutation(api.folders.create);
-  const deletePage = useMutation(api.pages.remove);
-  const deleteFolder = useMutation(api.folders.remove);
-  const updatePage = useMutation(api.pages.update);
-  const updateFolder = useMutation(api.folders.update);
-  const reorderPage = useMutation(api.pages.reorder);
-  const reorderFolder = useMutation(api.folders.reorder);
+  const createPage = useDataMutation(api.pages.create);
+  const createFolder = useDataMutation(api.folders.create);
+  const deletePage = useDataMutation(api.pages.remove);
+  const deleteFolder = useDataMutation(api.folders.remove);
+  const updatePage = useDataMutation(api.pages.update);
+  const updateFolder = useDataMutation(api.folders.update);
+  const reorderPage = useDataMutation(api.pages.reorder);
+  const reorderFolder = useDataMutation(api.folders.reorder);
 
   // Convert pages and folders to tree data structure
   const treeData = useMemo((): TreeNodeData[] => {
-    const buildChildren = (parentFolderId: Id<"folders"> | null): TreeNodeData[] => {
+    const buildChildren = (parentFolderId: string | null): TreeNodeData[] => {
       const childFolders = folders.filter((f: any) =>
         parentFolderId ? f.parentId === parentFolderId : !f.parentId
       );
@@ -365,27 +375,33 @@ export function EditorSidebar({
       );
 
       const items: TreeNodeData[] = [
-        ...childFolders.map((folder): TreeNodeData => ({
-          id: `folder-${folder._id}`,
-          name: folder.name,
-          type: "folder",
-          icon: folder.icon,
-          folderData: folder,
-          children: buildChildren(folder._id),
-        })),
-        ...childPages.map((page): TreeNodeData => ({
-          id: `page-${page._id}`,
-          name: page.title,
-          type: "page",
-          icon: page.icon,
-          pageData: page,
-        })),
+        ...childFolders.map(
+          (folder): TreeNodeData => ({
+            id: `folder-${folder.id}`,
+            name: folder.name,
+            type: "folder",
+            icon: folder.icon ?? undefined,
+            folderData: folder,
+            children: buildChildren(folder.id as string),
+          })
+        ),
+        ...childPages.map(
+          (page): TreeNodeData => ({
+            id: `page-${page.id}`,
+            name: page.title,
+            type: "page",
+            icon: page.icon ?? undefined,
+            pageData: page,
+          })
+        ),
       ];
 
       // Sort by position, with root-level pages grouped above folders
       items.sort((a: any, b: any) => {
-        const aPos = a.type === "folder" ? a.folderData.position : a.pageData.position;
-        const bPos = b.type === "folder" ? b.folderData.position : b.pageData.position;
+        const aPos =
+          a.type === "folder" ? a.folderData.position : a.pageData.position;
+        const bPos =
+          b.type === "folder" ? b.folderData.position : b.pageData.position;
         // At root level, pages always appear above folders
         if (parentFolderId === null && a.type !== b.type) {
           return a.type === "page" ? -1 : 1;
@@ -408,7 +424,7 @@ export function EditorSidebar({
     trackEvent("page_created", { projectId, source: "editor" });
     setNewPageTitle("");
     setNewPageOpen(false);
-    onSelectPage(pageId);
+    onSelectPage(pageId as string);
   };
 
   const handleCreateFolder = async () => {
@@ -422,44 +438,44 @@ export function EditorSidebar({
     setNewFolderOpen(false);
   };
 
-  const togglePublish = async (pageId: Id<"pages">, isPublished: boolean) => {
+  const togglePublish = async (pageId: string, isPublished: boolean) => {
     await updatePage({ pageId, isPublished: !isPublished });
   };
 
-  const handleDeletePageClick = (page: Doc<"pages">) => {
+  const handleDeletePageClick = (page: Page) => {
     setPageToDelete(page);
     setDeletePageOpen(true);
   };
 
   const handleConfirmDeletePage = async () => {
     if (!pageToDelete) return;
-    await deletePage({ pageId: pageToDelete._id });
+    await deletePage({ pageId: pageToDelete.id });
     trackEvent("page_deleted", { projectId });
     setDeletePageOpen(false);
     setPageToDelete(null);
   };
 
-  const handleDeleteFolderClick = (folder: Doc<"folders">) => {
+  const handleDeleteFolderClick = (folder: Folder) => {
     setFolderToDelete(folder);
     setDeleteFolderOpen(true);
   };
 
   const handleConfirmDeleteFolder = async () => {
     if (!folderToDelete) return;
-    await deleteFolder({ folderId: folderToDelete._id });
+    await deleteFolder({ folderId: folderToDelete.id });
     setDeleteFolderOpen(false);
     setFolderToDelete(null);
   };
 
   // Edit handlers
-  const handleEditFolder = (folder: Doc<"folders">) => {
+  const handleEditFolder = (folder: Folder) => {
     setEditingFolder(folder);
     setEditFolderName(folder.name);
     setEditFolderIcon(folder.icon ?? null);
     setEditFolderOpen(true);
   };
 
-  const handleEditPage = (page: Doc<"pages">) => {
+  const handleEditPage = (page: Page) => {
     setEditingPage(page);
     setEditPageTitle(page.title);
     setEditPageIcon(page.icon ?? null);
@@ -469,7 +485,7 @@ export function EditorSidebar({
   const handleSaveFolder = async () => {
     if (!editingFolder || !editFolderName.trim()) return;
     await updateFolder({
-      folderId: editingFolder._id,
+      folderId: editingFolder.id,
       name: editFolderName.trim(),
       icon: editFolderIcon,
     });
@@ -480,7 +496,7 @@ export function EditorSidebar({
   const handleSavePage = async () => {
     if (!editingPage || !editPageTitle.trim()) return;
     await updatePage({
-      pageId: editingPage._id,
+      pageId: editingPage.id,
       title: editPageTitle.trim(),
       icon: editPageIcon,
     });
@@ -506,9 +522,9 @@ export function EditorSidebar({
       const isFolder = dragId.startsWith("folder-");
 
       // Determine target folder ID
-      let targetFolderId: Id<"folders"> | null = null;
+      let targetFolderId: string | null = null;
       if (parentId && parentId.startsWith("folder-")) {
-        targetFolderId = parentId.replace("folder-", "") as Id<"folders">;
+        targetFolderId = parentId.replace("folder-", "") as string;
       }
 
       // At root level (targetFolderId === null), pages are displayed above
@@ -520,8 +536,8 @@ export function EditorSidebar({
 
       try {
         if (isPage) {
-          const pageId = dragId.replace("page-", "") as Id<"pages">;
-          const page = pages.find((p: any) => p._id === pageId);
+          const pageId = dragId.replace("page-", "") as string;
+          const page = pages.find((candidate) => candidate.id === pageId);
           if (!page) return;
 
           const oldFolderId = page.folderId ?? null;
@@ -544,13 +560,18 @@ export function EditorSidebar({
             const pageVisualIndex = Math.min(index, rootPageCount);
 
             // Get other root pages (excluding dragged) sorted by position
-            const otherPages = rootPages.filter((p: any) => p._id !== pageId);
+            const otherPages = rootPages.filter(
+              (candidate) => candidate.id !== pageId
+            );
 
             if (pageVisualIndex >= otherPages.length) {
               // Dropping at end of pages
-              const maxPos = otherPages.length > 0
-                ? Math.max(...otherPages.map((p: any) => p.position as number))
-                : -1;
+              const maxPos =
+                otherPages.length > 0
+                  ? Math.max(
+                      ...otherPages.map((p: any) => p.position as number)
+                    )
+                  : -1;
               adjustedIndex = maxPos + 1;
             } else if (otherPages[pageVisualIndex]) {
               // Dropping before a specific page — take its position
@@ -579,8 +600,8 @@ export function EditorSidebar({
             newFolderId: targetFolderId,
           });
         } else if (isFolder) {
-          const folderId = dragId.replace("folder-", "") as Id<"folders">;
-          const folder = folders.find((f: any) => f._id === folderId);
+          const folderId = dragId.replace("folder-", "") as string;
+          const folder = folders.find((candidate) => candidate.id === folderId);
           if (!folder) return;
 
           // Prevent moving folder into itself or its descendants
@@ -606,13 +627,18 @@ export function EditorSidebar({
             const folderVisualIndex = Math.max(0, index - rootPageCount);
 
             // Get other root folders (excluding dragged) sorted by position
-            const otherFolders = rootFolders.filter((f: any) => f._id !== folderId);
+            const otherFolders = rootFolders.filter(
+              (candidate) => candidate.id !== folderId
+            );
 
             if (folderVisualIndex >= otherFolders.length) {
               // Dropping at end of folders
-              const maxPos = otherFolders.length > 0
-                ? Math.max(...otherFolders.map((f: any) => f.position as number))
-                : -1;
+              const maxPos =
+                otherFolders.length > 0
+                  ? Math.max(
+                      ...otherFolders.map((f: any) => f.position as number)
+                    )
+                  : -1;
               adjustedIndex = maxPos + 1;
             } else if (otherFolders[folderVisualIndex]) {
               // Dropping before a specific folder — take its position
@@ -696,7 +722,9 @@ export function EditorSidebar({
         </div>
       )}
       <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--glass-divider)]">
-        <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-dim)]">{t("pages")}</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-dim)]">
+          {t("pages")}
+        </span>
         <div className="flex gap-0.5">
           <Dialog open={newFolderOpen} onOpenChange={setNewFolderOpen}>
             {isBranchLocked ? (
@@ -710,18 +738,20 @@ export function EditorSidebar({
                       <FolderPlus className="h-4 w-4" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom">{t("branchLocked")}</TooltipContent>
+                  <TooltipContent side="bottom">
+                    {t("branchLocked")}
+                  </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             ) : (
-            <DialogTrigger asChild>
-              <button
-                className="flex h-7 w-7 items-center justify-center rounded-md transition-colors text-[var(--text-dim)] hover:bg-[var(--glass-hover)] hover:text-[var(--text-medium)] disabled:opacity-40 disabled:pointer-events-none"
-                disabled={isBranchLocked}
-              >
-                <FolderPlus className="h-4 w-4" />
-              </button>
-            </DialogTrigger>
+              <DialogTrigger asChild>
+                <button
+                  className="flex h-7 w-7 items-center justify-center rounded-md transition-colors text-[var(--text-dim)] hover:bg-[var(--glass-hover)] hover:text-[var(--text-medium)] disabled:opacity-40 disabled:pointer-events-none"
+                  disabled={isBranchLocked}
+                >
+                  <FolderPlus className="h-4 w-4" />
+                </button>
+              </DialogTrigger>
             )}
             <DialogContent>
               <DialogHeader>
@@ -734,7 +764,10 @@ export function EditorSidebar({
                 onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
               />
               <DialogFooter>
-                <Button variant="outline" onClick={() => setNewFolderOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setNewFolderOpen(false)}
+                >
                   {tc("cancel")}
                 </Button>
                 <Button onClick={handleCreateFolder}>{tc("create")}</Button>
@@ -753,18 +786,20 @@ export function EditorSidebar({
                       <FilePlus className="h-4 w-4" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom">{t("branchLocked")}</TooltipContent>
+                  <TooltipContent side="bottom">
+                    {t("branchLocked")}
+                  </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             ) : (
-            <DialogTrigger asChild>
-              <button
-                className="flex h-7 w-7 items-center justify-center rounded-md transition-colors text-[var(--text-dim)] hover:bg-[var(--glass-hover)] hover:text-[var(--text-medium)] disabled:opacity-40 disabled:pointer-events-none"
-                disabled={isBranchLocked}
-              >
-                <FilePlus className="h-4 w-4" />
-              </button>
-            </DialogTrigger>
+              <DialogTrigger asChild>
+                <button
+                  className="flex h-7 w-7 items-center justify-center rounded-md transition-colors text-[var(--text-dim)] hover:bg-[var(--glass-hover)] hover:text-[var(--text-medium)] disabled:opacity-40 disabled:pointer-events-none"
+                  disabled={isBranchLocked}
+                >
+                  <FilePlus className="h-4 w-4" />
+                </button>
+              </DialogTrigger>
             )}
             <DialogContent>
               <DialogHeader>
@@ -818,7 +853,9 @@ export function EditorSidebar({
                 tc,
               } as any)}
             >
-              {(props: NodeRendererProps<TreeNodeData>) => <NodeRenderer {...props} />}
+              {(props: NodeRendererProps<TreeNodeData>) => (
+                <NodeRenderer {...props} />
+              )}
             </Tree>
           )
         }
@@ -929,10 +966,15 @@ export function EditorSidebar({
             <DialogTitle>{t("deleteFolder")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            {t("deleteFolderConfirmation", { name: folderToDelete?.name ?? "" })}
+            {t("deleteFolderConfirmation", {
+              name: folderToDelete?.name ?? "",
+            })}
           </p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteFolderOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteFolderOpen(false)}
+            >
               {tc("cancel")}
             </Button>
             <Button variant="destructive" onClick={handleConfirmDeleteFolder}>

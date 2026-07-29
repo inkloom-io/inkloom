@@ -1,18 +1,17 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Button } from "@inkloom/ui/button";
 import { Label } from "@inkloom/ui/label";
 import { Upload, X, ImageIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface FaviconUploadProps {
-  projectId: Id<"projects">;
-  assetId?: Id<"assets">;
-  onUpload: (assetId: Id<"assets">) => void;
+  projectId: string;
+  assetId?: string;
+  onUpload: (assetId: string) => void;
   onRemove: () => void;
 }
 
@@ -27,9 +26,9 @@ export function FaviconUpload({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const createAsset = useMutation(api.assets.createAsset);
-  const deleteAsset = useMutation(api.assets.deleteAsset);
-  const asset = useQuery(
+  const createAsset = useDataMutation(api.assets.createAsset);
+  const deleteAsset = useDataMutation(api.assets.deleteAsset);
+  const asset = useDataQuery(
     api.assets.getAsset,
     assetId ? { assetId } : "skip"
   );
@@ -176,7 +175,9 @@ export function FaviconUpload({
           <ImageIcon className="h-6 w-6 text-muted-foreground" />
           <div>
             <p className="text-sm font-medium">
-              {isUploading ? t("faviconUpload.uploading") : t("faviconUpload.clickToUpload")}
+              {isUploading
+                ? t("faviconUpload.uploading")
+                : t("faviconUpload.clickToUpload")}
             </p>
             <p className="text-xs text-muted-foreground">
               {t("faviconUpload.formats")}

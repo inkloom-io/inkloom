@@ -11,7 +11,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  * indirectly by importing the build module and checking the generated
  * HTML contains the branding badge when showBranding is enabled.
  *
- * Since we can't call generateHtmlPage directly without a full Convex
+ * Since we can't call generateHtmlPage directly without a full D1
  * backend, we verify the source code contains the branding logic.
  */
 describe("CLI build branding badge", () => {

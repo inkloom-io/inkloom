@@ -2,9 +2,8 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { IconPicker, IconDisplay } from "./icon-picker";
 import {
   Eye,
@@ -23,7 +22,7 @@ import {
 } from "@inkloom/ui/tooltip";
 
 interface TitleSectionProps {
-  pageId: Id<"pages">;
+  pageId: string;
   title: string;
   icon?: string;
   subtitle?: string;
@@ -44,7 +43,7 @@ export function TitleSection({
   customFonts,
 }: TitleSectionProps) {
   const t = useTranslations("editor.titleSection");
-  const updatePage = useMutation(api.pages.update);
+  const updatePage = useDataMutation(api.pages.update);
   const [localSubtitle, setLocalSubtitle] = useState(subtitle ?? "");
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 

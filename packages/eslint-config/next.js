@@ -18,5 +18,5 @@ module.exports = {
       { prefer: "type-imports" },
     ],
   },
-  ignorePatterns: ["node_modules/", "dist/", ".next/", ".turbo/", "convex/_generated/"],
+  ignorePatterns: ["node_modules/", "dist/", ".next/", ".turbo/", ".wrangler/"],
 };

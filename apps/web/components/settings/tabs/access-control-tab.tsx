@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id, Doc } from "@/convex/_generated/dataModel";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
+import type { Project } from "@/db/schema";
 import {
   Card,
   CardContent,
@@ -50,14 +50,14 @@ function isValidEmail(email: string): boolean {
 
 interface AccessControlTabProps {
   projectId: string;
-  project: Doc<"projects">;
+  project: Project;
 }
 
 export function AccessControlTab({
   projectId,
   project,
 }: AccessControlTabProps) {
-  const updateSettings = useMutation(api.projects.updateSettings);
+  const updateSettings = useDataMutation(api.projects.updateSettings);
   const t = useTranslations("settings.accessControl");
 
   // State
@@ -94,7 +94,7 @@ export function AccessControlTab({
       sessionTtlDays: number;
     }) => {
       await updateSettings({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         settings: {
           accessControl: {
             mode: data.mode,
@@ -166,7 +166,7 @@ export function AccessControlTab({
   return (
     <GatedSection
       feature="authenticated_access"
-      projectId={projectId as Id<"projects">}
+      projectId={projectId}
       title={t("title")}
       description={t("description")}
       icon={Shield}

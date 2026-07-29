@@ -27,7 +27,7 @@ export interface ToolbarCollaborationProps {
  *
  * Renders ConnectionStatus + ActiveUsers in platform mode (multi-tenant).
  * Renders nothing in core mode (single-tenant) since real-time
- * collaboration requires PartyKit infrastructure.
+ * collaboration requires PartyServer infrastructure.
  */
 export function ToolbarCollaboration({
   collaboration,

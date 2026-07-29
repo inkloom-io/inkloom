@@ -2,23 +2,18 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { formatDistanceToNow } from "@/lib/date-utils";
 import { getUserInitials } from "@/lib/collaboration-utils";
 import { Button } from "@inkloom/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@inkloom/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@inkloom/ui/popover";
 import { CheckCircle, MessageSquare, RotateCcw } from "lucide-react";
 import { CommentInput } from "./comment-input";
 
 interface CommentPopoverProps {
-  threadId: Id<"commentThreads">;
-  currentUserId: Id<"users">;
+  threadId: string;
+  currentUserId: string;
   children: React.ReactNode;
   onOpenSidebar?: () => void;
 }
@@ -32,14 +27,14 @@ export function CommentPopover({
   const t = useTranslations("editor.comments");
   const [open, setOpen] = useState(false);
 
-  const thread = useQuery(
+  const thread = useDataQuery(
     api.comments.getThread,
     open ? { threadId } : "skip"
   );
 
-  const addComment = useMutation(api.comments.addComment);
-  const resolveThread = useMutation(api.comments.resolveThread);
-  const reopenThread = useMutation(api.comments.reopenThread);
+  const addComment = useDataMutation(api.comments.addComment);
+  const resolveThread = useDataMutation(api.comments.resolveThread);
+  const reopenThread = useDataMutation(api.comments.reopenThread);
 
   const handleAddReply = async (content: string) => {
     await addComment({
@@ -59,7 +54,8 @@ export function CommentPopover({
 
   // Show first few comments
   const visibleComments = thread?.comments.slice(0, 3) ?? [];
-  const remainingCount = (thread?.comments.length ?? 0) - visibleComments.length;
+  const remainingCount =
+    (thread?.comments.length ?? 0) - visibleComments.length;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -105,8 +101,8 @@ export function CommentPopover({
             {/* Comments preview */}
             <div className="max-h-64 overflow-auto p-3">
               <div className="space-y-3">
-                {visibleComments.map((comment: any) => (
-                  <div key={comment._id} className="flex gap-2">
+                {visibleComments.map((comment) => (
+                  <div key={comment.id} className="flex gap-2">
                     {comment.user?.avatarUrl ? (
                       <img
                         src={comment.user.avatarUrl}

@@ -4,9 +4,8 @@ import { use, useState, useCallback, useMemo, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import type { BlockNoteEditor } from "@blocknote/core";
 import { EditorSidebar } from "@/components/editor/sidebar-nav";
 import { EditorToolbar } from "@/components/editor/toolbar";
@@ -56,7 +55,7 @@ const BlockEditor = dynamic(
 /**
  * Recursively strip `id` fields from BlockNote blocks so that two block trees
  * can be compared structurally (Yjs-generated blocks have different IDs than
- * the ones stored in Convex).
+ * the ones stored in D1).
  */
 function stripBlockIds(blocks: unknown[]): unknown[] {
   return blocks.map((block) => {
@@ -82,7 +81,10 @@ function blocksAreDifferent(a: string, b: string): boolean {
     const aParsed = JSON.parse(a);
     const bParsed = JSON.parse(b);
     if (!Array.isArray(aParsed) || !Array.isArray(bParsed)) return false;
-    return JSON.stringify(stripBlockIds(aParsed)) !== JSON.stringify(stripBlockIds(bParsed));
+    return (
+      JSON.stringify(stripBlockIds(aParsed)) !==
+      JSON.stringify(stripBlockIds(bParsed))
+    );
   } catch {
     return false;
   }
@@ -109,7 +111,11 @@ function clearEditorHistory(editorInstance: BlockNoteEditor) {
       const state = tiptapEditor.state;
       for (const plugin of state.plugins) {
         const pluginState = plugin.getState?.(state);
-        if (pluginState && typeof pluginState === 'object' && 'undoManager' in pluginState) {
+        if (
+          pluginState &&
+          typeof pluginState === "object" &&
+          "undoManager" in pluginState
+        ) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (pluginState as any).undoManager?.clear();
           break;
@@ -138,16 +144,16 @@ export default function EditorPage({ params }: EditorPageProps) {
   const router = useRouter();
   const t = useTranslations("editor.page");
   const tPreview = useTranslations("editor.previewPanel");
-  const project = useQuery(api.projects.get, {
-    projectId: projectId as Id<"projects">,
+  const project = useDataQuery(api.projects.get, {
+    projectId: projectId as string,
   });
 
   // Resolve ?branch= param to a branch record (skipped when absent)
   const branchNameParam = searchParams.get("branch");
-  const branchFromUrl = useQuery(
+  const branchFromUrl = useDataQuery(
     api.branches.getByName,
     branchNameParam
-      ? { projectId: projectId as Id<"projects">, name: branchNameParam }
+      ? { projectId: projectId as string, name: branchNameParam }
       : "skip"
   );
 
@@ -158,17 +164,15 @@ export default function EditorPage({ params }: EditorPageProps) {
       ? localStorage.getItem(branchStorageKey)
       : null
   );
-  const savedBranch = useQuery(
+  const savedBranch = useDataQuery(
     api.branches.get,
     savedBranchId.current
-      ? { branchId: savedBranchId.current as Id<"branches"> }
+      ? { branchId: savedBranchId.current as string }
       : "skip"
   );
 
   // Branch state: starts with project's default branch
-  const [currentBranchId, setCurrentBranchId] = useState<Id<"branches"> | null>(
-    null
-  );
+  const [currentBranchId, setCurrentBranchId] = useState<string | null>(null);
 
   // Track whether we've completed initial branch resolution
   const initialBranchResolved = useRef(false);
@@ -185,8 +189,8 @@ export default function EditorPage({ params }: EditorPageProps) {
       // Resolved successfully — use it
       if (branchFromUrl) {
         initialBranchResolved.current = true;
-        setCurrentBranchId(branchFromUrl._id);
-        localStorage.setItem(branchStorageKey, branchFromUrl._id);
+        setCurrentBranchId(branchFromUrl.id as string);
+        localStorage.setItem(branchStorageKey, branchFromUrl.id);
         return;
       }
       // Branch not found — clear the stale param and let effect re-run
@@ -204,12 +208,12 @@ export default function EditorPage({ params }: EditorPageProps) {
       if (
         savedBranch &&
         !savedBranch.deletedAt &&
-        savedBranch.projectId === (projectId as Id<"projects">)
+        savedBranch.projectId === (projectId as string)
       ) {
         initialBranchResolved.current = true;
-        setCurrentBranchId(savedBranch._id);
+        setCurrentBranchId(savedBranch.id as string);
         // Update URL if non-default
-        if (savedBranch._id !== project.defaultBranchId) {
+        if (savedBranch.id !== project.defaultBranchId) {
           const params = new URLSearchParams(searchParams.toString());
           params.set("branch", savedBranch.name);
           router.replace(`?${params.toString()}`, { scroll: false });
@@ -222,7 +226,7 @@ export default function EditorPage({ params }: EditorPageProps) {
 
     // Fallback to default branch
     initialBranchResolved.current = true;
-    setCurrentBranchId(project.defaultBranchId);
+    setCurrentBranchId(project.defaultBranchId as string);
   }, [
     project?.defaultBranchId,
     branchNameParam,
@@ -234,27 +238,25 @@ export default function EditorPage({ params }: EditorPageProps) {
     router,
   ]);
 
-  const currentBranch = useQuery(
+  const currentBranch = useDataQuery(
     api.branches.get,
     currentBranchId ? { branchId: currentBranchId } : "skip"
   );
 
-  const pages = useQuery(
+  const pages = useDataQuery(
     api.pages.listByBranch,
     currentBranchId ? { branchId: currentBranchId } : "skip"
   );
-  const folders = useQuery(
+  const folders = useDataQuery(
     api.folders.listByBranch,
     currentBranchId ? { branchId: currentBranchId } : "skip"
   );
 
-  const [selectedPageId, setSelectedPageId] = useState<Id<"pages"> | null>(
-    null
-  );
+  const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
 
   // Persist selected page per project+branch in localStorage
   const selectPage = useCallback(
-    (pageId: Id<"pages"> | null) => {
+    (pageId: string | null) => {
       setSelectedPageId(pageId);
       if (pageId && currentBranchId) {
         localStorage.setItem(
@@ -267,7 +269,7 @@ export default function EditorPage({ params }: EditorPageProps) {
   );
 
   // GitHub connection for remote branch import
-  const githubConnection = useGitHubConnection(projectId as Id<"projects">);
+  const githubConnection = useGitHubConnection(projectId as string);
 
   // State to trigger branch creation from the lock banner
   const [createBranchRequested, setCreateBranchRequested] = useState(false);
@@ -280,7 +282,7 @@ export default function EditorPage({ params }: EditorPageProps) {
   const [comparingVersion, setComparingVersion] = useState<number | null>(null);
   const versionHistoryGate = useFeatureGate(
     "version_history",
-    projectId as Id<"projects">
+    projectId as string
   );
   const [restoreCounter, setRestoreCounter] = useState(0);
   const [collaborationDisabled, setCollaborationDisabled] = useState(false);
@@ -299,7 +301,7 @@ export default function EditorPage({ params }: EditorPageProps) {
     inlineEnd?: number;
   } | null>(null);
 
-  // Get current Convex user for comments and edit lock
+  // Get current data-service user for comments and edit lock
   const { userId: currentUserId, user } = useAuth();
 
   // Get user permissions (admins can delete any comment)
@@ -331,24 +333,27 @@ export default function EditorPage({ params }: EditorPageProps) {
 
     // Content-version guard: after a collaboration editor mounts, the Yjs
     // document may contain stale pre-merge content that overrides the correct
-    // Convex content. Detect this and push the Convex blocks into the editor.
+    // persisted content. Detect this and push the persisted blocks into the editor.
     const latestCollabConfig = collaborationConfigRef.current;
     const latestPageContent = pageContentRef.current;
     if (latestCollabConfig && latestPageContent) {
       requestAnimationFrame(() => {
         try {
           const editorBlocks = JSON.stringify(editorInstance.document);
-          const convexBlocks = latestPageContent.content;
+          const persistedBlocks = latestPageContent.content;
 
           // Only correct if structural content actually differs (ignore block IDs)
-          if (blocksAreDifferent(editorBlocks, convexBlocks)) {
-            const blocks = JSON.parse(convexBlocks);
+          if (blocksAreDifferent(editorBlocks, persistedBlocks)) {
+            const blocks = JSON.parse(persistedBlocks);
             editorInstance.replaceBlocks(editorInstance.document, blocks);
             // Clear undo/redo stacks so the content correction isn't undoable
             clearEditorHistory(editorInstance);
           }
         } catch (e) {
-          console.error("Failed to sync merged content to collaboration editor:", e);
+          console.error(
+            "Failed to sync merged content to collaboration editor:",
+            e
+          );
         }
       });
     }
@@ -385,13 +390,13 @@ export default function EditorPage({ params }: EditorPageProps) {
   // Feature gate: realtime collaboration requires Ultimate plan
   const collabGate = useFeatureGate(
     "realtime_collaboration",
-    projectId as Id<"projects">
+    projectId as string
   );
 
   // Real-time collaboration — only attempt connection if feature is available
   const isCollaborationEnabled = !!process.env.NEXT_PUBLIC_PARTYKIT_HOST;
   const collaboration = useCollaboration({
-    pageId: selectedPageId as Id<"pages">,
+    pageId: selectedPageId as string,
     enabled:
       !!selectedPageId &&
       isCollaborationEnabled &&
@@ -405,7 +410,7 @@ export default function EditorPage({ params }: EditorPageProps) {
   // Safety net: if collaboration takes too long to resolve (connect or error),
   // make the editor editable anyway after a short grace period. This prevents
   // the editor from being permanently stuck in read-only mode when the
-  // PartyKit server is unreachable or the token endpoint is slow.
+  // PartyServer server is unreachable or the token endpoint is slow.
   const [collaborationGracePeriodExpired, setCollaborationGracePeriodExpired] =
     useState(false);
   useEffect(() => {
@@ -447,14 +452,19 @@ export default function EditorPage({ params }: EditorPageProps) {
     pageId: selectedPageId,
     userId: currentUserId ?? null,
     userName: user?.name ?? user?.email ?? "Unknown",
-    enabled: !!selectedPageId && !!currentUserId && !collabGate.available && !collabGate.isLoading,
+    enabled:
+      !!selectedPageId &&
+      !!currentUserId &&
+      !collabGate.available &&
+      !collabGate.isLoading,
   });
 
   // When edit-locked by another user, make editor read-only
   const isEditLocked = editLock.isLocked && !collabGate.available;
 
   // Branch lock: default branch is locked, require feature branches for edits
-  const isBranchLocked = currentBranch?.isLocked === true && currentBranch?.isDefault === true;
+  const isBranchLocked =
+    currentBranch?.isLocked === true && currentBranch?.isDefault === true;
 
   // Latch: once collaboration connects for this page, keep the "-collab"
   // suffix so brief disconnections during token refresh don't remount the editor.
@@ -480,11 +490,11 @@ export default function EditorPage({ params }: EditorPageProps) {
     restoreCounter,
   ]);
 
-  const selectedPage = useQuery(
+  const selectedPage = useDataQuery(
     api.pages.get,
     selectedPageId ? { pageId: selectedPageId } : "skip"
   );
-  const pageContent = useQuery(
+  const pageContent = useDataQuery(
     api.pages.getContent,
     selectedPageId ? { pageId: selectedPageId } : "skip"
   );
@@ -497,8 +507,8 @@ export default function EditorPage({ params }: EditorPageProps) {
   const collaborationConfigRef = useRef(collaborationConfig);
   collaborationConfigRef.current = collaborationConfig;
 
-  const updateContent = useMutation(api.pages.updateContent);
-  const createPage = useMutation(api.pages.create);
+  const updateContent = useDataMutation(api.pages.updateContent);
+  const createPage = useDataMutation(api.pages.create);
 
   const handleCreateFirstPage = useCallback(async () => {
     if (!currentBranchId) return;
@@ -507,28 +517,28 @@ export default function EditorPage({ params }: EditorPageProps) {
       title: "Welcome",
     });
     trackEvent("page_created", { projectId, source: "editor_empty_state" });
-    selectPage(pageId);
+    selectPage(pageId as string);
   }, [currentBranchId, createPage, projectId, selectPage]);
 
   // Get comment threads for comment count and highlighting
-  const commentThreads = useQuery(
+  const commentThreads = useDataQuery(
     api.comments.listByPage,
     selectedPageId ? { pageId: selectedPageId } : "skip"
   );
   const openCommentCount =
-    commentThreads?.filter((t: any) => t.status === "open").length ?? 0;
+    commentThreads?.filter((thread) => thread.status === "open").length ?? 0;
 
   // Transform threads for the editor highlight system (with data for hover tooltip)
   const editorCommentThreads = useMemo(() => {
     if (!commentThreads) return undefined;
-    return commentThreads.map((thread: any) => ({
-      _id: thread._id,
+    return commentThreads.map((thread) => ({
+      _id: thread.id,
       blockId: thread.blockId,
-      quotedText: thread.quotedText,
+      quotedText: thread.quotedText ?? undefined,
       status: thread.status,
       // Position offsets for disambiguating multiple occurrences
-      inlineStart: thread.inlineStart,
-      inlineEnd: thread.inlineEnd,
+      inlineStart: thread.inlineStart ?? undefined,
+      inlineEnd: thread.inlineEnd ?? undefined,
       // Additional data for hover tooltip
       authorName: thread.creator?.name,
       authorAvatar: thread.creator?.avatarUrl,
@@ -557,17 +567,17 @@ export default function EditorPage({ params }: EditorPageProps) {
   }, []);
 
   // Track the editor's current content locally so the preview panel
-  // always reflects the latest state, even before content is persisted to Convex
+  // always reflects the latest state, even before content is persisted to D1
   const [editorContent, setEditorContent] = useState<string | null>(null);
 
   // Reset local editor content and save-guard timestamps when switching pages.
-  // The external-update guard compares lastConvexUpdateRef vs lastLocalSaveRef
+  // The external-update guard compares lastRemoteUpdateRef vs lastLocalSaveRef
   // to detect external mutations (merges, restores). These timestamps are
   // per-page, so they must be reset on navigation to avoid stale values from
   // the previous page blocking saves on the new page.
   useEffect(() => {
     setEditorContent(null);
-    lastConvexUpdateRef.current = 0;
+    lastRemoteUpdateRef.current = 0;
     lastLocalSaveRef.current = 0;
   }, [selectedPageId]);
 
@@ -579,13 +589,13 @@ export default function EditorPage({ params }: EditorPageProps) {
     setRestoreCounter((c) => c + 1);
   }, []);
 
-  // Track the last time Convex content was updated (e.g. by a merge or restore)
+  // Track the last time persisted content was updated (e.g. by a merge or restore)
   // so we can detect external writes and avoid overwriting them with stale editor content.
-  const lastConvexUpdateRef = useRef<number>(0);
+  const lastRemoteUpdateRef = useRef<number>(0);
 
   useEffect(() => {
     if (pageContent?.updatedAt) {
-      lastConvexUpdateRef.current = pageContent.updatedAt;
+      lastRemoteUpdateRef.current = pageContent.updatedAt;
       // Initialize local save ref on first load so the guard doesn't
       // block saves before the user has ever saved in this session.
       if (lastLocalSaveRef.current === 0) {
@@ -595,10 +605,10 @@ export default function EditorPage({ params }: EditorPageProps) {
   }, [pageContent?.updatedAt]);
 
   // Track the last time we successfully saved content locally, so we can
-  // compare against Convex's updatedAt to detect external mutations.
+  // compare against the persisted updatedAt to detect external mutations.
   const lastLocalSaveRef = useRef<number>(0);
 
-  // Debounced content save to Convex
+  // Debounced content save to D1
   const pendingContentRef = useRef<string | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -633,7 +643,7 @@ export default function EditorPage({ params }: EditorPageProps) {
 
       // Debounce content updates to prevent OCC conflicts from rapid typing.
       // In collaboration mode, use a longer debounce since real-time sync is
-      // handled by PartyKit/Yjs — but we still persist to Convex so the
+      // handled by PartyServer/Yjs — but we still persist to D1 so the
       // preview panel and publish flow always have access to the latest content.
       pendingContentRef.current = content;
       setIsSaving(true);
@@ -645,9 +655,9 @@ export default function EditorPage({ params }: EditorPageProps) {
       const debounceMs = collaboration.connected ? 800 : 500;
       debounceTimerRef.current = setTimeout(async () => {
         // Don't overwrite content that was updated externally (e.g., merge,
-        // version restore) since our last save. The Convex updatedAt would be
+        // version restore) since our last save. The persisted updatedAt would be
         // more recent than our last save if an external mutation updated it.
-        if (lastConvexUpdateRef.current > lastLocalSaveRef.current) {
+        if (lastRemoteUpdateRef.current > lastLocalSaveRef.current) {
           pendingContentRef.current = null;
           setIsSaving(false);
           return;
@@ -709,7 +719,7 @@ export default function EditorPage({ params }: EditorPageProps) {
 
   // Handle branch switching
   const handleBranchSwitch = useCallback(
-    async (branchId: Id<"branches">, branchName?: string) => {
+    async (branchId: string, branchName?: string) => {
       // Flush (not discard) any pending debounced save so edits aren't lost.
       // Must await so the save lands before we tear down the page context.
       await flushContentSave();
@@ -751,7 +761,7 @@ export default function EditorPage({ params }: EditorPageProps) {
     if (!pages || !currentBranchId) return;
 
     // If selected page isn't in the current pages list, clear it
-    if (selectedPageId && !pages.some((p: any) => p._id === selectedPageId)) {
+    if (selectedPageId && !pages.some((page) => page.id === selectedPageId)) {
       setSelectedPageId(null);
       return;
     }
@@ -761,10 +771,10 @@ export default function EditorPage({ params }: EditorPageProps) {
       const savedPageId = localStorage.getItem(
         `inkloom:page:${projectId}:${currentBranchId}`
       );
-      if (savedPageId && pages.some((p: any) => p._id === savedPageId)) {
-        setSelectedPageId(savedPageId as Id<"pages">);
+      if (savedPageId && pages.some((page) => page.id === savedPageId)) {
+        setSelectedPageId(savedPageId as string);
       } else if (pages[0] && pages[0].branchId === currentBranchId) {
-        selectPage(pages[0]._id);
+        selectPage(pages[0].id as string);
       }
     }
   }, [pages, selectedPageId, currentBranchId, projectId, selectPage]);
@@ -806,7 +816,7 @@ export default function EditorPage({ params }: EditorPageProps) {
         }}
       >
         <EditorSidebar
-          projectId={projectId as Id<"projects">}
+          projectId={projectId as string}
           branchId={currentBranchId!}
           pages={pages || []}
           folders={folders || []}
@@ -828,13 +838,17 @@ export default function EditorPage({ params }: EditorPageProps) {
             onTogglePreview={() => setIsPreviewOpen(!isPreviewOpen)}
             editor={editor}
             onOpenSearch={() => setIsSearchOpen(true)}
-            collaboration={selectedPageId ? {
-              connected: collaboration.connected,
-              synced: collaboration.synced,
-              error: collaboration.error,
-              activeUsers: collaboration.activeUsers,
-              currentUser: collaboration.currentUser,
-            } : undefined}
+            collaboration={
+              selectedPageId
+                ? {
+                    connected: collaboration.connected,
+                    synced: collaboration.synced,
+                    error: collaboration.error,
+                    activeUsers: collaboration.activeUsers,
+                    currentUser: collaboration.currentUser,
+                  }
+                : undefined
+            }
             collaborationGated={
               isCollaborationEnabled &&
               !collabGate.available &&
@@ -860,17 +874,23 @@ export default function EditorPage({ params }: EditorPageProps) {
             isVersionHistoryOpen={isVersionHistoryOpen}
             onToggleVersionHistory={() => {
               setIsVersionHistoryOpen(!isVersionHistoryOpen);
-              if (!isVersionHistoryOpen) { setIsCommentsOpen(false); setIsPageSeoOpen(false); }
+              if (!isVersionHistoryOpen) {
+                setIsCommentsOpen(false);
+                setIsPageSeoOpen(false);
+              }
             }}
             isPageSeoOpen={isPageSeoOpen}
             onTogglePageSeo={() => {
               setIsPageSeoOpen(!isPageSeoOpen);
-              if (!isPageSeoOpen) { setIsCommentsOpen(false); setIsVersionHistoryOpen(false); }
+              if (!isPageSeoOpen) {
+                setIsCommentsOpen(false);
+                setIsVersionHistoryOpen(false);
+              }
             }}
             pageId={selectedPageId ?? undefined}
             currentUserId={currentUserId}
           />
-          <AiGenerationBanner projectId={projectId as Id<"projects">} />
+          <AiGenerationBanner projectId={projectId as string} />
           <div className="flex min-h-0 flex-1 overflow-hidden">
             <div className="relative min-h-0 flex-1 overflow-auto">
               {/* Version diff view replaces the editor when comparing */}
@@ -886,7 +906,7 @@ export default function EditorPage({ params }: EditorPageProps) {
                     restoreEditorContent(content);
                   }}
                   pageTitle={selectedPage?.title ?? ""}
-                  pageSubtitle={selectedPage?.subtitle}
+                  pageSubtitle={selectedPage?.subtitle ?? undefined}
                   pageFolderId={selectedPage?.folderId ?? undefined}
                   folders={folders ?? []}
                   navTabs={project.settings?.navTabs ?? []}
@@ -914,7 +934,8 @@ export default function EditorPage({ params }: EditorPageProps) {
                     <div
                       className="flex items-center gap-3 px-4 py-2.5 text-sm border-b border-[var(--glass-border)]"
                       style={{
-                        backgroundColor: "color-mix(in srgb, var(--surface-bg) 90%, var(--text-dim) 10%)",
+                        backgroundColor:
+                          "color-mix(in srgb, var(--surface-bg) 90%, var(--text-dim) 10%)",
                       }}
                     >
                       <Lock className="h-4 w-4 shrink-0 text-[var(--text-dim)]" />
@@ -936,10 +957,14 @@ export default function EditorPage({ params }: EditorPageProps) {
                     <TitleSection
                       pageId={selectedPageId}
                       title={selectedPage.title}
-                      icon={selectedPage.icon}
-                      subtitle={selectedPage.subtitle}
-                      titleSectionHidden={selectedPage.titleSectionHidden}
-                      titleIconHidden={selectedPage.titleIconHidden}
+                      icon={selectedPage.icon ?? undefined}
+                      subtitle={selectedPage.subtitle ?? undefined}
+                      titleSectionHidden={
+                        selectedPage.titleSectionHidden ?? undefined
+                      }
+                      titleIconHidden={
+                        selectedPage.titleIconHidden ?? undefined
+                      }
                       themePreset={
                         (project.settings?.theme as ThemePreset) || "default"
                       }
@@ -959,7 +984,9 @@ export default function EditorPage({ params }: EditorPageProps) {
                     initialContent={pageContent.content}
                     onChange={handleContentChange}
                     onEditorReady={handleEditorReady}
-                    editable={isCollaborationReady && !isEditLocked && !isBranchLocked}
+                    editable={
+                      isCollaborationReady && !isEditLocked && !isBranchLocked
+                    }
                     themePreset={
                       (project.settings?.theme as ThemePreset) || "default"
                     }
@@ -976,7 +1003,7 @@ export default function EditorPage({ params }: EditorPageProps) {
                     customBackgroundSubtleColorDark={
                       project.settings?.backgroundSubtleColorDark
                     }
-                    projectId={projectId as Id<"projects">}
+                    projectId={projectId as string}
                     collaboration={collaborationConfig}
                     pageId={selectedPageId}
                     currentUserId={currentUserId}
@@ -1006,9 +1033,7 @@ export default function EditorPage({ params }: EditorPageProps) {
                       </div>
                     )}
                 </div>
-              ) : selectedPageId ? // Page selected but content still loading — keep area empty to avoid placeholder flash
-              null : !pages ? // Pages query still loading — render nothing to avoid flashing "Select a page"
-              null : pages.length === 0 ? (
+              ) : selectedPageId ? null : !pages ? null : pages.length === 0 ? ( // Page selected but content still loading — keep area empty to avoid placeholder flash // Pages query still loading — render nothing to avoid flashing "Select a page"
                 <div className="flex h-full items-center justify-center">
                   <div className="flex flex-col items-center gap-4 max-w-sm text-center">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--surface-bg)] border border-[var(--glass-border)]">
@@ -1026,19 +1051,14 @@ export default function EditorPage({ params }: EditorPageProps) {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Button
-                        onClick={handleCreateFirstPage}
-                        size="sm"
-                      >
+                      <Button onClick={handleCreateFirstPage} size="sm">
                         <FilePlus className="h-4 w-4 mr-1.5" />
                         {t("createPage")}
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                      >
-                        <Link href={`/projects/${projectId}/settings?tab=integrations`}>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link
+                          href={`/projects/${projectId}/settings?tab=integrations`}
+                        >
                           <Github className="h-4 w-4 mr-1.5" />
                           {t("importFromGithub")}
                         </Link>
@@ -1094,10 +1114,12 @@ export default function EditorPage({ params }: EditorPageProps) {
                 <PageSeoPanel
                   pageId={selectedPageId}
                   initialData={{
-                    seoTitle: selectedPage.seoTitle,
-                    seoDescription: selectedPage.seoDescription,
-                    ogImageAssetId: selectedPage.ogImageAssetId,
-                    noindex: selectedPage.noindex,
+                    seoTitle: selectedPage.seoTitle ?? undefined,
+                    seoDescription: selectedPage.seoDescription ?? undefined,
+                    ogImageAssetId:
+                      (selectedPage.ogImageAssetId as string | null) ??
+                      undefined,
+                    noindex: selectedPage.noindex ?? undefined,
                   }}
                   pageTitle={selectedPage.title}
                   onClose={() => setIsPageSeoOpen(false)}
@@ -1141,11 +1163,13 @@ export default function EditorPage({ params }: EditorPageProps) {
             <PreviewPanel
               content={editorContent ?? pageContent.content}
               pageTitle={selectedPage.title}
-              pageId={selectedPage._id}
+              pageId={selectedPage.id as string}
               folderId={selectedPage.folderId ?? undefined}
               folders={folders ?? []}
               navTabs={project.settings?.navTabs ?? []}
-              themePreset={(project.settings?.theme as ThemePreset) || "default"}
+              themePreset={
+                (project.settings?.theme as ThemePreset) || "default"
+              }
               customPrimaryColor={project.settings?.primaryColor}
               customBackgroundColorLight={
                 project.settings?.backgroundColorLight
@@ -1157,10 +1181,10 @@ export default function EditorPage({ params }: EditorPageProps) {
               customBackgroundSubtleColorDark={
                 project.settings?.backgroundSubtleColorDark
               }
-              pageIcon={selectedPage.icon}
-              pageSubtitle={selectedPage.subtitle}
-              titleSectionHidden={selectedPage.titleSectionHidden}
-              titleIconHidden={selectedPage.titleIconHidden}
+              pageIcon={selectedPage.icon ?? undefined}
+              pageSubtitle={selectedPage.subtitle ?? undefined}
+              titleSectionHidden={selectedPage.titleSectionHidden ?? undefined}
+              titleIconHidden={selectedPage.titleIconHidden ?? undefined}
               onOpenSearch={() => setIsSearchOpen(true)}
             />
           ) : (
@@ -1179,10 +1203,10 @@ export default function EditorPage({ params }: EditorPageProps) {
         </SheetContent>
       </Sheet>
       <SearchCommand
-        projectId={projectId as Id<"projects">}
+        projectId={projectId as string}
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
-        onSelectPage={selectPage}
+        onSelectPage={(pageId) => selectPage(pageId as string)}
       />
       <AlertDialog
         open={showDisableCollabWarning}

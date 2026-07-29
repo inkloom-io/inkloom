@@ -2,17 +2,16 @@
  * POST /api/build — Trigger static site build (core mode).
  *
  * Accepts { projectId, branchId?, target? } and generates a static
- * site to the `dist/` directory. Creates a deployment record in Convex
+ * site to the `dist/` directory. Creates a deployment record in D1
  * for progress tracking via the usePublish hook.
  *
  * Response format matches the platform deployments API so usePublish
  * works identically in both modes.
  */
 import { NextResponse } from "next/server";
-import { ConvexHttpClient } from "convex/browser";
-import type { Id } from "@/convex/_generated/dataModel";
 import { buildProject } from "@/lib/build-project";
 import { errorReportingAdapter } from "@/lib/adapters";
+import { createServerDataClient } from "@/lib/server-data-client";
 
 export async function POST(request: Request) {
   try {
@@ -26,40 +25,26 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create Convex client
-    const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-    if (!convexUrl) {
-      return NextResponse.json(
-        { error: { message: "NEXT_PUBLIC_CONVEX_URL is not configured" } },
-        { status: 500 }
-      );
-    }
+    const data = await createServerDataClient();
+    const result = await buildProject(data, {
+      projectId: body.projectId,
+      branchId: typeof body.branchId === "string" ? body.branchId : undefined,
+      outDir: "dist",
+      clean: true,
+    });
 
-    const convex = new ConvexHttpClient(convexUrl);
-
-    try {
-      const result = await buildProject(convex, {
-        projectId: body.projectId as Id<"projects">,
-        branchId: body.branchId as Id<"branches"> | undefined,
-        outDir: "dist",
-        clean: true,
-      });
-
-      return NextResponse.json(
-        {
-          data: {
-            deploymentId: result.deploymentId,
-            url: result.url,
-            pageCount: result.pageCount,
-            fileCount: result.fileCount,
-            outDir: result.outDir,
-          },
+    return NextResponse.json(
+      {
+        data: {
+          deploymentId: result.deploymentId,
+          url: result.url,
+          pageCount: result.pageCount,
+          fileCount: result.fileCount,
+          outDir: result.outDir,
         },
-        { status: 200 }
-      );
-    } finally {
-      // ConvexHttpClient has no explicit close — let GC handle it
-    }
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("[build] Unhandled error:", error);
     if (error instanceof Error) {

@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { Id } from "@/convex/_generated/dataModel";
 
 /**
  * Mode-agnostic authentication hook.
@@ -14,10 +13,13 @@ import type { Id } from "@/convex/_generated/dataModel";
  * - Core mode: `CoreAuthBridge` (wraps `ensureLocalUser`)
  */
 
-/** The Convex user document shape exposed by useAuth(). */
+/** The data-service user shape exposed by useAuth(). */
 export interface AuthUser {
-  _id: Id<"users">;
-  _creationTime: number;
+  id?: string;
+  createdAt?: number;
+  /** Temporary legacy aliases retained while downstream plugins migrate. */
+  _id?: string;
+  _creationTime?: number;
   email: string;
   name?: string;
   avatarUrl?: string;
@@ -26,10 +28,10 @@ export interface AuthUser {
 }
 
 export interface AuthState {
-  /** The current Convex user document, or null if not yet loaded. */
+  /** The current user document, or null if not yet loaded. */
   user: AuthUser | null;
-  /** Shorthand for `user?._id`. */
-  userId: Id<"users"> | undefined;
+  /** Stable D1 user ID. */
+  userId: string | undefined;
   /** True while the user is being fetched/synced. */
   isLoading: boolean;
   /** Sign out the current user (navigates to /signout in platform, no-op in core). */

@@ -1,18 +1,17 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Button } from "@inkloom/ui/button";
 import { Label } from "@inkloom/ui/label";
 import { Upload, X, ImageIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface OgImageUploadProps {
-  projectId: Id<"projects">;
-  assetId?: Id<"assets">;
-  onUpload: (assetId: Id<"assets">) => void;
+  projectId: string;
+  assetId?: string;
+  onUpload: (assetId: string) => void;
   onRemove: () => void;
   label?: string;
 }
@@ -30,9 +29,9 @@ export function OgImageUpload({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const createAsset = useMutation(api.assets.createAsset);
-  const deleteAsset = useMutation(api.assets.deleteAsset);
-  const asset = useQuery(
+  const createAsset = useDataMutation(api.assets.createAsset);
+  const deleteAsset = useDataMutation(api.assets.deleteAsset);
+  const asset = useDataQuery(
     api.assets.getAsset,
     assetId ? { assetId } : "skip"
   );
@@ -138,7 +137,10 @@ export function OgImageUpload({
 
       {asset?.url ? (
         <div className="space-y-3">
-          <div className="rounded-lg border overflow-hidden" style={{ aspectRatio: "1200/630", maxWidth: 400 }}>
+          <div
+            className="rounded-lg border overflow-hidden"
+            style={{ aspectRatio: "1200/630", maxWidth: 400 }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={asset.url}
@@ -176,7 +178,9 @@ export function OgImageUpload({
         >
           <ImageIcon className="mb-2 h-8 w-8 text-muted-foreground" />
           <p className="text-sm font-medium">
-            {isUploading ? t("ogImageUpload.uploading") : t("ogImageUpload.clickToUpload")}
+            {isUploading
+              ? t("ogImageUpload.uploading")
+              : t("ogImageUpload.clickToUpload")}
           </p>
           <p className="text-xs text-muted-foreground">
             {t("ogImageUpload.formats")}

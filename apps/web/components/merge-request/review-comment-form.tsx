@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@inkloom/ui/button";
 import { Textarea } from "@inkloom/ui/textarea";
@@ -14,7 +13,7 @@ import { useTranslations } from "next-intl";
 type ThreadType = "comment" | "suggestion";
 
 interface ReviewCommentFormProps {
-  mergeRequestId: Id<"mergeRequests">;
+  mergeRequestId: string;
   pagePath: string;
   blockId: string;
   blockIndex: number;
@@ -41,13 +40,11 @@ export function ReviewCommentForm({
 }: ReviewCommentFormProps) {
   const t = useTranslations("mergeRequests.review");
   const { userId } = useAuth();
-  const createThread = useMutation(api.mrReviews.createThread);
+  const createThread = useDataMutation(api.mrReviews.createThread);
 
   const [threadType, setThreadType] = useState<ThreadType>("comment");
   const [content, setContent] = useState("");
-  const [suggestedContent, setSuggestedContent] = useState(
-    quotedContent ?? ""
-  );
+  const [suggestedContent, setSuggestedContent] = useState(quotedContent ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -197,7 +194,8 @@ export function ReviewCommentForm({
         <div className="space-y-1.5">
           {threadType === "suggestion" && (
             <label className="text-[11px] font-medium text-[var(--text-dim)] uppercase tracking-wide">
-              {t("commentLabel")} <span className="normal-case font-normal">({t("optional")})</span>
+              {t("commentLabel")}{" "}
+              <span className="normal-case font-normal">({t("optional")})</span>
             </label>
           )}
           <Textarea
@@ -228,11 +226,7 @@ export function ReviewCommentForm({
             >
               {t("cancel")}
             </Button>
-            <Button
-              size="sm"
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-            >
+            <Button size="sm" onClick={handleSubmit} disabled={!canSubmit}>
               {isSubmitting && (
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
               )}
@@ -250,7 +244,7 @@ export function ReviewCommentForm({
 // ── Reply Form ──────────────────────────────────────────────────────────
 
 interface ReplyFormProps {
-  threadId: Id<"mrReviewThreads">;
+  threadId: string;
   onSubmitted?: () => void;
 }
 
@@ -260,7 +254,7 @@ interface ReplyFormProps {
 export function ReplyForm({ threadId, onSubmitted }: ReplyFormProps) {
   const t = useTranslations("mergeRequests.review");
   const { userId } = useAuth();
-  const addComment = useMutation(api.mrReviews.addComment);
+  const addComment = useDataMutation(api.mrReviews.addComment);
 
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

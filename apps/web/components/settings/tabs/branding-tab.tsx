@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id, Doc } from "@/convex/_generated/dataModel";
+import type { Project } from "@/db/schema";
+import { useDataMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
 import {
   Card,
   CardContent,
@@ -59,16 +59,25 @@ const SAMPLE_PREVIEW_CONTENT = JSON.stringify([
   {
     type: "paragraph",
     content: [
-      { type: "text", text: "Welcome to the documentation. This preview shows how your theme will look on your " },
+      {
+        type: "text",
+        text: "Welcome to the documentation. This preview shows how your theme will look on your ",
+      },
       { type: "text", text: "published site", styles: { bold: true } },
-      { type: "text", text: ". Customize your colors and fonts, then check the result here." },
+      {
+        type: "text",
+        text: ". Customize your colors and fonts, then check the result here.",
+      },
     ],
   },
   {
     type: "callout",
     props: { type: "info" },
     content: [
-      { type: "text", text: "This is an info callout — great for tips and important notes that readers shouldn't miss." },
+      {
+        type: "text",
+        text: "This is an info callout — great for tips and important notes that readers shouldn't miss.",
+      },
     ],
   },
   {
@@ -87,7 +96,12 @@ const SAMPLE_PREVIEW_CONTENT = JSON.stringify([
   {
     type: "codeBlock",
     props: { language: "bash" },
-    content: [{ type: "text", text: "npm install @example/sdk\n\n# Or with yarn\nyarn add @example/sdk" }],
+    content: [
+      {
+        type: "text",
+        text: "npm install @example/sdk\n\n# Or with yarn\nyarn add @example/sdk",
+      },
+    ],
   },
   {
     type: "heading",
@@ -97,8 +111,15 @@ const SAMPLE_PREVIEW_CONTENT = JSON.stringify([
   {
     type: "paragraph",
     content: [
-      { type: "text", text: "After installing, create a config file. See the " },
-      { type: "link", href: "#", content: [{ type: "text", text: "configuration guide" }] },
+      {
+        type: "text",
+        text: "After installing, create a config file. See the ",
+      },
+      {
+        type: "link",
+        href: "#",
+        content: [{ type: "text", text: "configuration guide" }],
+      },
       { type: "text", text: " for all available options." },
     ],
   },
@@ -109,30 +130,71 @@ const SAMPLE_PREVIEW_CONTENT = JSON.stringify([
       rows: [
         {
           cells: [
-            { type: "tableCell", content: [{ type: "text", text: "Option", styles: { bold: true } }] },
-            { type: "tableCell", content: [{ type: "text", text: "Type", styles: { bold: true } }] },
-            { type: "tableCell", content: [{ type: "text", text: "Description", styles: { bold: true } }] },
+            {
+              type: "tableCell",
+              content: [
+                { type: "text", text: "Option", styles: { bold: true } },
+              ],
+            },
+            {
+              type: "tableCell",
+              content: [{ type: "text", text: "Type", styles: { bold: true } }],
+            },
+            {
+              type: "tableCell",
+              content: [
+                { type: "text", text: "Description", styles: { bold: true } },
+              ],
+            },
           ],
         },
         {
           cells: [
-            { type: "tableCell", content: [{ type: "text", text: "apiKey", styles: { code: true } }] },
+            {
+              type: "tableCell",
+              content: [
+                { type: "text", text: "apiKey", styles: { code: true } },
+              ],
+            },
             { type: "tableCell", content: [{ type: "text", text: "string" }] },
-            { type: "tableCell", content: [{ type: "text", text: "Your API key for authentication" }] },
+            {
+              type: "tableCell",
+              content: [
+                { type: "text", text: "Your API key for authentication" },
+              ],
+            },
           ],
         },
         {
           cells: [
-            { type: "tableCell", content: [{ type: "text", text: "debug", styles: { code: true } }] },
+            {
+              type: "tableCell",
+              content: [
+                { type: "text", text: "debug", styles: { code: true } },
+              ],
+            },
             { type: "tableCell", content: [{ type: "text", text: "boolean" }] },
-            { type: "tableCell", content: [{ type: "text", text: "Enable verbose logging" }] },
+            {
+              type: "tableCell",
+              content: [{ type: "text", text: "Enable verbose logging" }],
+            },
           ],
         },
         {
           cells: [
-            { type: "tableCell", content: [{ type: "text", text: "timeout", styles: { code: true } }] },
+            {
+              type: "tableCell",
+              content: [
+                { type: "text", text: "timeout", styles: { code: true } },
+              ],
+            },
             { type: "tableCell", content: [{ type: "text", text: "number" }] },
-            { type: "tableCell", content: [{ type: "text", text: "Request timeout in milliseconds" }] },
+            {
+              type: "tableCell",
+              content: [
+                { type: "text", text: "Request timeout in milliseconds" },
+              ],
+            },
           ],
         },
       ],
@@ -141,14 +203,20 @@ const SAMPLE_PREVIEW_CONTENT = JSON.stringify([
   {
     type: "quote",
     content: [
-      { type: "text", text: "Good documentation is the foundation of a great developer experience." },
+      {
+        type: "text",
+        text: "Good documentation is the foundation of a great developer experience.",
+      },
     ],
   },
   {
     type: "callout",
     props: { type: "warning" },
     content: [
-      { type: "text", text: "Never commit your API key to version control. Use environment variables instead." },
+      {
+        type: "text",
+        text: "Never commit your API key to version control. Use environment variables instead.",
+      },
     ],
   },
   {
@@ -158,19 +226,34 @@ const SAMPLE_PREVIEW_CONTENT = JSON.stringify([
       {
         type: "card",
         props: { title: "Quickstart", icon: "🚀" },
-        content: [{ type: "text", text: "Get up and running in under 5 minutes with our quickstart guide." }],
+        content: [
+          {
+            type: "text",
+            text: "Get up and running in under 5 minutes with our quickstart guide.",
+          },
+        ],
       },
       {
         type: "card",
         props: { title: "API Reference", icon: "📖" },
-        content: [{ type: "text", text: "Explore the full API reference with examples for every endpoint." }],
+        content: [
+          {
+            type: "text",
+            text: "Explore the full API reference with examples for every endpoint.",
+          },
+        ],
       },
     ],
   },
   {
     type: "codeBlock",
     props: { language: "typescript" },
-    content: [{ type: "text", text: "import { Client } from \"@example/sdk\";\n\nconst client = new Client({\n  apiKey: process.env.API_KEY,\n  debug: true,\n});\n\nconst result = await client.query(\"hello\");\nconsole.log(result);" }],
+    content: [
+      {
+        type: "text",
+        text: 'import { Client } from "@example/sdk";\n\nconst client = new Client({\n  apiKey: process.env.API_KEY,\n  debug: true,\n});\n\nconst result = await client.query("hello");\nconsole.log(result);',
+      },
+    ],
   },
 ]);
 
@@ -178,45 +261,82 @@ type SocialPlatform = "github" | "x" | "discord" | "linkedin" | "youtube";
 
 interface BrandingTabProps {
   projectId: string;
-  project: Doc<"projects">;
+  project: Project;
 }
 
 export function BrandingTab({ projectId, project }: BrandingTabProps) {
-  const updateSettings = useMutation(api.projects.updateSettings);
+  const updateSettings = useDataMutation(api.projects.updateSettings);
   const t = useTranslations("settings.branding");
-  const { available: canRemoveBranding } = useFeatureGate("remove_branding", projectId as Id<"projects">);
+  const { available: canRemoveBranding } = useFeatureGate(
+    "remove_branding",
+    projectId
+  );
 
   // Branding settings — sync preview toggle with platform theme
   const { resolvedTheme: platformTheme } = useTheme();
-  const [previewModeOverride, setPreviewModeOverride] = useState<"light" | "dark" | null>(null);
-  const previewMode: "light" | "dark" = previewModeOverride ?? (platformTheme === "light" ? "light" : "dark");
+  const [previewModeOverride, setPreviewModeOverride] = useState<
+    "light" | "dark" | null
+  >(null);
+  const previewMode: "light" | "dark" =
+    previewModeOverride ?? (platformTheme === "light" ? "light" : "dark");
   const [theme, setTheme] = useState<ThemePreset>("default");
-  const [primaryColor, setPrimaryColor] = useState(THEME_PRESETS.fossil.primaryColor);
-  const [logoAssetId, setLogoAssetId] = useState<Id<"assets"> | undefined>();
+  const [primaryColor, setPrimaryColor] = useState(
+    THEME_PRESETS.fossil.primaryColor
+  );
+  const [logoAssetId, setLogoAssetId] = useState<string | undefined>();
   const [brandingInitialized, setBrandingInitialized] = useState(false);
   const colorOverridesRef = useRef<Partial<Record<ThemePreset, string>>>({});
-  const [backgroundColorLight, setBackgroundColorLight] = useState(THEME_PRESETS.fossil.colors.light.background);
-  const [backgroundColorDark, setBackgroundColorDark] = useState(THEME_PRESETS.fossil.colors.dark.background);
-  const [backgroundSubtleColorLight, setBackgroundSubtleColorLight] = useState(THEME_PRESETS.fossil.colors.light.backgroundSubtle);
-  const [backgroundSubtleColorDark, setBackgroundSubtleColorDark] = useState(THEME_PRESETS.fossil.colors.dark.backgroundSubtle);
-  const bgOverridesRef = useRef<Partial<Record<ThemePreset, { light: string; dark: string; subtleLight: string; subtleDark: string }>>>();
+  const [backgroundColorLight, setBackgroundColorLight] = useState(
+    THEME_PRESETS.fossil.colors.light.background
+  );
+  const [backgroundColorDark, setBackgroundColorDark] = useState(
+    THEME_PRESETS.fossil.colors.dark.background
+  );
+  const [backgroundSubtleColorLight, setBackgroundSubtleColorLight] = useState(
+    THEME_PRESETS.fossil.colors.light.backgroundSubtle
+  );
+  const [backgroundSubtleColorDark, setBackgroundSubtleColorDark] = useState(
+    THEME_PRESETS.fossil.colors.dark.backgroundSubtle
+  );
+  const bgOverridesRef = useRef<
+    Partial<
+      Record<
+        ThemePreset,
+        {
+          light: string;
+          dark: string;
+          subtleLight: string;
+          subtleDark: string;
+        }
+      >
+    >
+  >();
   if (!bgOverridesRef.current) bgOverridesRef.current = {};
 
   // Favicon
-  const [faviconAssetId, setFaviconAssetId] = useState<Id<"assets"> | undefined>();
+  const [faviconAssetId, setFaviconAssetId] = useState<string | undefined>();
   const [faviconInitialized, setFaviconInitialized] = useState(false);
 
   // Light/dark logo variants
-  const [logoLightAssetId, setLogoLightAssetId] = useState<Id<"assets"> | undefined>();
-  const [logoDarkAssetId, setLogoDarkAssetId] = useState<Id<"assets"> | undefined>();
+  const [logoLightAssetId, setLogoLightAssetId] = useState<
+    string | undefined
+  >();
+  const [logoDarkAssetId, setLogoDarkAssetId] = useState<string | undefined>();
 
   // Custom fonts
-  const [fonts, setFonts] = useState<{ heading?: string; body?: string; code?: string }>({});
+  const [fonts, setFonts] = useState<{
+    heading?: string;
+    body?: string;
+    code?: string;
+  }>({});
   const [fontsInitialized, setFontsInitialized] = useState(false);
 
   // Default theme mode
-  const [defaultThemeMode, setDefaultThemeMode] = useState<"light" | "dark" | "system">("system");
-  const [defaultThemeModeInitialized, setDefaultThemeModeInitialized] = useState(false);
+  const [defaultThemeMode, setDefaultThemeMode] = useState<
+    "light" | "dark" | "system"
+  >("system");
+  const [defaultThemeModeInitialized, setDefaultThemeModeInitialized] =
+    useState(false);
 
   // Advanced colors
   const [accentColor, setAccentColor] = useState("");
@@ -224,7 +344,8 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   const [headerBackgroundColor, setHeaderBackgroundColor] = useState("");
   const [linkColor, setLinkColor] = useState("");
   const [codeAccentColor, setCodeAccentColor] = useState("");
-  const [advancedColorsInitialized, setAdvancedColorsInitialized] = useState(false);
+  const [advancedColorsInitialized, setAdvancedColorsInitialized] =
+    useState(false);
 
   // Live preview
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -243,7 +364,9 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   const [ctaButtonInitialized, setCtaButtonInitialized] = useState(false);
 
   // Social links
-  const [socialLinks, setSocialLinks] = useState<Record<SocialPlatform, string>>({
+  const [socialLinks, setSocialLinks] = useState<
+    Record<SocialPlatform, string>
+  >({
     github: "",
     x: "",
     discord: "",
@@ -256,14 +379,28 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   useEffect(() => {
     if (project && !brandingInitialized) {
       if (project.settings?.theme) setTheme(project.settings.theme);
-      if (project.settings?.primaryColor) setPrimaryColor(project.settings.primaryColor);
-      if (project.settings?.logoAssetId) setLogoAssetId(project.settings.logoAssetId);
+      if (project.settings?.primaryColor)
+        setPrimaryColor(project.settings.primaryColor);
+      if (project.settings?.logoAssetId)
+        setLogoAssetId(project.settings.logoAssetId);
       const activeTheme = (project.settings?.theme || "default") as ThemePreset;
       const themePreset = THEME_PRESETS[activeTheme];
-      setBackgroundColorLight(project.settings?.backgroundColorLight || themePreset.colors.light.background);
-      setBackgroundColorDark(project.settings?.backgroundColorDark || themePreset.colors.dark.background);
-      setBackgroundSubtleColorLight(project.settings?.backgroundSubtleColorLight || themePreset.colors.light.backgroundSubtle);
-      setBackgroundSubtleColorDark(project.settings?.backgroundSubtleColorDark || themePreset.colors.dark.backgroundSubtle);
+      setBackgroundColorLight(
+        project.settings?.backgroundColorLight ||
+          themePreset.colors.light.background
+      );
+      setBackgroundColorDark(
+        project.settings?.backgroundColorDark ||
+          themePreset.colors.dark.background
+      );
+      setBackgroundSubtleColorLight(
+        project.settings?.backgroundSubtleColorLight ||
+          themePreset.colors.light.backgroundSubtle
+      );
+      setBackgroundSubtleColorDark(
+        project.settings?.backgroundSubtleColorDark ||
+          themePreset.colors.dark.backgroundSubtle
+      );
       setBrandingInitialized(true);
     }
   }, [project, brandingInitialized]);
@@ -368,10 +505,10 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
       backgroundColorDark: string;
       backgroundSubtleColorLight: string;
       backgroundSubtleColorDark: string;
-      logoAssetId?: Id<"assets">;
+      logoAssetId?: string;
     }) => {
       await updateSettings({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         settings: {
           theme,
           primaryColor,
@@ -387,9 +524,9 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   );
 
   const saveFavicon = useCallback(
-    async (assetId: Id<"assets"> | undefined) => {
+    async (assetId: string | undefined) => {
       await updateSettings({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         settings: { faviconAssetId: assetId },
       });
     },
@@ -397,9 +534,9 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   );
 
   const saveLogoVariants = useCallback(
-    async ({ light, dark }: { light?: Id<"assets">; dark?: Id<"assets"> }) => {
+    async ({ light, dark }: { light?: string; dark?: string }) => {
       await updateSettings({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         settings: { logoLightAssetId: light, logoDarkAssetId: dark },
       });
     },
@@ -409,7 +546,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   const saveFonts = useCallback(
     async (value: { heading?: string; body?: string; code?: string }) => {
       await updateSettings({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         settings: { fonts: value },
       });
     },
@@ -419,7 +556,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   const saveDefaultThemeMode = useCallback(
     async (value: "light" | "dark" | "system") => {
       await updateSettings({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         settings: { defaultThemeMode: value },
       });
     },
@@ -435,7 +572,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
       codeAccentColor: string;
     }) => {
       await updateSettings({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         settings: {
           accentColor: value.accentColor || undefined,
           sidebarBackgroundColor: value.sidebarBackgroundColor || undefined,
@@ -451,7 +588,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   const saveCustomCss = useCallback(
     async (value: string) => {
       await updateSettings({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         settings: { customCss: value },
       });
     },
@@ -461,11 +598,12 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   const saveCtaButton = useCallback(
     async ({ label, url }: { label: string; url: string }) => {
       // Only save if both label and url are provided, or clear if both are empty
-      const ctaButton = label.trim() && url.trim()
-        ? { label: label.trim(), url: url.trim() }
-        : undefined;
+      const ctaButton =
+        label.trim() && url.trim()
+          ? { label: label.trim(), url: url.trim() }
+          : undefined;
       await updateSettings({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         settings: { ctaButton },
       });
     },
@@ -478,7 +616,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
         .filter(([, url]) => url.trim() !== "")
         .map(([platform, url]) => ({ platform, url: url.trim() }));
       await updateSettings({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         settings: { socialLinks: arr },
       });
     },
@@ -488,7 +626,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   const saveShowBranding = useCallback(
     async (value: boolean) => {
       await updateSettings({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         settings: { showBranding: value },
       });
     },
@@ -496,9 +634,22 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
   );
 
   // Auto-save hooks
-  const showBrandingStatus = useAutoSave(showBranding, saveShowBranding, 300, showBrandingInitialized);
+  const showBrandingStatus = useAutoSave(
+    showBranding,
+    saveShowBranding,
+    300,
+    showBrandingInitialized
+  );
   const brandingStatus = useAutoSave(
-    { theme, primaryColor, backgroundColorLight, backgroundColorDark, backgroundSubtleColorLight, backgroundSubtleColorDark, logoAssetId },
+    {
+      theme,
+      primaryColor,
+      backgroundColorLight,
+      backgroundColorDark,
+      backgroundSubtleColorLight,
+      backgroundSubtleColorDark,
+      logoAssetId,
+    },
     saveBranding,
     500,
     brandingInitialized
@@ -513,22 +664,43 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
     faviconInitialized
   );
 
-  const defaultThemeModeStatus = useAutoSave(defaultThemeMode, saveDefaultThemeMode, 300, defaultThemeModeInitialized);
+  const defaultThemeModeStatus = useAutoSave(
+    defaultThemeMode,
+    saveDefaultThemeMode,
+    300,
+    defaultThemeModeInitialized
+  );
   const fontsStatus = useAutoSave(fonts, saveFonts, 800, fontsInitialized);
   const advancedColorsStatus = useAutoSave(
-    { accentColor, sidebarBackgroundColor, headerBackgroundColor, linkColor, codeAccentColor },
+    {
+      accentColor,
+      sidebarBackgroundColor,
+      headerBackgroundColor,
+      linkColor,
+      codeAccentColor,
+    },
     saveAdvancedColors,
     500,
     advancedColorsInitialized
   );
-  const customCssStatus = useAutoSave(customCss, saveCustomCss, 800, customCssInitialized);
+  const customCssStatus = useAutoSave(
+    customCss,
+    saveCustomCss,
+    800,
+    customCssInitialized
+  );
   const ctaButtonStatus = useAutoSave(
     { label: ctaButtonLabel, url: ctaButtonUrl },
     saveCtaButton,
     800,
     ctaButtonInitialized
   );
-  const socialLinksStatus = useAutoSave(socialLinks, saveSocialLinks, 800, socialLinksInitialized);
+  const socialLinksStatus = useAutoSave(
+    socialLinks,
+    saveSocialLinks,
+    800,
+    socialLinksInitialized
+  );
 
   const handleThemeChange = (newTheme: ThemePreset) => {
     if (primaryColor !== THEME_PRESETS[theme].primaryColor) {
@@ -554,21 +726,54 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
     }
     setTheme(newTheme);
     if (newTheme !== "custom") {
-      setPrimaryColor(colorOverridesRef.current[newTheme] || THEME_PRESETS[newTheme].primaryColor);
+      setPrimaryColor(
+        colorOverridesRef.current[newTheme] ||
+          THEME_PRESETS[newTheme].primaryColor
+      );
       const bgOverride = bgOverridesRef.current![newTheme];
-      setBackgroundColorLight(bgOverride?.light || THEME_PRESETS[newTheme].colors.light.background);
-      setBackgroundColorDark(bgOverride?.dark || THEME_PRESETS[newTheme].colors.dark.background);
-      setBackgroundSubtleColorLight(bgOverride?.subtleLight || THEME_PRESETS[newTheme].colors.light.backgroundSubtle);
-      setBackgroundSubtleColorDark(bgOverride?.subtleDark || THEME_PRESETS[newTheme].colors.dark.backgroundSubtle);
+      setBackgroundColorLight(
+        bgOverride?.light || THEME_PRESETS[newTheme].colors.light.background
+      );
+      setBackgroundColorDark(
+        bgOverride?.dark || THEME_PRESETS[newTheme].colors.dark.background
+      );
+      setBackgroundSubtleColorLight(
+        bgOverride?.subtleLight ||
+          THEME_PRESETS[newTheme].colors.light.backgroundSubtle
+      );
+      setBackgroundSubtleColorDark(
+        bgOverride?.subtleDark ||
+          THEME_PRESETS[newTheme].colors.dark.backgroundSubtle
+      );
     }
   };
 
   const socialPlatforms = [
-    { platform: "github" as SocialPlatform, labelKey: "github" as const, placeholderKey: "githubPlaceholder" as const },
-    { platform: "x" as SocialPlatform, labelKey: "xTwitter" as const, placeholderKey: "xTwitterPlaceholder" as const },
-    { platform: "discord" as SocialPlatform, labelKey: "discord" as const, placeholderKey: "discordPlaceholder" as const },
-    { platform: "linkedin" as SocialPlatform, labelKey: "linkedin" as const, placeholderKey: "linkedinPlaceholder" as const },
-    { platform: "youtube" as SocialPlatform, labelKey: "youtube" as const, placeholderKey: "youtubePlaceholder" as const },
+    {
+      platform: "github" as SocialPlatform,
+      labelKey: "github" as const,
+      placeholderKey: "githubPlaceholder" as const,
+    },
+    {
+      platform: "x" as SocialPlatform,
+      labelKey: "xTwitter" as const,
+      placeholderKey: "xTwitterPlaceholder" as const,
+    },
+    {
+      platform: "discord" as SocialPlatform,
+      labelKey: "discord" as const,
+      placeholderKey: "discordPlaceholder" as const,
+    },
+    {
+      platform: "linkedin" as SocialPlatform,
+      labelKey: "linkedin" as const,
+      placeholderKey: "linkedinPlaceholder" as const,
+    },
+    {
+      platform: "youtube" as SocialPlatform,
+      labelKey: "youtube" as const,
+      placeholderKey: "youtubePlaceholder" as const,
+    },
   ] as const;
 
   return (
@@ -619,9 +824,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
               <Globe className="h-5 w-5" />
               <div>
                 <CardTitle>{t("socialLinks")}</CardTitle>
-                <CardDescription>
-                  {t("socialLinksDescription")}
-                </CardDescription>
+                <CardDescription>{t("socialLinksDescription")}</CardDescription>
               </div>
             </div>
             <SaveStatus status={socialLinksStatus} />
@@ -656,9 +859,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
               <ExternalLink className="h-5 w-5" />
               <div>
                 <CardTitle>{t("ctaButton")}</CardTitle>
-                <CardDescription>
-                  {t("ctaButtonDescription")}
-                </CardDescription>
+                <CardDescription>{t("ctaButtonDescription")}</CardDescription>
               </div>
             </div>
             <SaveStatus status={ctaButtonStatus} />
@@ -667,7 +868,9 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
         <CardContent>
           <div className="space-y-3 max-w-lg">
             <div className="flex items-center gap-3">
-              <Label className="w-28 shrink-0 text-sm">{t("ctaButtonLabel")}</Label>
+              <Label className="w-28 shrink-0 text-sm">
+                {t("ctaButtonLabel")}
+              </Label>
               <Input
                 value={ctaButtonLabel}
                 onChange={(e) => setCtaButtonLabel(e.target.value)}
@@ -676,7 +879,9 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
               />
             </div>
             <div className="flex items-center gap-3">
-              <Label className="w-28 shrink-0 text-sm">{t("ctaButtonUrl")}</Label>
+              <Label className="w-28 shrink-0 text-sm">
+                {t("ctaButtonUrl")}
+              </Label>
               <Input
                 value={ctaButtonUrl}
                 onChange={(e) => setCtaButtonUrl(e.target.value)}
@@ -739,7 +944,11 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
                 </button>
               </div>
             </div>
-            <ThemeSelector value={theme} onChange={handleThemeChange} previewMode={previewMode} />
+            <ThemeSelector
+              value={theme}
+              onChange={handleThemeChange}
+              previewMode={previewMode}
+            />
           </div>
 
           <div className="space-y-3">
@@ -752,20 +961,27 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
               <button
                 type="button"
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => { delete colorOverridesRef.current[theme]; setPrimaryColor(THEME_PRESETS[theme].primaryColor); }}
+                onClick={() => {
+                  delete colorOverridesRef.current[theme];
+                  setPrimaryColor(THEME_PRESETS[theme].primaryColor);
+                }}
               >
                 <RotateCcw className="h-3 w-3" />
                 {t("resetToDefault", { themeName: THEME_PRESETS[theme].name })}
               </button>
             ) : (
               <p className="text-xs text-muted-foreground">
-                {t("usingPresetColor", { themeName: THEME_PRESETS[theme].name })}
+                {t("usingPresetColor", {
+                  themeName: THEME_PRESETS[theme].name,
+                })}
               </p>
             )}
           </div>
 
           <div className="space-y-3">
-            <Label className="text-sm font-medium">{t("backgroundColor")}</Label>
+            <Label className="text-sm font-medium">
+              {t("backgroundColor")}
+            </Label>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div className="space-y-2">
@@ -774,11 +990,16 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
                     value={backgroundColorLight}
                     onChange={setBackgroundColorLight}
                   />
-                  {backgroundColorLight !== THEME_PRESETS[theme].colors.light.background && (
+                  {backgroundColorLight !==
+                    THEME_PRESETS[theme].colors.light.background && (
                     <button
                       type="button"
                       className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={() => setBackgroundColorLight(THEME_PRESETS[theme].colors.light.background)}
+                      onClick={() =>
+                        setBackgroundColorLight(
+                          THEME_PRESETS[theme].colors.light.background
+                        )
+                      }
                     >
                       <RotateCcw className="h-3 w-3" />
                       {t("reset")}
@@ -791,11 +1012,16 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
                     value={backgroundSubtleColorLight}
                     onChange={setBackgroundSubtleColorLight}
                   />
-                  {backgroundSubtleColorLight !== THEME_PRESETS[theme].colors.light.backgroundSubtle && (
+                  {backgroundSubtleColorLight !==
+                    THEME_PRESETS[theme].colors.light.backgroundSubtle && (
                     <button
                       type="button"
                       className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={() => setBackgroundSubtleColorLight(THEME_PRESETS[theme].colors.light.backgroundSubtle)}
+                      onClick={() =>
+                        setBackgroundSubtleColorLight(
+                          THEME_PRESETS[theme].colors.light.backgroundSubtle
+                        )
+                      }
                     >
                       <RotateCcw className="h-3 w-3" />
                       {t("reset")}
@@ -810,11 +1036,16 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
                     value={backgroundColorDark}
                     onChange={setBackgroundColorDark}
                   />
-                  {backgroundColorDark !== THEME_PRESETS[theme].colors.dark.background && (
+                  {backgroundColorDark !==
+                    THEME_PRESETS[theme].colors.dark.background && (
                     <button
                       type="button"
                       className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={() => setBackgroundColorDark(THEME_PRESETS[theme].colors.dark.background)}
+                      onClick={() =>
+                        setBackgroundColorDark(
+                          THEME_PRESETS[theme].colors.dark.background
+                        )
+                      }
                     >
                       <RotateCcw className="h-3 w-3" />
                       {t("reset")}
@@ -827,11 +1058,16 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
                     value={backgroundSubtleColorDark}
                     onChange={setBackgroundSubtleColorDark}
                   />
-                  {backgroundSubtleColorDark !== THEME_PRESETS[theme].colors.dark.backgroundSubtle && (
+                  {backgroundSubtleColorDark !==
+                    THEME_PRESETS[theme].colors.dark.backgroundSubtle && (
                     <button
                       type="button"
                       className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={() => setBackgroundSubtleColorDark(THEME_PRESETS[theme].colors.dark.backgroundSubtle)}
+                      onClick={() =>
+                        setBackgroundSubtleColorDark(
+                          THEME_PRESETS[theme].colors.dark.backgroundSubtle
+                        )
+                      }
                     >
                       <RotateCcw className="h-3 w-3" />
                       {t("reset")}
@@ -845,7 +1081,9 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-sm font-medium">{t("defaultThemeMode")}</Label>
+                <Label className="text-sm font-medium">
+                  {t("defaultThemeMode")}
+                </Label>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {t("defaultThemeModeDescription")}
                 </p>
@@ -898,7 +1136,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
           <Separator />
 
           <LogoUpload
-            projectId={projectId as Id<"projects">}
+            projectId={projectId}
             assetId={logoAssetId}
             onUpload={(assetId) => setLogoAssetId(assetId)}
             onRemove={() => setLogoAssetId(undefined)}
@@ -907,7 +1145,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
           <Separator />
 
           <FaviconUpload
-            projectId={projectId as Id<"projects">}
+            projectId={projectId}
             assetId={faviconAssetId}
             onUpload={(assetId) => setFaviconAssetId(assetId)}
             onRemove={() => setFaviconAssetId(undefined)}
@@ -934,7 +1172,10 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
               {t(isPreviewOpen ? "hidePreview" : "showPreview")}
             </button>
             {isPreviewOpen && (
-              <div className="overflow-hidden rounded-lg border" style={{ height: 600 }}>
+              <div
+                className="overflow-hidden rounded-lg border"
+                style={{ height: 600 }}
+              >
                 <PreviewPanel
                   content={SAMPLE_PREVIEW_CONTENT}
                   pageTitle={t("previewPageTitle")}
@@ -954,7 +1195,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
 
       <GatedSection
         feature="advanced_branding"
-        projectId={projectId as Id<"projects">}
+        projectId={projectId}
         title={t("advancedBranding")}
         description={t("advancedBrandingDescription")}
         icon={Type}
@@ -982,7 +1223,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
           </CardHeader>
           <CardContent className="space-y-6">
             <LogoVariants
-              projectId={projectId as Id<"projects">}
+              projectId={projectId}
               lightAssetId={logoLightAssetId}
               darkAssetId={logoDarkAssetId}
               onLightUpload={(id) => setLogoLightAssetId(id)}
@@ -993,16 +1234,15 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
 
             <Separator />
 
-            <FontSelector
-              fonts={fonts}
-              onChange={setFonts}
-            />
+            <FontSelector fonts={fonts} onChange={setFonts} />
 
             <Separator />
 
             <div className="space-y-4">
               <div>
-                <Label className="text-sm font-medium">{t("advancedColors")}</Label>
+                <Label className="text-sm font-medium">
+                  {t("advancedColors")}
+                </Label>
                 <p className="text-xs text-muted-foreground mt-1">
                   {t("advancedColorsDescription")}
                 </p>
@@ -1103,10 +1343,7 @@ export function BrandingTab({ projectId, project }: BrandingTabProps) {
 
             <Separator />
 
-            <CustomCssEditor
-              value={customCss}
-              onChange={setCustomCss}
-            />
+            <CustomCssEditor value={customCss} onChange={setCustomCss} />
           </CardContent>
         </Card>
       </GatedSection>

@@ -5,6 +5,7 @@ import type {
   UsePublishOptions,
   UsePublishReturn,
 } from "@/hooks/use-publish";
+import { getDeploymentRefetchInterval } from "@/hooks/use-publish";
 import type {
   DeployAdapter,
   DeployOptions,
@@ -86,6 +87,19 @@ describe("DeploymentStatus type", () => {
   });
 });
 
+describe("deployment polling cadence", () => {
+  it("does not poll while no deployment is active", () => {
+    expect(getDeploymentRefetchInterval("idle", 1_500)).toBe(false);
+    expect(getDeploymentRefetchInterval("success", 1_500)).toBe(false);
+    expect(getDeploymentRefetchInterval("error", 1_500)).toBe(false);
+  });
+
+  it("polls only while publishing or tracking a deployment", () => {
+    expect(getDeploymentRefetchInterval("publishing", 1_500)).toBe(1_500);
+    expect(getDeploymentRefetchInterval("polling", 5_000)).toBe(5_000);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // UsePublishOptions interface compliance
 // ---------------------------------------------------------------------------
@@ -94,22 +108,22 @@ describe("UsePublishOptions interface", () => {
   it("accepts minimal options with project only", () => {
     const opts: UsePublishOptions = {
       project: {
-        _id: "proj_1" as any,
-        _creationTime: 1700000000000,
+        id: "proj_1",
+        createdAt: 1700000000000,
         name: "My Docs",
         slug: "my-docs",
         workosOrgId: "local",
       } as any,
     };
-    expect(opts.project._id).toBe("proj_1");
+    expect(opts.project.id).toBe("proj_1");
     expect(opts.branchId).toBeUndefined();
   });
 
   it("accepts options with branchId", () => {
     const opts: UsePublishOptions = {
       project: {
-        _id: "proj_2" as any,
-        _creationTime: 1700000000000,
+        id: "proj_2",
+        createdAt: 1700000000000,
         name: "Branch Docs",
         slug: "branch-docs",
         workosOrgId: "local",

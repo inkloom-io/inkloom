@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Avatar, AvatarImage, AvatarFallback } from "@inkloom/ui/avatar";
 import { cn } from "@inkloom/ui/lib/utils";
 import {
@@ -14,28 +13,31 @@ import {
   MessageCircle,
   Loader2,
 } from "lucide-react";
-import {
-  ReviewThreadCard,
-  type ReviewThread,
-} from "./review-thread-card";
+import { ReviewThreadCard, type ReviewThread } from "./review-thread-card";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
 interface MRComment {
-  _id: Id<"mergeRequestComments">;
+  id: string;
   content: string;
   createdAt: number;
-  creator: { name?: string; avatarUrl?: string } | null;
+  creator: { name?: string | null; avatarUrl?: string | null } | null;
 }
 
 interface MRData {
   status: string;
   createdAt: number;
-  mergedAt?: number;
-  closedAt?: number;
-  creator: { name?: string; avatarUrl?: string } | null;
-  mergedByUser?: { name?: string; avatarUrl?: string } | null;
-  closedByUser?: { name?: string; avatarUrl?: string } | null;
+  mergedAt?: number | null;
+  closedAt?: number | null;
+  creator: { name?: string | null; avatarUrl?: string | null } | null;
+  mergedByUser?: {
+    name?: string | null;
+    avatarUrl?: string | null;
+  } | null;
+  closedByUser?: {
+    name?: string | null;
+    avatarUrl?: string | null;
+  } | null;
 }
 
 type ActivityEntry =
@@ -57,8 +59,12 @@ type ActivityEntry =
       timestamp: number;
       data: {
         status: "approved" | "changes_requested" | "commented";
-        body?: string;
-        reviewer: { id: string; name: string; avatarUrl?: string } | null;
+        body?: string | null;
+        reviewer: {
+          id: string;
+          name: string;
+          avatarUrl?: string | null;
+        } | null;
         createdAt: number;
       };
     }
@@ -68,15 +74,15 @@ type ActivityEntry =
       timestamp: number;
       data: {
         action: "merged" | "closed";
-        user: { name?: string; avatarUrl?: string } | null;
+        user: { name?: string | null; avatarUrl?: string | null } | null;
       };
     };
 
 interface ActivityTimelineProps {
-  mergeRequestId: Id<"mergeRequests">;
+  mergeRequestId: string;
   mr: MRData;
   comments: MRComment[];
-  userId: Id<"users"> | undefined;
+  userId: string | undefined;
   relTime: (ts: number) => string;
   onNavigateToThread?: (thread: ReviewThread) => void;
 }
@@ -109,11 +115,17 @@ function reviewStatusLabel(status: string): string {
 function ReviewStatusIcon({ status }: { status: string }) {
   switch (status) {
     case "approved":
-      return <ShieldCheck className="h-4 w-4 text-green-600 dark:text-green-400" />;
+      return (
+        <ShieldCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
+      );
     case "changes_requested":
-      return <ShieldAlert className="h-4 w-4 text-orange-600 dark:text-orange-400" />;
+      return (
+        <ShieldAlert className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+      );
     default:
-      return <MessageCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
+      return (
+        <MessageCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+      );
   }
 }
 
@@ -128,12 +140,12 @@ export function ActivityTimeline({
   onNavigateToThread,
 }: ActivityTimelineProps) {
   // Fetch review threads
-  const reviewThreads = useQuery(api.mrReviews.listThreadsByMR, {
+  const reviewThreads = useDataQuery(api.mrReviews.listThreadsByMR, {
     mergeRequestId,
   });
 
   // Fetch review submissions
-  const reviews = useQuery(api.mrReviews.listReviews, {
+  const reviews = useDataQuery(api.mrReviews.listReviews, {
     mergeRequestId,
   });
 
@@ -147,7 +159,7 @@ export function ActivityTimeline({
     for (const comment of comments) {
       entries.push({
         type: "comment",
-        id: `comment-${comment._id}`,
+        id: `comment-${comment.id}`,
         timestamp: comment.createdAt,
         data: comment,
       });
@@ -158,7 +170,7 @@ export function ActivityTimeline({
       for (const thread of reviewThreads) {
         entries.push({
           type: "review_thread",
-          id: `thread-${thread._id}`,
+          id: `thread-${thread.id}`,
           timestamp: thread.createdAt,
           data: thread as ReviewThread,
         });
@@ -170,7 +182,7 @@ export function ActivityTimeline({
       for (const review of reviews) {
         entries.push({
           type: "review_submission",
-          id: `review-${review._id}`,
+          id: `review-${review.id}`,
           timestamp: review.createdAt,
           data: {
             status: review.status,
@@ -334,8 +346,12 @@ function ReviewSubmissionEntry({
 }: {
   data: {
     status: string;
-    body?: string;
-    reviewer: { id: string; name: string; avatarUrl?: string } | null;
+    body?: string | null;
+    reviewer: {
+      id: string;
+      name: string;
+      avatarUrl?: string | null;
+    } | null;
     createdAt: number;
   };
   relTime: (ts: number) => string;
@@ -380,7 +396,10 @@ function StateChangeEntry({
 }: {
   data: {
     action: "merged" | "closed";
-    user: { name?: string; avatarUrl?: string } | null;
+    user: {
+      name?: string | null;
+      avatarUrl?: string | null;
+    } | null;
   };
   timestamp: number;
   relTime: (ts: number) => string;

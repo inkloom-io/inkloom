@@ -1,41 +1,26 @@
 "use client";
 
-import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "next-themes";
-import { useState, useEffect } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { ToastProvider } from "@/components/ui/toast";
+import { useEffect, useState } from "react";
 
-const convex = new ConvexReactClient(
-  process.env.NEXT_PUBLIC_CONVEX_URL as string
-);
+import { DataProvider, useDataClient } from "@/data/provider";
+import { api } from "@/data/operations";
 
 function EnsureLocalUser({ children }: { children: React.ReactNode }) {
-  const ensureUser = useMutation(api.users.ensureLocalUser);
-
+  const dataClient = useDataClient();
   useEffect(() => {
-    void ensureUser();
-  }, [ensureUser]);
-
-  return <>{children}</>;
+    void api.users.ensureLocalUser.execute(dataClient, undefined);
+  }, [dataClient]);
+  return children;
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { staleTime: 60_000 } } })
-  );
-
+  const [queryClient] = useState(() => new QueryClient());
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-      <ConvexProvider client={convex}>
-        <QueryClientProvider client={queryClient}>
-          <EnsureLocalUser>
-            <ToastProvider>{children}</ToastProvider>
-          </EnsureLocalUser>
-        </QueryClientProvider>
-      </ConvexProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <DataProvider>
+        <EnsureLocalUser>{children}</EnsureLocalUser>
+      </DataProvider>
+    </QueryClientProvider>
   );
 }

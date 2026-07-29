@@ -10,8 +10,6 @@
  * soft-lock functionality for non-Ultimate plans.
  */
 
-import type { Id } from "@/convex/_generated/dataModel";
-
 export interface EditLockState {
   isLocked: boolean;
   lockedBy: string | null;
@@ -22,8 +20,8 @@ export interface EditLockState {
 }
 
 export function useEditLock(_options: {
-  pageId: Id<"pages"> | null;
-  userId: Id<"users"> | null;
+  pageId: string | null;
+  userId: string | null;
   userName: string;
   enabled: boolean;
 }): EditLockState {

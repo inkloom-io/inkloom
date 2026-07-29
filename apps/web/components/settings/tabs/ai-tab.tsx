@@ -12,11 +12,11 @@
  * never shows the AI tab when isMultiTenant is false.
  */
 
-import type { Doc } from "@/convex/_generated/dataModel";
+import type { Project } from "@/db/schema";
 
 interface AiTabProps {
   projectId: string;
-  project: Doc<"projects">;
+  project: Project;
 }
 
 export function AiTab(_props: AiTabProps) {

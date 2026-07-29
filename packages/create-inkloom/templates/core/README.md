@@ -1,111 +1,79 @@
 # InkLoom Documentation Platform
 
-Create beautiful documentation with InkLoom's block-based editor.
+Create and publish documentation with InkLoom's block-based editor. This
+standalone template stores application data in Cloudflare D1 through a Hono
+Worker and can run locally without an account.
 
 ## Features
 
-- **Block-based WYSIWYG editor** with rich content types
-- **Live preview panel** with MDX rendering
-- **Custom blocks**: callouts, code blocks, tabs, steps, cards, columns
-- **Project settings**: themes, colors, fonts, SEO, analytics
-- **Static site generation**: build & publish your docs
-- **Dark/light theme** support throughout
+- Block-based WYSIWYG editing and live MDX preview
+- Pages, folders, branches, comments, reviews, search, and version history
+- Project branding, SEO, analytics, and static-site generation
+- A typed data client shared by React and server routes
+- SQLite-compatible local development through Wrangler
 
-## Quick Start
-
-### Option A: Convex Cloud (Fastest)
-
-Free tier: 1M calls/month, 0.5 GB database + 1 GB file storage, no credit card required.
+## Quick start
 
 ```bash
-# 1. Install dependencies
 pnpm install
-
-# 2. Start the Convex backend (creates a free account if needed)
-npx convex dev
-
-# 3. In a new terminal, start the app
+pnpm data:migrate:local
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — you should see the InkLoom dashboard.
+The web app runs at [http://localhost:3000](http://localhost:3000) and the
+local data Worker runs at [http://localhost:8787](http://localhost:8787).
+`pnpm dev` starts both processes. Local D1 state is stored under `.wrangler/`.
 
-### Option B: Self-Hosted (No external dependencies)
+## Building your docs
 
-Run the Convex backend locally with Docker — no account needed.
+1. Create pages and write content in the editor.
+2. Mark pages as published.
+3. Configure branding and SEO in project settings.
+4. Click **Build** in the editor toolbar.
+5. Serve the generated `dist/` directory with any static host.
 
-```bash
-# 1. Start the Convex backend
-docker compose up -d
+## Project structure
 
-# 2. Generate an admin key
-docker compose exec backend ./generate_admin_key.sh
-
-# 3. Deploy your Convex functions to the local backend
-CONVEX_SELF_HOSTED_URL=http://127.0.0.1:3210 \
-  CONVEX_SELF_HOSTED_ADMIN_KEY=<key-from-step-2> \
-  npx convex dev
-
-# 4. Create .env.local
-echo 'NEXT_PUBLIC_CONVEX_URL=http://127.0.0.1:3210' > .env.local
-
-# 5. Start the app
-pnpm dev
+```text
+app/                 Next.js routes and same-origin data proxy
+components/          Editor, settings, renderer, and shared UI
+data/                Typed data client, operations, hooks, and provider
+db/schema/           Drizzle table definitions
+db/migrations/       Versioned D1 migrations
+worker/              Cloudflare Worker HTTP API and domain services
+hooks/               React hooks such as autosave
+lib/                 Build pipeline and utilities
+wrangler.jsonc       Local and production Worker configuration
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The Convex dashboard is at [http://localhost:6791](http://localhost:6791).
+## Data commands
 
-## Building Your Docs
+| Command | Purpose |
+| --- | --- |
+| `pnpm data:dev` | Run only the data Worker |
+| `pnpm data:migrate:local` | Apply migrations to local D1 |
+| `pnpm data:deploy` | Deploy the Worker to Cloudflare |
+| `pnpm data:migrate:remote` | Apply migrations to production D1 |
+| `pnpm db:generate` | Generate a migration after schema changes |
 
-1. Create pages and write content in the editor
-2. Mark pages as "Published" (right-click → Toggle published)
-3. Configure branding and SEO in project settings
-4. Click "Build" in the editor toolbar
-5. Serve the output: `npx serve dist/your-project-slug`
+For a production deployment, create a D1 database with
+`wrangler d1 create inkloom-local`, replace the placeholder `database_id` in
+`wrangler.jsonc`, apply the remote migrations, and deploy the Worker. Point
+the Next.js service at it with `DATA_API_URL`. Set the same
+`DATA_API_TOKEN` secret on both services when the Worker is internet-facing.
+The browser uses the same-origin `/api/data` proxy by default.
 
-## Project Structure
-
-```
-app/              # Next.js app routes
-  page.tsx        # Dashboard (project listing)
-  projects/       # Editor and settings pages
-  api/build/      # Static site build endpoint
-components/       # React components
-  editor/         # Block editor, toolbar, sidebar, preview panel
-  settings/       # Project settings tabs
-  docs-renderer/  # MDX rendering components
-  ui/             # Shared UI components (button, card, dialog, etc.)
-convex/           # Convex backend (schema, queries, mutations)
-  schema/         # Table definitions
-  users.ts        # Local user management
-  projects.ts     # Project CRUD
-  pages.ts        # Page content management
-  folders.ts      # Folder management
-  deployments.ts  # Deployment tracking
-hooks/            # React hooks (auto-save, etc.)
-lib/              # Utilities (build pipeline, theme presets, syntax highlighting)
-```
-
-## Environment Variables
-
-Only two environment variables are needed (set automatically by `npx convex dev`):
+## Environment variables
 
 | Variable | Description |
-|----------|-------------|
-| `CONVEX_DEPLOYMENT` | Convex deployment identifier |
-| `NEXT_PUBLIC_CONVEX_URL` | Convex HTTP URL for the client |
+| --- | --- |
+| `DATA_API_URL` | Server-side Worker URL; defaults to `http://127.0.0.1:8787` |
+| `DATA_API_TOKEN` | Optional shared secret for a remote Worker |
+| `NEXT_PUBLIC_DATA_API_URL` | Optional direct browser Worker URL |
 
-For self-hosted setups, set these instead:
+## Learn more
 
-| Variable | Description |
-|----------|-------------|
-| `CONVEX_SELF_HOSTED_URL` | URL of your local Convex backend (e.g. `http://127.0.0.1:3210`) |
-| `CONVEX_SELF_HOSTED_ADMIN_KEY` | Admin key from `generate_admin_key.sh` |
-| `NEXT_PUBLIC_CONVEX_URL` | Same as `CONVEX_SELF_HOSTED_URL` |
-
-## Learn More
-
-- [InkLoom Documentation](https://github.com/inkloom/inkloom)
-- [Convex Documentation](https://docs.convex.dev)
-- [Convex Self-Hosting Guide](https://github.com/get-convex/convex-backend/blob/main/self-hosted/README.md)
-- [Next.js Documentation](https://nextjs.org/docs)
+- [InkLoom](https://github.com/inkloom-io/inkloom)
+- [Cloudflare D1](https://developers.cloudflare.com/d1/)
+- [Cloudflare Workers](https://developers.cloudflare.com/workers/)
+- [Next.js](https://nextjs.org/docs)

@@ -81,9 +81,7 @@ export function CommentInput({
       />
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">
-          {content.trim() ? (
-            <>{t("submitHint")}</>
-          ) : null}
+          {content.trim() ? <>{t("submitHint")}</> : null}
         </span>
         <div className="flex gap-2">
           {onCancel && (

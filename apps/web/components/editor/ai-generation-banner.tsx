@@ -8,10 +8,8 @@
  * that prompts users to try AI documentation generation.
  */
 
-import type { Id } from "@/convex/_generated/dataModel";
-
 interface AiGenerationBannerProps {
-  projectId: Id<"projects">;
+  projectId: string;
 }
 
 export function AiGenerationBanner(_props: AiGenerationBannerProps) {

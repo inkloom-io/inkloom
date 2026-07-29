@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@inkloom/ui/button";
 import { Badge } from "@inkloom/ui/badge";
@@ -26,8 +25,8 @@ import { wordDiff } from "@/lib/diff-engine";
 
 /** Shape of enriched thread from listThreadsByPage / listThreadsByMR. */
 export interface ReviewThreadData {
-  _id: Id<"mrReviewThreads">;
-  mergeRequestId: Id<"mergeRequests">;
+  id: string;
+  mergeRequestId: string;
   pagePath: string;
   blockId: string;
   blockIndex: number;
@@ -36,13 +35,13 @@ export interface ReviewThreadData {
   suggestedContent?: string;
   suggestionStatus?: "pending" | "accepted" | "dismissed";
   status: "open" | "resolved";
-  resolvedBy?: Id<"users">;
+  resolvedBy?: string;
   resolvedAt?: number;
-  createdBy: Id<"users">;
+  createdBy: string;
   createdAt: number;
   updatedAt: number;
   creator: {
-    id: Id<"users">;
+    id: string;
     name: string;
     avatarUrl?: string;
   } | null;
@@ -51,15 +50,15 @@ export interface ReviewThreadData {
 }
 
 export interface ReviewCommentData {
-  _id: Id<"mrReviewComments">;
-  threadId: Id<"mrReviewThreads">;
+  id: string;
+  threadId: string;
   content: string;
-  createdBy: Id<"users">;
+  createdBy: string;
   createdAt: number;
   updatedAt: number;
   isEdited: boolean;
   user: {
-    id: Id<"users">;
+    id: string;
     name: string;
     avatarUrl?: string;
   } | null;
@@ -149,10 +148,7 @@ export function SuggestionDiff({
                   .filter((op) => op.type !== "insert")
                   .map((op, i) =>
                     op.type === "delete" ? (
-                      <span
-                        key={i}
-                        className="bg-red-500/30 rounded-sm px-0.5"
-                      >
+                      <span key={i} className="bg-red-500/30 rounded-sm px-0.5">
                         {op.text}
                       </span>
                     ) : (
@@ -230,13 +226,17 @@ interface ReviewThreadProps {
   forceExpanded?: boolean;
 }
 
-export function ReviewThread({ thread, canManage = false, forceExpanded }: ReviewThreadProps) {
+export function ReviewThread({
+  thread,
+  canManage = false,
+  forceExpanded,
+}: ReviewThreadProps) {
   const { userId } = useAuth();
 
-  const resolveThread = useMutation(api.mrReviews.resolveThread);
-  const unresolveThread = useMutation(api.mrReviews.unresolveThread);
-  const acceptSuggestion = useMutation(api.mrReviews.acceptSuggestion);
-  const dismissSuggestion = useMutation(api.mrReviews.dismissSuggestion);
+  const resolveThread = useDataMutation(api.mrReviews.resolveThread);
+  const unresolveThread = useDataMutation(api.mrReviews.unresolveThread);
+  const acceptSuggestion = useDataMutation(api.mrReviews.acceptSuggestion);
+  const dismissSuggestion = useDataMutation(api.mrReviews.dismissSuggestion);
 
   const [isResolving, setIsResolving] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
@@ -255,48 +255,48 @@ export function ReviewThread({ thread, canManage = false, forceExpanded }: Revie
     if (!userId) return;
     setIsResolving(true);
     try {
-      await resolveThread({ threadId: thread._id, userId });
+      await resolveThread({ threadId: thread.id, userId });
     } catch {
       // ignore
     } finally {
       setIsResolving(false);
     }
-  }, [userId, thread._id, resolveThread]);
+  }, [userId, thread.id, resolveThread]);
 
   const handleUnresolve = useCallback(async () => {
     setIsResolving(true);
     try {
-      await unresolveThread({ threadId: thread._id });
+      await unresolveThread({ threadId: thread.id });
     } catch {
       // ignore
     } finally {
       setIsResolving(false);
     }
-  }, [thread._id, unresolveThread]);
+  }, [thread.id, unresolveThread]);
 
   const handleAccept = useCallback(async () => {
     if (!userId) return;
     setIsAccepting(true);
     try {
-      await acceptSuggestion({ threadId: thread._id, userId });
+      await acceptSuggestion({ threadId: thread.id, userId });
     } catch {
       // ignore
     } finally {
       setIsAccepting(false);
     }
-  }, [userId, thread._id, acceptSuggestion]);
+  }, [userId, thread.id, acceptSuggestion]);
 
   const handleDismiss = useCallback(async () => {
     if (!userId) return;
     setIsDismissing(true);
     try {
-      await dismissSuggestion({ threadId: thread._id, userId });
+      await dismissSuggestion({ threadId: thread.id, userId });
     } catch {
       // ignore
     } finally {
       setIsDismissing(false);
     }
-  }, [userId, thread._id, dismissSuggestion]);
+  }, [userId, thread.id, dismissSuggestion]);
 
   return (
     <ReviewThreadView
@@ -400,7 +400,10 @@ function ReviewThreadView({
 
         {/* Status badges */}
         {isAcceptedSuggestion && (
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+          <Badge
+            variant="secondary"
+            className="text-[10px] px-1.5 py-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+          >
             <Check className="h-3 w-3 mr-0.5" />
             {t("changesApplied")}
           </Badge>
@@ -411,7 +414,10 @@ function ReviewThreadView({
           </Badge>
         )}
         {isResolved && (
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+          <Badge
+            variant="secondary"
+            className="text-[10px] px-1.5 py-0 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+          >
             {t("resolved")}
           </Badge>
         )}
@@ -442,7 +448,7 @@ function ReviewThreadView({
       {/* Comments */}
       <div className="p-3 space-y-3">
         {thread.comments.map((comment) => (
-          <CommentItem key={comment._id} comment={comment} />
+          <CommentItem key={comment.id} comment={comment} />
         ))}
       </div>
 
@@ -458,9 +464,7 @@ function ReviewThreadView({
               disabled={isAccepting}
               className="h-7 text-xs"
             >
-              {isAccepting && (
-                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-              )}
+              {isAccepting && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
               <Check className="mr-1 h-3 w-3" />
               {t("acceptSuggestion")}
             </Button>
@@ -489,9 +493,7 @@ function ReviewThreadView({
             disabled={isResolving}
             className="h-7 text-xs"
           >
-            {isResolving && (
-              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-            )}
+            {isResolving && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
             <CheckCircle2 className="mr-1 h-3 w-3" />
             {t("resolve")}
           </Button>
@@ -504,9 +506,7 @@ function ReviewThreadView({
             disabled={isResolving}
             className="h-7 text-xs"
           >
-            {isResolving && (
-              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-            )}
+            {isResolving && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
             {t("unresolve")}
           </Button>
         )}
@@ -515,7 +515,7 @@ function ReviewThreadView({
       {/* Reply form — only for open threads */}
       {!isResolved && (
         <div className="px-3 pb-3">
-          <ReplyForm threadId={thread._id} />
+          <ReplyForm threadId={thread.id} />
         </div>
       )}
     </div>
@@ -553,16 +553,14 @@ export function ResolvedThreadGroup({
         ) : (
           <ChevronRight className="h-3 w-3" />
         )}
-        <span>
-          {t("resolvedComments", { count: threads.length })}
-        </span>
+        <span>{t("resolvedComments", { count: threads.length })}</span>
       </button>
 
       {isExpanded && (
         <div className="space-y-2 pl-2">
           {threads.map((thread) => (
             <ReviewThread
-              key={thread._id}
+              key={thread.id}
               thread={thread}
               canManage={canManage}
               forceExpanded
@@ -577,7 +575,7 @@ export function ResolvedThreadGroup({
 // ── Thread Resolution Counter ─────────────────────────────────────────
 
 interface ThreadResolutionCounterProps {
-  mergeRequestId: Id<"mergeRequests">;
+  mergeRequestId: string;
   pagePath?: string;
 }
 
@@ -588,11 +586,11 @@ export function ThreadResolutionCounter({
   const t = useTranslations("mergeRequests.review");
 
   // Use page-specific or MR-wide query based on whether pagePath is provided
-  const pageThreads = useQuery(
+  const pageThreads = useDataQuery(
     api.mrReviews.listThreadsByPage,
     pagePath ? { mergeRequestId, pagePath } : "skip"
   );
-  const mrThreads = useQuery(
+  const mrThreads = useDataQuery(
     api.mrReviews.listThreadsByMR,
     pagePath ? "skip" : { mergeRequestId }
   );
@@ -624,7 +622,7 @@ export function ThreadResolutionCounter({
 // ── Page Thread List ──────────────────────────────────────────────────
 
 interface PageThreadListProps {
-  mergeRequestId: Id<"mergeRequests">;
+  mergeRequestId: string;
   pagePath: string;
 }
 
@@ -633,7 +631,7 @@ export function PageThreadList({
   pagePath,
 }: PageThreadListProps) {
   const { userId } = useAuth();
-  const threads = useQuery(api.mrReviews.listThreadsByPage, {
+  const threads = useDataQuery(api.mrReviews.listThreadsByPage, {
     mergeRequestId,
     pagePath,
   });
@@ -647,11 +645,7 @@ export function PageThreadList({
   return (
     <div className="space-y-2 mt-3">
       {(threads as ReviewThreadData[]).map((thread) => (
-        <ReviewThread
-          key={thread._id}
-          thread={thread}
-          canManage={canManage}
-        />
+        <ReviewThread key={thread.id} thread={thread} canManage={canManage} />
       ))}
     </div>
   );

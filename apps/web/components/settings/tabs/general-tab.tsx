@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id, Doc } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
+import type { Project } from "@/db/schema";
 import { Button } from "@inkloom/ui/button";
 import {
   Card,
@@ -36,7 +36,7 @@ import { trackEvent } from "@/lib/analytics";
 
 interface GeneralTabProps {
   projectId: string;
-  project: Doc<"projects">;
+  project: Project;
 }
 
 export function GeneralTab({ projectId, project }: GeneralTabProps) {
@@ -44,9 +44,9 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
   const t = useTranslations("settings.general");
   const tc = useTranslations("common");
 
-  const updateProject = useMutation(api.projects.update);
-  const updateCfSlug = useMutation(api.projects.updateCfSlug);
-  const deleteProject = useMutation(api.projects.remove);
+  const updateProject = useDataMutation(api.projects.update);
+  const updateCfSlug = useDataMutation(api.projects.updateCfSlug);
+  const deleteProject = useDataMutation(api.projects.remove);
 
   // General settings
   const [name, setName] = useState("");
@@ -64,10 +64,10 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   // Real-time uniqueness check for cfSlug
-  const cfSlugCheckResult = useQuery(
+  const cfSlugCheckResult = useDataQuery(
     api.projects.checkCfSlugAvailable,
     cfSlugInput.length >= 3 && cfSlugInput !== cfSlug
-      ? { cfSlug: cfSlugInput, excludeProjectId: projectId as Id<"projects"> }
+      ? { slug: cfSlugInput, excludeProjectId: projectId }
       : "skip"
   );
 
@@ -100,7 +100,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
   const saveGeneral = useCallback(
     async ({ name, description }: { name: string; description: string }) => {
       await updateProject({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         name,
         description,
       });
@@ -112,7 +112,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
   const saveCfSlug = useCallback(
     async (slug: string) => {
       await updateCfSlug({
-        projectId: projectId as Id<"projects">,
+        projectId: projectId,
         cfSlug: slug,
       });
       setCfSlug(slug);
@@ -131,14 +131,16 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
     cfSlugInput,
     saveCfSlug,
     800,
-    cfSlugInitialized && cfSlugFormatValid && (!cfSlugChanged || cfSlugAvailable === true)
+    cfSlugInitialized &&
+      cfSlugFormatValid &&
+      (!cfSlugChanged || cfSlugAvailable === true)
   );
 
   const handleDelete = async () => {
     if (deleteConfirmation !== project.name) return;
     setIsDeleting(true);
     try {
-      await deleteProject({ projectId: projectId as Id<"projects"> });
+      await deleteProject({ projectId: projectId });
       trackEvent("project_deleted", { projectId });
       router.push("/projects");
     } catch (error) {
@@ -155,9 +157,7 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>{t("title")}</CardTitle>
-              <CardDescription>
-                {t("description")}
-              </CardDescription>
+              <CardDescription>{t("description")}</CardDescription>
             </div>
             <SaveStatus status={generalStatus} />
           </div>
@@ -203,7 +203,11 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
               <Input
                 id="cfSlug"
                 value={cfSlugInput}
-                onChange={(e) => setCfSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                onChange={(e) =>
+                  setCfSlugInput(
+                    e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "")
+                  )
+                }
                 placeholder={t("slugPlaceholder")}
                 className="pr-8"
                 maxLength={40}
@@ -224,49 +228,56 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
               .{process.env.NEXT_PUBLIC_DOCS_DOMAIN || "pages.dev"}
             </span>
           </div>
-          {cfSlugChanged && cfSlugInput.length >= 3 && cfSlugAvailable !== null && (
-            <p className={`text-xs ${cfSlugAvailable && cfSlugFormatValid ? "text-green-600" : "text-destructive"}`}>
-              {!cfSlugFormatValid
-                ? t("slugFormatError")
-                : cfSlugAvailable
-                  ? t("slugAvailable")
-                  : t("slugTaken")}
-            </p>
-          )}
-          {cfSlugChanged && cfSlugInput.length > 0 && cfSlugInput.length < 3 && (
-            <p className="text-xs text-destructive">{t("slugMinLength")}</p>
-          )}
+          {cfSlugChanged &&
+            cfSlugInput.length >= 3 &&
+            cfSlugAvailable !== null && (
+              <p
+                className={`text-xs ${cfSlugAvailable && cfSlugFormatValid ? "text-green-600" : "text-destructive"}`}
+              >
+                {!cfSlugFormatValid
+                  ? t("slugFormatError")
+                  : cfSlugAvailable
+                    ? t("slugAvailable")
+                    : t("slugTaken")}
+              </p>
+            )}
+          {cfSlugChanged &&
+            cfSlugInput.length > 0 &&
+            cfSlugInput.length < 3 && (
+              <p className="text-xs text-destructive">{t("slugMinLength")}</p>
+            )}
         </CardContent>
       </Card>
 
       {/* Custom Domains */}
       <GatedSection
         feature="custom_domains"
-        projectId={projectId as Id<"projects">}
+        projectId={projectId}
         title={t("domains")}
         description={t("domainsDescription")}
         icon={Globe}
         valueProp={t("domainsValueProp")}
       >
-        <DomainConfig
-          projectId={projectId as Id<"projects">}
-          cfSlug={project.cfSlug}
-        />
+        <DomainConfig projectId={projectId} cfSlug={project.cfSlug ?? undefined} />
       </GatedSection>
 
       {/* Deployment History */}
-      <DeploymentHistory projectId={projectId as Id<"projects">} cfSlug={project.cfSlug} />
+      <DeploymentHistory projectId={projectId} cfSlug={project.cfSlug ?? undefined} />
 
       {/* Delete Project */}
       <Card className="border-destructive">
         <CardHeader>
           <CardTitle className="text-destructive">{t("dangerZone")}</CardTitle>
-          <CardDescription>
-            {t("dangerZoneDescription")}
-          </CardDescription>
+          <CardDescription>{t("dangerZoneDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Dialog open={deleteOpen} onOpenChange={(open) => { setDeleteOpen(open); if (!open) setDeleteConfirmation(""); }}>
+          <Dialog
+            open={deleteOpen}
+            onOpenChange={(open) => {
+              setDeleteOpen(open);
+              if (!open) setDeleteConfirmation("");
+            }}
+          >
             <DialogTrigger asChild>
               <Button variant="destructive">
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -279,7 +290,9 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
                 <DialogDescription>
                   {t.rich("deleteConfirmDescription", {
                     projectName: project.name,
-                    strong: (chunks: React.ReactNode) => <strong className="font-semibold">{chunks}</strong>,
+                    strong: (chunks: React.ReactNode) => (
+                      <strong className="font-semibold">{chunks}</strong>
+                    ),
                   })}
                 </DialogDescription>
               </DialogHeader>
@@ -287,7 +300,9 @@ export function GeneralTab({ projectId, project }: GeneralTabProps) {
                 <Label htmlFor="delete-confirm">
                   {t.rich("typeToConfirm", {
                     projectName: project.name,
-                    strong: (chunks: React.ReactNode) => <strong className="font-semibold">{chunks}</strong>,
+                    strong: (chunks: React.ReactNode) => (
+                      <strong className="font-semibold">{chunks}</strong>
+                    ),
                   })}
                 </Label>
                 <Input

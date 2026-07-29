@@ -144,31 +144,19 @@ function getRunCommand(packageManager: string, script: string): string {
   return `${packageManager} run ${script}`;
 }
 
-function getExecCommand(packageManager: string): string {
-  if (packageManager === "bun") return "bunx";
-  if (packageManager === "pnpm") return "pnpm dlx";
-  if (packageManager === "yarn") return "yarn dlx";
-  return "npx";
-}
-
 function printCoreInstructions(
   projectName: string,
   packageManager: string
 ) {
-  const execCmd = getExecCommand(packageManager);
   const devCmd = getRunCommand(packageManager, "dev");
+  const migrateCmd = getRunCommand(packageManager, "data:migrate:local");
 
   console.log("Get started:");
   console.log();
   console.log(pc.cyan(`  cd ${projectName}`));
   console.log();
-  console.log(pc.bold("  Option A: Convex Cloud (free, fastest setup)"));
-  console.log(`  ${pc.bold("1.")} ${execCmd} convex dev`);
+  console.log(`  ${pc.bold("1.")} ${migrateCmd}`);
   console.log(`  ${pc.bold("2.")} ${devCmd}`);
-  console.log();
-  console.log(pc.bold("  Option B: Self-hosted (no external dependencies)"));
-  console.log(`  ${pc.bold("1.")} docker compose up -d`);
-  console.log(`  ${pc.bold("2.")} See README.md for setup steps`);
   console.log();
   console.log(pc.dim("  Open http://localhost:3000 to start writing docs."));
   console.log();

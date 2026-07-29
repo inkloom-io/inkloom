@@ -16,7 +16,7 @@ program
   .argument("[project-name]", "Name of the project directory")
   .option(
     "-t, --template <name>",
-    'Template to use: "core" (Next.js + Convex editor) or "default" (static site viewer)'
+    'Template to use: "core" (Next.js + D1 editor) or "default" (static site viewer)'
   )
   .option("--use-npm", "Use npm as package manager")
   .option("--use-yarn", "Use yarn as package manager")
@@ -38,7 +38,7 @@ program
           name: "template",
           message: "Which template do you want to use?",
           choices: [
-            { title: "Core (Next.js + Convex editor)", value: "core" },
+            { title: "Core (Next.js + D1 editor)", value: "core" },
             { title: "Default (Static Vite viewer)", value: "default" },
           ],
           initial: 0,

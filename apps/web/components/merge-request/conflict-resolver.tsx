@@ -25,7 +25,7 @@ function extractText(content: InlineContent[] | undefined): string {
 }
 
 // Render a compact block preview
-function BlockPreview({ block, label }: { block: BlockData; label: string; }) {
+function BlockPreview({ block, label }: { block: BlockData; label: string }) {
   const text = extractText(block.content);
   const displayText = text || `[${block.type}]`;
 

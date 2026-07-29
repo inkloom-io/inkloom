@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +17,7 @@ type DateRange = "7d" | "30d" | "90d" | "all";
 interface ReaderReactionsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  projectId: Id<"projects">;
+  projectId: string;
   pageSlug: string;
   pageTitle?: string;
 }
@@ -127,7 +126,10 @@ function TrendChart({
             {/* Stacked bar */}
             <div
               className="flex w-full min-w-[4px] max-w-[32px] flex-col justify-end overflow-hidden rounded-t"
-              style={{ height: `${barHeight}%`, minHeight: bucket.total > 0 ? "2px" : "0" }}
+              style={{
+                height: `${barHeight}%`,
+                minHeight: bucket.total > 0 ? "2px" : "0",
+              }}
             >
               {positiveH > 0 && (
                 <div
@@ -158,7 +160,8 @@ function TrendChart({
               )}
             </div>
             {/* Date label (show selectively to avoid crowding) */}
-            {(data.length <= 14 || data.indexOf(bucket) % Math.ceil(data.length / 7) === 0) && (
+            {(data.length <= 14 ||
+              data.indexOf(bucket) % Math.ceil(data.length / 7) === 0) && (
               <span className="mt-1 text-[9px] leading-none text-muted-foreground">
                 {new Date(bucket.date).toLocaleDateString(undefined, {
                   month: "short",
@@ -192,13 +195,17 @@ function TrendIndicator({
 
     const avgFirst =
       firstHalf.length > 0
-        ? firstHalf.reduce((sum, d) => sum + (d.total > 0 ? d.positive / d.total : 0), 0) /
-          firstHalf.length
+        ? firstHalf.reduce(
+            (sum, d) => sum + (d.total > 0 ? d.positive / d.total : 0),
+            0
+          ) / firstHalf.length
         : 0;
     const avgSecond =
       secondHalf.length > 0
-        ? secondHalf.reduce((sum, d) => sum + (d.total > 0 ? d.positive / d.total : 0), 0) /
-          secondHalf.length
+        ? secondHalf.reduce(
+            (sum, d) => sum + (d.total > 0 ? d.positive / d.total : 0),
+            0
+          ) / secondHalf.length
         : 0;
 
     const diff = avgSecond - avgFirst;
@@ -252,14 +259,19 @@ export function ReaderReactionsModal({
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const since = useMemo(() => getSinceTimestamp(dateRange), [dateRange]);
 
-  const bucketSize = dateRange === "7d" ? "daily" as const : dateRange === "30d" ? "daily" as const : "weekly" as const;
+  const bucketSize =
+    dateRange === "7d"
+      ? ("daily" as const)
+      : dateRange === "30d"
+        ? ("daily" as const)
+        : ("weekly" as const);
 
-  const stats = useQuery(
+  const stats = useDataQuery(
     api.pageFeedback.getStats,
     open ? { projectId, pageSlug, since } : "skip"
   );
 
-  const timeSeries = useQuery(
+  const timeSeries = useDataQuery(
     api.pageFeedback.getTimeSeries,
     open ? { projectId, pageSlug, since, bucketSize } : "skip"
   );

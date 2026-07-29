@@ -1,8 +1,8 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
+import { useDataQuery as useQuery, useDataMutation as useMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
+import { Id } from "@/data/types";
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { use } from "react";
@@ -122,7 +122,7 @@ function EditorContent({
   const initialLoadRef = useRef(false);
 
   // Load content from server only on initial load — never overwrite local
-  // edits when the Convex query re-fires after a mutation.
+  // edits when the data query re-fires after a mutation.
   useEffect(() => {
     if (pageContent !== undefined && !initialLoadRef.current) {
       setContent(pageContent?.content ?? null);
@@ -148,7 +148,7 @@ function EditorContent({
     setContent(newContent);
   }, []);
 
-  // Loading state — wait for both the Convex query AND the content state to be
+  // Loading state — wait for both the data query AND the content state to be
   // populated via useEffect. Without the `initialized` check the BlockEditor
   // renders with `content === null` (useEffect hasn't fired yet), which causes
   // useCreateBlockNote to create an empty editor that never updates.
@@ -257,7 +257,7 @@ export default function ProjectEditorPage({
   // Validate persisted page ID — clear if page no longer exists
   useEffect(() => {
     if (pages && selectedPageId) {
-      const exists = pages.some((p) => p._id === selectedPageId);
+      const exists = pages.some((p) => p.id === selectedPageId);
       if (!exists) {
         setSelectedPageId(null);
         persistPageId(projectId, null);
@@ -295,7 +295,7 @@ export default function ProjectEditorPage({
     );
   }
 
-  const selectedPage = pages?.find((p) => p._id === selectedPageId);
+  const selectedPage = pages?.find((p) => p.id === selectedPageId);
 
   return (
     <main className="min-h-screen bg-background text-foreground flex flex-col">
@@ -370,17 +370,17 @@ export default function ProjectEditorPage({
         {/* Editor area (flex-1) */}
         {selectedPage ? (
           <EditorContent
-            key={selectedPage._id}
-            pageId={selectedPage._id}
+            key={selectedPage.id}
+            pageId={selectedPage.id}
             pageTitle={selectedPage.title}
             showPreview={showPreview}
             themePreset={(project.settings as Record<string, unknown> | undefined)?.theme as string || "default"}
             customPrimaryColor={(project.settings as Record<string, unknown> | undefined)?.primaryColor as string | undefined}
             customFonts={(project.settings as Record<string, unknown> | undefined)?.fonts as { heading?: string; body?: string; code?: string } | undefined}
-            icon={selectedPage.icon}
-            subtitle={selectedPage.subtitle}
-            titleSectionHidden={selectedPage.titleSectionHidden}
-            titleIconHidden={selectedPage.titleIconHidden}
+            icon={selectedPage.icon ?? undefined}
+            subtitle={selectedPage.subtitle ?? undefined}
+            titleSectionHidden={selectedPage.titleSectionHidden ?? undefined}
+            titleIconHidden={selectedPage.titleIconHidden ?? undefined}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center">

@@ -14,7 +14,7 @@
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License" /></a>
   <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-16-black.svg" alt="Next.js 16" /></a>
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-5.4-3178C6.svg" alt="TypeScript" /></a>
-  <a href="https://www.convex.dev"><img src="https://img.shields.io/badge/Convex-Backend-FF6F00.svg" alt="Convex" /></a>
+  <a href="https://developers.cloudflare.com/d1/"><img src="https://img.shields.io/badge/Cloudflare-D1-F38020.svg" alt="Cloudflare D1" /></a>
 </p>
 
 <p align="center">
@@ -42,29 +42,28 @@ InkLoom is an open-source, local-first documentation platform with a visual bloc
 
 It's designed for teams that want real control over their documentation workflow — drafting, review, conflict resolution, and publishing — without being locked into a hosted platform.
 
-No authentication required. InkLoom runs as a single-tenant tool backed by [Convex](https://www.convex.dev/).
+No authentication is required. InkLoom runs as a single-tenant tool backed by
+Cloudflare D1, Workers, and R2.
 
 ### Features
 
-| Category | What you get |
-|----------|-------------|
-| **Editor** | BlockNote rich-text editor with 15 custom block types: accordion, callout, card, code block, code group, columns, expandable, frame, iframe, image, LaTeX, response field, steps, tabs, video |
-| **Version control** | Branches, merge requests, diff viewer, conflict resolver, version history |
-| **Comments** | Threaded comments with inline marks |
-| **Theming** | 10 built-in theme presets (Ink, Aurora, Verdant, Ember, Midnight, Dune, Fossil, Vapor, Aubergine, Custom), custom colors/fonts, logo and favicon |
-| **SEO** | OG tags, sitemap.xml, robots.txt, llms.txt |
-| **OpenAPI** | Validate OpenAPI specs and auto-generate API reference pages |
-| **CLI** | `inkloom build`, `inkloom push`, `inkloom pull`, `inkloom export` |
-| **Static output** | Generate a static `dist/` folder deployable to any host |
-| **i18n** | Built-in internationalization with next-intl |
+| Category            | What you get                                                                                                                                                                                  |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Editor**          | BlockNote rich-text editor with 15 custom block types: accordion, callout, card, code block, code group, columns, expandable, frame, iframe, image, LaTeX, response field, steps, tabs, video |
+| **Version control** | Branches, merge requests, diff viewer, conflict resolver, version history                                                                                                                     |
+| **Comments**        | Threaded comments with inline marks                                                                                                                                                           |
+| **Theming**         | 10 built-in theme presets (Ink, Aurora, Verdant, Ember, Midnight, Dune, Fossil, Vapor, Aubergine, Custom), custom colors/fonts, logo and favicon                                              |
+| **SEO**             | OG tags, sitemap.xml, robots.txt, llms.txt                                                                                                                                                    |
+| **OpenAPI**         | Validate OpenAPI specs and auto-generate API reference pages                                                                                                                                  |
+| **CLI**             | `inkloom build`, `inkloom push`, `inkloom pull`, `inkloom export`                                                                                                                             |
+| **Static output**   | Generate a static `dist/` folder deployable to any host                                                                                                                                       |
+| **i18n**            | Built-in internationalization with next-intl                                                                                                                                                  |
 
 ## Status
 
 InkLoom is under active development. Core documentation workflows, version control, static site generation, and theming are stable and in use.
 
 ## Quick Start
-
-### Option A: Convex Cloud (Fastest setup)
 
 ```bash
 npx create-inkloom my-docs && cd my-docs
@@ -76,68 +75,28 @@ Or clone the repo directly:
 git clone https://github.com/inkloom/inkloom.git && cd inkloom && pnpm install
 ```
 
-<details>
-<summary>Convex offers a generous free tier — more than enough for any documentation project.</summary>
-
-- **1M** function calls/month
-- **0.5 GB** database + **1 GB** file storage
-- Up to **6 developers** — no credit card required
-
-</details>
-
-**1. Start the Convex backend** (creates a free account if needed):
+**1. Create and migrate the local D1 database:**
 
 ```bash
-npx convex dev
+cd apps/web
+pnpm data:migrate:local
 ```
 
-**2. In a new terminal, start the app:**
+**2. Start the data Worker:**
 
 ```bash
+pnpm data:dev
+```
+
+**3. In another terminal, start Next.js:**
+
+```bash
+cd apps/web
 pnpm dev
 ```
 
-Open **http://localhost:3000** — no login required.
-
-### Option B: Self-Hosted (Zero external dependencies)
-
-Run everything on your own infrastructure. No account needed, no data leaves your machine.
-
-**1. Scaffold or clone** (same as above).
-
-**2. Start the Convex backend locally:**
-
-```bash
-docker compose up -d
-```
-
-**3. Generate an admin key:**
-
-```bash
-docker compose exec backend ./generate_admin_key.sh
-```
-
-**4. Deploy your Convex functions to the local backend:**
-
-```bash
-CONVEX_SELF_HOSTED_URL=http://127.0.0.1:3210 \
-  CONVEX_SELF_HOSTED_ADMIN_KEY=<key-from-step-3> \
-  npx convex dev
-```
-
-**5. Create `.env.local`:**
-
-```env
-NEXT_PUBLIC_CONVEX_URL=http://127.0.0.1:3210
-```
-
-**6. Start the app:**
-
-```bash
-pnpm dev
-```
-
-Open **http://localhost:3000**. The Convex dashboard is available at **http://localhost:6791**.
+Open **http://localhost:3000**. Wrangler persists the development database in
+`.wrangler/`; no Cloudflare account or login is needed for local development.
 
 ## Build & Deploy
 
@@ -154,38 +113,19 @@ Deploy the `dist/` folder to Vercel, Netlify, GitHub Pages, Cloudflare Pages, S3
 
 ## Hosting the Backend
 
-InkLoom's backend runs on Convex. You have two options:
-
-| | Convex Cloud | Self-Hosted |
-|--|-------------|------------|
-| Setup | `npx convex dev` (2 min) | `docker compose up` (5 min) |
-| Cost | Free tier (generous) | Your infrastructure |
-| Scaling | Automatic | Manual (single-machine default) |
-| Backups | Automatic | You manage |
-| Dashboard | cloud.convex.dev | localhost:6791 |
-
-For production self-hosting, Convex supports PostgreSQL as a storage backend
-(instead of the default SQLite) for better durability and scalability.
-See the [Convex self-hosting guide](https://github.com/get-convex/convex-backend/blob/main/self-hosted/README.md) for details.
-
-### Docker: Full-Stack Deployment
-
-To run both the Convex backend and the InkLoom app in containers:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.app.yml up -d
-```
-
-This requires a `standalone` Next.js build. Add `output: "standalone"` to your `next.config.ts`, then build the Docker image with `docker build -t inkloom .`.
+Production uses a Cloudflare Worker with D1 and R2 bindings. Apply migrations
+with `pnpm data:migrate:remote`, deploy with `pnpm data:deploy`, and configure
+the Next.js service with the resulting `DATA_API_URL`. The browser talks to the
+Worker through the authenticated `/api/data/*` same-origin proxy.
 
 ## CLI Reference
 
-| Command | Description |
-|---------|-------------|
-| `inkloom build` | Generate a static site to `dist/` |
-| `inkloom push` | Push local MDX files to a Convex project |
-| `inkloom pull` | Pull pages from Convex as local MDX files |
-| `inkloom export` | Export all project data to `inkloom-export.json` |
+| Command          | Description                                               |
+| ---------------- | --------------------------------------------------------- |
+| `inkloom build`  | Generate a static site to `dist/`                         |
+| `inkloom push`   | Push local MDX files to an InkLoom data Worker            |
+| `inkloom pull`   | Pull pages from an InkLoom data Worker as local MDX files |
+| `inkloom export` | Export all project data to `inkloom-export.json`          |
 
 Install the CLI:
 
@@ -199,7 +139,9 @@ pnpm add -g @inkloom/cli
 apps/web/                     # Next.js application
   app/[locale]/(dashboard)/   # Dashboard routes
   components/                 # Editor, settings, merge requests, dashboard
-  convex/                     # Convex backend (schema, queries, mutations)
+  db/                         # Drizzle schema and D1 migrations
+  data/                       # Typed browser client and React Query hooks
+  worker/                     # Cloudflare Worker data API
   lib/                        # Utilities, adapters, site generation
   hooks/                      # React hooks
   messages/en.json            # i18n translations
@@ -213,16 +155,17 @@ packages/
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
+| Layer    | Technology                                          |
+| -------- | --------------------------------------------------- |
 | Frontend | Next.js 16, React 19, BlockNote editor, Tailwind v4 |
-| Backend | Convex (serverless functions + real-time database) |
-| Build | Static site generation (HTML, CSS, JS) |
-| Monorepo | pnpm workspaces |
+| Backend  | Cloudflare Workers + D1 + R2 (Drizzle and Hono)     |
+| Build    | Static site generation (HTML, CSS, JS)              |
+| Monorepo | pnpm workspaces                                     |
 
 ## Data Portability
 
-InkLoom stores data in Convex using a portable schema. Export your entire project at any time:
+InkLoom stores relational data in D1 and objects in R2 using a portable schema.
+Export your entire project at any time:
 
 ```bash
 inkloom export --output inkloom-export.json

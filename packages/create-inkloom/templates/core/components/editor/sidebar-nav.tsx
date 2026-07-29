@@ -7,9 +7,9 @@ import {
   useEffect,
   useRef,
 } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id, Doc } from "@/convex/_generated/dataModel";
+import { useDataQuery as useQuery, useDataMutation as useMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
+import type { Id, Doc } from "@/data/types";
 import { cn } from "@/components/ui/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,7 +121,7 @@ function NodeRenderer({
   }, [isFolder, node.willReceiveDrop, node.isOpen, node]);
 
   const isSelected =
-    isPage && data.pageData && selectedPageId === data.pageData._id;
+    isPage && data.pageData && selectedPageId === data.pageData.id;
 
   // Render icon
   const renderIcon = () => {
@@ -156,8 +156,8 @@ function NodeRenderer({
       }
       className="group flex items-center rounded-lg"
       data-testid={isFolder ? "folder-item" : "page-item"}
-      data-folder-id={isFolder ? data.folderData?._id : undefined}
-      data-page-id={isPage ? data.pageData?._id : undefined}
+      data-folder-id={isFolder ? data.folderData?.id : undefined}
+      data-page-id={isPage ? data.pageData?.id : undefined}
     >
       {/* Drag handle */}
       <div
@@ -208,7 +208,7 @@ function NodeRenderer({
                   data.folderData &&
                   onDeleteTarget({
                     type: "folder",
-                    id: data.folderData._id,
+                    id: data.folderData.id,
                     name: data.folderData.name,
                   })
                 }
@@ -230,7 +230,7 @@ function NodeRenderer({
                 ? "bg-accent text-accent-foreground border-l-primary"
                 : "text-muted-foreground border-l-transparent hover:bg-accent hover:text-foreground",
             )}
-            onClick={() => data.pageData && onSelectPage(data.pageData._id)}
+            onClick={() => data.pageData && onSelectPage(data.pageData.id)}
           >
             {renderIcon()}
             <span className="truncate">{data.name}</span>
@@ -253,7 +253,7 @@ function NodeRenderer({
                 onClick={() =>
                   data.pageData &&
                   onTogglePublish(
-                    data.pageData._id,
+                    data.pageData.id,
                     !!data.pageData.isPublished,
                   )
                 }
@@ -276,7 +276,7 @@ function NodeRenderer({
                   data.pageData &&
                   onDeleteTarget({
                     type: "page",
-                    id: data.pageData._id,
+                    id: data.pageData.id,
                     name: data.pageData.title,
                   })
                 }
@@ -390,16 +390,16 @@ export function SidebarNav({
       const items: TreeNodeData[] = [
         ...childFolders.map(
           (folder): TreeNodeData => ({
-            id: `folder-${folder._id}`,
+            id: `folder-${folder.id}`,
             name: folder.name,
             type: "folder",
             folderData: folder,
-            children: buildChildren(folder._id),
+            children: buildChildren(folder.id),
           }),
         ),
         ...childPages.map(
           (page): TreeNodeData => ({
-            id: `page-${page._id}`,
+            id: `page-${page.id}`,
             name: page.title,
             type: "page",
             pageData: page,
@@ -436,7 +436,7 @@ export function SidebarNav({
     ) {
       hasAutoSelected.current = true;
       const sorted = [...pages].sort((a, b) => a.position - b.position);
-      onSelectPage(sorted[0]._id);
+      onSelectPage(sorted[0].id);
     }
   }, [pages, selectedPageId, onSelectPage]);
 
@@ -476,12 +476,12 @@ export function SidebarNav({
     if (deleteTarget.type === "page") {
       await removePage({ pageId: deleteTarget.id as Id<"pages"> });
       if (selectedPageId === deleteTarget.id) {
-        const remaining = pages?.filter((p) => p._id !== deleteTarget.id);
+        const remaining = pages?.filter((p) => p.id !== deleteTarget.id);
         if (remaining && remaining.length > 0) {
           const sorted = [...remaining].sort(
             (a, b) => a.position - b.position,
           );
-          onSelectPage(sorted[0]._id);
+          onSelectPage(sorted[0].id);
         }
       }
     } else {
@@ -507,7 +507,7 @@ export function SidebarNav({
   const handleSaveFolder = async () => {
     if (!editingFolder || !editFolderName.trim()) return;
     await renameFolder({
-      folderId: editingFolder._id,
+      folderId: editingFolder.id,
       name: editFolderName.trim(),
     });
     setEditFolderOpen(false);
@@ -517,7 +517,7 @@ export function SidebarNav({
   const handleSavePage = async () => {
     if (!editingPage || !editPageTitle.trim()) return;
     await updatePageMeta({
-      pageId: editingPage._id,
+      pageId: editingPage.id,
       title: editPageTitle.trim(),
     });
     setEditPageOpen(false);
@@ -554,7 +554,7 @@ export function SidebarNav({
       try {
         if (isDragPage) {
           const pageId = dragId.replace("page-", "") as Id<"pages">;
-          const page = pages.find((p) => p._id === pageId);
+          const page = pages.find((p) => p.id === pageId);
           if (!page) return;
 
           const oldFolderId = page.folderId ?? null;
@@ -571,7 +571,7 @@ export function SidebarNav({
               .sort((a, b) => a.position - b.position);
             const rootPageCount = rootPages.length;
             const pageVisualIndex = Math.min(index, rootPageCount);
-            const otherPages = rootPages.filter((p) => p._id !== pageId);
+            const otherPages = rootPages.filter((p) => p.id !== pageId);
 
             if (pageVisualIndex >= otherPages.length) {
               const maxPos =
@@ -606,7 +606,7 @@ export function SidebarNav({
           });
         } else if (isDragFolder) {
           const folderId = dragId.replace("folder-", "") as Id<"folders">;
-          const folder = folders.find((f) => f._id === folderId);
+          const folder = folders.find((f) => f.id === folderId);
           if (!folder) return;
 
           // Prevent moving folder into itself
@@ -614,6 +614,7 @@ export function SidebarNav({
 
           await moveFolder({
             folderId,
+            position: folder.position,
             parentId: targetFolderId ?? undefined,
           });
         }
@@ -625,7 +626,7 @@ export function SidebarNav({
   );
 
   // Tree ref for programmatic folder expansion
-  const treeRef = useRef<ReturnType<typeof Tree> extends React.ReactElement<infer P> ? P : unknown>(null);
+  const treeRef = useRef<any>(null);
 
   // Auto-expand folders containing the selected page
   useEffect(() => {
@@ -691,7 +692,7 @@ export function SidebarNav({
           {(treeHeight) =>
             dndRoot && (
               <Tree
-                ref={treeRef as React.Ref<unknown>}
+                ref={treeRef}
                 data={treeData}
                 openByDefault={false}
                 width="100%"

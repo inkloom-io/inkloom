@@ -1,9 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { useState } from "react";
 import { PreviewPanel } from "@/components/editor/preview-panel";
 import type { ThemePreset } from "@/lib/theme-presets";
@@ -20,9 +19,9 @@ import {
 } from "@inkloom/ui/alert-dialog";
 
 interface BreadcrumbFolder {
-  _id: string;
+  id: string;
   name: string;
-  parentId?: string;
+  parentId?: string | null;
 }
 
 interface NavTab {
@@ -34,10 +33,10 @@ interface NavTab {
 }
 
 interface VersionDiffProps {
-  pageId: Id<"pages">;
+  pageId: string;
   version: number;
   currentContent: string;
-  currentUserId?: Id<"users">;
+  currentUserId?: string;
   onExit: () => void;
   onRestore?: (restoredContent: string) => void;
   pageTitle: string;
@@ -74,8 +73,8 @@ export function VersionDiff({
 }: VersionDiffProps) {
   const t = useTranslations("editor.versionDiff");
   const tc = useTranslations("common");
-  const versionData = useQuery(api.pages.getVersion, { pageId, version });
-  const restoreVersion = useMutation(api.pages.restoreVersion);
+  const versionData = useDataQuery(api.pages.getVersion, { pageId, version });
+  const restoreVersion = useDataMutation(api.pages.restoreVersion);
   const [isRestoring, setIsRestoring] = useState(false);
   const [confirmRestore, setConfirmRestore] = useState(false);
 
@@ -152,8 +151,12 @@ export function VersionDiff({
                 customPrimaryColor={customPrimaryColor}
                 customBackgroundColorLight={customBackgroundColorLight}
                 customBackgroundColorDark={customBackgroundColorDark}
-                customBackgroundSubtleColorLight={customBackgroundSubtleColorLight}
-                customBackgroundSubtleColorDark={customBackgroundSubtleColorDark}
+                customBackgroundSubtleColorLight={
+                  customBackgroundSubtleColorLight
+                }
+                customBackgroundSubtleColorDark={
+                  customBackgroundSubtleColorDark
+                }
               />
             ) : (
               <div className="flex h-32 items-center justify-center">
@@ -183,7 +186,9 @@ export function VersionDiff({
               customPrimaryColor={customPrimaryColor}
               customBackgroundColorLight={customBackgroundColorLight}
               customBackgroundColorDark={customBackgroundColorDark}
-              customBackgroundSubtleColorLight={customBackgroundSubtleColorLight}
+              customBackgroundSubtleColorLight={
+                customBackgroundSubtleColorLight
+              }
               customBackgroundSubtleColorDark={customBackgroundSubtleColorDark}
             />
           </div>
@@ -194,7 +199,9 @@ export function VersionDiff({
       <AlertDialog open={confirmRestore} onOpenChange={setConfirmRestore}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("restoreVersionTitle", { version })}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("restoreVersionTitle", { version })}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t("restoreVersionDescription")}
             </AlertDialogDescription>

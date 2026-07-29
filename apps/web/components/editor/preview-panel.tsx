@@ -19,9 +19,9 @@ import { IconDisplay } from "./icon-picker";
 import "./preview-styles.css";
 
 interface BreadcrumbFolder {
-  _id: string;
+  id: string;
   name: string;
-  parentId?: string;
+  parentId?: string | null;
 }
 
 interface NavTab {
@@ -61,17 +61,17 @@ function buildBreadcrumbTrail(
 ): string[] {
   // Walk up the folder chain
   const folderChain: BreadcrumbFolder[] = [];
-  const folderMap = new Map(folders.map((f: any) => [f._id, f]));
+  const folderMap = new Map(folders.map((folder) => [folder.id, folder]));
   let currentId = folderId;
   while (currentId) {
     const folder = folderMap.get(currentId);
     if (!folder) break;
     folderChain.unshift(folder);
-    currentId = folder.parentId;
+    currentId = folder.parentId ?? undefined;
   }
 
   // Find matching nav tab
-  const folderIds = new Set(folderChain.map((f: any) => f._id));
+  const folderIds = new Set(folderChain.map((folder) => folder.id));
   let tabName: string | undefined;
   for (const tab of navTabs) {
     // Check legacy single-folder reference
@@ -211,8 +211,8 @@ export function PreviewPanel({
 }: PreviewPanelProps) {
   const t = useTranslations("editor.previewPanel");
   const { resolvedTheme } = useTheme();
-  const [previewTheme, setPreviewTheme] = useState<"light" | "dark">(
-    () => (resolvedTheme === "dark" ? "dark" : "light")
+  const [previewTheme, setPreviewTheme] = useState<"light" | "dark">(() =>
+    resolvedTheme === "dark" ? "dark" : "light"
   );
 
   const blocks = parseBlockNoteContent(content);
@@ -311,11 +311,9 @@ export function PreviewPanel({
         {/* Inject fonts */}
         <style>{`@import url('${fontsUrl}');`}</style>
         {/* Inject theme-specific CSS for component styling */}
-        {themeSpecificCss && (
-          <style>{themeSpecificCss}</style>
-        )}
+        {themeSpecificCss && <style>{themeSpecificCss}</style>}
         <div className="preview-header sticky top-0 z-10 border-b border-[var(--color-header-border)]">
-          <div className="flex h-12 items-center justify-between px-5">
+          <div className="flex h-12 items-center justify-between pl-5 pr-12">
             <span
               className="text-sm font-semibold"
               style={{
@@ -334,7 +332,9 @@ export function PreviewPanel({
                 aria-label={t("searchPlaceholder")}
               >
                 <Search className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{t("searchPlaceholder")}</span>
+                <span className="hidden sm:inline">
+                  {t("searchPlaceholder")}
+                </span>
                 <kbd
                   className="ml-1 hidden rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-muted)] px-1.5 py-0.5 text-[0.6875rem] sm:inline"
                   style={{ fontFamily: "var(--font-mono)" }}

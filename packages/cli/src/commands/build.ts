@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { resolve } from "node:path";
 import pc from "picocolors";
-import { createConvexClient } from "../lib/convex-client.js";
+import { createCoreDataClient } from "../lib/data-client.js";
 import { buildSite } from "../lib/build.js";
 import { CliError, EXIT_GENERAL } from "../lib/errors.js";
 import { printData, printSuccess } from "../lib/output.js";
@@ -12,13 +12,13 @@ import { trackEvent } from "../lib/telemetry.js";
  * Register the `build` command for generating static sites.
  *
  * This command is the core deployment mechanism for OSS users:
- * fetch project data from Convex → generate site files → write to dist/
+ * fetch project data from D1 → generate site files → write to dist/
  */
 export function registerBuildCommand(program: Command): void {
   program
     .command("build")
     .description(
-      "Generate a static documentation site from your Convex project"
+      "Generate a static documentation site from your D1 project"
     )
     .argument("<projectId>", "Project ID to build")
     .option(
@@ -33,8 +33,8 @@ export function registerBuildCommand(program: Command): void {
     )
     .option("--no-clean", "Do not clean output directory before building")
     .option(
-      "--convex-url <url>",
-      "Convex deployment URL (overrides NEXT_PUBLIC_CONVEX_URL)"
+      "--data-api-url <url>",
+      "data Worker URL (overrides INKLOOM_DATA_API_URL)"
     )
     .addHelpText(
       "after",
@@ -46,8 +46,8 @@ Examples:
   $ inkloom build proj_abc --no-clean         Keep existing files in output dir
 
 Environment:
-  NEXT_PUBLIC_CONVEX_URL    Convex deployment URL (required)
-  CONVEX_URL                Alternative Convex URL variable`
+  INKLOOM_DATA_API_URL    data Worker URL (required)
+  DATA_API_URL                Alternative data API URL variable`
     )
     .action(async (...args: unknown[]) => {
       // Commander passes: projectId, options object, Command instance
@@ -58,13 +58,13 @@ Environment:
         output: string;
         branch?: string;
         clean?: boolean;
-        convexUrl?: string;
+        dataApiUrl?: string;
       };
 
       try {
-        // Create Convex client
-        const client = createConvexClient({
-          convexUrl: localOpts.convexUrl,
+        // Create data client
+        const client = createCoreDataClient({
+          dataApiUrl: localOpts.dataApiUrl,
           verbose: globalOpts.verbose,
         });
 

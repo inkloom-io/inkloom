@@ -1,12 +1,11 @@
 "use client";
 
 import { forwardRef } from "react";
-import type { Id } from "@/convex/_generated/dataModel";
 import { CommentPopover } from "./comment-popover";
 
 interface InlineCommentMarkProps {
-  threadId: Id<"commentThreads">;
-  currentUserId: Id<"users">;
+  threadId: string;
+  currentUserId: string;
   status: "open" | "resolved";
   children: React.ReactNode;
   onOpenSidebar?: () => void;

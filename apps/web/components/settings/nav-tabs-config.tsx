@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Button } from "@inkloom/ui/button";
 import { Input } from "@inkloom/ui/input";
 import { Label } from "@inkloom/ui/label";
@@ -24,7 +23,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@inkloom/ui/alert-dialog";
-import { GripVertical, Plus, Trash2, Folder, FileText, AlertTriangle } from "lucide-react";
+import {
+  GripVertical,
+  Plus,
+  Trash2,
+  Folder,
+  FileText,
+  AlertTriangle,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { IconPicker, IconDisplay } from "@/components/editor/icon-picker";
 import { useAutoSave } from "@/hooks/use-auto-save";
@@ -32,8 +38,8 @@ import { SaveStatus } from "@/components/settings/save-status";
 
 // Item in a tab - can be either a folder or a page
 type NavTabItem =
-  | { type: "folder"; folderId: Id<"folders"> }
-  | { type: "page"; pageId: Id<"pages"> };
+  | { type: "folder"; folderId: string }
+  | { type: "page"; pageId: string };
 
 interface NavTab {
   id: string;
@@ -50,12 +56,12 @@ interface LegacyNavTab {
   name: string;
   slug: string;
   icon?: string;
-  folderId?: Id<"folders">; // Old format
+  folderId?: string; // Old format
   items?: NavTabItem[]; // New format
 }
 
 interface NavTabsConfigProps {
-  branchId: Id<"branches">;
+  branchId: string;
   initialTabs?: LegacyNavTab[];
   onSave: (tabs: NavTab[]) => Promise<void>;
 }
@@ -117,15 +123,20 @@ export function NavTabsConfig({
   const lastSavedTabsRef = useRef<string>(JSON.stringify(migratedInitialTabs));
 
   // Get all folders for the branch (not just root)
-  const folders = useQuery(api.folders.listByBranch, { branchId });
+  const folders = useDataQuery(api.folders.listByBranch, { branchId });
   const allFolders = folders ?? [];
 
   // Get all pages for the branch
-  const pages = useQuery(api.pages.listByBranch, { branchId });
+  const pages = useDataQuery(api.pages.listByBranch, { branchId });
   const allPages = pages ?? [];
 
   // Calculate assigned and unassigned items
-  const { assignedFolderIds, assignedPageIds, unassignedFolders, unassignedPages } = useMemo(() => {
+  const {
+    assignedFolderIds,
+    assignedPageIds,
+    unassignedFolders,
+    unassignedPages,
+  } = useMemo(() => {
     const folderIds = new Set<string>();
     const pageIds = new Set<string>();
 
@@ -137,9 +148,9 @@ export function NavTabsConfig({
       while (queue.length > 0) {
         const currentId = queue.pop()!;
         for (const f of allFolders) {
-          if (f.parentId === currentId && !folderIds.has(f._id)) {
-            folderIds.add(f._id);
-            queue.push(f._id);
+          if (f.parentId === currentId && !folderIds.has(f.id)) {
+            folderIds.add(f.id);
+            queue.push(f.id);
           }
         }
       }
@@ -159,7 +170,7 @@ export function NavTabsConfig({
     // Mark all pages whose folderId is in the assigned folder set
     for (const p of allPages) {
       if (p.folderId && folderIds.has(p.folderId)) {
-        pageIds.add(p._id);
+        pageIds.add(p.id);
       }
     }
 
@@ -167,8 +178,12 @@ export function NavTabsConfig({
     return {
       assignedFolderIds: folderIds,
       assignedPageIds: pageIds,
-      unassignedFolders: allFolders.filter((f: any) => !f.parentId && !folderIds.has(f._id)),
-      unassignedPages: allPages.filter((p: any) => !p.folderId && !pageIds.has(p._id)),
+      unassignedFolders: allFolders.filter(
+        (folder) => !folder.parentId && !folderIds.has(folder.id)
+      ),
+      unassignedPages: allPages.filter(
+        (page) => !page.folderId && !pageIds.has(page.id)
+      ),
     };
   }, [tabs, allFolders, allPages]);
 
@@ -215,14 +230,18 @@ export function NavTabsConfig({
     );
   };
 
-  const handleAddItem = (tabId: string, itemType: "folder" | "page", itemId: string) => {
+  const handleAddItem = (
+    tabId: string,
+    itemType: "folder" | "page",
+    itemId: string
+  ) => {
     setTabs(
       tabs.map((t: any) => {
         if (t.id !== tabId) return t;
         const newItem: NavTabItem =
           itemType === "folder"
-            ? { type: "folder" as const, folderId: itemId as Id<"folders"> }
-            : { type: "page" as const, pageId: itemId as Id<"pages"> };
+            ? { type: "folder" as const, folderId: itemId }
+            : { type: "page" as const, pageId: itemId };
         return { ...t, items: [...t.items, newItem] };
       })
     );
@@ -278,16 +297,27 @@ export function NavTabsConfig({
     [onSave]
   );
 
-  const saveStatus = useAutoSave(tabsForSave, handleAutoSave, 800, initializedRef.current && !hasSlugErrors);
+  const saveStatus = useAutoSave(
+    tabsForSave,
+    handleAutoSave,
+    800,
+    initializedRef.current && !hasSlugErrors
+  );
 
   // Get display info for an item
   const getItemDisplay = (item: NavTabItem) => {
     if (item.type === "folder") {
-      const folder = allFolders.find((f: any) => f._id === item.folderId);
-      return folder ? { name: folder.name, icon: folder.icon, path: folder.path } : null;
+      const folder = allFolders.find(
+        (candidate) => candidate.id === item.folderId
+      );
+      return folder
+        ? { name: folder.name, icon: folder.icon, path: folder.path }
+        : null;
     } else if (item.type === "page") {
-      const page = allPages.find((p: any) => p._id === item.pageId);
-      return page ? { name: page.title, icon: page.icon, path: page.path } : null;
+      const page = allPages.find((candidate) => candidate.id === item.pageId);
+      return page
+        ? { name: page.title, icon: page.icon, path: page.path }
+        : null;
     }
     return null;
   };
@@ -296,11 +326,16 @@ export function NavTabsConfig({
   const getAvailableFolders = (currentTabId: string) => {
     const currentTab = tabs.find((t: any) => t.id === currentTabId);
     const currentTabFolderIds = new Set(
-      currentTab?.items.filter((i: any) => i.type === "folder").map((i: any) => i.folderId) ?? []
+      currentTab?.items
+        .filter((i: any) => i.type === "folder")
+        .map((i: any) => i.folderId) ?? []
     );
     // Only show root-level folders (no parent)
     return allFolders.filter(
-      (f: any) => !f.parentId && (!assignedFolderIds.has(f._id) || currentTabFolderIds.has(f._id))
+      (folder) =>
+        !folder.parentId &&
+        (!assignedFolderIds.has(folder.id) ||
+          currentTabFolderIds.has(folder.id))
     );
   };
 
@@ -308,11 +343,15 @@ export function NavTabsConfig({
   const getAvailablePages = (currentTabId: string) => {
     const currentTab = tabs.find((t: any) => t.id === currentTabId);
     const currentTabPageIds = new Set(
-      currentTab?.items.filter((i: any) => i.type === "page").map((i: any) => i.pageId) ?? []
+      currentTab?.items
+        .filter((i: any) => i.type === "page")
+        .map((i: any) => i.pageId) ?? []
     );
     // Only show root-level pages (no folder) that can be added to tabs
     return allPages.filter(
-      (p: any) => !p.folderId && (!assignedPageIds.has(p._id) || currentTabPageIds.has(p._id))
+      (page) =>
+        !page.folderId &&
+        (!assignedPageIds.has(page.id) || currentTabPageIds.has(page.id))
     );
   };
 
@@ -327,10 +366,7 @@ export function NavTabsConfig({
       ) : (
         <div className="space-y-4">
           {tabs.map((tab: any) => (
-            <div
-              key={tab.id}
-              className="rounded-lg border p-4"
-            >
+            <div key={tab.id} className="rounded-lg border p-4">
               <div className="flex items-start gap-3">
                 <div className="flex items-center justify-center pt-1.5">
                   <GripVertical className="h-4 w-4 text-muted-foreground" />
@@ -366,7 +402,9 @@ export function NavTabsConfig({
                         name={`navtab-slug-${tab.id}`}
                         value={tab.slug}
                         onChange={(e) =>
-                          handleUpdateTab(tab.id, { slug: slugify(e.target.value) })
+                          handleUpdateTab(tab.id, {
+                            slug: slugify(e.target.value),
+                          })
                         }
                         placeholder="e.g., guides"
                         className={`h-8 ${slugErrors[tab.id] ? "border-destructive" : ""}`}
@@ -375,7 +413,9 @@ export function NavTabsConfig({
                         data-lpignore="true"
                       />
                       {slugErrors[tab.id] && (
-                        <p className="text-xs text-destructive">{slugErrors[tab.id]}</p>
+                        <p className="text-xs text-destructive">
+                          {slugErrors[tab.id]}
+                        </p>
                       )}
                     </div>
                     <div className="space-y-1.5">
@@ -388,7 +428,9 @@ export function NavTabsConfig({
                           }
                         />
                         <span className="text-xs text-muted-foreground">
-                          {tab.icon ? t("navTabs.clickToChange") : t("navTabs.optional")}
+                          {tab.icon
+                            ? t("navTabs.clickToChange")
+                            : t("navTabs.optional")}
                         </span>
                       </div>
                     </div>
@@ -396,7 +438,9 @@ export function NavTabsConfig({
 
                   {/* Items in this tab */}
                   <div className="space-y-2">
-                    <Label className="text-xs">{t("navTabs.contentInTab")}</Label>
+                    <Label className="text-xs">
+                      {t("navTabs.contentInTab")}
+                    </Label>
                     {tab.items.length === 0 ? (
                       <p className="text-xs text-muted-foreground py-2">
                         {t("navTabs.noContentYet")}
@@ -406,7 +450,10 @@ export function NavTabsConfig({
                         {tab.items.map((item: any, index: number) => {
                           const display = getItemDisplay(item);
                           if (!display) return null;
-                          const itemKey = item.type === "folder" ? item.folderId : item.pageId;
+                          const itemKey =
+                            item.type === "folder"
+                              ? item.folderId
+                              : item.pageId;
                           return (
                             <div
                               key={`${item.type}-${itemKey}`}
@@ -423,7 +470,9 @@ export function NavTabsConfig({
                                   className="h-4 w-4"
                                 />
                               )}
-                              <span className="flex-1 truncate">{display.name}</span>
+                              <span className="flex-1 truncate">
+                                {display.name}
+                              </span>
                               <span className="text-xs text-muted-foreground truncate max-w-[150px]">
                                 {display.path}
                               </span>
@@ -445,7 +494,9 @@ export function NavTabsConfig({
                     <div className="flex gap-2 pt-2">
                       <Select
                         value=""
-                        onValueChange={(value) => handleAddItem(tab.id, "folder", value)}
+                        onValueChange={(value) =>
+                          handleAddItem(tab.id, "folder", value)
+                        }
                       >
                         <SelectTrigger className="h-8 w-[180px]">
                           <SelectValue placeholder={t("navTabs.addFolder")} />
@@ -453,10 +504,12 @@ export function NavTabsConfig({
                         <SelectContent>
                           {getAvailableFolders(tab.id).map((folder: any) => (
                             <SelectItem
-                              key={folder._id}
-                              value={folder._id}
+                              key={folder.id}
+                              value={folder.id}
                               disabled={tab.items.some(
-                                (i: any) => i.type === "folder" && i.folderId === folder._id
+                                (item: NavTabItem) =>
+                                  item.type === "folder" &&
+                                  item.folderId === folder.id
                               )}
                             >
                               <div className="flex items-center gap-2">
@@ -479,7 +532,9 @@ export function NavTabsConfig({
 
                       <Select
                         value=""
-                        onValueChange={(value) => handleAddItem(tab.id, "page", value)}
+                        onValueChange={(value) =>
+                          handleAddItem(tab.id, "page", value)
+                        }
                       >
                         <SelectTrigger className="h-8 w-[180px]">
                           <SelectValue placeholder={t("navTabs.addPage")} />
@@ -487,10 +542,12 @@ export function NavTabsConfig({
                         <SelectContent>
                           {getAvailablePages(tab.id).map((page: any) => (
                             <SelectItem
-                              key={page._id}
-                              value={page._id}
+                              key={page.id}
+                              value={page.id}
                               disabled={tab.items.some(
-                                (i: any) => i.type === "page" && i.pageId === page._id
+                                (item: NavTabItem) =>
+                                  item.type === "page" &&
+                                  item.pageId === page.id
                               )}
                             >
                               <div className="flex items-center gap-2">
@@ -551,14 +608,20 @@ export function NavTabsConfig({
               </p>
               <div className="pt-1 space-y-0.5">
                 {unassignedFolders.slice(0, 3).map((f: any) => (
-                  <div key={f._id} className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                  <div
+                    key={f.id}
+                    className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1"
+                  >
                     <Folder className="h-3 w-3" />
                     <span>{f.name}</span>
                     <span className="text-amber-500">({f.path})</span>
                   </div>
                 ))}
                 {unassignedPages.slice(0, 3).map((p: any) => (
-                  <div key={p._id} className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                  <div
+                    key={p.id}
+                    className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1"
+                  >
                     <FileText className="h-3 w-3" />
                     <span>{p.title}</span>
                     <span className="text-amber-500">({p.path})</span>
@@ -581,16 +644,23 @@ export function NavTabsConfig({
         </p>
       )}
 
-      <AlertDialog open={!!tabToDelete} onOpenChange={(open) => !open && setTabToDelete(null)}>
+      <AlertDialog
+        open={!!tabToDelete}
+        onOpenChange={(open) => !open && setTabToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("navTabs.deleteTabTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("navTabs.deleteTabDescription", { name: tabs.find((tab) => tab.id === tabToDelete)?.name || "" })}
+              {t("navTabs.deleteTabDescription", {
+                name: tabs.find((tab) => tab.id === tabToDelete)?.name || "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("navTabs.deleteTabCancel")}</AlertDialogCancel>
+            <AlertDialogCancel>
+              {t("navTabs.deleteTabCancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {

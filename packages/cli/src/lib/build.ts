@@ -1,7 +1,7 @@
 /**
- * Build module — generates a static documentation site from Convex data.
+ * Build module — generates a static documentation site from D1 data.
  *
- * Fetches pages, folders, and project config from Convex, converts
+ * Fetches pages, folders, and project config from D1, converts
  * BlockNote content to MDX, builds navigation, generates theme CSS,
  * and writes a deployable static site to the output directory.
  *
@@ -17,7 +17,7 @@ import {
   type BlockNoteInlineContent,
 } from "@inkloom/mdx-parser";
 import { getPrebuiltAssets, getAssetManifest } from "create-inkloom";
-import type { ConvexCliClient } from "./convex-client.js";
+import type { CoreDataClient } from "./data-client.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -84,7 +84,7 @@ interface GeneratedFile {
 // ---------------------------------------------------------------------------
 
 export async function buildSite(
-  client: ConvexCliClient,
+  client: CoreDataClient,
   opts: BuildOptions
 ): Promise<BuildResult> {
   const outDir = opts.outDir || "dist";

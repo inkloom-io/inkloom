@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Button } from "@inkloom/ui/button";
 import { Badge } from "@inkloom/ui/badge";
 import { MessageSquare, X, Quote } from "lucide-react";
@@ -22,8 +21,8 @@ interface CommentSelection {
 }
 
 interface CommentsPanelProps {
-  pageId: Id<"pages">;
-  currentUserId: Id<"users">;
+  pageId: string;
+  currentUserId: string;
   onClose: () => void;
   onScrollToBlock?: (blockId: string) => void;
   // When set, shows a "new comment" input for this selection
@@ -50,12 +49,25 @@ export function CommentsPanel({
   const t = useTranslations("editor.comments");
   const [filter, setFilter] = useState<FilterStatus>("all");
   // Initialize with the prop value to avoid flash when opening from highlight click
-  const [selectedThreadId, setSelectedThreadId] = useState<Id<"commentThreads"> | null>(
-    initialSelectedThreadId ? (initialSelectedThreadId as Id<"commentThreads">) : null
+  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(
+    initialSelectedThreadId ?? null
   );
   const [isCreatingComment, setIsCreatingComment] = useState(false);
+  const previousPageId = useRef(pageId);
 
-  const createThread = useMutation(api.comments.createThread);
+  const createThread = useDataMutation(api.comments.createThread);
+
+  // A selected thread belongs to the page it was opened from. Clear
+  // page-specific panel state when the editor switches pages so a thread from
+  // the previous page cannot remain visible against the new page.
+  useEffect(() => {
+    if (previousPageId.current === pageId) return;
+    previousPageId.current = pageId;
+    setSelectedThreadId(null);
+    setIsCreatingComment(false);
+    onClearNewComment?.();
+    onClearSelectedThread?.();
+  }, [pageId, onClearNewComment, onClearSelectedThread]);
 
   // Show new comment input when newCommentSelection is set
   // Also clear selectedThreadId to exit thread detail view and show list view
@@ -69,7 +81,7 @@ export function CommentsPanel({
   // Auto-select thread when initialSelectedThreadId is provided
   useEffect(() => {
     if (initialSelectedThreadId) {
-      setSelectedThreadId(initialSelectedThreadId as Id<"commentThreads">);
+      setSelectedThreadId(initialSelectedThreadId);
       // Clear the external state after consuming
       onClearSelectedThread?.();
     }
@@ -118,20 +130,22 @@ export function CommentsPanel({
   };
 
   // Fetch threads based on filter
-  const threads = useQuery(api.comments.listByPage, {
+  const threads = useDataQuery(api.comments.listByPage, {
     pageId,
     status: filter === "all" ? undefined : filter,
   });
 
   // Fetch selected thread details
-  const selectedThread = useQuery(
+  const selectedThread = useDataQuery(
     api.comments.getThread,
     selectedThreadId ? { threadId: selectedThreadId } : "skip"
   );
 
   // Count open threads
-  const openCount = threads?.filter((t: any) => t.status === "open").length ?? 0;
-  const resolvedCount = threads?.filter((t: any) => t.status === "resolved").length ?? 0;
+  const openCount =
+    threads?.filter((thread) => thread.status === "open").length ?? 0;
+  const resolvedCount =
+    threads?.filter((thread) => thread.status === "resolved").length ?? 0;
 
   // Show thread detail view (or loading state while fetching)
   if (selectedThreadId) {
@@ -156,7 +170,11 @@ export function CommentsPanel({
             <MessageSquare className="h-5 w-5" />
             <h2 className="font-semibold">{t("thread")}</h2>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setSelectedThreadId(null)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectedThreadId(null)}
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -173,7 +191,12 @@ export function CommentsPanel({
       <div className="flex items-center justify-between border-b border-[var(--glass-divider)] px-4 py-3">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-[var(--text-dim)]" />
-          <h2 className="text-sm font-semibold text-[var(--text-bright)]" style={{ fontFamily: "var(--font-heading)" }}>{t("title")}</h2>
+          <h2
+            className="text-sm font-semibold text-[var(--text-bright)]"
+            style={{ fontFamily: "var(--font-heading)" }}
+          >
+            {t("title")}
+          </h2>
           {threads && threads.length > 0 && (
             <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--glass-hover)] px-1.5 text-[10px] font-medium text-[var(--text-dim)]">
               {threads.length}
@@ -227,7 +250,9 @@ export function CommentsPanel({
       {/* New comment input */}
       {isCreatingComment && newCommentSelection && (
         <div className="border-b border-[var(--glass-divider)] p-4">
-          <p className="mb-2 text-sm font-medium text-[var(--text-medium)]">{t("newComment")}</p>
+          <p className="mb-2 text-sm font-medium text-[var(--text-medium)]">
+            {t("newComment")}
+          </p>
           {newCommentSelection.quotedText && (
             <div className="mb-3 flex gap-2 rounded-md bg-muted p-2">
               <Quote className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
@@ -270,12 +295,12 @@ export function CommentsPanel({
           </div>
         ) : (
           <div className="space-y-1 p-2">
-            {threads.map((thread: any) => (
+            {threads.map((thread) => (
               <CommentThreadCard
-                key={thread._id}
+                key={thread.id}
                 thread={thread}
-                onClick={() => setSelectedThreadId(thread._id)}
-                isSelected={selectedThreadId === thread._id}
+                onClick={() => setSelectedThreadId(thread.id)}
+                isSelected={selectedThreadId === thread.id}
                 currentUserId={currentUserId}
                 isAdmin={isAdmin}
               />

@@ -18,7 +18,7 @@ import {
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { validateExportData } from "../src/commands/migrate.ts";
-import type { ExportData } from "../src/lib/convex-client.ts";
+import type { ExportData } from "../src/lib/data-client.ts";
 
 // ---------------------------------------------------------------------------
 // Fixtures

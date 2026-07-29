@@ -7,7 +7,6 @@ import type {
   BlockData,
   InlineContent,
 } from "@/lib/diff-engine";
-import type { Id } from "@/convex/_generated/dataModel";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { TooltipProvider } from "@inkloom/ui/tooltip";
@@ -25,7 +24,7 @@ interface BlockDiffProps {
     resolution: "source" | "target"
   ) => void;
   /** Merge request ID for creating review threads. */
-  mergeRequestId?: Id<"mergeRequests">;
+  mergeRequestId?: string;
   /** Page path for creating review threads. */
   pagePath?: string;
   /** Enriched review threads, keyed by blockId. */
@@ -48,7 +47,13 @@ function extractText(content: InlineContent[] | undefined): string {
 }
 
 // Render a block type label
-function BlockTypeLabel({ type, t }: { type: string; t: (key: string) => string }) {
+function BlockTypeLabel({
+  type,
+  t,
+}: {
+  type: string;
+  t: (key: string) => string;
+}) {
   const KEY_MAP: Record<string, string> = {
     paragraph: "blockTypes.paragraph",
     heading: "blockTypes.heading",
@@ -104,11 +109,7 @@ function RemovedLineDiffDisplay({
 }
 
 // Render the "added" half of a modified block's inline diff (equal + insert segments)
-function AddedLineDiffDisplay({
-  segments,
-}: {
-  segments: InlineDiffSegment[];
-}) {
+function AddedLineDiffDisplay({ segments }: { segments: InlineDiffSegment[] }) {
   return (
     <span>
       {segments
@@ -125,7 +126,10 @@ function AddedLineDiffDisplay({
             );
           }
           return (
-            <span key={i} className="text-emerald-800/70 dark:text-emerald-200/70">
+            <span
+              key={i}
+              className="text-emerald-800/70 dark:text-emerald-200/70"
+            >
               {segment.text}
             </span>
           );
@@ -142,7 +146,8 @@ function BlockContent({ block }: { block: BlockData }) {
     const src = block.props?.url ?? block.props?.src;
     return (
       <span className="text-[var(--text-dim)] italic">
-        [{t("image")}{src ? `: ${String(src)}` : ""}]
+        [{t("image")}
+        {src ? `: ${String(src)}` : ""}]
       </span>
     );
   }
@@ -207,7 +212,7 @@ function BlockRow({
   blockIndex: number;
   blockId: string;
   quotedContent?: string;
-  mergeRequestId?: Id<"mergeRequests">;
+  mergeRequestId?: string;
   pagePath?: string;
   threads?: ReviewThreadData[];
   canManageThreads?: boolean;
@@ -267,7 +272,7 @@ function BlockRow({
         <div className="mt-2 ml-8 space-y-2">
           {openThreads.map((thread) => (
             <ReviewThread
-              key={thread._id}
+              key={thread.id}
               thread={thread}
               canManage={canManageThreads}
             />
@@ -513,7 +518,9 @@ export function BlockDiff({
             {/* Added line (new/source content) */}
             <div className="rounded-md border-l-4 border-l-emerald-500 border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm">
               <div className="flex items-center gap-2 mb-1">
-                {typeChanged && <BlockTypeLabel type={sourceBlock.type} t={t} />}
+                {typeChanged && (
+                  <BlockTypeLabel type={sourceBlock.type} t={t} />
+                )}
               </div>
               <div className="leading-relaxed">
                 {diff.inlineDiff ? (

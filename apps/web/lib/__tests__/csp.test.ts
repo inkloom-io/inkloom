@@ -1,7 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { buildCspDirectives, CSP_HEADER } from "../csp";
 
 describe("buildCspDirectives", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("returns a valid CSP string with default directives", () => {
     const csp = buildCspDirectives();
     expect(csp).toContain("default-src 'self'");
@@ -31,10 +35,9 @@ describe("buildCspDirectives", () => {
     expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
   });
 
-  it("allows Convex domains in connect-src", () => {
+  it("allows Cloudflare Worker domains in connect-src", () => {
     const csp = buildCspDirectives();
-    expect(csp).toMatch(/connect-src[^;]*https:\/\/\*\.convex\.cloud/);
-    expect(csp).toMatch(/connect-src[^;]*wss:\/\/\*\.convex\.cloud/);
+    expect(csp).toMatch(/connect-src[^;]*https:\/\/\*\.workers\.dev/);
   });
 
   it("allows PostHog domains", () => {
@@ -55,9 +58,15 @@ describe("buildCspDirectives", () => {
     expect(csp).toMatch(/frame-src[^;]*https:\/\/js\.stripe\.com/);
   });
 
-  it("allows PartyKit WebSocket connections", () => {
+  it("allows the configured PartyServer collaboration domain", () => {
+    vi.stubEnv("NEXT_PUBLIC_PARTYKIT_HOST", "collab-staging.inkloom.io");
     const csp = buildCspDirectives();
-    expect(csp).toMatch(/connect-src[^;]*wss:\/\/\*\.partykit\.dev/);
+    expect(csp).toMatch(
+      /connect-src[^;]*wss:\/\/collab-staging\.inkloom\.io/,
+    );
+    expect(csp).toMatch(
+      /connect-src[^;]*https:\/\/collab-staging\.inkloom\.io/,
+    );
   });
 
   it("blocks object embeds", () => {

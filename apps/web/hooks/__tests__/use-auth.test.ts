@@ -103,7 +103,7 @@ describe("AuthUser interface", () => {
     expect(user.workosUserId).toBe("wos_456");
   });
 
-  it("accepts additional unknown fields (Convex doc extensibility)", () => {
+  it("accepts additional unknown fields (D1 doc extensibility)", () => {
     const user: AuthUser = {
       _id: "u3" as any,
       _creationTime: 1700000000000,

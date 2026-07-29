@@ -23,12 +23,22 @@
 export function buildCspDirectives(options?: {
   /** Optional nonce for inline scripts. Include the raw value (no base64 wrapping). */
   nonce?: string;
-  /** Additional connect-src domains (e.g., project-specific Convex URL). */
+  /** Additional connect-src domains (e.g., a project-specific Worker URL). */
   extraConnectSrc?: string[];
   /** Additional script-src domains. */
   extraScriptSrc?: string[];
 }): string {
   const nonce = options?.nonce;
+  const collaborationHost =
+    process.env.NEXT_PUBLIC_PARTYKIT_HOST?.trim().replace(/\/+$/, "");
+  const collaborationConnectSrc = collaborationHost
+    ? collaborationHost.includes("://")
+      ? [collaborationHost]
+      : [
+          `${collaborationHost.startsWith("localhost") ? "ws" : "wss"}://${collaborationHost}`,
+          `${collaborationHost.startsWith("localhost") ? "http" : "https"}://${collaborationHost}`,
+        ]
+    : [];
 
   // -- script-src --------------------------------------------------------
   const scriptSrc = [
@@ -56,9 +66,8 @@ export function buildCspDirectives(options?: {
   // -- connect-src -------------------------------------------------------
   const connectSrc = [
     "'self'",
-    // Convex backend (wildcard — actual domain comes from env)
-    "https://*.convex.cloud",
-    "wss://*.convex.cloud",
+    // Cloudflare Workers and local Worker development
+    "https://*.workers.dev",
     // PostHog
     "https://us.i.posthog.com",
     "https://eu.i.posthog.com",
@@ -71,9 +80,8 @@ export function buildCspDirectives(options?: {
     // Cloudflare API & R2
     "https://api.cloudflare.com",
     "https://*.r2.cloudflarestorage.com",
-    // PartyKit collaboration (wildcard — host comes from env)
-    "wss://*.partykit.dev",
-    "https://*.partykit.dev",
+    // PartyServer collaboration Worker (custom domain or local development)
+    ...collaborationConnectSrc,
     // GitHub API (for GitHub App integration)
     "https://api.github.com",
     ...(options?.extraConnectSrc ?? []),

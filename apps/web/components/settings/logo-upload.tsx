@@ -1,18 +1,17 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Button } from "@inkloom/ui/button";
 import { Label } from "@inkloom/ui/label";
 import { Upload, X, ImageIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface LogoUploadProps {
-  projectId: Id<"projects">;
-  assetId?: Id<"assets">;
-  onUpload: (assetId: Id<"assets">) => void;
+  projectId: string;
+  assetId?: string;
+  onUpload: (assetId: string) => void;
   onRemove: () => void;
 }
 
@@ -27,9 +26,9 @@ export function LogoUpload({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const createAsset = useMutation(api.assets.createAsset);
-  const deleteAsset = useMutation(api.assets.deleteAsset);
-  const asset = useQuery(
+  const createAsset = useDataMutation(api.assets.createAsset);
+  const deleteAsset = useDataMutation(api.assets.deleteAsset);
+  const asset = useDataQuery(
     api.assets.getAsset,
     assetId ? { assetId } : "skip"
   );
@@ -39,7 +38,12 @@ export function LogoUpload({
     if (!file) return;
 
     // Validate file type
-    const validTypes = ["image/svg+xml", "image/png", "image/jpeg", "image/webp"];
+    const validTypes = [
+      "image/svg+xml",
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+    ];
     if (!validTypes.includes(file.type)) {
       setError(t("logoUpload.invalidType"));
       return;
@@ -182,7 +186,9 @@ export function LogoUpload({
         >
           <ImageIcon className="mb-2 h-10 w-10 text-muted-foreground" />
           <p className="text-sm font-medium">
-            {isUploading ? t("logoUpload.uploading") : t("logoUpload.clickToUpload")}
+            {isUploading
+              ? t("logoUpload.uploading")
+              : t("logoUpload.clickToUpload")}
           </p>
           <p className="text-xs text-muted-foreground">
             {t("logoUpload.formats")}

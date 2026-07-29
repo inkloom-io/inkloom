@@ -7,8 +7,6 @@
  * Feature gates only apply in the platform SaaS.
  */
 
-import type { Id } from "@/convex/_generated/dataModel";
-
 interface FeatureGateResult {
   available: boolean;
   isLoading: boolean;
@@ -18,7 +16,7 @@ interface FeatureGateResult {
 
 export function useFeatureGate(
   _feature: string,
-  _projectId?: Id<"projects">
+  _projectId?: string
 ): FeatureGateResult {
   return {
     available: true,

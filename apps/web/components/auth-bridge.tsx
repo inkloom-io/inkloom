@@ -7,7 +7,7 @@ import { AuthProvider, type AuthUser } from "@/hooks/use-auth";
 /**
  * Platform-mode auth bridge.
  *
- * Reads from `useCurrentUser()` (WorkOS + Convex sync) and provides the
+ * Reads from `useCurrentUser()` (WorkOS + D1 user sync) and provides the
  * result via `AuthContext` so that `useAuth()` works in platform mode.
  *
  * Must be rendered inside `WorkOSProvider` (useCurrentUser depends on useWorkOS).

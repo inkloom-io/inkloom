@@ -97,7 +97,7 @@ describe("AppContext core-mode defaults", () => {
     expect(defaultValue.isLoading).toBe(false);
   });
 
-  it("default matches the sentinel value used by core Convex functions", async () => {
+  it("default matches the sentinel value used by core D1 functions", async () => {
     const { AppContext } = await import("@/hooks/use-app-context");
     // @ts-expect-error -- accessing internal React context value for testing
     const defaultValue: AppContextState = AppContext._currentValue;
@@ -215,7 +215,7 @@ describe("core vs platform state properties", () => {
     expect(coreKeys).toEqual(platformKeys);
   });
 
-  it("core tenantId matches Convex sentinel value", () => {
+  it("core tenantId matches D1 sentinel value", () => {
     const coreState: AppContextState = {
       tenantId: "local",
       orgName: "Local",

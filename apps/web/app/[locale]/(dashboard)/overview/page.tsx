@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useQuery } from "convex/react";
 import { getRelativeTimeKeyAndParams } from "@/lib/date-utils";
-import { api } from "@/convex/_generated/api";
+import { useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { useAuth } from "@/hooks/use-auth";
 import { useAppContext } from "@/hooks/use-app-context";
 import {
@@ -27,7 +27,10 @@ function StatCard({
   value,
   highlight,
 }: {
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  icon: React.ComponentType<{
+    className?: string;
+    style?: React.CSSProperties;
+  }>;
   label: string;
   value: number;
   highlight?: boolean;
@@ -37,7 +40,9 @@ function StatCard({
       className="rounded-2xl border p-4 transition-all duration-200"
       style={{
         backgroundColor: "var(--surface-bg)",
-        borderColor: highlight ? "rgba(245, 158, 11, 0.3)" : "var(--glass-border)",
+        borderColor: highlight
+          ? "rgba(245, 158, 11, 0.3)"
+          : "var(--glass-border)",
         boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
       }}
     >
@@ -45,7 +50,9 @@ function StatCard({
         <div
           className="flex h-9 w-9 items-center justify-center rounded-lg"
           style={{
-            backgroundColor: highlight ? "rgba(245, 158, 11, 0.1)" : "var(--surface-hover)",
+            backgroundColor: highlight
+              ? "rgba(245, 158, 11, 0.1)"
+              : "var(--surface-hover)",
             border: `1px solid ${highlight ? "rgba(245, 158, 11, 0.2)" : "var(--glass-border)"}`,
           }}
         >
@@ -87,7 +94,10 @@ function ActionCard({
   description,
   href,
 }: {
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  icon: React.ComponentType<{
+    className?: string;
+    style?: React.CSSProperties;
+  }>;
   title: string;
   description: string;
   href: string;
@@ -99,7 +109,10 @@ function ActionCard({
     >
       <div
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
-        style={{ backgroundColor: "var(--surface-hover)", border: "1px solid var(--glass-border)" }}
+        style={{
+          backgroundColor: "var(--surface-hover)",
+          border: "1px solid var(--glass-border)",
+        }}
       >
         <Icon className="h-4 w-4 text-[var(--text-dim)]" />
       </div>
@@ -127,11 +140,16 @@ export default function DashboardPage() {
     return tc(key, params);
   }
   const { user, isLoading: userLoading } = useAuth();
-  const { tenantId, orgName, isMultiTenant, isLoading: ctxLoading } = useAppContext();
+  const {
+    tenantId,
+    orgName,
+    isMultiTenant,
+    isLoading: ctxLoading,
+  } = useAppContext();
 
-  // Cast to any to handle both core (no args) and platform (workosOrgId required) signatures
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const stats = useQuery(api.projects.getDashboardStats as any, { workosOrgId: tenantId } as any);
+  const stats = useDataQuery(api.dashboard.stats, {
+    workosOrgId: tenantId,
+  });
 
   const isLoading = userLoading || ctxLoading || stats === undefined;
 
@@ -139,7 +157,15 @@ export default function DashboardPage() {
   const planLabel = isMultiTenant ? "Pro" : "Core";
 
   // Build recommended actions
-  const actions: { icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; title: string; description: string; href: string }[] = [];
+  const actions: {
+    icon: React.ComponentType<{
+      className?: string;
+      style?: React.CSSProperties;
+    }>;
+    title: string;
+    description: string;
+    href: string;
+  }[] = [];
   if (stats) {
     if (stats.totalProjects === 0) {
       actions.push({
@@ -150,12 +176,16 @@ export default function DashboardPage() {
       });
     }
     if (stats.unpublishedCount > 0) {
-      const proj = stats.projects.find((p: { hasUnpublishedChanges: boolean; _id: string }) => p.hasUnpublishedChanges);
+      const proj = stats.projects.find(
+        (project) => project.hasUnpublishedChanges
+      );
       actions.push({
         icon: Rocket,
         title: t("publishChanges"),
-        description: t("publishChangesDescription", { count: stats.unpublishedCount }),
-        href: proj ? `/projects/${proj._id}/editor` : "/projects",
+        description: t("publishChangesDescription", {
+          count: stats.unpublishedCount,
+        }),
+        href: proj ? `/projects/${proj.id}/editor` : "/projects",
       });
     }
     if (isMultiTenant) {
@@ -189,9 +219,10 @@ export default function DashboardPage() {
         <p className="mt-1 text-sm text-[var(--text-dim)]">
           {orgName || t("organization")}
           {" \u00B7 "}
-          <span className="capitalize">{typeof planLabel === "string" ? planLabel : "Free"}</span>
+          <span className="capitalize">
+            {typeof planLabel === "string" ? planLabel : "Free"}
+          </span>
         </p>
-
       </div>
 
       {/* Section 2: Quick stats */}
@@ -206,9 +237,21 @@ export default function DashboardPage() {
           className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4"
           style={{ animation: "dashCardIn 0.4s ease-out 0.1s both" }}
         >
-          <StatCard icon={FolderOpen} label={t("projects")} value={stats.totalProjects} />
-          <StatCard icon={FileText} label={t("pages")} value={stats.totalPages} />
-          <StatCard icon={Rocket} label={t("deployments")} value={stats.recentDeployments} />
+          <StatCard
+            icon={FolderOpen}
+            label={t("projects")}
+            value={stats.totalProjects}
+          />
+          <StatCard
+            icon={FileText}
+            label={t("pages")}
+            value={stats.totalPages}
+          />
+          <StatCard
+            icon={Rocket}
+            label={t("deployments")}
+            value={stats.recentDeployments}
+          />
           <StatCard
             icon={AlertCircle}
             label={t("unpublished")}
@@ -219,7 +262,10 @@ export default function DashboardPage() {
       ) : null}
 
       {/* Section 3: Recent projects */}
-      <div className="mb-8" style={{ animation: "dashCardIn 0.4s ease-out 0.2s both" }}>
+      <div
+        className="mb-8"
+        style={{ animation: "dashCardIn 0.4s ease-out 0.2s both" }}
+      >
         <div className="mb-4 flex items-center justify-between">
           <h2
             className="text-lg font-semibold text-foreground"
@@ -246,10 +292,10 @@ export default function DashboardPage() {
           </div>
         ) : stats && stats.projects.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {stats.projects.map((project: any, index: number) => (
+            {stats.projects.map((project, index) => (
               <Link
-                key={project._id}
-                href={`/projects/${project._id}/editor`}
+                key={project.id}
+                href={`/projects/${project.id}/editor`}
                 className="group relative rounded-2xl p-6 transition-all duration-300"
                 style={{
                   backgroundColor: "var(--surface-bg)",
@@ -259,12 +305,14 @@ export default function DashboardPage() {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = "rgba(20,184,166,0.3)";
-                  e.currentTarget.style.boxShadow = "0 8px 40px rgba(0,0,0,0.3), 0 0 30px rgba(20,184,166,0.05)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 40px rgba(0,0,0,0.3), 0 0 30px rgba(20,184,166,0.05)";
                   e.currentTarget.style.transform = "translateY(-2px)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = "var(--glass-border)";
-                  e.currentTarget.style.boxShadow = "0 4px 24px rgba(0,0,0,0.15)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 24px rgba(0,0,0,0.15)";
                   e.currentTarget.style.transform = "translateY(0)";
                 }}
               >
@@ -277,24 +325,31 @@ export default function DashboardPage() {
                       border: "1px solid rgba(20,184,166,0.15)",
                     }}
                   >
-                    <FileText className="h-5 w-5" style={{ color: "#14b8a6" }} />
+                    <FileText
+                      className="h-5 w-5"
+                      style={{ color: "#14b8a6" }}
+                    />
                   </div>
                   <div className="ml-auto flex items-center gap-1.5">
                     <span
                       className="h-2 w-2 rounded-full"
                       style={{
-                        backgroundColor: STATUS_COLORS[project.deploymentStatus] || "#6b7280",
-                        boxShadow: project.deploymentStatus === "ready"
-                          ? "0 0 6px rgba(34,197,94,0.4)"
-                          : project.deploymentStatus === "error"
-                            ? "0 0 6px rgba(239,68,68,0.4)"
-                            : undefined,
+                        backgroundColor:
+                          STATUS_COLORS[project.deploymentStatus] || "#6b7280",
+                        boxShadow:
+                          project.deploymentStatus === "ready"
+                            ? "0 0 6px rgba(34,197,94,0.4)"
+                            : project.deploymentStatus === "error"
+                              ? "0 0 6px rgba(239,68,68,0.4)"
+                              : undefined,
                       }}
                     />
                     <span className="text-[10px] text-[var(--text-dim)]">
-                      {project.deploymentStatus === "ready" && !project.hasUnpublishedChanges
+                      {project.deploymentStatus === "ready" &&
+                      !project.hasUnpublishedChanges
                         ? t("statusLive")
-                        : project.deploymentStatus === "ready" && project.hasUnpublishedChanges
+                        : project.deploymentStatus === "ready" &&
+                            project.hasUnpublishedChanges
                           ? t("statusUnpublished")
                           : project.deploymentStatus === "error"
                             ? t("statusError")
@@ -322,7 +377,9 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1.5 rounded-full bg-[var(--surface-hover)] px-2.5 py-1 text-xs text-[var(--text-dim)]">
                     <Globe className="h-3 w-3" />
-                    <span className="max-w-[100px] truncate">{project.slug}</span>
+                    <span className="max-w-[100px] truncate">
+                      {project.slug}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-[var(--text-dim)]">
                     <Clock className="h-3 w-3" />
@@ -386,7 +443,9 @@ export default function DashboardPage() {
               src="/mascot-standard.svg"
               alt=""
               className="mx-auto mb-4 h-28 w-28 opacity-90"
-              style={{ filter: "drop-shadow(0 4px 12px rgba(20,184,166,0.15))" }}
+              style={{
+                filter: "drop-shadow(0 4px 12px rgba(20,184,166,0.15))",
+              }}
             />
             <h3
               className="mb-2 text-base font-semibold text-foreground"

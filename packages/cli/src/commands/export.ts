@@ -2,17 +2,17 @@ import { Command } from "commander";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import pc from "picocolors";
-import { createConvexClient } from "../lib/convex-client.js";
+import { createCoreDataClient } from "../lib/data-client.js";
 import { CliError, EXIT_GENERAL, EXIT_NOT_FOUND } from "../lib/errors.js";
 import { printData, printSuccess } from "../lib/output.js";
 import { getGlobalOpts } from "../lib/handler.js";
 import { trackEvent } from "../lib/telemetry.js";
 
 /**
- * Register the `export` command for dumping Convex data to a portable JSON file.
+ * Register the `export` command for dumping D1 data to a portable JSON file.
  *
  * This is the data portability mechanism for OSS users:
- * fetch all project data from Convex → write to `inkloom-export.json`.
+ * fetch all project data from D1 → write to `inkloom-export.json`.
  *
  * The export format is designed for migration to InkLoom Cloud via `inkloom migrate --to-cloud`.
  */
@@ -20,7 +20,7 @@ export function registerExportCommand(program: Command): void {
   program
     .command("export")
     .description(
-      "Export all project data from Convex to a portable JSON file"
+      "Export all project data from D1 to a portable JSON file"
     )
     .option(
       "-o, --output <file>",
@@ -32,8 +32,8 @@ export function registerExportCommand(program: Command): void {
       "Export a single project (default: export all projects)"
     )
     .option(
-      "--convex-url <url>",
-      "Convex deployment URL (overrides NEXT_PUBLIC_CONVEX_URL)"
+      "--data-api-url <url>",
+      "data Worker URL (overrides INKLOOM_DATA_API_URL)"
     )
     .option("--pretty", "Pretty-print JSON output (default: true)")
     .option("--no-pretty", "Minify JSON output")
@@ -48,8 +48,8 @@ Examples:
   $ inkloom export --json                           Output export metadata as JSON to stdout
 
 Environment:
-  NEXT_PUBLIC_CONVEX_URL    Convex deployment URL (required)
-  CONVEX_URL                Alternative Convex URL variable`
+  INKLOOM_DATA_API_URL    data Worker URL (required)
+  DATA_API_URL                Alternative data API URL variable`
     )
     .action(async (...args: unknown[]) => {
       const cmd = args[args.length - 1] as Command;
@@ -57,13 +57,13 @@ Environment:
       const localOpts = args[args.length - 2] as {
         output: string;
         project?: string;
-        convexUrl?: string;
+        dataApiUrl?: string;
         pretty?: boolean;
       };
 
       try {
-        const client = createConvexClient({
-          convexUrl: localOpts.convexUrl,
+        const client = createCoreDataClient({
+          dataApiUrl: localOpts.dataApiUrl,
           verbose: globalOpts.verbose,
         });
 

@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id, Doc } from "@/convex/_generated/dataModel";
+import { useDataMutation as useMutation } from "@/data/hooks";
+import { api } from "@/data/operations";
+import type { Id, Doc } from "@/data/types";
 import { Button } from "@/components/ui/button";
 import {
   Card,

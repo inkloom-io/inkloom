@@ -24,7 +24,7 @@ const ERROR_CODE_MAP: Record<ApiErrorCode, string> = {
 /**
  * Well-known backend error strings and their translation keys.
  * Used as a fallback when the response doesn't include a `code` field
- * (e.g. Convex errors that surface raw messages).
+ * (e.g. data-service errors that surface raw messages).
  */
 const MESSAGE_MAP: Record<string, string> = {
   "Authentication required": "authRequired",

@@ -3,9 +3,8 @@
 import { use, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
+import { useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Button } from "@inkloom/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -48,11 +47,11 @@ function SettingsContent({ projectId }: { projectId: string }) {
       ? (rawTab as SettingsTab)
       : "general";
 
-  const project = useQuery(api.projects.get, {
-    projectId: projectId as Id<"projects">,
+  const project = useDataQuery(api.projects.get, {
+    projectId,
   });
-  const folders = useQuery(api.folders.listByProject, {
-    projectId: projectId as Id<"projects">,
+  const folders = useDataQuery(api.folders.listByProject, {
+    projectId,
   });
 
   const handleTabChange = (tab: SettingsTab) => {
@@ -63,10 +62,9 @@ function SettingsContent({ projectId }: { projectId: string }) {
       params.set("tab", tab);
     }
     const qs = params.toString();
-    router.replace(
-      `/projects/${projectId}/settings${qs ? `?${qs}` : ""}`,
-      { scroll: false }
-    );
+    router.replace(`/projects/${projectId}/settings${qs ? `?${qs}` : ""}`, {
+      scroll: false,
+    });
   };
 
   if (!project) {
@@ -77,10 +75,10 @@ function SettingsContent({ projectId }: { projectId: string }) {
     );
   }
 
-  const folderInfos = (folders ?? []).map((f: { path: string; name: string; parentId?: string }) => ({
+  const folderInfos = (folders ?? []).map((f) => ({
     path: f.path,
     name: f.name,
-    parentId: f.parentId,
+    parentId: f.parentId ?? undefined,
   }));
 
   return (

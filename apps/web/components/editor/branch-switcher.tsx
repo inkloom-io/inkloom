@@ -4,9 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import type { Id, Doc } from "@/convex/_generated/dataModel";
+import { useDataMutation, useDataQuery } from "@/data/hooks";
+import { api } from "@/data/operations";
 import { Button } from "@inkloom/ui/button";
 import { Input } from "@inkloom/ui/input";
 import { Badge } from "@inkloom/ui/badge";
@@ -76,9 +75,9 @@ interface RemoteBranch {
 const REMOTE_PREFIX = "remote:";
 
 interface BranchSwitcherProps {
-  projectId: Id<"projects">;
-  currentBranchId: Id<"branches">;
-  onSwitchBranch: (branchId: Id<"branches">, branchName?: string) => void;
+  projectId: string;
+  currentBranchId: string;
+  onSwitchBranch: (branchId: string, branchName?: string) => void;
   onFlushContent?: () => Promise<void>;
   canManage?: boolean;
   canDelete?: boolean;
@@ -103,11 +102,11 @@ export function BranchSwitcher({
 }: BranchSwitcherProps) {
   const t = useTranslations("editor.branchSwitcher");
   const tc = useTranslations("common");
-  const branches = useQuery(api.branches.list, { projectId });
-  const createBranch = useMutation(api.branches.create);
-  const renameBranch = useMutation(api.branches.rename);
-  const deleteBranch = useMutation(api.branches.remove);
-  const toggleLockMutation = useMutation(api.branches.toggleLock);
+  const branches = useDataQuery(api.branches.list, { projectId });
+  const createBranch = useDataMutation(api.branches.create);
+  const renameBranch = useDataMutation(api.branches.rename);
+  const deleteBranch = useDataMutation(api.branches.remove);
+  const toggleLockMutation = useDataMutation(api.branches.toggleLock);
   const { canChangeRoles } = usePermissions();
   const { userId: currentUserId } = useAuth();
 
@@ -117,12 +116,12 @@ export function BranchSwitcher({
 
   const [newBranchName, setNewBranchName] = useState("");
   const [sourceBranchId, setSourceBranchId] = useState<string>("");
-  const [renameBranchId, setRenameBranchId] = useState<Id<"branches"> | null>(null);
+  const [renameBranchId, setRenameBranchId] = useState<string | null>(null);
   const [renameName, setRenameName] = useState("");
-  const [deleteBranchId, setDeleteBranchId] = useState<Id<"branches"> | null>(null);
+  const [deleteBranchId, setDeleteBranchId] = useState<string | null>(null);
 
   const [createMROpen, setCreateMROpen] = useState(false);
-  const [createMRBranchId, setCreateMRBranchId] = useState<Id<"branches"> | null>(null);
+  const [createMRBranchId, setCreateMRBranchId] = useState<string | null>(null);
 
   const [isCreating, setIsCreating] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -160,22 +159,22 @@ export function BranchSwitcher({
     }
   }, [githubConnection, showRemote, sourceBranchId, currentBranchId]);
 
-  const currentBranch = branches?.find((b: Doc<"branches">) => b._id === currentBranchId);
-  const defaultBranch = branches?.find((b: Doc<"branches">) => b.isDefault);
+  const currentBranch = branches?.find(
+    (branch) => branch.id === currentBranchId
+  );
+  const defaultBranch = branches?.find((branch) => branch.isDefault);
   const isOnNonDefaultBranch = currentBranch && !currentBranch.isDefault;
 
-  const hasChanges = useQuery(
+  const hasChanges = useDataQuery(
     api.branches.hasChanges,
     isOnNonDefaultBranch && defaultBranch
-      ? { branchId: currentBranchId, compareToBranchId: defaultBranch._id }
+      ? { branchId: currentBranchId, compareToBranchId: defaultBranch.id }
       : "skip"
   );
 
-  const openMR = useQuery(
+  const openMR = useDataQuery(
     api.mergeRequests.getOpenForBranch,
-    isOnNonDefaultBranch
-      ? { sourceBranchId: currentBranchId }
-      : "skip"
+    isOnNonDefaultBranch ? { sourceBranchId: currentBranchId } : "skip"
   );
 
   const fetchRemoteBranches = useCallback(async () => {
@@ -199,9 +198,13 @@ export function BranchSwitcher({
       const data = await res.json();
       setRemoteBranches(data.branches ?? []);
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to fetch remote branches";
+      const message =
+        e instanceof Error ? e.message : "Failed to fetch remote branches";
       setRemoteFetchError(message);
-      captureException(e, { source: "branch-switcher", action: "fetch-remote-branches" });
+      captureException(e, {
+        source: "branch-switcher",
+        action: "fetch-remote-branches",
+      });
     } finally {
       setIsLoadingRemote(false);
     }
@@ -219,7 +222,13 @@ export function BranchSwitcher({
         setSourceBranchId(currentBranchId);
       }
     }
-  }, [githubConnection, showRemote, fetchRemoteBranches, sourceBranchId, currentBranchId]);
+  }, [
+    githubConnection,
+    showRemote,
+    fetchRemoteBranches,
+    sourceBranchId,
+    currentBranchId,
+  ]);
 
   const isRemoteSource = sourceBranchId.startsWith(REMOTE_PREFIX);
   const selectedRemoteBranchName = isRemoteSource
@@ -252,26 +261,39 @@ export function BranchSwitcher({
         setSourceBranchId("");
         setShowRemote(false);
         setCreateOpen(false);
-        onSwitchBranch(data.branchId as Id<"branches">, newBranchName.trim().toLowerCase());
+        onSwitchBranch(
+          data.branchId as string,
+          newBranchName.trim().toLowerCase()
+        );
       } else {
         // Local branch creation (existing behavior)
         if (onFlushContent) await onFlushContent();
         const branchId = await createBranch({
           projectId,
           name: newBranchName.trim().toLowerCase(),
-          sourceBranchId: sourceBranchId as Id<"branches">,
+          sourceBranchId: sourceBranchId as string,
         });
         trackEvent("branch_created", { projectId });
         setNewBranchName("");
         setSourceBranchId("");
         setShowRemote(false);
         setCreateOpen(false);
-        onSwitchBranch(branchId, newBranchName.trim().toLowerCase());
+        onSwitchBranch(branchId as string, newBranchName.trim().toLowerCase());
       }
     } catch (e) {
-      captureException(e, { source: "branch-switcher", action: "create-branch", projectId });
+      captureException(e, {
+        source: "branch-switcher",
+        action: "create-branch",
+        projectId,
+      });
       const key = getErrorTranslationKey(e instanceof Error ? e.message : "");
-      setError(key ? t(key) : (e instanceof Error ? e.message : t("failedToCreateBranch")));
+      setError(
+        key
+          ? t(key)
+          : e instanceof Error
+            ? e.message
+            : t("failedToCreateBranch")
+      );
     } finally {
       setIsCreating(false);
     }
@@ -290,7 +312,11 @@ export function BranchSwitcher({
       setRenameBranchId(null);
       setRenameName("");
     } catch (e) {
-      captureException(e, { source: "branch-switcher", action: "rename-branch", branchId: renameBranchId });
+      captureException(e, {
+        source: "branch-switcher",
+        action: "rename-branch",
+        branchId: renameBranchId,
+      });
       const key = getErrorTranslationKey(e instanceof Error ? e.message : "");
       setError(key ? t(key) : t("failedToRenameBranch"));
     } finally {
@@ -305,16 +331,20 @@ export function BranchSwitcher({
     try {
       // If deleting the current branch, switch to default first
       if (deleteBranchId === currentBranchId) {
-        const defaultBranch = branches?.find((b: Doc<"branches">) => b.isDefault);
+        const defaultBranch = branches?.find((branch) => branch.isDefault);
         if (defaultBranch) {
-          onSwitchBranch(defaultBranch._id, defaultBranch.name);
+          onSwitchBranch(defaultBranch.id as string, defaultBranch.name);
         }
       }
       await deleteBranch({ branchId: deleteBranchId });
       setDeleteOpen(false);
       setDeleteBranchId(null);
     } catch (e) {
-      captureException(e, { source: "branch-switcher", action: "delete-branch", branchId: deleteBranchId });
+      captureException(e, {
+        source: "branch-switcher",
+        action: "delete-branch",
+        branchId: deleteBranchId,
+      });
       const key = getErrorTranslationKey(e instanceof Error ? e.message : "");
       setError(key ? t(key) : t("failedToDeleteBranch"));
     } finally {
@@ -322,14 +352,14 @@ export function BranchSwitcher({
     }
   };
 
-  const openRenameDialog = (branchId: Id<"branches">, name: string) => {
+  const openRenameDialog = (branchId: string, name: string) => {
     setRenameBranchId(branchId);
     setRenameName(name);
     setError(null);
     setRenameOpen(true);
   };
 
-  const openDeleteDialog = (branchId: Id<"branches">) => {
+  const openDeleteDialog = (branchId: string) => {
     setDeleteBranchId(branchId);
     setError(null);
     setDeleteOpen(true);
@@ -340,88 +370,94 @@ export function BranchSwitcher({
       <div className="flex w-full items-center gap-1">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button
-              className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs text-[var(--text-dim)] transition-colors hover:bg-[var(--surface-active)] hover:text-[var(--text-medium)]"
-            >
+            <button className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs text-[var(--text-dim)] transition-colors hover:bg-[var(--surface-active)] hover:text-[var(--text-medium)]">
               <GitBranch className="h-3.5 w-3.5 text-primary" />
-              <span className="max-w-[100px] truncate">{currentBranch?.name ?? "..."}</span>
+              <span className="max-w-[100px] truncate">
+                {currentBranch?.name ?? "..."}
+              </span>
               <ChevronDown className="h-3 w-3 opacity-40" />
             </button>
           </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56">
-          {branches?.map((branch: Doc<"branches">) => (
-            <DropdownMenuItem
-              key={branch._id}
-              className="flex items-center justify-between"
-              onClick={() => onSwitchBranch(branch._id, branch.name)}
-            >
-              <div className="flex items-center gap-2">
-                {branch._id === currentBranchId ? (
-                  <Check className="h-3.5 w-3.5" />
-                ) : (
-                  <div className="w-3.5" />
-                )}
-                <span className="truncate">{branch.name}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                {branch.isDefault && (
-                  <Badge variant="secondary" className="text-[10px] px-1 py-0">
-                    {t("default")}
-                  </Badge>
-                )}
-                {canManage && !branch.isDefault && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon" className="h-6 w-6">
-                        <MoreHorizontal className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-36">
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openRenameDialog(branch._id, branch.name);
-                        }}
+          <DropdownMenuContent align="start" className="w-56">
+            {branches?.map((branch) => (
+              <DropdownMenuItem
+                key={branch.id}
+                className="flex items-center justify-between"
+                onClick={() => onSwitchBranch(branch.id as string, branch.name)}
+              >
+                <div className="flex items-center gap-2">
+                  {branch.id === currentBranchId ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <div className="w-3.5" />
+                  )}
+                  <span className="truncate">{branch.name}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {branch.isDefault && (
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px] px-1 py-0"
+                    >
+                      {t("default")}
+                    </Badge>
+                  )}
+                  {canManage && !branch.isDefault && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        asChild
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <Pencil className="mr-2 h-3.5 w-3.5" />
-                        {t("rename")}
-                      </DropdownMenuItem>
-                      {canDelete && (
+                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                          <MoreHorizontal className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-36">
                         <DropdownMenuItem
-                          className="text-destructive"
                           onClick={(e) => {
                             e.stopPropagation();
-                            openDeleteDialog(branch._id);
+                            openRenameDialog(branch.id as string, branch.name);
                           }}
                         >
-                          <Trash2 className="mr-2 h-3.5 w-3.5" />
-                          {tc("delete")}
+                          <Pencil className="mr-2 h-3.5 w-3.5" />
+                          {t("rename")}
                         </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
-            </DropdownMenuItem>
-          ))}
-          {canManage && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  setError(null);
-                  setNewBranchName("");
-                  setSourceBranchId(currentBranchId);
-                  setShowRemote(false);
-                  setCreateOpen(true);
-                }}
-              >
-                <Plus className="mr-2 h-3.5 w-3.5" />
-                {t("createBranch")}
+                        {canDelete && (
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openDeleteDialog(branch.id as string);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-3.5 w-3.5" />
+                            {tc("delete")}
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
               </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
+            ))}
+            {canManage && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    setError(null);
+                    setNewBranchName("");
+                    setSourceBranchId(currentBranchId);
+                    setShowRemote(false);
+                    setCreateOpen(true);
+                  }}
+                >
+                  <Plus className="mr-2 h-3.5 w-3.5" />
+                  {t("createBranch")}
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
         </DropdownMenu>
 
         {/* Lock toggle — only on default branch, only interactive for admins */}
@@ -435,11 +471,26 @@ export function BranchSwitcher({
                       setIsTogglingLock(true);
                       setError(null);
                       try {
-                        await toggleLockMutation({ branchId: currentBranchId, userId: currentUserId });
+                        await toggleLockMutation({
+                          branchId: currentBranchId,
+                          userId: currentUserId,
+                        });
                       } catch (e) {
-                        captureException(e, { source: "branch-switcher", action: "toggle-lock", branchId: currentBranchId });
-                        const key = getErrorTranslationKey(e instanceof Error ? e.message : "");
-                        setError(key ? t(key) : (e instanceof Error ? e.message : t("failedToToggleLock")));
+                        captureException(e, {
+                          source: "branch-switcher",
+                          action: "toggle-lock",
+                          branchId: currentBranchId,
+                        });
+                        const key = getErrorTranslationKey(
+                          e instanceof Error ? e.message : ""
+                        );
+                        setError(
+                          key
+                            ? t(key)
+                            : e instanceof Error
+                              ? e.message
+                              : t("failedToToggleLock")
+                        );
                       } finally {
                         setIsTogglingLock(false);
                       }
@@ -479,7 +530,7 @@ export function BranchSwitcher({
           <div className="ml-auto">
             {openMR ? (
               <Link
-                href={`/projects/${projectId}/merge-requests/${openMR._id}`}
+                href={`/projects/${projectId}/merge-requests/${openMR.id}`}
                 className="flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
               >
                 <GitPullRequest className="h-3.5 w-3.5" />
@@ -520,7 +571,9 @@ export function BranchSwitcher({
               </div>
             )}
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t("branchNameLabel")}</label>
+              <label className="text-sm font-medium">
+                {t("branchNameLabel")}
+              </label>
               <Input
                 value={newBranchName}
                 onChange={(e) => {
@@ -536,7 +589,9 @@ export function BranchSwitcher({
               </p>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t("branchFromLabel")}</label>
+              <label className="text-sm font-medium">
+                {t("branchFromLabel")}
+              </label>
               <div className="flex items-center gap-2">
                 <Select
                   value={sourceBranchId}
@@ -551,8 +606,8 @@ export function BranchSwitcher({
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>{t("localBranchesLabel")}</SelectLabel>
-                      {branches?.map((branch: Doc<"branches">) => (
-                        <SelectItem key={branch._id} value={branch._id}>
+                      {branches?.map((branch) => (
+                        <SelectItem key={branch.id} value={branch.id}>
                           {branch.name}
                           {branch.isDefault ? " (default)" : ""}
                         </SelectItem>
@@ -577,23 +632,26 @@ export function BranchSwitcher({
                             {remoteFetchError}
                           </div>
                         )}
-                        {!isLoadingRemote && !remoteFetchError && remoteBranches.length === 0 && (
-                          <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                            {t("noRemoteBranches")}
-                          </div>
-                        )}
-                        {!isLoadingRemote && remoteBranches.map((rb) => (
-                          <SelectItem
-                            key={`remote-${rb.name}`}
-                            value={`${REMOTE_PREFIX}${rb.name}`}
-                          >
-                            <span className="flex items-center gap-1.5">
-                              <Github className="h-3 w-3 shrink-0 opacity-60" />
-                              {rb.name}
-                              {rb.isDefault ? " (default)" : ""}
-                            </span>
-                          </SelectItem>
-                        ))}
+                        {!isLoadingRemote &&
+                          !remoteFetchError &&
+                          remoteBranches.length === 0 && (
+                            <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                              {t("noRemoteBranches")}
+                            </div>
+                          )}
+                        {!isLoadingRemote &&
+                          remoteBranches.map((rb) => (
+                            <SelectItem
+                              key={`remote-${rb.name}`}
+                              value={`${REMOTE_PREFIX}${rb.name}`}
+                            >
+                              <span className="flex items-center gap-1.5">
+                                <Github className="h-3 w-3 shrink-0 opacity-60" />
+                                {rb.name}
+                                {rb.isDefault ? " (default)" : ""}
+                              </span>
+                            </SelectItem>
+                          ))}
                       </SelectGroup>
                     )}
                   </SelectContent>

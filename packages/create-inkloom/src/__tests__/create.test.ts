@@ -30,7 +30,7 @@ describe("create (core template)", () => {
       const projectPath = path.join(tmpDir, "test-project");
       expect(await fs.pathExists(projectPath)).toBe(true);
       expect(await fs.pathExists(path.join(projectPath, "package.json"))).toBe(true);
-      expect(await fs.pathExists(path.join(projectPath, "convex/schema.ts"))).toBe(true);
+      expect(await fs.pathExists(path.join(projectPath, "worker/index.ts"))).toBe(true);
     } finally {
       process.chdir(origCwd);
     }
@@ -59,11 +59,14 @@ describe("create (core template)", () => {
         ".env.example",
         ".gitignore",
         "README.md",
-        "convex/convex.config.ts",
-        "convex/schema.ts",
-        "convex/schema/coreTables.ts",
-        "convex/users.ts",
-        "convex/projects.ts",
+        "wrangler.jsonc",
+        "drizzle.config.ts",
+        "db/schema/core.ts",
+        "db/migrations/0000_true_the_fallen.sql",
+        "worker/index.ts",
+        "worker/routes/projects.ts",
+        "data/client.ts",
+        "data/operations.ts",
         "app/layout.tsx",
         "app/page.tsx",
         "app/globals.css",
