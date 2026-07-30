@@ -14,7 +14,7 @@ import {
   users,
 } from "@/db/schema";
 import { createDatabase } from "@/worker/db";
-import type { WorkerEnv } from "@/worker/env";
+import type { D1PreparedStatementBinding, WorkerEnv } from "@/worker/env";
 import type { DataMutationEventPublisher } from "@/worker/events";
 import { ApiError } from "@/worker/http";
 import {
@@ -130,7 +130,14 @@ async function mergeBranches(
   mergeRequest: typeof mergeRequests.$inferSelect
 ) {
   const db = createDatabase(context.env.DB);
-  const [sourceFolders, sourcePages, sourceContents] = await Promise.all([
+  const [
+    sourceFolders,
+    sourcePages,
+    sourceContents,
+    targetFolders,
+    targetPages,
+    targetContents,
+  ] = await Promise.all([
     db
       .select()
       .from(folders)
@@ -144,9 +151,31 @@ async function mergeBranches(
       .from(pageContents)
       .innerJoin(pages, eq(pages.id, pageContents.pageId))
       .where(eq(pages.branchId, mergeRequest.sourceBranchId)),
+    db
+      .select()
+      .from(folders)
+      .where(eq(folders.branchId, mergeRequest.targetBranchId)),
+    db
+      .select()
+      .from(pages)
+      .where(eq(pages.branchId, mergeRequest.targetBranchId)),
+    db
+      .select()
+      .from(pageContents)
+      .innerJoin(pages, eq(pages.id, pageContents.pageId))
+      .where(eq(pages.branchId, mergeRequest.targetBranchId)),
   ]);
+  const targetFolderByPath = new Map(
+    targetFolders.map((folder) => [folder.path, folder])
+  );
+  const targetPageByPath = new Map(
+    targetPages.map((page) => [page.path, page])
+  );
   const folderIds = new Map(
-    sourceFolders.map((folder) => [folder.id, crypto.randomUUID()])
+    sourceFolders.map((folder) => [
+      folder.id,
+      targetFolderByPath.get(folder.path)?.id ?? crypto.randomUUID(),
+    ])
   );
   const contentByPage = new Map(
     sourceContents.map(({ page_contents: content }) => [
@@ -154,89 +183,186 @@ async function mergeBranches(
       content,
     ])
   );
+  const targetContentByPage = new Map(
+    targetContents.map(({ page_contents: content }) => [
+      content.pageId,
+      content,
+    ])
+  );
+  const sourceFolderPaths = new Set(sourceFolders.map((folder) => folder.path));
+  const sourcePagePaths = new Set(sourcePages.map((page) => page.path));
   const now = Date.now();
-  const statements = [
-    context.env.DB.prepare("DELETE FROM pages WHERE branch_id = ?").bind(
-      mergeRequest.targetBranchId
-    ),
-    context.env.DB.prepare("DELETE FROM folders WHERE branch_id = ?").bind(
-      mergeRequest.targetBranchId
-    ),
-  ];
+  const statements: D1PreparedStatementBinding[] = [];
+  for (const page of targetPages) {
+    if (!sourcePagePaths.has(page.path)) {
+      statements.push(
+        context.env.DB.prepare("DELETE FROM pages WHERE id = ?").bind(page.id)
+      );
+    }
+  }
+  for (const folder of targetFolders) {
+    if (!sourceFolderPaths.has(folder.path)) {
+      statements.push(
+        context.env.DB.prepare("DELETE FROM folders WHERE id = ?").bind(
+          folder.id
+        )
+      );
+    }
+  }
   for (const folder of sourceFolders) {
-    statements.push(
-      context.env.DB.prepare(
-        `INSERT INTO folders (
+    const targetFolder = targetFolderByPath.get(folder.path);
+    if (targetFolder) {
+      statements.push(
+        context.env.DB.prepare(
+          `UPDATE folders
+             SET parent_id = ?, name = ?, slug = ?, position = ?, path = ?,
+                 icon = ?, ai_generation_job_id = ?, ai_pending_review = ?,
+                 updated_at = ?
+             WHERE id = ?`
+        ).bind(
+          folder.parentId ? (folderIds.get(folder.parentId) ?? null) : null,
+          folder.name,
+          folder.slug,
+          folder.position,
+          folder.path,
+          folder.icon,
+          folder.aiGenerationJobId,
+          folder.aiPendingReview ? 1 : 0,
+          now,
+          targetFolder.id
+        )
+      );
+    } else {
+      statements.push(
+        context.env.DB.prepare(
+          `INSERT INTO folders (
              id, branch_id, parent_id, name, slug, position, path, icon,
              ai_generation_job_id, ai_pending_review,
              created_at, updated_at
            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(
-        folderIds.get(folder.id)!,
-        mergeRequest.targetBranchId,
-        folder.parentId ? (folderIds.get(folder.parentId) ?? null) : null,
-        folder.name,
-        folder.slug,
-        folder.position,
-        folder.path,
-        folder.icon,
-        folder.aiGenerationJobId,
-        folder.aiPendingReview ? 1 : 0,
-        now,
-        now
-      )
-    );
+        ).bind(
+          folderIds.get(folder.id)!,
+          mergeRequest.targetBranchId,
+          folder.parentId ? (folderIds.get(folder.parentId) ?? null) : null,
+          folder.name,
+          folder.slug,
+          folder.position,
+          folder.path,
+          folder.icon,
+          folder.aiGenerationJobId,
+          folder.aiPendingReview ? 1 : 0,
+          now,
+          now
+        )
+      );
+    }
   }
   for (const page of sourcePages) {
-    const pageId = crypto.randomUUID();
-    statements.push(
-      context.env.DB.prepare(
-        `INSERT INTO pages (
+    const targetPage = targetPageByPath.get(page.path);
+    const pageId = targetPage?.id ?? crypto.randomUUID();
+    if (targetPage) {
+      statements.push(
+        context.env.DB.prepare(
+          `UPDATE pages
+             SET folder_id = ?, title = ?, subtitle = ?, slug = ?, path = ?,
+                 position = ?, is_published = ?, icon = ?, description = ?,
+                 title_section_hidden = ?, title_icon_hidden = ?,
+                 seo_title = ?, seo_description = ?, og_image_asset_id = ?,
+                 noindex = ?, ai_generated = ?, ai_generation_job_id = ?,
+                 ai_pending_review = ?, ai_folder_slug = ?, updated_at = ?
+             WHERE id = ?`
+        ).bind(
+          page.folderId ? (folderIds.get(page.folderId) ?? null) : null,
+          page.title,
+          page.subtitle,
+          page.slug,
+          page.path,
+          page.position,
+          page.isPublished ? 1 : 0,
+          page.icon,
+          page.description,
+          page.titleSectionHidden ? 1 : 0,
+          page.titleIconHidden ? 1 : 0,
+          page.seoTitle,
+          page.seoDescription,
+          page.ogImageAssetId,
+          page.noindex ? 1 : 0,
+          page.aiGenerated ? 1 : 0,
+          page.aiGenerationJobId,
+          page.aiPendingReview ? 1 : 0,
+          page.aiFolderSlug,
+          now,
+          targetPage.id
+        )
+      );
+    } else {
+      statements.push(
+        context.env.DB.prepare(
+          `INSERT INTO pages (
              id, branch_id, folder_id, title, subtitle, slug, path, position,
              is_published, icon, description, title_section_hidden,
              title_icon_hidden, seo_title, seo_description, og_image_asset_id,
              noindex, ai_generated, ai_generation_job_id, ai_pending_review,
-             created_at, updated_at
-           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(
-        pageId,
-        mergeRequest.targetBranchId,
-        page.folderId ? (folderIds.get(page.folderId) ?? null) : null,
-        page.title,
-        page.subtitle,
-        page.slug,
-        page.path,
-        page.position,
-        page.isPublished ? 1 : 0,
-        page.icon,
-        page.description,
-        page.titleSectionHidden ? 1 : 0,
-        page.titleIconHidden ? 1 : 0,
-        page.seoTitle,
-        page.seoDescription,
-        page.ogImageAssetId,
-        page.noindex ? 1 : 0,
-        page.aiGenerated ? 1 : 0,
-        page.aiGenerationJobId,
-        page.aiPendingReview ? 1 : 0,
-        now,
-        now
-      )
-    );
+             ai_folder_slug, created_at, updated_at
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(
+          pageId,
+          mergeRequest.targetBranchId,
+          page.folderId ? (folderIds.get(page.folderId) ?? null) : null,
+          page.title,
+          page.subtitle,
+          page.slug,
+          page.path,
+          page.position,
+          page.isPublished ? 1 : 0,
+          page.icon,
+          page.description,
+          page.titleSectionHidden ? 1 : 0,
+          page.titleIconHidden ? 1 : 0,
+          page.seoTitle,
+          page.seoDescription,
+          page.ogImageAssetId,
+          page.noindex ? 1 : 0,
+          page.aiGenerated ? 1 : 0,
+          page.aiGenerationJobId,
+          page.aiPendingReview ? 1 : 0,
+          page.aiFolderSlug,
+          now,
+          now
+        )
+      );
+    }
     const content = contentByPage.get(page.id);
-    statements.push(
-      context.env.DB.prepare(
-        `INSERT INTO page_contents (
-             id, page_id, content, updated_by, updated_at
-           ) VALUES (?, ?, ?, ?, ?)`
-      ).bind(
-        crypto.randomUUID(),
-        pageId,
-        content?.content ?? "[]",
-        content?.updatedBy ?? null,
-        now
-      )
-    );
+    if (targetContentByPage.has(pageId)) {
+      statements.push(
+        context.env.DB.prepare(
+          `UPDATE page_contents
+             SET content = ?, mdx_cache = ?, updated_by = ?, updated_at = ?
+             WHERE page_id = ?`
+        ).bind(
+          content?.content ?? "[]",
+          content?.mdxCache ?? null,
+          content?.updatedBy ?? null,
+          now,
+          pageId
+        )
+      );
+    } else {
+      statements.push(
+        context.env.DB.prepare(
+          `INSERT INTO page_contents (
+               id, page_id, content, mdx_cache, updated_by, updated_at
+             ) VALUES (?, ?, ?, ?, ?, ?)`
+        ).bind(
+          crypto.randomUUID(),
+          pageId,
+          content?.content ?? "[]",
+          content?.mdxCache ?? null,
+          content?.updatedBy ?? null,
+          now
+        )
+      );
+    }
   }
   await context.env.DB.batch(statements);
   await rebuildProjectSearchIndex(context.env.DB, mergeRequest.projectId);
@@ -244,7 +370,7 @@ async function mergeBranches(
 
 export function createMergeRequestRoutes(
   authorize?: ProjectAuthorizer,
-  publishEvent?: DataMutationEventPublisher,
+  publishEvent?: DataMutationEventPublisher
 ) {
   return new Hono<WorkerEnv>()
     .get(
@@ -333,7 +459,7 @@ export function createMergeRequestRoutes(
           ...comment,
           creator: user
             ? {
-                name: user.name,
+                name: user.name || user.email,
                 email: user.email,
                 avatarUrl: user.avatarUrl,
               }

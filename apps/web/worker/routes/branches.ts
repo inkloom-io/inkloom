@@ -260,8 +260,11 @@ export function createBranchesRoutes(authorize?: ProjectAuthorizer) {
             `INSERT INTO pages (
                 id, branch_id, folder_id, title, slug, path, position,
                 is_published, description, icon, subtitle,
-                title_section_hidden, title_icon_hidden, created_at, updated_at
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                title_section_hidden, title_icon_hidden, ai_generated,
+                ai_generation_job_id, ai_pending_review, ai_folder_slug,
+                seo_title, seo_description, og_image_asset_id, noindex,
+                created_at, updated_at
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
           ).bind(
             pageId,
             id,
@@ -276,6 +279,14 @@ export function createBranchesRoutes(authorize?: ProjectAuthorizer) {
             page.subtitle,
             page.titleSectionHidden ? 1 : 0,
             page.titleIconHidden ? 1 : 0,
+            page.aiGenerated ? 1 : 0,
+            page.aiGenerationJobId,
+            page.aiPendingReview ? 1 : 0,
+            page.aiFolderSlug,
+            page.seoTitle,
+            page.seoDescription,
+            page.ogImageAssetId,
+            page.noindex ? 1 : 0,
             now,
             now
           )
@@ -285,13 +296,14 @@ export function createBranchesRoutes(authorize?: ProjectAuthorizer) {
           statements.push(
             context.env.DB.prepare(
               `INSERT INTO page_contents (
-                  id, page_id, content, mdx_cache, updated_at
-                ) VALUES (?, ?, ?, ?, ?)`
+                  id, page_id, content, mdx_cache, updated_by, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?)`
             ).bind(
               crypto.randomUUID(),
               pageId,
               regenerateBlockIds(content.content),
               content.mdxCache,
+              content.updatedBy,
               now
             )
           );
